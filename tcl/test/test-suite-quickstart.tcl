@@ -38,9 +38,6 @@ remove-all-packet-headers       ; # removes all except common
 add-packet-header Flags IP TCP QS ; # hdrs reqd for validation test
 
 # FOR UPDATING GLOBAL DEFAULTS:
-Agent/TCP set precisionReduce_ false ;   # default changed on 2006/1/24.
-Agent/TCP set rtxcur_init_ 6.0 ;      # Default changed on 2006/01/21
-Agent/TCP set updated_rttvar_ false ;  # Variable added on 2006/1/21
 
 set wrap 90
 set wrap1 [expr $wrap * 512 + 40]
@@ -52,10 +49,6 @@ Agent/QSAgent set alloc_rate_ 0.5
 Agent/QSAgent set qs_enabled_ 1
 Agent/QSAgent set state_delay_ 0.35  
 # 0.35 seconds for past approvals
-Agent/TCP/Newreno/QS set rbp_scale_ 1.0
-
-# PS: Rate request is now in KBytes per second including headers
-Agent/TCP/Newreno/QS set rate_request_ 20
 
 Agent/TCPSink set qs_enabled_ true
 Agent/TCP set qs_enabled_ true
@@ -147,10 +140,30 @@ Topology/net2 instproc init ns {
     $em default pass
 }
 
+Class Topology/net3 -superclass Topology
+Topology/net3 instproc init ns {
+    $self instvar node_
+    set node_(s1) [$ns node]
+    set node_(s2) [$ns node]
+    set node_(r1) [$ns node]
+    set node_(r2) [$ns node]
+    set node_(s3) [$ns node]
+    set node_(s4) [$ns node]
+
+    $self next
+    $ns duplex-link $node_(s1) $node_(r1) 1000Mb 2ms DropTail
+    $ns duplex-link $node_(s2) $node_(r1) 1000Mb 3ms DropTail
+    $ns duplex-link $node_(r1) $node_(r2) 100Mb 500ms RED
+    $ns queue-limit $node_(r1) $node_(r2) 100
+    $ns queue-limit $node_(r2) $node_(r1) 100 
+    $ns duplex-link $node_(s3) $node_(r2) 1000Mb 4ms DropTail
+    $ns duplex-link $node_(s4) $node_(r2) 1000Mb 5ms DropTail
+}
+
 Class Test/no_quickstart -superclass TestSuite
 Test/no_quickstart instproc init {} {
     $self instvar net_ test_ guide_ sndr rcvr qs
-    set net_	net2
+    set net_	net3
     set test_ no_quickstart	
     set guide_  \
     "Two TCPs, no quickstart."
@@ -163,7 +176,7 @@ Test/no_quickstart instproc init {} {
 Test/no_quickstart instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ guide_ sndr rcvr qs
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $ns_ node-config -QS $qs
     $self setTopo
     set stopTime 6
@@ -189,14 +202,13 @@ Test/no_quickstart instproc run {} {
 Class Test/quickstart -superclass TestSuite
 Test/quickstart instproc init {} {
     $self instvar net_ test_ guide_ sndr rcvr qs
-    set net_	net2
+    set net_	net3
     set test_ quickstart	
     set guide_  \
-    "Two TCPs, TCP/Newreno/QS, with QuickStart."
-    set sndr TCP/Newreno/QS
-    set rcvr TCPSink/QS
+    "Two TCPs, TCP/Newreno, with QuickStart."
+    set sndr TCP/Newreno
+    set rcvr TCPSink
     set qs ON
-    Agent/TCP/Newreno/QS set rate_request_ 20
     Test/quickstart instproc run {} [Test/no_quickstart info instbody run ]
     $self next pktTraceFile
 }
@@ -204,7 +216,7 @@ Test/quickstart instproc init {} {
 Class Test/quickstart1 -superclass TestSuite
 Test/quickstart1 instproc init {} {
     $self instvar net_ test_ guide_ sndr rcvr qs
-    set net_	net2
+    set net_	net3
     set test_ quickstart1	
     set guide_  \
     "Two TCPs, plain TCP, with QuickStart."
@@ -218,7 +230,7 @@ Test/quickstart1 instproc init {} {
 Class Test/quickstart2 -superclass TestSuite
 Test/quickstart2 instproc init {} {
     $self instvar net_ test_ guide_ sndr rcvr qs
-    set net_	net2
+    set net_	net3
     set test_ quickstart2	
     set guide_  \
     "Two TCPs, Reno TCP, with QuickStart."
@@ -232,7 +244,7 @@ Test/quickstart2 instproc init {} {
 Class Test/quickstart3 -superclass TestSuite
 Test/quickstart3 instproc init {} {
     $self instvar net_ test_ guide_ sndr rcvr qs
-    set net_	net2
+    set net_	net3
     set test_ quickstart3	
     set guide_  \
     "Two TCPs, NewReno TCP, with QuickStart."
@@ -246,7 +258,7 @@ Test/quickstart3 instproc init {} {
 Class Test/quickstart4 -superclass TestSuite
 Test/quickstart4 instproc init {} {
     $self instvar net_ test_ guide_ sndr rcvr qs
-    set net_	net2
+    set net_	net3
     set test_ quickstart4	
     set guide_  \
     "Two TCPs, Sack TCP, with QuickStart."
@@ -273,7 +285,7 @@ Test/quickstart4full instproc init {} {
 Test/quickstart4full instproc run {} {
     global quiet wrap1 wrap
     $self instvar ns_ node_ testName_ guide_ sndr rcvr qs
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $ns_ node-config -QS $qs
     $self setTopo
     set stopTime 6
@@ -313,7 +325,7 @@ Test/quickstart4full instproc run {} {
 Class Test/high_request -superclass TestSuite
 Test/high_request instproc init {} {
     $self instvar net_ test_ guide_ sndr rcvr qs
-    set net_	net2
+    set net_	net3
     set test_ high_request	
     set guide_  \
     "A high quickstart request."
@@ -329,7 +341,7 @@ Test/high_request instproc init {} {
 Test/high_request instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ guide_ sndr rcvr qs
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $ns_ node-config -QS $qs
     $self setTopo
     set stopTime 6
@@ -355,7 +367,7 @@ Test/high_request instproc run {} {
 Class Test/bad_router -superclass TestSuite
 Test/bad_router instproc init {} {
     $self instvar net_ test_ guide_ sndr rcvr qs
-    set net_	net2
+    set net_	net3
     set test_ bad_router	
     set guide_  \
     "Not all routers support quickstart."
@@ -367,7 +379,7 @@ Test/bad_router instproc init {} {
 Test/bad_router instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ guide_ sndr rcvr qs
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $ns_ node-config -QS $qs
     $self setTopo
     set router $node_(r2)
@@ -395,7 +407,7 @@ Test/bad_router instproc run {} {
 Class Test/changing_rtt -superclass TestSuite
 Test/changing_rtt instproc init {} {
     $self instvar net_ test_ guide_ sndr rcvr qs
-    set net_	net2
+    set net_	net3
     set test_ changing_rtt	
     set guide_  \
     "Changing round-trip times."
@@ -407,7 +419,7 @@ Test/changing_rtt instproc init {} {
 Test/changing_rtt instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ guide_ sndr rcvr qs
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $ns_ node-config -QS $qs
     $self setTopo
     set stopTime 6
@@ -433,12 +445,12 @@ Test/changing_rtt instproc run {} {
 Class Test/changing_rtt1 -superclass TestSuite
 Test/changing_rtt1 instproc init {} {
     $self instvar net_ test_ guide_ sndr rcvr qs
-    set net_	net2
+    set net_	net3
     set test_ changing_rtt1	
     set guide_  \
     "Changing round-trip times."
-    set sndr TCP/Newreno/QS
-    set rcvr TCPSink/QS
+    set sndr TCP/Newreno
+    set rcvr TCPSink
     set qs ON
     Test/changing_rtt1 instproc run {} [Test/changing_rtt info instbody run ]
     $self next pktTraceFile
@@ -447,7 +459,7 @@ Test/changing_rtt1 instproc init {} {
 Class Test/no_acks_back -superclass TestSuite
 Test/no_acks_back instproc init {} {
     $self instvar net_ test_ guide_ sndr rcvr qs
-    set net_	net2
+    set net_	net3
     set test_ no_acks_back	
     set guide_  \
     "After the first exchange, sender receives no acks."
@@ -460,7 +472,7 @@ Test/no_acks_back instproc init {} {
 Test/no_acks_back instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ guide_ sndr rcvr qs
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $ns_ node-config -QS $qs
     $self setTopo
     set stopTime 10
@@ -499,7 +511,7 @@ Test/pkt_drops instproc init {} {
 Test/pkt_drops instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ guide_ sndr rcvr qs
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $ns_ node-config -QS $qs
     $self setTopo
     set stopTime 20
@@ -524,6 +536,46 @@ Test/pkt_drops instproc run {} {
 
     $ns_ run
 }
+
+Class Test/stats -superclass TestSuite
+Test/stats instproc init {} {
+    $self instvar net_ test_ guide_ sndr rcvr qs
+    set net_  net2
+    set test_ stats   
+    set guide_  \
+    "Two TCPs, statistics."
+    set sndr TCP/Newreno
+    set rcvr TCPSink
+    set qs ON
+    Agent/QSAgent set qs_enabled_ 0
+    $self next pktTraceFile
+}
+Test/stats instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ guide_ sndr rcvr qs
+    if {$quiet == "false"} {puts $guide_}
+    $ns_ node-config -QS $qs
+    $self setTopo
+    set stopTime 6
+
+    set tcp1 [$ns_ create-connection TCP/Newreno $node_(s1) TCPSink $node_(s3) 0]
+    $tcp1 set window_ 8
+    set ftp1 [new Application/FTP]
+    $ftp1 attach-agent $tcp1
+    $ns_ at 0.0 "$ftp1 start"
+
+    set tcp2 [$ns_ create-connection $sndr $node_(s1) $rcvr $node_(s3) 1]
+    $tcp2 set window_ 1000
+    $tcp2 set rate_request_ 20
+    set ftp2 [new Application/FTP]
+    $ftp2 attach-agent $tcp2
+    $ns_ at 2.0 "$ftp2 produce 80"
+
+    $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
+
+    $ns_ run
+}
+
 
 TestSuite runTest
 
