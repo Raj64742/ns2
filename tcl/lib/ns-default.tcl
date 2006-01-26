@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.358 2006/01/24 23:03:07 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.359 2006/01/26 05:24:15 sallyfloyd Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -1330,12 +1330,6 @@ Agent/LMS/Receiver set packetSize_ $lsize
 
 # Following defaults defined for TCP Quick Start
 # http://www.icir.org/floyd/quickstart.html
-
-Agent/TCP/Newreno/QS set rbp_scale_ 0.75
-Agent/TCP/Newreno/QS set rbp_segs_actually_paced_ 0
-Agent/TCP/Newreno/QS set rbp_inter_pace_delay_ 0
-Agent/TCP/Newreno/QS set rate_request_ 128
-
 Agent/QSAgent set qs_enabled_ 1
 Agent/QSAgent set old_classifier_ 0
 Agent/QSAgent set state_delay_ 0.2 ;	# Changed from 0.25 to 0.2, 2/25/05.
@@ -1345,15 +1339,6 @@ Agent/QSAgent set max_rate_ 256
 Agent/QSAgent set mss_ [Agent/TCP set packetSize_]
 Agent/QSAgent set rate_function_ 2
 Agent/QSAgent set algorithm_ 3	; 	# Changed from 2 to 3, 2/25/05.
-
-Agent/TCPSink/QS set sport_        0
-Agent/TCPSink/QS set dport_        0         
-
-Agent/TCPSink/QS set packetSize_ 40
-Agent/TCPSink/QS set maxSackBlocks_ 3
-Agent/TCPSink/QS set ts_echo_bugfix_ false
-Agent/TCPSink/QS set generateDSacks_ false
-Agent/TCPSink/QS set RFC2581_immediate_ack_ true
 
 Queue set util_weight_ 0.8
 Queue set util_check_intv_ 0.2 ;	# Changed from 1 to 0.2, 2/25/05.

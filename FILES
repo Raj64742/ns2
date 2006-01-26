@@ -3017,7 +3017,6 @@ tcp/tcp-full.h
 tcp/tcp-int.cc
 tcp/tcp-int.h
 tcp/tcp-newreno.cc
-tcp/tcp-qs.cc
 tcp/tcp-rbp.cc
 tcp/tcp-reno.cc
 tcp/tcp-rfc793edu.cc
