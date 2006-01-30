@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.359 2006/01/26 05:24:15 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.360 2006/01/30 21:27:51 mweigle Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -679,7 +679,8 @@ Snoop set debug_ false
  Mac/802_11 set ShortRetryLimit_       7               ;# retransmittions
  Mac/802_11 set LongRetryLimit_        4               ;# retransmissions
 
-
+Mac/802_11 set bugFix_timer_ true;         # fix for when RTS/CTS not used
+# details at http://www.dei.unipd.it/wdyn/?IDsezione=2435
 
 # 
 # Support for Abstract LAN

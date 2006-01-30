@@ -76,7 +76,7 @@ public:
 
 
 
-	void	start(int cw, int idle);
+	void	start(int cw, int idle, double difs = 0.0);
 	void	handle(Event *e);
 	void	pause(void);
 	void	resume(double difs);

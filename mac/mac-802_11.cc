@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.50 2005/09/18 23:33:33 tomh Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.51 2006/01/30 21:27:51 mweigle Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  * Contributions by:
@@ -220,6 +220,8 @@ Mac802_11::Mac802_11() :
 		bind_bw("dataRate_", &dataRate_);
 	else
 		dataRate_ = bandwidth_;
+
+	bind_bool("bugFix_timer_", &bugFix_timer_);
 
         EOTtarget_ = 0;
        	bss_id_ = IBSS_ID;
@@ -524,8 +526,15 @@ Mac802_11::tx_resume()
 		mhDefer_.start(phymib_.getSIFS());
 	} else if(pktRTS_) {
 		if (mhBackoff_.busy() == 0) {
-			rTime = (Random::random() % cw_) * phymib_.getSlotTime();
-			mhDefer_.start( phymib_.getDIFS() + rTime);
+			if (bugFix_timer_) {
+				mhBackoff_.start(cw_, is_idle(), 
+						 phymib_.getDIFS());
+			}
+			else {
+				rTime = (Random::random() % cw_) * 
+					phymib_.getSlotTime();
+				mhDefer_.start( phymib_.getDIFS() + rTime);
+			}
 		}
 	} else if(pktTx_) {
 		if (mhBackoff_.busy() == 0) {
@@ -534,9 +543,16 @@ Mac802_11::tx_resume()
 			
 			if ((u_int32_t) ch->size() < macmib_.getRTSThreshold()
 			    || (u_int32_t) ETHER_ADDR(mh->dh_ra) == MAC_BROADCAST) {
-				rTime = (Random::random() % cw_)
-					* phymib_.getSlotTime();
-				mhDefer_.start(phymib_.getDIFS() + rTime);
+				if (bugFix_timer_) {
+					mhBackoff_.start(cw_, is_idle(), 
+							 phymib_.getDIFS());
+				}
+				else {
+					rTime = (Random::random() % cw_)
+						* phymib_.getSlotTime();
+					mhDefer_.start(phymib_.getDIFS() + 
+						       rTime);
+				}
                         } else {
 				mhDefer_.start(phymib_.getSIFS());
                         }
@@ -1149,9 +1165,16 @@ Mac802_11::send(Packet *p, Handler *h)
 				 * If we are already deferring, there is no
 				 * need to reset the Defer timer.
 				 */
-				rTime = (Random::random() % cw_)
-					* (phymib_.getSlotTime());
-				mhDefer_.start(phymib_.getDIFS() + rTime);
+				if (bugFix_timer_) {
+					 mhBackoff_.start(cw_, is_idle(), 
+							  phymib_.getDIFS());
+				}
+				else {
+					rTime = (Random::random() % cw_)
+						* (phymib_.getSlotTime());
+					mhDefer_.start(phymib_.getDIFS() + 
+						       rTime);
+				}
 			}
 		} else {
 			/*

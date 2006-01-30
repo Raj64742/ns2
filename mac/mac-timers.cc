@@ -222,7 +222,7 @@ BackoffTimer::handle(Event *)
 }
 
 void
-BackoffTimer::start(int cw, int idle)
+BackoffTimer::start(int cw, int idle, double difs)
 {
 	Scheduler &s = Scheduler::instance();
 
@@ -239,13 +239,13 @@ BackoffTimer::start(int cw, int idle)
 #ifdef USE_SLOT_TIME
 	ROUND_TIME();
 #endif
-	difs_wait = 0.0;
+	difs_wait = difs;
 
 	if(idle == 0)
 		paused_ = 1;
 	else {
-		assert(rtime >= 0.0);
-		s.schedule(this, &intr, rtime);
+		assert(rtime + difs_wait >= 0.0);
+		s.schedule(this, &intr, rtime + difs_wait);
 	}
 }
 

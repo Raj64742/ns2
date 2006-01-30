@@ -12,6 +12,8 @@ Agent/TCP set minrto_ 1
 Agent/TCP set windowInit_ 1
 # The default is being changed to 2.
 Agent/TCP set singledup_ 0
+Mac/802_11 set bugFix_timer_ false;     # default changed 2006/1/30
+
 # The default is being changed to 1
 # Copyright (c) 1998 University of Southern California.
 # All rights reserved.                                            

@@ -15,6 +15,7 @@ Agent/TCP set windowInit_ 1
 # The default is being changed to 2.
 Agent/TCP set singledup_ 0
 # The default is being changed to 1
+Mac/802_11 set bugFix_timer_ false;     # default changed 2006/1/30
 #
 # Copyright (c) 1998 University of Southern California.
 # All rights reserved.                                            
@@ -32,7 +33,7 @@ Agent/TCP set singledup_ 0
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-energy.tcl,v 1.14 2006/01/24 23:00:06 sallyfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-energy.tcl,v 1.15 2006/01/30 21:27:52 mweigle Exp $
 
 # To run all tests: test-all-energy
 # to run individual test:

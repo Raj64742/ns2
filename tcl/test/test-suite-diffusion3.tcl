@@ -44,6 +44,7 @@ Agent/TCP set tcpTick_ 0.1
 Agent/TCP set rfc2988_ false
 # The default for rfc2988_ is being changed to true.
 Agent/TCP set exitFastRetrans_ false
+Mac/802_11 set bugFix_timer_ false;     # default changed 2006/1/30
 
 if {![TclObject is-class Agent/DiffusionRouting]} {
 	puts "Diffusion3 module is not present; validation skipped"

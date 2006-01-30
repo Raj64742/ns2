@@ -3,6 +3,7 @@ Agent/TCP set tcpTick_ 0.1
 # The default for tcpTick_ is being changed to reflect a changing reality.
 Agent/TCP set rfc2988_ false
 # The default for rfc2988_ is being changed to true.
+Mac/802_11 set bugFix_timer_ false;     # default changed 2006/1/30
 #
 # Copyright (c) 1998,2000 University of Southern California.
 # All rights reserved.                                            
@@ -20,7 +21,7 @@ Agent/TCP set rfc2988_ false
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-newnode.tcl,v 1.26 2006/01/24 23:00:08 sallyfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-newnode.tcl,v 1.27 2006/01/30 21:27:52 mweigle Exp $
 
 # FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set precisionReduce_ false ;   # default changed on 2006/1/24.

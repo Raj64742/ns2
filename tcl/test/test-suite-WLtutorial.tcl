@@ -5,6 +5,7 @@ Agent/TCP set rfc2988_ false
 # The default for rfc2988_ is being changed to true.
 Agent/TCP set SetCWRonRetransmit_ true
 # Changing the default value.
+Mac/802_11 set bugFix_timer_ false;     # default changed 2006/1/30
 #
 # Copyright (c) 1998,2000 University of Southern California.
 # All rights reserved.                                            
@@ -22,7 +23,7 @@ Agent/TCP set SetCWRonRetransmit_ true
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-WLtutorial.tcl,v 1.17 2006/01/24 23:00:06 sallyfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-WLtutorial.tcl,v 1.18 2006/01/30 21:27:52 mweigle Exp $
 
 ###########################################################################
 # IMPORTANT NOTE:

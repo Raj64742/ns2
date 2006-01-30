@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.h,v 1.24 2004/04/02 01:00:25 xuanc Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.h,v 1.25 2006/01/30 21:27:51 mweigle Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  * wireless-mac-802_11.h
@@ -258,6 +258,11 @@ protected:
 
 private:
 	int		command(int argc, const char*const* argv);
+
+	/* In support of bug fix described at
+	 * http://www.dei.unipd.it/wdyn/?IDsezione=2435	 
+	 */
+	int bugFix_timer_;
 
 	/*
 	 * Called by the timers.

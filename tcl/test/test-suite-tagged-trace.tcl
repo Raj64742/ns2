@@ -16,12 +16,13 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tagged-trace.tcl,v 1.7 2006/01/24 23:00:08 sallyfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tagged-trace.tcl,v 1.8 2006/01/30 21:27:52 mweigle Exp $
 
 # FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set precisionReduce_ false ;   # default changed on 2006/1/24.
 Agent/TCP set rtxcur_init_ 6.0 ;      # Default changed on 2006/01/21
 Agent/TCP set updated_rttvar_ false ;  # Variable added on 2006/1/21
+Mac/802_11 set bugFix_timer_ false;     # default changed 2006/1/30
 
 # This test suite is for validating the tagged trace format
 

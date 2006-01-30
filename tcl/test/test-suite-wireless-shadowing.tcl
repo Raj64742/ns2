@@ -26,6 +26,8 @@
 # To view a list of available test to run with this script:
 # ns test-suite-wireless-shadowing.tcl
 
+Mac/802_11 set bugFix_timer_ false;     # default changed 2006/1/30
+
 Class TestSuite
 
 # wireless model using destination sequence distance vector
