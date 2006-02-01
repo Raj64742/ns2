@@ -108,7 +108,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.118 2005/08/02 04:02:58 tomh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.119 2006/02/01 14:27:12 mweigle Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -1983,8 +1983,8 @@ trimthenstep6:
 			fprintf(stderr, "%f: FullTcpAgent::recv(%s) got packet lacking ACK (state:%d): ",
 				now(), name(), state_);
 			prpkt(pkt);
-			goto drop;
 		}
+		goto drop;
 	}
 
 	/*
