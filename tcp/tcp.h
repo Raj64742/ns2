@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.121 2005/06/20 16:30:30 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.122 2006/02/01 06:40:43 sallyfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -248,7 +248,7 @@ protected:
 	void reset_qoption();	/* for QOption with EnblRTTCtr_ */
 	void rtt_counting();	/* for QOption with EnblRTTCtr_ */
 	int network_limited();	/* Sending limited by network? */
-	double limited_slow_start(double cwnd, double max_ssthresh, double increment);
+	double limited_slow_start(double cwnd, int max_ssthresh, double increment);
 				/* Limited slow-start for high windows */
 	virtual int numdupacks(double cwnd); 	/* for getting numdupacks_ */
 	virtual void processQuickStart(Packet *pkt);
@@ -455,7 +455,7 @@ protected:
         /* end of section for experimental high-speed TCP */
 
 	/* for Quick-Start, experimental. */
-	int rate_request_;      /* Rate request in Kbps, for QuickStart.  */
+	int rate_request_;      /* Rate request in KBps, for QuickStart.  */
 	int qs_enabled_;        /* to enable QuickStart. */
 	int qs_requested_;
 	int qs_approved_;
