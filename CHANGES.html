@@ -16,11 +16,42 @@ with the most recent changes coming first.
 <hr>
 <h3>ns-2.30 PENDING RELEASE</h3>
 <ul>
-<li><b>[mweigle]</b> Mon Jan 30 16:19:41 EST 2006:
-Applied the bug fix for Mac/802_11 when RTS/CTS is not used, as described
-in detail at http://www.dei.unipd.it/wdyn/?IDsezione=2435.  This bug fix
-is applied by default, but can be ignored with
-Mac/802_11 set bugFix_timer_ false
+<p><li><b>[mweigle]</b> Thu Feb  2 12:54:05 EST 2006:
+<br>Adding DelayBox and PackMimeHTTP modules.  DelayBox provides
+per-flow loss, delay, and/or bottleneck speed emulation for TCP
+(one-way or FullTcp) flows. PackMimeHTTP is an HTTP/1.0 and HTTP/1.1
+(persistent, but non-pipelined) traffic generator that uses FullTcp and
+is based on the <a
+href="http://stat.bell-labs.com/InternetTraffic/packmime.html">PackMime
+Internet traffic model</a> developed at Bell Labs. <i>Note:</i>: Both of these 
+modules use STL.
+<p>Documentation has been added for both of these to the ns-manual,
+validation scripts are in tcl/test/test-all-delaybox and
+tcl/test/test-all-packmime and example scripts are in tcl/ex/delaybox/
+and tcl/ex/packmime/
+<p>In support of these modules, the following existing files have
+been changed:
+<ul>
+ <li>common/packet.h - add the packet type PT_BLTRACE for the
+ open-loop version of PackMime
+ <li>tcp/tcp-full.{cc,h} - add closed_ = 0; close_on_empty_ = FALSE;
+ to FullTcpAgent::reset() and moved reset() from protected to public
+ to facilitate the re-use of TCP agents
+ <li>tools/rng.h - add declarations for several random variables that
+ are defined in packmime/packmime_HTTP_rng.cc. These are along the
+ lines of lognormal(), pareto(), etc. that are already in rng.h.  We
+ may want to move the definitions to rng.cc (like the others) at some
+ point in the future.
+ <li>tools/ranvar.{cc,h} - added the Weibull Random Variable
+ (RandomVariable/Weibull)
+</ul>
+
+<p><li><b>[mweigle]</b> Mon Jan 30 16:19:41 EST 2006:
+<br>Applied the bug fix for Mac/802_11 when RTS/CTS is not used, as
+described in detail at 
+<a href="http://www.dei.unipd.it/wdyn/?IDsezione=2435">http://www.dei.unipd.it/wdyn/?IDsezione=2435</a>.  This bug
+fix is applied by default, but can be ignored with Mac/802_11
+set bugFix_timer_ false
 
 <li><b>[floyd]<b> Mon Jan 23 15:34:13 PST 2006:
 Changed the default for TCP's precisionReduce_ to true,

@@ -51,7 +51,7 @@
  *  // - Michele Weigle, University of North Carolina
  *  // (mcweigle@cs.unc.edu)  October 10, 2001
  * 
- * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.h,v 1.25 2005/07/30 22:34:46 tomh Exp $ (LBL)";
+ * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.h,v 1.26 2006/02/02 18:19:44 mweigle Exp $ (LBL)";
  */
 
 /* new random number generator */
@@ -287,6 +287,32 @@ public:
 	inline double lognormal(double avg, double std) { 
 		return (exp (normal(avg, std))); 
 	}
+
+	inline double rweibull(double shape, double scale) {
+		return (pow (-log (uniform()), 1/shape) * scale);
+	}
+	inline double qweibull(double p, double shape, double scale) {
+		return (pow (-log(1-p), 1/shape) * scale);
+	}
+
+#define LOG2 0.6931471806
+  	inline double logit(double x_) {
+		return log(x_/(1-x_))/LOG2;
+	}
+	inline double logitinv(double x_) {
+		return pow(2, x_)/(1+pow(2.0, x_));
+	}
+
+	/*
+	  Declarations for random variables used in PackMime
+	  Definitions are in packmime/packmime_HTTP_rng.cc
+	*/
+	double gammln(double xx);       
+	double pnorm(double q);
+	double rnorm();
+	int rbernoulli(double p);
+	double rgamma(double a, double scale);
+	double exp_rand();
 
 protected:   // need to be public?
 #ifdef OLD_RNG

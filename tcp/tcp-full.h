@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.54 2005/06/19 00:33:27 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.55 2006/02/02 18:19:44 mweigle Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -131,6 +131,7 @@ public:
         virtual void sendmsg(int nbytes, const char *flags = 0);
         virtual int& size() { return maxseg_; } //FullTcp uses maxseg_ for size_
 	virtual int command(int argc, const char*const* argv);
+       	virtual void reset();       		// reset to a known point
 protected:
 	virtual void delay_bind_init_all();
 	virtual int delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer);
@@ -179,7 +180,6 @@ protected:
 	virtual void dupack_action();	// what to do on dup acks
 	virtual void pack_action(Packet*);	// action on partial acks
 	virtual void ack_action(Packet*);	// action on acks
-       	virtual void reset();       		// reset to a known point
 	virtual void send_much(int force, int reason, int maxburst = 0);
 	virtual int build_options(hdr_tcp*);	// insert opts, return len
 	virtual int reass(Packet*);		// reassemble: pass to ReassemblyQueue

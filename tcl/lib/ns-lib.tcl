@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.272 2005/12/02 20:59:40 tom_henderson Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.273 2006/02/02 18:19:44 mweigle Exp $
 
 
 #
@@ -224,6 +224,8 @@ if {[ns-hasSTL] == 1} {
 source ns-nix.tcl
 source ../pgm/ns-pgm.tcl
 source ../rtglib/ns-rtProtoLS.tcl
+source ../delaybox/delaybox.tcl
+source ../packmime/packmime.tcl
 }
 
 source ns-qsnode.tcl

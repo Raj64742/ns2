@@ -108,7 +108,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.119 2006/02/01 14:27:12 mweigle Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.120 2006/02/02 18:19:44 mweigle Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -618,6 +618,9 @@ FullTcpAgent::reset()
 		recent_ = recent_age_ = -1.0;
 
 	fastrecov_ = FALSE;
+
+	closed_ = 0;
+	close_on_empty_ = FALSE;
 }
 
 /*

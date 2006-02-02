@@ -19,7 +19,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/validate,v 1.144 2005/12/28 03:55:51 sallyfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/validate,v 1.145 2006/02/02 18:19:44 mweigle Exp $
 
 try () {
         for excluding in $cygwin_exclude; do
@@ -78,7 +78,7 @@ wireless-diffusion wireless-lan-newnode satellite WLtutorial \
 source-routing \
 misc tagged-trace message rng xcp wpan \
 energy snoop \
-
+packmime delaybox \
 # wireless-lan-gaf
 
 # Validation tests that still use full packet headers:

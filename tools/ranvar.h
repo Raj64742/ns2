@@ -38,7 +38,7 @@
  * this exception also makes it possible to release a modified version
  * which carries forward this exception.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.h,v 1.16 2005/08/26 05:05:31 tomh Exp $ (Xerox)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.h,v 1.17 2006/02/02 18:19:44 mweigle Exp $ (Xerox)
  */
 
 #ifndef ns_ranvar_h
@@ -185,6 +185,24 @@ class HyperExponentialRandomVariable : public RandomVariable {
 	double avg_;
 	double cov_;
 	double alpha_;
+};
+
+class WeibullRandomVariable : public RandomVariable {
+public:
+        virtual double value();
+        virtual double avg();
+        WeibullRandomVariable();
+        WeibullRandomVariable(double shape, double scale);
+        WeibullRandomVariable(double shape, double scale, RNG* rng);
+        double* shapep() { return &shape_; };
+        double* scalep() { return &scale_; };
+        double shape()   { return shape_; };
+        double scale()   { return scale_; };
+        void setshape(double d)  { shape_ = d; };       
+        void setscale(double d)  { scale_ = d; };
+private:
+        double shape_;
+        double scale_;
 };
 
 

@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.360 2006/01/30 21:27:51 mweigle Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.361 2006/02/02 18:19:44 mweigle Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -522,6 +522,8 @@ RandomVariable/Normal set avg_ 0.0
 RandomVariable/Normal set std_ 1.0
 RandomVariable/LogNormal set avg_ 1.0
 RandomVariable/LogNormal set std_ 1.0
+RandomVariable/Weibull set scale_ 1.0
+RandomVariable/Weibull set shape_ 1.0
 
 ADC/MS set debug_ false
 ADC/HB set debug_ false

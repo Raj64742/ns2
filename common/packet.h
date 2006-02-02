@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.98 2005/09/18 23:33:31 tomh Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.99 2006/02/02 18:19:44 mweigle Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -167,6 +167,9 @@ enum packet_t {
 	// HDLC packet
 	PT_HDLC,
 
+	// Bell Labs Traffic Trace Type (PackMime OL)
+	PT_BLTRACE, 
+
 	// insert new packet types here
 	PT_NTYPE // This MUST be the LAST one
 };
@@ -262,6 +265,9 @@ public:
 
 		// XCP
 		name_[PT_XCP]="xcp";
+
+		// Bell Labs (PackMime OL)
+		name_[PT_BLTRACE]="BellLabsTrace";
 		
 		name_[PT_NTYPE]= "undefined";
 	}

@@ -41,7 +41,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.cc,v 1.19 2005/08/26 05:05:31 tomh Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.cc,v 1.20 2006/02/02 18:19:44 mweigle Exp $ (Xerox)";
 #endif
 
 #include <stdio.h>
@@ -304,6 +304,59 @@ double HyperExponentialRandomVariable::value()
 	return(res);
 }
 
+static class WeibullRandomVariableClass : public TclClass {
+ public:
+        WeibullRandomVariableClass() : TclClass("RandomVariable/Weibull") {}
+        TclObject* create(int argc, const char*const* argv) {
+                if (argc == 6) {
+                        return (new WeibullRandomVariable ((double) atof(argv[4]),
+                                                           (double) atof(argv[5])));
+                }
+                else if (argc == 7) {
+                        // shape, scale, RNG
+                        RNG* rng = (RNG*)TclObject::lookup(argv[6]);
+                        return (new WeibullRandomVariable ((double) atof(argv[4]),
+                                                           (double) atof(argv[5]),
+                                                           rng));
+                }
+                else {
+                        return(new WeibullRandomVariable());
+                }
+        }                                           
+} class_weibullranvar;
+
+WeibullRandomVariable::WeibullRandomVariable()
+{        
+	bind("shape_", &shape_);
+        bind("scale_", &scale_);
+        rng_ = new RNG();
+}
+
+WeibullRandomVariable::WeibullRandomVariable(double scale, double shape)
+{
+        shape_ = shape;
+        scale_ = scale;
+        rng_ = new RNG();
+}
+
+WeibullRandomVariable::WeibullRandomVariable(double scale, double shape, 
+					     RNG* rng) 
+{
+        shape_ = shape;
+        scale_ = scale;
+        rng_ = rng;
+}
+
+double WeibullRandomVariable::avg(void)         
+{
+        return 0;
+}
+
+double WeibullRandomVariable::value()
+{
+        return(rng_->rweibull(scale_, shape_));
+}
+                                                                               
 /*
 // Empirical Random Variable:
 //  CDF input from file with the following column
