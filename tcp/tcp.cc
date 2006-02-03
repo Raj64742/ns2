@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.165 2006/02/01 06:40:43 sallyfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.166 2006/02/03 05:42:51 sallyfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -698,7 +698,7 @@ void TcpAgent::output(int seqno, int reason)
 			// dataout is kilobytes queued for sending
 			int dataout = (curseq_ - maxseq_ - 1) * (size_ + headersize()) / 1024;
 			int qs_rr = rate_request_;
-			if (qs_request_mode_ == 1) {
+			if (qs_request_mode_ == 1 && qs_rtt_ > 0) {
 				// PS: Avoid making unnecessary QS requests
 				// use a rough estimation of RTT in qs_rtt_
 				// to calculate the desired rate from dataout.
