@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.26 2006/01/24 23:00:07 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.27 2006/02/03 05:40:08 sallyfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -211,14 +211,16 @@ TestSuite instproc drops4 {delayPkt delay} {
 # single packet drop
 Class Test/sack1 -superclass TestSuite
 Test/sack1 instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_	net0
     set test_	sack1
+    set guide_      "Guide: SACK TCP, single packet drop"
     $self next pktTraceFile
 }
 Test/sack1 instproc run {} {
-    $self instvar ns_ node_ testName_
+    $self instvar ns_ node_ testName_ guide_
     $self setTopo
+    puts $guide_
 
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
     $tcp1 set window_ 14
@@ -235,14 +237,16 @@ Test/sack1 instproc run {} {
 
 Class Test/sack1z -superclass TestSuite
 Test/sack1z instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_	net0
     set test_	sack1z
+    set guide_      "Guide: SACK TCP, single packet drop, with maxburst"
     $self next pktTraceFile
 }
 Test/sack1z instproc run {} {
-    $self instvar ns_ node_ testName_
+    $self instvar ns_ node_ testName_ guide_
     $self setTopo
+    puts $guide_
 
     Agent/TCP set maxburst_ 4
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
@@ -261,14 +265,16 @@ Test/sack1z instproc run {} {
 # three packet drops
 Class Test/sack1a -superclass TestSuite
 Test/sack1a instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_	net0
     set test_	sack1a
+    set guide_      "Guide: SACK TCP, three packet drops"
     $self next pktTraceFile
 }
 Test/sack1a instproc run {} {
-    $self instvar ns_ node_ testName_
+    $self instvar ns_ node_ testName_ guide_
     $self setTopo
+    puts $guide_
 
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
     $tcp1 set window_ 20
@@ -286,14 +292,16 @@ Test/sack1a instproc run {} {
 # three packet drops
 Class Test/sack1aa -superclass TestSuite
 Test/sack1aa instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_	net0
     set test_	sack1aa
+    set guide_      "Guide: SACK TCP, three packet drops, with maxburst"
     $self next pktTraceFile
 }
 Test/sack1aa instproc run {} {
-    $self instvar ns_ node_ testName_
+    $self instvar ns_ node_ testName_ guide_
     $self setTopo
+    puts $guide_
 
     Agent/TCP set maxburst_ 4
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
@@ -311,14 +319,16 @@ Test/sack1aa instproc run {} {
 
 Class Test/sack1b -superclass TestSuite
 Test/sack1b instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_	net0
     set test_	sack1b
+    set guide_      "Guide: SACK TCP, many packet drops, window=26"
     $self next pktTraceFile
 }
 Test/sack1b instproc run {} {
-    $self instvar ns_ node_ testName_
+    $self instvar ns_ node_ testName_ guide_
     $self setTopo
+    puts $guide_
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
     $tcp1 set window_ 26
     set ftp1 [$tcp1 attach-app FTP]
@@ -334,14 +344,16 @@ Test/sack1b instproc run {} {
 
 Class Test/sack1c -superclass TestSuite
 Test/sack1c instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_	net0
     set test_	sack1c
+    set guide_      "Guide: SACK TCP, many packet drops, window=27"
     $self next pktTraceFile
 }
 Test/sack1c instproc run {} {
-    $self instvar ns_ node_ testName_
+    $self instvar ns_ node_ testName_ guide_
     $self setTopo
+    puts $guide_
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
     $tcp1 set window_ 27
     set ftp1 [$tcp1 attach-app FTP]
@@ -358,14 +370,16 @@ Test/sack1c instproc run {} {
 
 Class Test/sack3 -superclass TestSuite
 Test/sack3 instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_	net0
     set test_	sack3
+    set guide_      "Guide: SACK TCP, drops from a small window"
     $self next pktTraceFile
 }
 Test/sack3 instproc run {} {
-    $self instvar ns_ node_ testName_
+    $self instvar ns_ node_ testName_ guide_
     $self setTopo
+    puts $guide_
     $ns_ queue-limit $node_(r1) $node_(k1) 8
     $ns_ queue-limit $node_(k1) $node_(r1) 8
 	
@@ -393,14 +407,16 @@ Test/sack3 instproc run {} {
 
 Class Test/sack5 -superclass TestSuite
 Test/sack5 instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_	net1
     set test_	sack5
+    set guide_      "Guide: SACK TCP, many drops, without maxburst"
     $self next pktTraceFile
 }
 Test/sack5 instproc run {} {
-    $self instvar ns_ node_ testName_
+    $self instvar ns_ node_ testName_ guide_
     $self setTopo
+    puts $guide_
 
     $ns_ delay $node_(s1) $node_(r1) 3ms
     $ns_ delay $node_(r1) $node_(s1) 3ms
@@ -429,14 +445,16 @@ Test/sack5 instproc run {} {
 
 Class Test/sack5a -superclass TestSuite
 Test/sack5a instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_	net1
     set test_	sack5a
+    set guide_      "Guide: SACK TCP, many drops, with maxburst"
     $self next pktTraceFile
 }
 Test/sack5a instproc run {} {
-    $self instvar ns_ node_ testName_
+    $self instvar ns_ node_ testName_ guide_
     $self setTopo
+    puts $guide_
 
     Agent/TCP set maxburst_ 4
     $ns_ delay $node_(s1) $node_(r1) 3ms
@@ -467,14 +485,16 @@ Test/sack5a instproc run {} {
 # shows a long recovery from sack.
 Class Test/sackB2 -superclass TestSuite
 Test/sackB2 instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_	net0
     set test_	sackB2
+    set guide_      "Guide: SACK TCP, a connection with a long recovery"
     $self next pktTraceFile
 }
 Test/sackB2 instproc run {} {
-    $self instvar ns_ node_ testName_
+    $self instvar ns_ node_ testName_ guide_
     $self setTopo
+    puts $guide_
     $ns_ queue-limit $node_(r1) $node_(k1) 9
 
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
@@ -500,14 +520,16 @@ Test/sackB2 instproc run {} {
 # two packets dropped
 Class Test/sackB4 -superclass TestSuite
 Test/sackB4 instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_	net2
     set test_	sackB4
+    set guide_      "Guide: SACK TCP, two packets dropped"
     $self next pktTraceFile
 }
 Test/sackB4 instproc run {} {
-    $self instvar ns_ node_ testName_
+    $self instvar ns_ node_ testName_ guide_
     $self setTopo
+    puts $guide_
     $ns_ queue-limit $node_(r1) $node_(r2) 29
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(r2) 0]
     $tcp1 set window_ 40
@@ -526,14 +548,16 @@ Test/sackB4 instproc run {} {
 # two packets dropped
 Class Test/sackB4a -superclass TestSuite
 Test/sackB4a instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_	net2
     set test_	sackB4a
+    set guide_      "Guide: SACK TCP, two packets dropped, with maxburst"
     $self next pktTraceFile
 }
 Test/sackB4a instproc run {} {
-    $self instvar ns_ node_ testName_
+    $self instvar ns_ node_ testName_ guide_
     $self setTopo
+    puts $guide_
     $ns_ queue-limit $node_(r1) $node_(r2) 29
     Agent/TCP set maxburst_ 4
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(r2) 0]
@@ -554,15 +578,17 @@ Test/sackB4a instproc run {} {
 # Four packets delayed, no packets dropped.
 Class Test/FalsePipe -superclass TestSuite
 Test/FalsePipe instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_ net3
     set test_ FalsePipe
+    set guide_      "Guide: SACK TCP, four packets delayed"
     $self next pktTraceFile
 }
 
 Test/FalsePipe instproc run {} {
-    $self instvar ns_ node_ testName_
+    $self instvar ns_ node_ testName_ guide_
     $self setTopo
+    puts $guide_
     $self June01defaults
     $ns_ eventtrace-all
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 1]
@@ -582,15 +608,17 @@ Test/FalsePipe instproc run {} {
 # One packet dropped, four packets delayed.
 Class Test/FalsePipe1 -superclass TestSuite
 Test/FalsePipe1 instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_ net3
     set test_ FalsePipe1
+    set guide_      "Guide: SACK TCP, one packet dropped and four packets delayed"
     $self next pktTraceFile
 }
 
 Test/FalsePipe1 instproc run {} {
-    $self instvar ns_ node_ testName_
+    $self instvar ns_ node_ testName_ guide_
     $self setTopo
+    puts $guide_
     $self June01defaults
     $ns_ eventtrace-all
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 1]
@@ -609,14 +637,16 @@ Test/FalsePipe1 instproc run {} {
 
 Class Test/sack_dupacks -superclass TestSuite
 Test/sack_dupacks instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_	net4
     set test_	sack_dupacks
+    set guide_      "Guide: SACK TCP, Fast Recovery with standard numdupacks"
     $self next pktTraceFile
 }
 Test/sack_dupacks instproc run {} {
-    $self instvar ns_ node_ testName_
+    $self instvar ns_ node_ testName_ guide_
     $self setTopo
+    puts $guide_
 
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
     $tcp1 set window_ 200
@@ -636,9 +666,10 @@ Test/sack_dupacks instproc run {} {
 #
 Class Test/sack_dupacks1 -superclass TestSuite
 Test/sack_dupacks1 instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_	net4
     set test_	sack_dupacks1
+    set guide_      "Guide: SACK TCP, Fast Recovery with modified numdupacks?"
     Agent/TCP set numdupacksFrac_ 4
     Test/sack_dupacks1 instproc run {} [Test/sack_dupacks info instbody run] 
     $self next pktTraceFile
@@ -647,14 +678,16 @@ Test/sack_dupacks1 instproc init {} {
 # delayed ack not implemented yet
 #Class Test/delayedSack -superclass TestSuite
 #Test/delayedSack instproc init {} {
-#    $self instvar net_ test_
+#    $self instvar net_ test_ guide_
 #    set net_    net0
 #    set test_	delayedSack
+#    set guide_      "simple"
 #    $self next pktTraceFile
 #}
 #Test/delayedSack instproc run {} {
-#     $self instvar ns_ node_ testName_
+#     $self instvar ns_ node_ testName_ guide_
 #     $self setTopo
+#     puts $guide_
 #     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
 #     $tcp1 set window_ 50
 # 
@@ -674,14 +707,16 @@ Test/sack_dupacks1 instproc init {} {
 ## segregation
 #Class Test/phaseSack -superclass TestSuite
 #Test/phaseSack instproc init {} {
-#    $self instvar net_ test_
+#    $self instvar net_ test_ guide_
 #    set net_	net0
 #    set test_	phaseSack
+#    set guide_      "simple"
 #    $self next pktTraceFile
 #}
 #Test/phaseSack instproc run {} {
-#    $self instvar ns_ node_ testName_
+#    $self instvar ns_ node_ testName_ guide_
 #    $self setTopo
+#    puts $guide_
 #
 #    $ns_ delay $node_(s2) $node_(r1) 3ms
 #    $ns_ delay $node_(r1) $node_(s2) 3ms
@@ -710,14 +745,16 @@ Test/sack_dupacks1 instproc init {} {
 ## random overhead, but segregation remains 
 #Class Test/phaseSack2 -superclass TestSuite
 #Test/phaseSack2 instproc init {} {
-#    $self instvar net_ test_
+#    $self instvar net_ test_ guide_
 #    set net_	net0
 #    set test_	phaseSack2
+#    set guide_      "simple"
 #    $self next pktTraceFile
 #}
 #Test/phaseSack2 instproc run {} {
-#    $self instvar ns_ node_ testName_
+#    $self instvar ns_ node_ testName_ guide_
 #    $self setTopo
+#    puts $guide_
 #
 #    $ns_ delay $node_(s2) $node_(r1) 3ms
 #    $ns_ delay $node_(r1) $node_(s2) 3ms
@@ -748,14 +785,16 @@ Test/sack_dupacks1 instproc init {} {
 ## no segregation, because of random overhead
 #Class Test/phaseSack3 -superclass TestSuite
 #Test/phaseSack3 instproc init {} {
-#    $self instvar net_ test_
+#    $self instvar net_ test_ guide_
 #    set net_	net0
 #    set test_	phaseSack3
+#    set guide_      "simple"
 #    $self next pktTraceFile
 #}
 #Test/phaseSack3 instproc run {} {
-#    $self instvar ns_ node_ testName_
+#    $self instvar ns_ node_ testName_ guide_
 #    $self setTopo
+#    puts $guide_
 #
 #    $ns_ delay $node_(s2) $node_(r1) 9.5ms
 #    $ns_ delay $node_(r1) $node_(s2) 9.5ms
@@ -785,14 +824,16 @@ Test/sack_dupacks1 instproc init {} {
 
 #Class Test/timersSack -superclass TestSuite
 #Test/timersSack instproc init {} {
-#    $self instvar net_ test_
+#    $self instvar net_ test_ guide_
 #    set net_	net0
 #    set test_	timersSack
+#    set guide_      "simple"
 #    $self next pktTraceFile
 #}
 #Test/timersSack instproc run {} {
-#     $self instvar ns_ node_ testName_
+#     $self instvar ns_ node_ testName_ guide_
 #     $self setTopo
+#     puts $guide_
 #     $ns_ queue-limit $node_(r1) $node_(k1) 2
 #     $ns_ queue-limit $node_(k1) $node_(r1) 100
 # 
