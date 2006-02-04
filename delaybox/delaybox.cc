@@ -487,8 +487,8 @@ int DelayBoxClassifier::classify(Packet *p) {
 
 void DelayBoxClassifier::recv (Packet* p, Handler* h)
 {
-	DelayBoxFlow* flow;
-	double delay, loss = 0, linkspd = 0;
+	DelayBoxFlow* flow = NULL;
+	double delay = 0.0, loss = 0, linkspd = 0;
 
 	// debugging
 	hdr_tcp *tcph = hdr_tcp::access(p);

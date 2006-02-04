@@ -100,11 +100,11 @@ protected:
 class PackMimeHTTPClientApp : public Application {
  public:
 	PackMimeHTTPClientApp() : Application(), id_(0), running_(0), 
-			      totalbytes_(0), reqsize_(0), rspsize_(0), 
-			      array_ind_ (0), reqs_(0), 
-			      reqsize_array_(NULL), rspsize_array_(NULL), 
-                              reqgap_array_(NULL), time_of_req_(0.0),
-                              timer_(this), server_(NULL), mgr_(NULL) {};
+				  totalbytes_(0), reqsize_(0), rspsize_(0), 
+				  reqs_(0), reqsize_array_(NULL), 
+				  rspsize_array_(NULL), reqgap_array_(NULL), 
+				  array_ind_ (0), time_of_req_(0.0),
+				  timer_(this), server_(NULL), mgr_(NULL) {};
 	~PackMimeHTTPClientApp();
 	void timeout();
 	void start();
@@ -142,8 +142,8 @@ class PackMimeHTTPClientApp : public Application {
 class PackMimeHTTPServerApp : public Application {
  public:
 	PackMimeHTTPServerApp() : Application(), id_(0), running_(0), 
-				  reqsize_(0), rspsize_(0), curreq_(0),
-				  reqs_(0), totalbytes_(0), timer_(this), 
+				  reqsize_(0), rspsize_(0), reqs_(0),
+				  curreq_(0), totalbytes_(0), timer_(this), 
 				  mgr_(NULL) {};
 	~PackMimeHTTPServerApp();
 	void timeout();

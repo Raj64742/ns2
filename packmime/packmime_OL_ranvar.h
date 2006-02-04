@@ -62,7 +62,7 @@ struct OL_weibull_params {
 	// 1-2^(p0-p1*log2(rate)^p2)
 };
 
-/*:::::::::::::::::::::: PackMime Flow Arrival RanVar :::::::::::::::::::::::*/
+/*:::::::::::::::::::: PackMimeOL Packet Size RanVar :::::::::::::::::::::::*/
 
 class PackMimeOLPacketSizeRandomVariable : public RandomVariable {
   private:
@@ -89,9 +89,12 @@ class PackMimeOLPacketSizeRandomVariable : public RandomVariable {
 	PackMimeOLPacketSizeRandomVariable();
 	PackMimeOLPacketSizeRandomVariable(double bitrate); 
 	PackMimeOLPacketSizeRandomVariable(double bitrate, RNG* rng);
-	PackMimeOLPacketSizeRandomVariable(double bitrate, RNG* rng, const char *pac_size_dist_file);
+	PackMimeOLPacketSizeRandomVariable(double bitrate, RNG* rng, 
+					   const char *pac_size_dist_file);
 	~PackMimeOLPacketSizeRandomVariable();	
 };
+
+/*::::::::::::: PackMimeOL Packet Interarrival RanVar :::::::::::::::::::::*/
 
 class PackMimeOLPacketIARandomVariable : public RandomVariable {
   private:

@@ -41,6 +41,7 @@
  *           Kevin Jeffay (jeffay@cs.unc.edu)
  */
 
+/*
 #include <sys/types.h>
 #include <sys/stat.h> 
 #include <stdio.h>
@@ -51,7 +52,8 @@
 #include "random.h"
 #include "trafgen.h"
 #include "ranvar.h"
-
+*/
+#include "packmime_OL.h"
 #include "packmime_ranvar.h"
 
 /* 
@@ -59,6 +61,7 @@
  * random noise in the interval, and packet size.  
  */
 
+/*
 class PackMimeOpenLoop : public TrafficGenerator {
  public:
 	PackMimeOpenLoop();
@@ -93,7 +96,7 @@ class PackMimeOpenLoop : public TrafficGenerator {
 		return rv ? (TCL_OK) : (TCL_ERROR);
 	}
 };
-
+*/
 
 static class PackMimeOpenLoopClass : public TclClass {
  public:
@@ -103,7 +106,8 @@ static class PackMimeOpenLoopClass : public TclClass {
 	}
 } class_bl_traffic;
 
-PackMimeOpenLoop::PackMimeOpenLoop() : seqno_(0), maxpkts_(0), pm_pac_ia_(NULL), pm_pac_size_(NULL), size_(40)
+PackMimeOpenLoop::PackMimeOpenLoop() : size_(40), seqno_(0), maxpkts_(0), 
+				       pm_pac_ia_(NULL), pm_pac_size_(NULL)
 {	
 	bind("maxpkts_", &maxpkts_);
 }

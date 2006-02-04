@@ -52,8 +52,10 @@
 
 /**
  * Reference:
- * Modeling Persistence in Hydrological Time Series Using Fractional Differencing
- * By J.R.M. Hosking, Water Resources Research, Vol 20, No 12, P1898-1908, Dec 1984
+ * Modeling Persistence in Hydrological Time Series Using Fractional 
+ * Differencing
+ * By J.R.M. Hosking, Water Resources Research, Vol 20, No 12, P1898-1908, 
+ * Dec 1984
  *
  * y[t] = sum_j=1^p (AR[j] * y[t-j]) + x[t] - sum_j=1^q (MA[j] * x[t-j]
  */
@@ -68,11 +70,11 @@
  * /home/cao/MySwork/packet/dataObj/superpose/.Data/pac.fit1.para.vs.rate.fit
  * ; the original code to produce parameters is in superpose_par_vs_rate.S
  */
-static struct OL_weibull_params pac_ia_weibull_params = {
-  -0.487,   /* shapeParam0 */
-  0.032,    /* shapeParam1 */
-  1.702     /* shapeParam2 */
-};
+//static struct OL_weibull_params pac_ia_weibull_params = {
+//  -0.487,   /* shapeParam0 */
+//  0.032,    /* shapeParam1 */
+//  1.702     /* shapeParam2 */
+//};
 
 static struct OL_arima_params pac_ia_arima_params = {
   0.41,      /* d */
@@ -111,14 +113,6 @@ public:
 	 }
 } class_PacketIAranvar;
 
-void PackMimeOLPacketIARandomVariable::bind_vars() {
-	bind ("bitrate", &bitrate);
-	bind ("pacrate", &pacrate);
-	bind ("connum", &connum);
-	bind ("conbps", &conbps);	
-	bind ("conpacrate", &conpacrate);
-}
-
 PackMimeOLPacketIARandomVariable::PackMimeOLPacketIARandomVariable(): 	
 fARIMA(NULL), myrng(NULL), sizerng(NULL)
 {
@@ -137,11 +131,19 @@ bitrate(bitrate_), fARIMA(NULL), myrng(rng_), sizerng(NULL)
 	bind_vars();
 }
 
+void PackMimeOLPacketIARandomVariable::bind_vars() {
+	bind ("bitrate", &bitrate);
+	bind ("pacrate", &pacrate);
+	bind ("connum", &connum);
+	bind ("conbps", &conbps);	
+	bind ("conpacrate", &conpacrate);
+}
+
 /* initialize for pac.ia */
 void PackMimeOLPacketIARandomVariable::initialize() {
 	double sigmaTotal;
 	struct OL_arima_params *arima = &pac_ia_arima_params;
-	struct OL_weibull_params *weibull = &pac_ia_weibull_params;
+//	struct OL_weibull_params *weibull = &pac_ia_weibull_params;
 	double d = arima->d;
 	double logit_simia;
 
@@ -229,9 +231,6 @@ double PackMimeOLPacketIARandomVariable::avg() {
 		return 0;
 }
 
-int PackMimeOLPacketSizeRandomVariable::def_size_dist_left[14] =  {40,    41,    44,    45,    48,    49,    52,    53,    85,    221,   576,   577,   1401,  1500};
-int PackMimeOLPacketSizeRandomVariable::def_size_dist_right[14] = {40,    43,    44,    47,    48,    51,    52,    84,    220,   575,   576,   1400,  1499,  1500};
-double PackMimeOLPacketSizeRandomVariable::def_size_prob[14] =    {0.300, 0.000, 0.030, 0.000, 0.030, 0.010, 0.060, 0.070, 0.050, 0.070, 0.120, 0.060, 0.050, 0.150 };
 
 /**
  * hard wired model constants from fitting BL-MH packet trace
@@ -246,7 +245,7 @@ static struct OL_arima_params pac_size_arima_params = {
   1.597         /* varRatioParam2 */
 };
 
-/*:::::::::::::::::::::: Packet Siez RanVar :::::::::::::::::*/
+/*:::::::::::::::::::::: Packet Size RanVar :::::::::::::::::*/
 static class PackMimeOLPacketSizeRandomVariableClass : public TclClass {
 public:
 	PackMimeOLPacketSizeRandomVariableClass() : 
@@ -269,27 +268,20 @@ public:
 	 }
 } class_PackMimeOLPacketSizeranvar;
 
-void PackMimeOLPacketSizeRandomVariable::bind_vars() {
-	bind ("bitrate", &bitrate);
-	bind ("connum", &connum);
-	bind ("conbps", &conbps);
-	bind ("conpacrate", &conpacrate);
-}
-
 PackMimeOLPacketSizeRandomVariable::PackMimeOLPacketSizeRandomVariable():
-fARIMA(NULL), myrng(NULL), pac_size_dist_file(NULL)
+	pac_size_dist_file(NULL), fARIMA(NULL), myrng(NULL)
 {	
 	bind_vars();
 }
 
 PackMimeOLPacketSizeRandomVariable::PackMimeOLPacketSizeRandomVariable(double bitrate_):
-bitrate(bitrate_), fARIMA(NULL), myrng(NULL), pac_size_dist_file(NULL)
+bitrate(bitrate_), pac_size_dist_file(NULL), fARIMA(NULL), myrng(NULL)
 {
 	bind_vars();
 }
 
 PackMimeOLPacketSizeRandomVariable::PackMimeOLPacketSizeRandomVariable(double bitrate_, RNG* rng_):
-bitrate(bitrate_), fARIMA(NULL), myrng(rng_), pac_size_dist_file(NULL)
+bitrate(bitrate_), pac_size_dist_file(NULL), fARIMA(NULL), myrng(rng_)
 {		
 	bind_vars();
 }
@@ -302,12 +294,22 @@ bitrate(bitrate_), fARIMA(NULL), myrng(rng_)
         strcpy(pac_size_dist_file, pac_size_dist_file_);	
 }
 
+void PackMimeOLPacketSizeRandomVariable::bind_vars() {
+	bind ("bitrate", &bitrate);
+	bind ("connum", &connum);
+	bind ("conbps", &conbps);
+	bind ("conpacrate", &conpacrate);
+}
+
+int PackMimeOLPacketSizeRandomVariable::def_size_dist_left[14] =  {40,    41,    44,    45,    48,    49,    52,    53,    85,    221,   576,   577,   1401,  1500};
+int PackMimeOLPacketSizeRandomVariable::def_size_dist_right[14] = {40,    43,    44,    47,    48,    51,    52,    84,    220,   575,   576,   1400,  1499,  1500};
+double PackMimeOLPacketSizeRandomVariable::def_size_prob[14] =    {0.300, 0.000, 0.030, 0.000, 0.030, 0.010, 0.060, 0.070, 0.050, 0.070, 0.120, 0.060, 0.050, 0.150 };
+
 /**
  * initialise for pac.size
  */
 void PackMimeOLPacketSizeRandomVariable::initialize()
 {
-	int n;
 	double sigmaTotal;
 	struct OL_arima_params *arima = &pac_size_arima_params;
 	double d = arima->d;

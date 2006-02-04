@@ -312,13 +312,18 @@ PackMimeHTTPXmitRandomVariable::PackMimeHTTPXmitRandomVariable() :
 	bind ("const_", &const_);
 }
 
-PackMimeHTTPXmitRandomVariable::PackMimeHTTPXmitRandomVariable(double rate, int type) :
-	rate_(rate), type_(type), mean_(-1), const_(-1), fARIMA_(NULL), myrng_(rng_)
+PackMimeHTTPXmitRandomVariable::PackMimeHTTPXmitRandomVariable(double rate, 
+							       int type) :
+	rate_(rate), type_(type), const_(-1), mean_(-1), 
+	fARIMA_(NULL), myrng_(rng_)
 {	
 }
 
-PackMimeHTTPXmitRandomVariable::PackMimeHTTPXmitRandomVariable(double rate, int type, RNG* rng) :
-  	rate_(rate), type_(type), mean_(-1), const_(-1), myrng_(rng), fARIMA_(NULL)
+PackMimeHTTPXmitRandomVariable::PackMimeHTTPXmitRandomVariable(double rate, 
+							       int type, 
+							       RNG* rng) :
+  	rate_(rate), type_(type), const_(-1), mean_(-1), 
+	fARIMA_(NULL), myrng_(rng)
 {
 }
 
