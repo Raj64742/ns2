@@ -292,7 +292,6 @@ Test/quickstart4full instproc init {} {
     set sndr TCP/Sack1
     set rcvr TCPSink/Sack1
     set qs ON
-    #set qs OFF
     $self next pktTraceFile
 }
 Test/quickstart4full instproc run {} {
@@ -339,13 +338,13 @@ Test/high_request instproc init {} {
     $self instvar net_ test_ guide_ sndr rcvr qs
     set net_	net3
     set test_ high_request	
-    set guide_  "A high quickstart request."
+    set guide_  "A high Quick-Start request."
     set sndr TCP/Sack1
     set rcvr TCPSink/Sack1
     Agent/QSAgent set alloc_rate_ 0.01
     Agent/QSAgent set rate_function_ 1
     Agent/QSAgent set algorithm_ 1
-    Agent/TCP set qs_request_mode_ 2
+    Agent/TCP set qs_request_mode_ 0
     set qs ON
     $self next pktTraceFile
 }
@@ -670,6 +669,7 @@ Test/stats instproc init {} {
     set guide_  "Two TCPs, statistics."
     set sndr TCP/Newreno
     set rcvr TCPSink
+    Agent/TCP set print_request_ true
     set qs ON
     $self next pktTraceFile
 }
@@ -710,6 +710,7 @@ Test/stats1 instproc init {} {
     set net_	net2
     set test_ stats1	
     set guide_  "Quick-Start packet drops, statistics."
+    Agent/TCP set print_request_ true
     set sndr TCP/Sack1
     set rcvr TCPSink/Sack1
     set qs ON
@@ -747,6 +748,144 @@ Test/stats1 instproc run {} {
     $ns_ at $stopTime "printdrops 1 $fmon;"
     $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
 
+    $ns_ run
+}
+
+# 20 KBps = 20 pkts per second
+Class Test/rate_request -superclass TestSuite
+Test/rate_request instproc init {} {
+    $self instvar net_ test_ guide_ sndr rcvr qs
+    set net_	net3
+    set test_ rate_request	
+    set guide_  "Quick-Start, request of 20 Kbps."
+    set qs ON
+    Agent/TCP set qs_request_mode_ 0
+    $self next pktTraceFile
+}
+Test/rate_request instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ guide_ sndr rcvr qs
+    puts "Guide: $guide_"
+    $ns_ node-config -QS $qs
+    $self setTopo
+    set stopTime 2
+    if {$quiet == "false"} {
+        Agent/TCP set print_request_ true
+    }
+
+    set tcp1 [$ns_ create-connection TCP/Newreno $node_(s1) TCPSink $node_(s3) 0]
+    $tcp1 set window_ 10000
+    $tcp1 set rate_request_ 20
+    set ftp1 [new Application/FTP]
+    $ftp1 attach-agent $tcp1
+    $ns_ at 0.0 "$ftp1 start"
+
+    $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
+    $ns_ run
+}
+
+# The request isn't limited by the TCP window, but
+#   the actual sending rate is.
+Class Test/rate_request1 -superclass TestSuite
+Test/rate_request1 instproc init {} {
+    $self instvar net_ test_ guide_ sndr rcvr qs
+    set net_	net3
+    set test_ rate_request1	
+    set guide_  "Quick-Start, request not limited by TCP window."
+    set qs ON
+    Agent/TCP set qs_request_mode_ 1
+    $self next pktTraceFile
+}
+Test/rate_request1 instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ guide_ sndr rcvr qs
+    puts "Guide: $guide_"
+    $ns_ node-config -QS $qs
+    $self setTopo
+    set stopTime 2
+    if {$quiet == "false"} {
+        Agent/TCP set print_request_ true
+    }
+
+    set tcp1 [$ns_ create-connection TCP/Newreno $node_(s1) TCPSink $node_(s3) 0]
+    $tcp1 set window_ 10
+    $tcp1 set rate_request_ 20
+    set ftp1 [new Application/FTP]
+    $ftp1 attach-agent $tcp1
+    $ns_ at 0.0 "$ftp1 start"
+
+    $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
+    $ns_ run
+}
+
+# Only make requesst if at least qs_thresh_ packets to send.
+Class Test/rate_request3 -superclass TestSuite
+Test/rate_request3 instproc init {} {
+    $self instvar net_ test_ guide_ sndr rcvr qs
+    set net_	net3
+    set test_ rate_request3	
+    set guide_  "Quick-Start, no request because of insufficient data."
+    set qs ON
+    Agent/TCP set qs_request_mode_ 1
+    Agent/TCP set qs_thresh_ 20
+    Agent/TCP set qs_rtt_ 1000
+    $self next pktTraceFile
+}
+Test/rate_request3 instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ guide_ sndr rcvr qs
+    puts "Guide: $guide_"
+    $ns_ node-config -QS $qs
+    $self setTopo
+    set stopTime 2
+    if {$quiet == "false"} {
+        Agent/TCP set print_request_ true
+    }
+
+    set tcp1 [$ns_ create-connection TCP/Newreno $node_(s1) TCPSink $node_(s3) 0]
+    $tcp1 set window_ 100
+    $tcp1 set rate_request_ 2000
+    set ftp1 [new Application/FTP]
+    $ftp1 attach-agent $tcp1
+    $ns_ at 0.0 "$ftp1 produce 10"
+
+    $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
+    $ns_ run
+}
+
+# Requesst limited by available data.
+Class Test/rate_request4 -superclass TestSuite
+Test/rate_request4 instproc init {} {
+    $self instvar net_ test_ guide_ sndr rcvr qs
+    set net_	net3
+    set test_ rate_request4	
+    set guide_  "Quick-Start, rate request limited by available data."
+    set qs ON
+    Agent/TCP set qs_request_mode_ 1
+    Agent/TCP set qs_thresh_ 5
+    Agent/TCP set qs_rtt_ 1000
+    Agent/TCP set print_request_ true
+    $self next pktTraceFile
+}
+Test/rate_request4 instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ guide_ sndr rcvr qs
+    puts "Guide: $guide_"
+    $ns_ node-config -QS $qs
+    $self setTopo
+    set stopTime 2
+    if {$quiet == "false"} {
+        Agent/TCP set print_request_ true
+    }
+
+    set tcp1 [$ns_ create-connection TCP/Newreno $node_(s1) TCPSink $node_(s3) 0]
+    $tcp1 set window_ 100
+    $tcp1 set rate_request_ 2000
+    set ftp1 [new Application/FTP]
+    $ftp1 attach-agent $tcp1
+    $ns_ at 0.0 "$ftp1 produce 10"
+
+    $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
     $ns_ run
 }
 
