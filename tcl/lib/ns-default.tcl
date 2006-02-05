@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.361 2006/02/02 18:19:44 mweigle Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.362 2006/02/05 03:14:02 sallyfloyd Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -910,6 +910,7 @@ Agent/TCP set qs_enabled_ false
 Agent/TCP set tcp_qs_recovery_ true ;	# Added on 2004/09/21, by Pasi.
 Agent/TCP set qs_request_mode_ 1
 Agent/TCP set qs_rtt_ 50
+Agent/TCP set print_request_ false
 Agent/TCP set qs_thresh_ 4
 
 # These are all variables for tracing information.

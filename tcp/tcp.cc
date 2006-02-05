@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.166 2006/02/03 05:42:51 sallyfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.167 2006/02/05 03:14:02 sallyfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -184,6 +184,7 @@ TcpAgent::delay_bind_init_all()
 	delay_bind_init_one("qs_request_mode_");
 	delay_bind_init_one("qs_thresh_");
 	delay_bind_init_one("qs_rtt_");
+	delay_bind_init_one("print_request_");
 
 	delay_bind_init_one("frto_enabled_");
 	delay_bind_init_one("sfrto_enabled_");
@@ -290,7 +291,10 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
         if (delay_bind(varName, localName, "rate_request_", &rate_request_ , tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "qs_enabled_", &qs_enabled_ , tracer)) return TCL_OK;
 	if (delay_bind_bool(varName, localName, "tcp_qs_recovery_", &tcp_qs_recovery_, tracer)) return TCL_OK;
-
+	if (delay_bind(varName, localName, "qs_request_mode_", &qs_request_mode_, tracer)) return TCL_OK;
+	if (delay_bind(varName, localName, "qs_thresh_", &qs_thresh_, tracer)) return TCL_OK;
+	if (delay_bind(varName, localName, "qs_rtt_", &qs_rtt_, tracer)) return TCL_OK;
+	if (delay_bind_bool(varName, localName, "print_request_", &print_request_, tracer)) return TCL_OK;
 	if (delay_bind_bool(varName, localName, "frto_enabled_", &frto_enabled_, tracer)) return TCL_OK;
 	if (delay_bind_bool(varName, localName, "sfrto_enabled_", &sfrto_enabled_, tracer)) return TCL_OK;
 	if (delay_bind_bool(varName, localName, "spurious_response_", &spurious_response_, tracer)) return TCL_OK;
@@ -702,17 +706,24 @@ void TcpAgent::output(int seqno, int reason)
 				// PS: Avoid making unnecessary QS requests
 				// use a rough estimation of RTT in qs_rtt_
 				// to calculate the desired rate from dataout.
+				// printf("dataout %d qs_rr %d qs_rtt_ %d\n",
+				//	dataout, qs_rr, qs_rtt_);
 				if (dataout * 1000 / qs_rtt_ < qs_rr) {
 					qs_rr = dataout * 1000 / qs_rtt_;
 				}
+				// printf("request %d\n", qs_rr);
 				// qs_thresh_ is minimum number of unsent
 				// segments needed to activate QS request
+				// printf("curseq_ %d maxseq_ %d qs_thresh_ %d\n",
+				//	 int(curseq_), int(maxseq_), qs_thresh_);
 				if ((curseq_ - maxseq_ - 1) < qs_thresh_) {
 					qs_rr = 0;
 				}
-			}
+			} 
 
 		    	if (qs_rr > 0) {
+				if (print_request_) 
+					printf("QS request: %d KBps\n", qs_rr);
 				// QuickStart code from Srikanth Sundarrajan.
 				qsh->flag() = QS_REQUEST;
 				qsh->ttl() = Random::integer(256);

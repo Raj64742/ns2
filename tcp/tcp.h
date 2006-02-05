@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.122 2006/02/01 06:40:43 sallyfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.123 2006/02/05 03:14:02 sallyfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -467,7 +467,7 @@ protected:
 	int qs_request_mode_;   /* 1 = Try to avoid unnecessary QS requests
 				   for short flows. Use qs_rtt_ as the RTT
 				   used in window calculation.
-				   2 = Always request 'rate_request_' bytes,
+				   Other: Always request 'rate_request_' bytes,
 				   regardless of flow size */
 	int qs_thresh_;         /* Do not use QS if there are less data to send
 				   than this. Applies only if
@@ -476,6 +476,7 @@ protected:
 				   in order to be able to determine how much
 				   it needs for rate request with given amount
 				   of data to send. milliseconds. */
+	int print_request_;	/* true to print Quick-Start request */
 	int ttl_diff_;
         /* end of section for Quick-Start. */
 
