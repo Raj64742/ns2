@@ -2,7 +2,7 @@
 /*
  * hdr_qs.cc
  * Copyright (C) 2001 by the University of Southern California
- * $Id: hdr_qs.cc,v 1.4 2005/08/25 18:58:10 johnh Exp $
+ * $Id: hdr_qs.cc,v 1.5 2006/02/07 04:57:38 sallyfloyd Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -75,7 +75,8 @@ public:
 
 
 /*
- * These two functions convert rate in QS packet to KBps and vice versa.
+ * These two functions convert rate in QS packet to 10 KBps units
+ *   and vice versa.
  */
 double hdr_qs::rate_to_Bps(int rate)
 {
