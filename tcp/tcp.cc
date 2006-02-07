@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.167 2006/02/05 03:14:02 sallyfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.168 2006/02/07 04:58:49 sallyfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -723,7 +723,7 @@ void TcpAgent::output(int seqno, int reason)
 
 		    	if (qs_rr > 0) {
 				if (print_request_) 
-					printf("QS request: %d KBps\n", qs_rr);
+					printf("QS request (before encoding): %d KBps\n", qs_rr);
 				// QuickStart code from Srikanth Sundarrajan.
 				qsh->flag() = QS_REQUEST;
 				qsh->ttl() = Random::integer(256);
@@ -1629,12 +1629,15 @@ void TcpAgent::processQuickStart(Packet *pkt)
 	qs_approved_ = 0;
 	if (qsh->flag() == QS_RESPONSE && qsh->ttl() == ttl_diff_ && 
             qsh->rate() > 0) {
-                app_rate = (int) (hdr_qs::rate_to_Bps(qsh->rate()) *
-                      (now - tcph->ts_echo()) / (size_ + headersize()));
-#ifdef QS_DEBUG
-		printf("Quick Start approved, rate %d, window %d\n", 
-				     qsh->rate(), app_rate);
-#endif
+                app_rate = (int) ((hdr_qs::rate_to_Bps(qsh->rate()) *
+                      (now - tcph->ts_echo())) / (size_ + headersize()));
+		if (print_request_) {
+		  int num1 = hdr_qs::rate_to_Bps(qsh->rate());
+		  double time = now - tcph->ts_echo();
+		  int size = size_ + headersize();
+		  printf("Quick Start approved, rate: %d Bps, window %d rtt: %4.2f pktsize: %d\n", 
+		     num1, app_rate, time, size);
+		}
                 if (app_rate > initial_window()) {
 			qs_cwnd_ = app_rate;
                         qs_approved_ = 1;
