@@ -49,6 +49,7 @@ Agent/QSAgent set alloc_rate_ 0.5
 Agent/QSAgent set qs_enabled_ 1
 Agent/QSAgent set state_delay_ 0.35  
 # 0.35 seconds for past approvals
+Agent/QSAgent set rate_function_ 1
 
 Agent/TCPSink set qs_enabled_ true
 Agent/TCP set qs_enabled_ true
@@ -342,7 +343,6 @@ Test/high_request instproc init {} {
     set sndr TCP/Sack1
     set rcvr TCPSink/Sack1
     Agent/QSAgent set alloc_rate_ 0.01
-    Agent/QSAgent set rate_function_ 1
     Agent/QSAgent set algorithm_ 1
     Agent/TCP set qs_request_mode_ 0
     set qs ON
@@ -613,36 +613,6 @@ Test/many_requests instproc run {} {
     $ns_ run
 }
 
-Class Test/many_requests1 -superclass TestSuite
-Test/many_requests1 instproc init {} {
-    $self instvar net_ test_ guide_ sndr rcvr qs
-    set net_	net4
-    set test_ many_requests1
-    set guide_  "Many Quick-Start requests, small approved rates."
-    set sndr TCP/Newreno
-    set rcvr TCPSink
-    set qs ON
-    Agent/QSAgent set alloc_rate_ 0.05 ; # maximum rate request.
-    Agent/QSAgent set threshold_ 0.85
-    Test/many_requests1 instproc run {} [Test/many_requests info instbody run ]
-    $self next pktTraceFile
-}
-
-Class Test/many_requests2 -superclass TestSuite
-Test/many_requests2 instproc init {} {
-    $self instvar net_ test_ guide_ sndr rcvr qs
-    set net_	net4
-    set test_ many_requests2
-    set guide_  "Many Quick-Start requests, conservative router."
-    set sndr TCP/Newreno
-    set rcvr TCPSink
-    set qs ON
-    Agent/QSAgent set alloc_rate_ 0.05 ; # maximum rate request.
-    Agent/QSAgent set threshold_ 0.02
-    Test/many_requests2 instproc run {} [Test/many_requests info instbody run ]
-    $self next pktTraceFile
-}
-
 Class Test/many_requests3 -superclass TestSuite
 Test/many_requests3 instproc init {} {
     $self instvar net_ test_ guide_ sndr rcvr qs
@@ -652,14 +622,11 @@ Test/many_requests3 instproc init {} {
     set sndr TCP/Newreno
     set rcvr TCPSink
     set qs ON
-    Agent/QSAgent set alloc_rate_ 0.90 ; # maximum rate request.
-    Agent/QSAgent set threshold_ 0.99
+    Agent/QSAgent set alloc_rate_ 0.95 
+    Agent/QSAgent set threshold_ 0.95
     Test/many_requests3 instproc run {} [Test/many_requests info instbody run ]
     $self next pktTraceFile
 }
-
-# We still need a test that tests state_delay_:
-# Agent/QSAgent set state_delay_  0.3
 
 Class Test/stats -superclass TestSuite
 Test/stats instproc init {} {
@@ -864,7 +831,6 @@ Test/rate_request4 instproc init {} {
     Agent/TCP set qs_request_mode_ 1
     Agent/TCP set qs_thresh_ 5
     Agent/TCP set qs_rtt_ 1000
-    Agent/TCP set print_request_ true
     $self next pktTraceFile
 }
 Test/rate_request4 instproc run {} {
@@ -888,6 +854,83 @@ Test/rate_request4 instproc run {} {
     $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
     $ns_ run
 }
+
+Class Test/routers1 -superclass TestSuite
+Test/routers1 instproc init {} {
+    $self instvar net_ test_ guide_ sndr rcvr qs
+    set net_	net3
+    set test_ routers1	
+    set guide_  "Quick-Start, rate request 100KBps."
+    set qs ON
+    set sndr TCP/Newreno
+    set rcvr TCPSink
+    Agent/QSAgent set algorithm_ 3
+    Agent/QSAgent set threshold_ 0.9
+    Agent/QSAgent set alloc_rate_ 0.9
+    $self next pktTraceFile
+}
+Test/routers1 instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ guide_ sndr rcvr qs
+    puts "Guide: $guide_"
+    $ns_ node-config -QS $qs
+    $self setTopo
+    set stopTime 6
+    if {$quiet == "false"} {
+        Agent/TCP set print_request_ true
+    }
+
+    Agent/TCP set window_ 10000
+    set tcp1 [$ns_ create-connection TCP/Newreno $node_(s1) TCPSink $node_(s3) 0]
+    $tcp1 set rate_request_ 100
+    set ftp1 [new Application/FTP]
+    $ftp1 attach-agent $tcp1
+    $ns_ at 1.0 "$ftp1 produce 100"
+
+    $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
+
+    $ns_ run
+}
+
+Class Test/routers2 -superclass TestSuite
+Test/routers2 instproc init {} {
+    $self instvar net_ test_ guide_ sndr rcvr qs
+    set net_	net3
+    set test_ routers2	
+    set guide_  "Quick-Start, routers approve only 62 KBps"
+    # 100 Mbps * 0.005 = 500 Kbps = 62 KBps. 
+
+    set qs ON
+    set sndr TCP/Newreno
+    set rcvr TCPSink
+    Agent/QSAgent set algorithm_ 3
+    Agent/QSAgent set threshold_ 0.005
+    Agent/QSAgent set alloc_rate_ 0.005
+    Test/routers2 instproc run {} [Test/routers1 info instbody run ]
+    $self next pktTraceFile
+}
+
+Class Test/routers3 -superclass TestSuite
+Test/routers3 instproc init {} {
+    $self instvar net_ test_ guide_ sndr rcvr qs
+    set net_	net3
+    set test_ routers3	
+    set guide_  "Quick-Start, log-scale for rate encoding"
+    # 100 Mbps * 0.005 = 500 Kbps = 62 KBps. 
+
+    set qs ON
+    set sndr TCP/Newreno
+    set rcvr TCPSink
+    Agent/QSAgent set algorithm_ 3
+    Agent/QSAgent set threshold_ 0.9
+    Agent/QSAgent set alloc_rate_ 0.9
+    Agent/QSAgent set rate_function_ 2
+    Test/routers3 instproc run {} [Test/routers1 info instbody run ]
+    $self next pktTraceFile
+}
+
+# We still need a test that tests state_delay_:
+# Agent/QSAgent set state_delay_  0.3
 
 TestSuite runTest
 
