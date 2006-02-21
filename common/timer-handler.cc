@@ -2,7 +2,7 @@
 
 /*
  * Copyright (C) 1997 by the University of Southern California
- * $Id: timer-handler.cc,v 1.8 2005/08/25 18:58:02 johnh Exp $
+ * $Id: timer-handler.cc,v 1.9 2006/02/21 15:20:18 mahrenho Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -46,7 +46,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/timer-handler.cc,v 1.8 2005/08/25 18:58:02 johnh Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/timer-handler.cc,v 1.9 2006/02/21 15:20:18 mahrenho Exp $ (USC/ISI)";
 #endif
 
 #include <stdlib.h>  // abort()
@@ -58,7 +58,7 @@ TimerHandler::cancel()
 	if (status_ != TIMER_PENDING) {
 		fprintf(stderr,
 		  "Attempting to cancel timer at %p which is not scheduled\n",
-		  this);
+		  reinterpret_cast<void *>(this));
 		abort();
 	}
 	_cancel();

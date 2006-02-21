@@ -2,7 +2,7 @@
 /*
  * flowstruct.h
  * Copyright (C) 2000 by the University of Southern California
- * $Id: flowstruct.h,v 1.2 2005/08/25 18:58:04 johnh Exp $
+ * $Id: flowstruct.h,v 1.3 2006/02/21 15:20:18 mahrenho Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -55,7 +55,7 @@
 extern "C" {
 #include <stdio.h>
 #include <stdarg.h>
-};
+}
 
 #include "path.h"
 #include "srpacket.h"

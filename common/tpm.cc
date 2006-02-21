@@ -4,7 +4,7 @@
 /*
  * tpm.cc
  * Copyright (C) 2001 by the University of Southern California
- * $Id: tpm.cc,v 1.2 2005/08/25 18:58:02 johnh Exp $
+ * $Id: tpm.cc,v 1.3 2006/02/21 15:20:18 mahrenho Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -57,7 +57,7 @@
 // Timer to send requests
 TPMTimer::TPMTimer(TPM* t) {
 	tpm = t;
-};
+}
 
 void TPMTimer::expire(Event *e) {
 	//if (e) 

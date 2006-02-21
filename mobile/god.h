@@ -85,20 +85,20 @@ public:
 		return sqrt(X*X + Y*Y + Z*Z);
 	}
 
-	inline void vector::operator=(const vector a) {
+	inline void operator=(const vector a) {
 		X = a.X;
 		Y = a.Y;
 		Z = a.Z;
 	}
-	inline void vector::operator+=(const vector a) {
+	inline void operator+=(const vector a) {
 		X += a.X;
 		Y += a.Y;
 		Z += a.Z;
 	}
-	inline int vector::operator==(const vector a) {
+	inline int operator==(const vector a) {
 		return (X == a.X && Y == a.Y && Z == a.Z);
 	}
-	inline int vector::operator!=(const vector a) {
+	inline int operator!=(const vector a) {
 		return (X != a.X || Y != a.Y || Z != a.Z);
 	}
 	inline vector operator-(const vector a) {

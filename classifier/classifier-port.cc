@@ -2,7 +2,7 @@
 
 /*
  * Copyright (C) 1999 by the University of Southern California
- * $Id: classifier-port.cc,v 1.8 2005/08/25 18:58:01 johnh Exp $
+ * $Id: classifier-port.cc,v 1.9 2006/02/21 15:20:17 mahrenho Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -44,11 +44,11 @@
  *
  */
 
-// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-port.cc,v 1.8 2005/08/25 18:58:01 johnh Exp $ (USC/ISI)
+// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-port.cc,v 1.9 2006/02/21 15:20:17 mahrenho Exp $ (USC/ISI)
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-port.cc,v 1.8 2005/08/25 18:58:01 johnh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-port.cc,v 1.9 2006/02/21 15:20:17 mahrenho Exp $";
 #endif
 
 #include "classifier-port.h"
@@ -60,7 +60,7 @@ int PortClassifier::classify(Packet *p)
 	// ports are stored in a seperate variable.
 	hdr_ip* iph = hdr_ip::access(p);
 	return iph->dport();
-};
+}
 
 static class PortClassifierClass : public TclClass {
 public:

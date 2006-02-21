@@ -2,7 +2,7 @@
 /*
  * lms-receiver.cc
  * Copyright (C) 2001 by the University of Southern California
- * $Id: lms-receiver.cc,v 1.3 2005/08/25 18:58:07 johnh Exp $
+ * $Id: lms-receiver.cc,v 1.4 2006/02/21 15:20:19 mahrenho Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -646,17 +646,17 @@ void LmsReceiver::print_all_stats (int drops)
 	//
 	if (drops)
 		{
-                    printf ("\t%.5lf\t  %d\t%.4lf", aveTotalDupReqs, max_dup_naks_,
-                                 ((double)dup_replies/(double)(nrcvs*drops)) );
+                    printf ("\t%.5f\t  %d\t%.4f", aveTotalDupReqs, max_dup_naks_,
+			    ((double)dup_replies/(double)(nrcvs*drops)) );
 		}
 	else	{
 		printf ("\t0.0\t  0\t0.0");
 		}
 
-	//printf ("\t%d/%d/%.2lf", nrcvs, cnt1, (cnt1)?((double)dup_replies/(double)cnt1):0.0);
+	//printf ("\t%d/%d/%.2f", nrcvs, cnt1, (cnt1)?((double)dup_replies/(double)cnt1):0.0);
 	if (cnt2) 
 		{
-		printf ("\t%.2lf\t%.2lf\t%.2lf\n", avg_norm_latency/(double)cnt2, min, max);
+		printf ("\t%.2f\t%.2f\t%.2f\n", avg_norm_latency/(double)cnt2, min, max);
 		}
 	else
 		{
@@ -678,13 +678,13 @@ void LmsReceiver::print_stats ()
         if (rcvbuf_->pkts_recovered_)
                 {
                 printf ("\tPackets recovered:\t%d\n", rcvbuf_->pkts_recovered_);
-                printf ("\tNormalized latency (min, max, avg):\t%lf, %lf, %lf\n",
+                printf ("\tNormalized latency (min, max, avg):\t%f, %f, %f\n",
                         rcvbuf_->min_delay_/rtt_, rcvbuf_->max_delay_/rtt_,
                         (rcvbuf_->delay_sum_/(double)rcvbuf_->pkts_recovered_)/rtt_);
                 }
         printf ("\tDuplicate Replies:\t%d\n", rcvbuf_->duplicates_);
         printf ("\tDuplicate Requests:\t%d\n", dup_reqs_);
-        printf ("\tRtt:\t\t\t%lf\n", rtt_);
+        printf ("\tRtt:\t\t\t%f\n", rtt_);
         printf ("\n");
 }
 

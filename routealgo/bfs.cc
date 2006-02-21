@@ -2,7 +2,7 @@
 /*
  * bfs.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: bfs.cc,v 1.5 2005/08/25 18:58:11 johnh Exp $
+ * $Id: bfs.cc,v 1.6 2006/02/21 15:20:19 mahrenho Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -82,13 +82,13 @@ DistVec_t  D;       // And the distance vector
      D.push_back(INF);
      // Debug...print adj lists
      NodeWeight_t v(NODE_NONE, INF);
-     if(0)printf("Printing adj for node %ld (addr %p)\n", N[i]->m_id, N[i]);
-     if(0)while(1)
-       {
-         v = N[i]->NextAdj(v);
-         if (v.first == NODE_NONE) break;
-         if(0)printf("Found adj %ld\n", v.first);
-       }
+     //     if(0)printf("Printing adj for node %ld (addr %p)\n", N[i]->m_id, N[i]);
+     // if(0)while(1)
+     //        {
+     //          v = N[i]->NextAdj(v);
+     //          if (v.first == NODE_NONE) break;
+     //          if(0)printf("Found adj %ld\n", v.first);
+     //        }
    }
  B.Set(root); // Color the root grey
  if(0)B.DBPrint();
@@ -99,7 +99,7 @@ DistVec_t  D;       // And the distance vector
      RNodeDeq_it it = Q.begin();
      NodeWeight_t v(NODE_NONE, INF);
      RNode* u = *it;
-     if(0)printf("Working on node %ld addr %p\n", u->m_id, u);
+     //if(0)printf("Working on node %ld addr %p\n", u->m_id, u);
      while(1)
        {
          v = u->NextAdj(v);

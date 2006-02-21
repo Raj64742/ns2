@@ -2,7 +2,7 @@
 /*
  * routecache.h
  * Copyright (C) 2000 by the University of Southern California
- * $Id: routecache.h,v 1.7 2005/08/25 18:58:05 johnh Exp $
+ * $Id: routecache.h,v 1.8 2006/02/21 15:20:18 mahrenho Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -58,9 +58,7 @@
 #ifndef _routecache_h
 #define _routecache_h
 
-extern "C" {
-#include <stdarg.h>
-};
+#include <cstdarg>
 
 #include <object.h>
 #include <trace.h>

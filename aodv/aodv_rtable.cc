@@ -64,7 +64,7 @@ int i;
 
  LIST_INIT(&rt_nblist);
 
-};
+}
 
 
 aodv_rt_entry::~aodv_rt_entry()

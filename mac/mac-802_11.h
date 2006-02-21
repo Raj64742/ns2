@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.h,v 1.25 2006/01/30 21:27:51 mweigle Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.h,v 1.26 2006/02/21 15:20:19 mahrenho Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  * wireless-mac-802_11.h
@@ -116,7 +116,7 @@ struct hdr_mac802_11 {
         u_char                  dh_ta[ETHER_ADDR_LEN];
         u_char                  dh_3a[ETHER_ADDR_LEN];
 	u_int16_t		dh_scontrol;
-	u_char			dh_body[0]; // XXX Non-ANSI
+	u_char			dh_body[1]; // size of 1 for ANSI compatibility
 };
 
 
@@ -153,7 +153,7 @@ public:
 	}
 
 	inline u_int32_t getHdrLen11() {
-		return(getPLCPhdrLen() + sizeof(struct hdr_mac802_11)
+		return(getPLCPhdrLen() + offsetof(struct hdr_mac802_11, dh_body[0])
                        + ETHER_FCS_LEN);
 	}
 	

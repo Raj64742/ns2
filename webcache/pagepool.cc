@@ -37,7 +37,7 @@
  * this exception also makes it possible to release a modified version
  * which carries forward this exception.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.cc,v 1.16 2005/09/18 23:33:35 tomh Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.cc,v 1.17 2006/02/21 15:20:20 mahrenho Exp $
  */
 
 #include <stdlib.h>
@@ -961,7 +961,7 @@ int ProxyTracePagePool::find_info()
 		abort();
 	}
 	double len;
-	sscanf(buf+i+1, "%lf %u", &len, &num_pages_);
+	sscanf(buf+i+1, "%lf %i", &len, &num_pages_);
 	duration_ = (int)ceil(len);
 #if 0
 	printf("ProxyTracePagePool: duration %d pages %u\n",

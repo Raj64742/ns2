@@ -33,13 +33,16 @@
  *
  * Ported from CMU/Monarch's code
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/imep/imep_spec.h,v 1.3 2000/09/01 03:04:10 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/imep/imep_spec.h,v 1.4 2006/02/21 15:20:18 mahrenho Exp $
  */
 
 #ifndef __imep_spec_h__
 #define __imep_spec_h__
 
 #include <sys/types.h>
+
+#include <stddef.h> // for the offsetof() macro
+
 
 // **********************************************************************
 #ifdef COMMENT_ONLY
@@ -138,7 +141,7 @@ struct imep_ack_block {
 	u_int8_t  ab_num_acks;
         u_int8_t  r1;
         u_int16_t  r2;
-	char ab_ack_list[0];	// placeholder
+	char ab_ack_list[1];	// placeholder
 };
 
 struct imep_hello {
@@ -149,7 +152,7 @@ struct imep_hello_block {
 	u_int8_t  hb_num_hellos;
         u_int8_t  r1;
         u_int16_t  r2;
-	char hb_hello_list[0];	// placeholder
+	char hb_hello_list[1];	// placeholder
 };
 
 struct imep_object {
@@ -157,16 +160,24 @@ struct imep_object {
 	// The IMEP spec uses the first bit to determine if this field
 	// is 8 or 16 bits.  I fix its length at 16 bits to keep
 	// things simple.
-	char		o_data[0];
+	char		o_data[1]; // placeholder
 };
+
+/* define the size of the an imep_object without the following bytes of o_data,
+   Use this instead of sizeof(struct imep_object)
+ */
+#define IMEP_OBJECT_SIZE offsetof(struct imep_object, o_data[0])
 
 struct imep_object_block {
 	u_int8_t  ob_sequence;
 	u_int8_t  ob_protocol_type : 4;
 	u_int8_t  ob_num_objects : 7;
 	u_int8_t  ob_num_responses : 5;
-	char ob_object_list[0];	// placeholder
+	char ob_object_list[1];	// placeholder
 };
+/*  Use this instead of sizeof(struct imep_object_block)  */
+#define IMEP_OBJECT_BLOCK_SIZE offsetof(struct imep_object_block, ob_object_list[0])
+
 
 #define PROTO_RESERVED	0x00
 #define PROTO_NARP	0x01

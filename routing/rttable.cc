@@ -67,7 +67,7 @@ rt_entry::rt_entry()
 	}
 		error_propagate_counter = 0;
         LIST_INIT(&rt_nblist);
-};
+}
 
 
 rt_entry::~rt_entry()

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.26 2005/09/18 23:33:35 tomh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.27 2006/02/21 15:20:20 mahrenho Exp $ (LBL)";
 #endif
 
 //
@@ -103,7 +103,7 @@ void TaggerTSWFlow::tagging(Packet *pkt)
             total_out = total_out + 1;
             count = 0;
         }
-};
+}
 
 /* ####################################
  * Methods for Tagger
@@ -404,7 +404,7 @@ FlowMon::fformat(Flow* f)
 		f->qs_bytes(),  // 21: Quick-Start bytes this flow
 		f->qs_drops()	// 22: dropped Quick-Start pkts this flow
 	);
-};
+}
 
 void
 FlowMon::dumpflow(Tcl_Channel tc, Flow* f)

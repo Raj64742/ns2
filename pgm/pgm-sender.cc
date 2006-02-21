@@ -2,7 +2,7 @@
 /*
  * pgm-sender.cc
  * Copyright (C) 2001 by the University of Southern California
- * $Id: pgm-sender.cc,v 1.11 2005/08/25 18:58:10 johnh Exp $
+ * $Id: pgm-sender.cc,v 1.12 2006/02/21 15:20:19 mahrenho Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -186,7 +186,7 @@ protected:
 
   void display_packet(Packet *pkt); // For debugging.
 
-  void PgmSender::trace_event(char *evType, nsaddr_t daddr, double evTime); 
+  void trace_event(char *evType, nsaddr_t daddr, double evTime); 
 
   EventTrace * et_; 	//Trace Object for custom Event Traces
 

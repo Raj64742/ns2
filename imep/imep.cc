@@ -33,7 +33,7 @@
  *
  * Ported from CMU/Monarch's code 
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/imep/imep.cc,v 1.11 2002/03/21 22:44:38 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/imep/imep.cc,v 1.12 2006/02/21 15:20:18 mahrenho Exp $
  */
 
 #include <packet.h>
@@ -886,13 +886,13 @@ imepAgent::imep_object_process(Packet *p)
       assert(object->o_length > 0); // sanity check
 		
       toraCreateHeader(p0,
-		       ((char*) object) + sizeof(struct imep_object),
+		       ((char*) object) + IMEP_OBJECT_SIZE,
 		       object->o_length);
 		
       imep_input(p0);
 		
       object = (struct imep_object*) ((char*) object + 
-             sizeof(struct imep_object) + object->o_length);
+             IMEP_OBJECT_SIZE + object->o_length);
     }
 }
 
@@ -924,7 +924,7 @@ imepAgent::imep_ack_object(Packet *p)
   for(i = 0; i < ob->ob_num_objects; i++)
     {		
       object = (struct imep_object*) ((char*) object + 
-             sizeof(struct imep_object) + object->o_length);
+	      IMEP_OBJECT_SIZE +object->o_length);
     }
 
   struct imep_response *r = (struct imep_response*) object;

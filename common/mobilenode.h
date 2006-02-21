@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/mobilenode.h,v 1.21 2005/01/13 18:33:47 haldar Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/mobilenode.h,v 1.22 2006/02/21 15:20:18 mahrenho Exp $
  *
  */
 
@@ -42,6 +42,8 @@
  * finished, they should stay in this file rather than bothering the base 
  * node.
  */
+
+class MobileNode;
 
 #ifndef __ns_mobilenode_h__
 #define __ns_mobilenode_h__
@@ -62,7 +64,7 @@
 #include "energy-model.h"
 #include "location.h"
 
-class GridKeeper;
+
 
 #if COMMENT_ONLY
 		 -----------------------
@@ -106,7 +108,6 @@ class GridKeeper;
 		|			|
 		 -----------------------
 #endif
-		 
 class MobileNode;
 
 class PositionHandler : public Handler {

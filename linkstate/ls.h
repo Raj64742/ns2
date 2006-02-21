@@ -2,7 +2,7 @@
 /*
  * ls.h
  * Copyright (C) 2000 by the University of Southern California
- * $Id: ls.h,v 1.8 2005/08/25 18:58:06 johnh Exp $
+ * $Id: ls.h,v 1.9 2006/02/21 15:20:18 mahrenho Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -59,7 +59,7 @@
 //  be used to endorse or promote products derived from this software 
 //  without specific prior written permission.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/ls.h,v 1.8 2005/08/25 18:58:06 johnh Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/ls.h,v 1.9 2006/02/21 15:20:18 mahrenho Exp $
 
 #ifndef ns_ls_h
 #define ns_ls_h
@@ -101,7 +101,7 @@ enum ls_message_type_t {
 	LS_MSG_TPM = 2,		// Topology map message
 	LS_MSG_LSAACK = 3,	// Link state advertisement ACK
 	LS_MSG_TPMACK = 4, 
-	LS_MSG_LSM = 5, 
+	LS_MSG_LSM = 5
 };
 
 template <class _Tp>

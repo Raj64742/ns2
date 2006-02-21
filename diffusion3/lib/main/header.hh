@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: header.hh,v 1.7 2005/09/13 04:53:49 tomh Exp $
+// $Id: header.hh,v 1.8 2006/02/21 15:20:18 mahrenho Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -84,7 +84,7 @@ typedef enum msg_t_ {
   EXPLORATORY_DATA,
   PUSH_EXPLORATORY_DATA,
   CONTROL,
-  REDIRECT,
+  REDIRECT
 } diff_msg_t;
 
 // Header structure

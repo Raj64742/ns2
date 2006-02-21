@@ -4,7 +4,7 @@
  * Copyright (C) 2004 by the University of Southern California
  * Copyright (C) 2004 by USC/ISI
  *               2002 by Dina Katabi
- * $Id: xcpq.h,v 1.9 2005/08/25 18:58:14 johnh Exp $
+ * $Id: xcpq.h,v 1.10 2006/02/21 15:20:20 mahrenho Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -47,7 +47,7 @@
  */
 
 /*
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcpq.h,v 1.9 2005/08/25 18:58:14 johnh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcpq.h,v 1.10 2006/02/21 15:20:20 mahrenho Exp $
  */
 
 
@@ -143,11 +143,11 @@ protected:
 	XCPTimer*        rtt_timer_;
 	double           link_capacity_bps_;
 
-	static const double	ALPHA_		= 0.4;
-	static const double	BETA_		= 0.226;
-	static const double	GAMMA_		= 0.1;
-	static const double	XCP_MAX_INTERVAL= 1.0;
-	static const double	XCP_MIN_INTERVAL= .001;
+	static const double	ALPHA_		/*= 0.4   */;
+	static const double	BETA_		/*= 0.226 */;
+	static const double	GAMMA_		/*= 0.1   */;
+	static const double	XCP_MAX_INTERVAL/*= 1.0   */;
+	static const double	XCP_MIN_INTERVAL/*= .001  */;
 
 	double          Te_;       // control interval
 	double          Tq_;    
@@ -171,7 +171,7 @@ protected:
 	double			b_[BSIZE];
 	double			t_[BSIZE];
 	int			maxb_;
-	static const double	BWIDTH = 0.01;
+	static const double	BWIDTH/*  = 0.01*/;
 	int			min_queue_ci_;
 	int			max_queue_ci_;
   

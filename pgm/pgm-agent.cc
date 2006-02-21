@@ -2,7 +2,7 @@
 /*
  * pgm-agent.cc
  * Copyright (C) 2001 by the University of Southern California
- * $Id: pgm-agent.cc,v 1.9 2005/08/25 18:58:10 johnh Exp $
+ * $Id: pgm-agent.cc,v 1.10 2006/02/21 15:20:19 mahrenho Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -304,7 +304,7 @@ protected:
 
   void print_stats();
 
-  void PgmAgent::trace_event(char *evType, double evTime);
+  void trace_event(char *evType, double evTime);
 
 #ifdef PGM_DEBUG
   void display_packet(Packet *pkt);

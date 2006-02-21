@@ -4,7 +4,7 @@
  * Copyright (C) 2004 by the University of Southern California
  * Copyright (C) 2004 by USC/ISI
  *               2002 by Dina Katabi
- * $Id: xcp-end-sys.h,v 1.8 2005/09/21 20:52:48 haldar Exp $
+ * $Id: xcp-end-sys.h,v 1.9 2006/02/21 15:20:20 mahrenho Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -47,7 +47,7 @@
  */
 
 /*
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.h,v 1.8 2005/09/21 20:52:48 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.h,v 1.9 2006/02/21 15:20:20 mahrenho Exp $
  */
 
 #ifndef ns_xcp_end_sys_h
@@ -76,7 +76,7 @@ struct hdr_xcp {
 	enum {
 		XCP_DISABLED = 0,
 		XCP_ENABLED,
-		XCP_ACK,
+		XCP_ACK
 	} 	xcp_enabled_;		// to indicate that the flow is XCP enabled
 	bool	xcp_sparse_;		// flag used with xcp_sparse extension
 	int	xcpId_;			// Sender's ID (debugging only)

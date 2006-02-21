@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.73 2005/08/22 05:08:32 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.74 2006/02/21 15:20:18 mahrenho Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.73 2005/08/22 05:08:32 tomh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.74 2006/02/21 15:20:18 mahrenho Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -286,7 +286,7 @@ Scheduler::dumpq()
 	while ((p = deque()) != NULL) {
 		printf("t:%f uid: ", p->time_);
 		printf(UID_PRINTF_FORMAT, p->uid_);
-		printf(" handler: %p\n", p->handler_);
+		printf(" handler: %p\n", reinterpret_cast<void *>(p->handler_) );
 	}
 }
 
@@ -460,7 +460,7 @@ Heap::heap_insert(heap_key_t key, void* elem)
 	h_elems[i].he_s_key= h_s_key++;
 	h_elems[i].he_elem = elem;
 	return;
-};
+}
 		
 /*
  * void *heap_extract_min(Heap *h)

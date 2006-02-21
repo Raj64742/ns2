@@ -35,7 +35,7 @@
 
 /* -*- c++ -*-
    tora_neighbor.h
-   $Id: tora_neighbor.h,v 1.3 2005/07/27 01:13:45 tomh Exp $
+   $Id: tora_neighbor.h,v 1.4 2006/02/21 15:20:20 mahrenho Exp $
   
    */
 #ifndef __tora_neighbor_h__
@@ -46,7 +46,7 @@ class toraAgent;
 enum LinkStatus {
 	LINK_UP = 0x0001,	// upstream
 	LINK_DN = 0x0002,	// downstream
-	LINK_UN = 0x0004,	// undirected
+	LINK_UN = 0x0004	// undirected
 };
 
 

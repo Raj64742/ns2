@@ -3,7 +3,7 @@
 /*
  * logweb.cc
  * Copyright (C) 2001 by the University of Southern California
- * $Id: logweb.cc,v 1.5 2005/08/25 18:58:13 johnh Exp $
+ * $Id: logweb.cc,v 1.6 2006/02/21 15:20:20 mahrenho Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -56,7 +56,7 @@
 // Timer to send requests
 RequestTimer::RequestTimer(LogWebTrafPool* pool) {
 	lwp = pool;
-};
+}
 
 void RequestTimer::expire(Event *e) {
 	//if (e) 

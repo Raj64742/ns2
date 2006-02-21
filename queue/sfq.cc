@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/sfq.cc,v 1.11 2002/05/06 22:23:16 difa Exp $ (ANS)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/sfq.cc,v 1.12 2006/02/21 15:20:19 mahrenho Exp $ (ANS)";
 #endif
 
 #include <stdlib.h>
@@ -169,10 +169,10 @@ void PacketSFQ::sfqdebug()
   PacketSFQ *q = this;
   fprintf(stderr, "sfq: ");
   while (q) {
-    fprintf(stderr, " 0x%p(%d)", q, q->pkts);
-    q = q->next;
-    if (q == this)
-      break;
+	  fprintf(stderr, " 0x%p(%d)", static_cast<void *>(q), q->pkts);
+	  q = q->next;
+	  if (q == this)
+		  break;
   }
   fprintf(stderr, "\n");
 }

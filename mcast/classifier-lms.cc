@@ -2,7 +2,7 @@
 /*
  * classifier-lms.cc
  * Copyright (C) 2001 by the University of Southern California
- * $Id: classifier-lms.cc,v 1.2 2005/08/25 18:58:07 johnh Exp $
+ * $Id: classifier-lms.cc,v 1.3 2006/02/21 15:20:19 mahrenho Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -82,4 +82,4 @@ public:
 	}
 } class_lms_classifier;
 
-LmsClassifier::LmsClassifier() {};
+LmsClassifier::LmsClassifier() {}

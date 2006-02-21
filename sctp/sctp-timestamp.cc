@@ -40,7 +40,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp-timestamp.cc,v 1.3 2005/10/07 05:58:29 tomh Exp $ (UD/PEL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp-timestamp.cc,v 1.4 2006/02/21 15:20:20 mahrenho Exp $ (UD/PEL)";
 #endif
 
 #include "ip.h"
@@ -318,7 +318,7 @@ void TimestampSctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 {
   DBG_I(RtxMarkedChunks);
 
-  u_char ucpOutData[uiMaxPayloadSize];
+  u_char *ucpOutData = new u_char[uiMaxPayloadSize];
   u_char *ucpCurrOutData = ucpOutData;
   int iBundledControlChunkSize = 0;
   int iCurrSize = 0;
@@ -636,6 +636,8 @@ void TimestampSctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
    * chunks.
    */
   eMarkedChunksPending = AnyMarkedChunks();
+
+  delete[] ucpOutData;
 
   DBG_X(RtxMarkedChunks);
 }

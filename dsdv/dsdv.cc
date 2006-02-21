@@ -33,13 +33,13 @@
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/dsdv/dsdv.cc,v 1.25 2005/07/13 03:51:24 tomh Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/dsdv/dsdv.cc,v 1.26 2006/02/21 15:20:18 mahrenho Exp $
  */
 
 extern "C" {
 #include <stdarg.h>
 #include <float.h>
-};
+}
 
 #include "dsdv.h"
 #include "priqueue.h"

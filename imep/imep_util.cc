@@ -35,7 +35,7 @@
 
 /*
   imep_util.cc
-  $Id: imep_util.cc,v 1.6 2005/08/28 23:23:03 tomh Exp $
+  $Id: imep_util.cc,v 1.7 2006/02/21 15:20:18 mahrenho Exp $
   */
 
 #include "packet.h"
@@ -149,7 +149,7 @@ imepAgent::findResponseList(Packet *p)
 	object = (struct imep_object*) (ob + 1);
 	for(int i = 0; i < ob->ob_num_objects; i++) {
 		object = (struct imep_object*) ((char*) object + 
-			  sizeof(struct imep_object) + object->o_length);
+			   IMEP_OBJECT_SIZE + object->o_length);
 	}
 
 	return (struct imep_response*) object;
@@ -300,8 +300,8 @@ imepAgent::aggregateObjectBlock(Packet *p)
 
 	ob = (struct imep_object_block*)
 		((char*) im + U_INT16_T(im->imep_length));
-	U_INT16_T(im->imep_length) += sizeof(struct imep_object_block);
-	ch->size() += sizeof(struct imep_object_block);
+	U_INT16_T(im->imep_length) += IMEP_OBJECT_BLOCK_SIZE;
+	ch->size() += IMEP_OBJECT_BLOCK_SIZE;
 
 	object = (struct imep_object*) (ob + 1);	
 
@@ -325,7 +325,7 @@ imepAgent::aggregateObjectBlock(Packet *p)
 
 		int obj_length = toraHeaderLength(t);
 		int new_len = U_INT16_T(im->imep_length) 
-		  + sizeof(struct imep_object) + obj_length 
+		  + IMEP_OBJECT_SIZE + obj_length 
 		  + response_list_len;
 		if (new_len > IMEP_HDR_LEN)
 		  { // object won't fit, stop now
@@ -337,7 +337,7 @@ imepAgent::aggregateObjectBlock(Packet *p)
 
 		case PT_TORA:
    		        toraExtractHeader(p0, ((char*) object) 
-					      + sizeof(struct imep_object));
+					  + IMEP_OBJECT_SIZE);
 			break;
 
 		default:
@@ -346,15 +346,15 @@ imepAgent::aggregateObjectBlock(Packet *p)
 			abort();
 		}
 
-		ch->size() += sizeof(struct imep_object) + obj_length;
+		ch->size() += IMEP_OBJECT_SIZE + obj_length;
 
 		U_INT16_T(im->imep_length) +=
-			sizeof(struct imep_object) + obj_length;
+			IMEP_OBJECT_SIZE + obj_length;
 
 		object->o_length = obj_length;
 
 		object = (struct imep_object*) ((char*) object + 
-			   sizeof(struct imep_object) + obj_length);
+			   IMEP_OBJECT_SIZE + obj_length);
 
 		Packet::free(p0);
 	}
@@ -363,8 +363,8 @@ imepAgent::aggregateObjectBlock(Packet *p)
 
 	if (0 == num_objects_inserted)
 	  { // remove the object block hdr we just worked so hard to put in
-	    U_INT16_T(im->imep_length) -= sizeof(struct imep_object_block);
-	    ch->size() -= sizeof(struct imep_object_block);
+	    U_INT16_T(im->imep_length) -= IMEP_OBJECT_BLOCK_SIZE;
+	    ch->size() -= IMEP_OBJECT_BLOCK_SIZE;
 	    return;
 	  }
 

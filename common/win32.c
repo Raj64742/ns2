@@ -33,7 +33,7 @@
  * This module contributed by John Brezak <brezak@apollo.hp.com>.
  * January 31, 1996
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/win32.c,v 1.5 1999/07/02 21:02:10 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/win32.c,v 1.6 2006/02/21 15:20:18 mahrenho Exp $ (LBL)
  */
 
 #ifdef WIN32
@@ -597,3 +597,5 @@ int platformInit(Tcl_Interp* interp)
 }
 
 #endif
+
+static const char ISO_C_forbids_an_empty_source_file; /* don't know why ... */

@@ -2,7 +2,7 @@
 /*
  * pgm-receiver.cc
  * Copyright (C) 2001 by the University of Southern California
- * $Id: pgm-receiver.cc,v 1.7 2005/08/25 18:58:10 johnh Exp $
+ * $Id: pgm-receiver.cc,v 1.8 2006/02/21 15:20:19 mahrenho Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -183,7 +183,7 @@ protected:
   void print_stats();
   void display_packet(Packet *pkt); // For debugging.
 
-  void PgmReceiver::trace_event(char *evType, double evTime);
+  void trace_event(char *evType, double evTime);
 
   EventTrace * et_;  //Trace Object for Custom Event Trace
 
@@ -770,7 +770,7 @@ void PgmReceiver::print_stats()
   printf("\tMax packet:\t\t%d\n", rcvbuf_.maxpkt_);
   if (rcvbuf_.pkts_recovered_) {
     printf("\tPackets recovered:\t%d\n", rcvbuf_.pkts_recovered_);
-    printf("\tLatency (min, max, avg):\t%lf, %lf, %lf\n",
+    printf("\tLatency (min, max, avg):\t%f, %f, %f\n",
 	   rcvbuf_.min_delay_, rcvbuf_.max_delay_,
 	   rcvbuf_.delay_sum_ / rcvbuf_.pkts_recovered_);
   }

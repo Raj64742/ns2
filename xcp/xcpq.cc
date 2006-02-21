@@ -2,7 +2,7 @@
 
 /*
  * Copyright (C) 2004 by the University of Southern California
- * $Id: xcpq.cc,v 1.10 2005/08/25 18:58:14 johnh Exp $
+ * $Id: xcpq.cc,v 1.11 2006/02/21 15:20:20 mahrenho Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -48,6 +48,17 @@
 #include "xcp.h"
 #include "random.h"
 
+
+const double	XCPQueue::ALPHA_		= 0.4;
+const double	XCPQueue::BETA_		= 0.226;
+const double	XCPQueue::GAMMA_		= 0.1;
+const double	XCPQueue::XCP_MAX_INTERVAL= 1.0;
+const double	XCPQueue::XCP_MIN_INTERVAL= .001;
+const double    XCPQueue::BWIDTH  = 0.01;
+//const int       XCPQueue::BSIZE;
+
+
+
 static class XCPQClass : public TclClass {
 public:
 	XCPQClass() : TclClass("Queue/DropTail/XCPQ") {}
@@ -57,13 +68,6 @@ public:
 } class_droptail_xcpq;
 
 
-const double XCPQueue::BWIDTH;
-const double XCPQueue::ALPHA_;
-const double XCPQueue::BETA_;
-const double XCPQueue::GAMMA_;
-const double XCPQueue::XCP_MAX_INTERVAL;
-const double XCPQueue::XCP_MIN_INTERVAL;
-const int    XCPQueue::BSIZE;
 
 
 

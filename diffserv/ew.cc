@@ -2,7 +2,7 @@
 /*
  * ew.cc
  * Copyright (C) 1999 by the University of Southern California
- * $Id: ew.cc,v 1.6 2005/08/25 18:58:03 johnh Exp $
+ * $Id: ew.cc,v 1.7 2006/02/21 15:20:18 mahrenho Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -108,7 +108,7 @@ void HLF::update(double input) {
 // Definition for a token-bucket rate limitor
 TBrateLimitor::TBrateLimitor() {
   TBrateLimitor(DEFAULT_TB_RATE_P);
-};
+}
 
 TBrateLimitor::TBrateLimitor(double rate) {
   double now = Scheduler::instance().clock();
@@ -127,7 +127,7 @@ TBrateLimitor::TBrateLimitor(double rate) {
   // High-low filter
   hlf.setAlpha(ALPHA);
   hlf.reset(rate);
-};
+}
 
 // adjust the rate limit to the default value
 void TBrateLimitor::setRate(double rate) {
@@ -232,17 +232,18 @@ EWdetector::EWdetector() {
 void EWdetector::setDt(int inv) {
   dt_inv = inv;
   //printf("DT: %d\n", dt_inv);
-};
+}
+
 void EWdetector::setDb(int inv) {
   db_inv = inv;
   //printf("DB: %d\n", db_inv);
-};
+}
 
 void EWdetector::setLink(int src, int dst) {
   ew_src = src;
   ew_dst = dst;
   //printf("EW: (%d:%d)\n", ew_src, ew_dst);
-};
+}
 
 void EWdetector::setAlarm() {
   alarm = 1;
@@ -250,7 +251,7 @@ void EWdetector::setAlarm() {
   // Reset low and high gain filters' input values to the long-term avg
   // Actually, there is no change to high gain filter
   hlf.reset(avg_rate);
-};
+}
 
 void EWdetector::resetAlarm() {
   alarm = 0;
@@ -258,7 +259,7 @@ void EWdetector::resetAlarm() {
   // Reset low and high gain filters' input values to the long-term avg
   // Actually, there is no change to low gain filter
   hlf.reset(avg_rate);
-};
+}
 
 // Set and reset change flag
 void EWdetector::setChange() {
@@ -1215,23 +1216,23 @@ void EWPolicy::detectBr() {
 void EWPolicy::limitPr(double rate) {
   //printf("PR %d\n", rate);
   rlP = new TBrateLimitor(rate);
-};
+}
 
 // Rate limitor: bit rate
 void EWPolicy::limitBr(double rate) {
   //printf("BR %d\n", rate);
   rlB = new TBrateLimitor(rate);
-};
+}
 
 // Rate limitor: packet rate
 void EWPolicy::limitPr() {
   limitPr(DEFAULT_TB_RATE_P);
-};
+}
 
 // Rate limitor: bit rate
 void EWPolicy::limitBr() {
   limitBr(DEFAULT_TB_RATE_B);
-};
+}
 
 // couple EW detector
 void EWPolicy::coupleEW(EWPolicy *ewpc) {

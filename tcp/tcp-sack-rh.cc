@@ -25,7 +25,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack-rh.cc,v 1.5 2002/10/09 03:47:02 difa Exp $ (PSC-SACKRH)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack-rh.cc,v 1.6 2006/02/21 15:20:20 mahrenho Exp $ (PSC-SACKRH)";
 #endif
 
 #include <stdio.h>
@@ -65,7 +65,7 @@ class SackRHTcpAgent : public TcpAgent {
 	virtual void estadjust();
 	virtual void rhclear();
 	virtual void computefack();
-	virtual void SackRHTcpAgent::newack(Packet* pkt);
+	virtual void newack(Packet* pkt);
  protected:
 	int fack_;	          /* the FACK state variable  */
 	int retran_data_;         /* the number of retransmitted packets in the pipe  */

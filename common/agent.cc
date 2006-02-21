@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.78 2005/07/13 03:51:23 tomh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.79 2006/02/21 15:20:17 mahrenho Exp $ (LBL)";
 #endif
 
 #include <assert.h>
@@ -496,8 +496,8 @@ Agent::initpkt(Packet* p) const
 		printf("Off hdr_nv %d, ip_hdr %d myaddr %d\n",
 		       hdr_nv::offset(), hdr_ip::offset(), here_.addr_);
  	NixNode* pNixNode = NixNode::GetNodeObject(here_.addr_);
- 	if (0)
-		printf("Node Object %p\n", pNixNode);
+	// 	if (0)
+	//		printf("Node Object %p\n", reinterpret_cast<void *>(pNixNode) );
  	if (pNixNode) { 
  		// If we get non-null, indicates nixvector routing in use
  		// Delete any left over nv in the packet

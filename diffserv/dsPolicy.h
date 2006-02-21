@@ -52,7 +52,7 @@
 #define EW 7
 #define DEWP 8
 
-enum policerType {nullPolicer, TSW2CMPolicer, TSW3CMPolicer, tokenBucketPolicer, srTCMPolicer, trTCMPolicer, SFDPolicer, EWPolicer, DEWPPolicer,};
+enum policerType {nullPolicer, TSW2CMPolicer, TSW3CMPolicer, tokenBucketPolicer, srTCMPolicer, trTCMPolicer, SFDPolicer, EWPolicer, DEWPPolicer};
 
 enum meterType {nullMeter, tswTagger, tokenBucketMeter, srTCMMeter, trTCMMeter, sfdTagger, ewTagger, dewpTagger};
 

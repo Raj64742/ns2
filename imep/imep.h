@@ -33,7 +33,7 @@
  *
  * Ported from CMU/Monarch's code
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/imep/imep.h,v 1.5 2000/09/01 03:04:10 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/imep/imep.h,v 1.6 2006/02/21 15:20:18 mahrenho Exp $
  */
 
 #ifndef __imep_h__
@@ -62,10 +62,10 @@
 #define BEACON_HDR_LEN	(IP_HDR_LEN + sizeof(struct hdr_imep))
 
 #define HELLO_HDR_LEN	(IP_HDR_LEN + sizeof(struct hdr_imep) + \
-			sizeof(struct imep_hello_block))
+			 offsetof(struct imep_hello_block, hb_hello_list[0]) )
 
 #define ACK_HDR_LEN	(IP_HDR_LEN + sizeof(struct hdr_imep) + \
-			sizeof(struct imep_ack_block))
+			 offsetof(struct imep_ack_block, ab_ack_list[0] ) )
 
 #define INT32_T(X)	*((int32_t*) &(X))
 #define U_INT16_T(X)	*((u_int16_t*) &(X))
@@ -80,7 +80,7 @@ enum imepTimerType {
 	BEACON_TIMER = 0x01,
 	CONTROL_TIMER = 0x02,
 	REXMIT_TIMER = 0x03,
-	INCOMING_TIMER = 0x04,
+	INCOMING_TIMER = 0x04
 };
 
 class imepTimer : public Handler {

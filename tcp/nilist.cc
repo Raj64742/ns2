@@ -61,7 +61,9 @@ void slist_base::remove(slink *a, slink *prev)
     remove_count_++; /* XXX */
     count_--;
     if (prev && prev->next_ != a)
-	    printf("In remove(): Error: prev->next!=a  prev=%p  a=%p\n", prev, a);
+	    printf("In remove(): Error: prev->next!=a  prev=%p  a=%p\n", 
+		   reinterpret_cast<void *>(prev),
+		   reinterpret_cast<void *>(a) );
     if (last_ == NULL) 
 	return;
     if (prev == NULL)

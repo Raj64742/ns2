@@ -2,7 +2,7 @@
 /*
  * lms-sender.cc
  * Copyright (C) 2001 by the University of Southern California
- * $Id: lms-sender.cc,v 1.4 2005/08/25 18:58:07 johnh Exp $
+ * $Id: lms-sender.cc,v 1.5 2006/02/21 15:20:19 mahrenho Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -454,7 +454,7 @@ void LmsSender::print_stats ()
 void LmsSender::print_all_stats (int drops)
 {
     if (drops) 
-        printf ("\t%.5lf\t  %d", float(dup_reqs_)/float(drops), max_dup_naks_);
+        printf ("\t%.5f\t  %d", float(dup_reqs_)/float(drops), max_dup_naks_);
     else 
         printf ("\t0.0\t  0");
 }

@@ -3,7 +3,7 @@
 /*
  * classifier-nix.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: classifier-nix.cc,v 1.6 2005/08/25 18:58:09 johnh Exp $
+ * $Id: classifier-nix.cc,v 1.7 2006/02/21 15:20:19 mahrenho Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -86,7 +86,7 @@ NsObject* NixClassifier::find(Packet* p)
 	hdr_ip* ip = hdr_ip::access(p);
 	if ((nodeid_t)ip->daddr() == pN->Id())
 		{ // Arrived at destination, pass on to the dmux object
-			if(0)printf("Returning Dmux objet %p\n", m_Dmux);
+			//			if(0)printf("Returning Dmux objet %p\n", m_Dmux);
 			return m_Dmux;
 		}
 	hdr_nv* nv = hdr_nv::access(p);
@@ -127,7 +127,7 @@ int NixClassifier::command(int argc, const char*const* argv)
 					if ((nodeid_t)target == pN->Id())
 						{ // This is the only case we care about, need to note the dmux obj
 							m_Dmux = (NsObject*)TclObject::lookup(argv[3]);
-							if(0)printf("m_Dmux obj is %p\n", m_Dmux);
+							//if(0)printf("m_Dmux obj is %p\n", m_Dmux);
 						}
 				}
 			return(TCL_OK);

@@ -2,7 +2,7 @@
 /*
  * mac-tdma.h
  * Copyright (C) 1999 by the University of Southern California
- * $Id: mac-tdma.h,v 1.5 2005/08/25 18:58:07 johnh Exp $
+ * $Id: mac-tdma.h,v 1.6 2006/02/21 15:20:19 mahrenho Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -152,13 +152,13 @@ struct hdr_mac_tdma {
 	u_char			dh_sa[ETHER_ADDR_LEN];
 	u_char			dh_bssid[ETHER_ADDR_LEN];
 	u_int16_t		dh_scontrol;
-	u_char			dh_body[0]; // XXX Non-ANSI
+	u_char			dh_body[1]; // XXX Non-ANSI
 };
 
 #define ETHER_HDR_LEN				\
 	((phymib_->PreambleLength >> 3) +	\
 	 (phymib_->PLCPHeaderLength >> 3) +	\
-	 sizeof(struct hdr_mac_tdma) +		\
+	 offsetof(struct hdr_mac_tdma, dh_body[0] ) +	\
 	 ETHER_FCS_LEN)
 
 #define DATA_Time(len)	(8 * (len) / bandwidth_)

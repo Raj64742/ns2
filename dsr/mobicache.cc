@@ -2,7 +2,7 @@
 /*
  * mobicache.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: mobicache.cc,v 1.6 2005/08/25 18:58:05 johnh Exp $
+ * $Id: mobicache.cc,v 1.7 2006/02/21 15:20:18 mahrenho Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -57,7 +57,7 @@
 extern "C" {
 #include <stdio.h>
 #include <stdarg.h>
-};
+}
 
 #undef DEBUG
 
