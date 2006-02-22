@@ -271,6 +271,8 @@ void TfrcAgent::nextpkt()
 		next = next*(2*overhead_*Random::uniform()-overhead_+1);
 		if (next > SMALLFLOAT)
 			send_timer_.resched(next);
+                else 
+			send_timer_.resched(SMALLFLOAT);
 	}
 }
 
