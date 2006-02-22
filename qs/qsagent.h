@@ -2,7 +2,7 @@
 /*
  * qsagent.h
  * Copyright (C) 2001 by the University of Southern California
- * $Id: qsagent.h,v 1.4 2005/08/25 18:58:10 johnh Exp $
+ * $Id: qsagent.h,v 1.5 2006/02/22 20:35:37 sallyfloyd Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -95,11 +95,13 @@ public:
 
 	int qs_enabled_;
 	int algorithm_; // QS request processing algorithm
-
+			// 3 for the recommended algorithm.
 	double state_delay_;
 	double alloc_rate_;
-	double threshold_;
-	int max_rate_;
+	double threshold_;  // for algorithm_ 3, utilized bandwidth
+		            // must be less than threshold.
+	int max_rate_;	// maximum rate for one rate request, for some
+			// quickstart algorithms (but not for #3)
 	int mss_;
 
 	/*
