@@ -3,7 +3,7 @@
 /*
  * mac-tdma.cc
  * Copyright (C) 1999 by the University of Southern California
- * $Id: mac-tdma.cc,v 1.15 2005/09/18 23:33:33 tomh Exp $
+ * $Id: mac-tdma.cc,v 1.16 2006/02/22 13:25:43 mahrenho Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -46,7 +46,7 @@
  */
 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-tdma.cc,v 1.15 2005/09/18 23:33:33 tomh Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-tdma.cc,v 1.16 2006/02/22 13:25:43 mahrenho Exp $
 //
 // mac-tdma.cc
 // by Xuan Chen (xuanc@isi.edu), ISI/USC
@@ -71,6 +71,7 @@
 #include "wireless-phy.h"
 #include "cmu-trace.h"
 
+#include <stddef.h>
 
 #define SET_RX_STATE(x)			\
 {					\

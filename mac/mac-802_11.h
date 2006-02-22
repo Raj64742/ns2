@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.h,v 1.26 2006/02/21 15:20:19 mahrenho Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.h,v 1.27 2006/02/22 13:25:43 mahrenho Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  * wireless-mac-802_11.h
@@ -47,6 +47,7 @@
 #include "mac-timers.h"
 #include "marshall.h"
 #include <math.h>
+#include <stddef.h>
 
 class EventTrace;
 
