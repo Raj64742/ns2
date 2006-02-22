@@ -2,7 +2,7 @@
 /*
  * dumb-agent.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: dumb-agent.cc,v 1.2 2005/08/25 18:58:08 johnh Exp $
+ * $Id: dumb-agent.cc,v 1.3 2006/02/22 13:32:23 mahrenho Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -93,14 +93,14 @@ void DumbAgent::recv(Packet *p, Handler *h=0)
   
   if (ch->direction() == hdr_cmn::UP) { // in-coming pkt
     if ((u_int32_t)iph->daddr() == IP_BROADCAST) {
-      printf("Recvd brdcast pkt\n");
+//      printf("Recvd brdcast pkt\n");
       dmux_->recv(p, 0);
     
     } else {
       // this agent recvs pkts destined to it only
       // doesnot support multi-hop scenarios
       assert(iph->daddr() == here_.addr_);
-      printf("Recvd unicast pkt\n");
+//      printf("Recvd unicast pkt\n");
       dmux_->recv(p, 0);
     }
     

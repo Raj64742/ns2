@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ip.h,v 1.15 2000/09/01 03:04:05 haoboy Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ip.h,v 1.16 2006/02/22 13:32:23 mahrenho Exp $
  */
 
 /* a network layer; basically like IPv6 */
@@ -51,7 +51,9 @@
 #undef IP_BROADCAST
 #endif
 
-#define IP_BROADCAST	((u_int32_t) 0xffffffff)
+// #define IP_BROADCAST	((u_int32_t) 0xffffffff)
+static const u_int32_t IP_BROADCAST = ((u_int32_t) 0xffffffff);
+
 
 struct hdr_ip {
 	/* common to IPv{4,6} */
