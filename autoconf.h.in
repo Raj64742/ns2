@@ -85,6 +85,12 @@
 
 #undef CPP_REQUIRES_NAMESPACE 
 #ifdef CPP_REQUIRES_NAMESPACE
+
+#ifndef CPP_NAMESPACE
+#define CPP_NAMESPACE std
+#endif
+
+
 using namespace CPP_NAMESPACE;
 #endif /* CPP_NAMESPACE */
 #endif /* __cplusplus */
