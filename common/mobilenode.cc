@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/mobilenode.cc,v 1.35 2005/01/13 18:33:47 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/mobilenode.cc,v 1.36 2006/02/22 13:21:52 mahrenho Exp $
  *
  * Code in this file will be changed in the near future. From now on it 
  * should be treated as for backward compatibility only, although it is in
@@ -423,9 +423,11 @@ MobileNode::set_destination(double x, double y, double s)
 	dY_ = destY_ - Y_;
 	dZ_ = 0.0;		// this isn't used, since flying isn't allowed
 
+	double len;
+	
 	if (destX_ != X_ || destY_ != Y_) {
 		// normalize dx, dy to unit len
-		double len = sqrt( (dX_ * dX_) + (dY_ * dY_) );
+		len = sqrt( (dX_ * dX_) + (dY_ * dY_) );
 		dX_ /= len;
 		dY_ /= len;
 	}
@@ -445,15 +447,16 @@ MobileNode::set_destination(double x, double y, double s)
 	}                     
 
 	if (namChan_ != 0) {
+		
+		double v = speed_ * sqrt( (dX_ * dX_) + (dY_ * dY_)); 
+		
 		sprintf(nwrk_,     
 			"n -t %f -s %d -x %f -y %f -U %f -V %f -T %f",
 			Scheduler::instance().clock(),
 			nodeid_,
 			X_, Y_,
 			speed_ * dX_, speed_ * dY_,
-			((speed_*dX_) != 0) ? 
-				(destX_-X_)/(speed_*dX_) : speed_*dX_
-			);   
+			( v != 0) ? len / v : 0. );   
 		namdump();         
 	}
 	return 0;
