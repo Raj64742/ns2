@@ -43,7 +43,7 @@
 #
 # Author: Haobo Yu (haoboy@isi.edu)
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.42 2005/09/16 03:05:43 tomh Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.43 2006/02/22 13:23:15 mahrenho Exp $
 #
 
 #
@@ -76,7 +76,7 @@ Node instproc color { color } {
 		# color must be initialized
 
 		$ns puts-nam-config \
-		[eval list "n -t [$ns now] -s $id_ -S COLOR -c $color -o $attr_(COLOR) -i $color -I $attr_(LCOLOR)"]
+		[eval list "n -t [format "%.15g" [$ns now]] -s $id_ -S COLOR -c $color -o $attr_(COLOR) -i $color -I $attr_(LCOLOR)"]
 		set attr_(COLOR) $color
 	        set attr_(LCOLOR) $color
 	} else {
