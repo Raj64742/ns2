@@ -37,12 +37,12 @@
  * Multi-state error model patches contributed by Jianping Pan 
  * (jpan@bbcr.uwaterloo.ca).
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.82 2006/02/21 15:20:19 mahrenho Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.83 2006/03/01 19:28:04 padmah Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.82 2006/02/21 15:20:19 mahrenho Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.83 2006/03/01 19:28:04 padmah Exp $ (UCB)";
 #endif
 
 #include "config.h"
@@ -358,7 +358,7 @@ void ErrorModel::trace_event(char *eventtype)
 		sprintf(wrk,
 			"E "TIME_FORMAT" ErrModelTimer %p %s",
 			et_->round(Scheduler::instance().clock()),   // time
-			reinterpret_cast<void *>(this),
+			this,
 			eventtype                    // event type
 			);
 	
@@ -366,7 +366,7 @@ void ErrorModel::trace_event(char *eventtype)
 		sprintf(nwrk,
 			"E -t "TIME_FORMAT" ErrModelTimer %p %s",
 			et_->round(Scheduler::instance().clock()),   // time
-			reinterpret_cast<void *>(this),
+			this,
 			eventtype                    // event type
 			);
 	et_->trace();
@@ -453,6 +453,9 @@ void TwoStateErrorModel::transitionState()
 	}
 	state_ ^= 1;
 	remainLen_ = ranvar_[state_]->value();
+	if (state_ == 1 && remainLen_ > 120)
+		remainLen_ = 120;
+		
 	twoStateTimer_->resched(remainLen_);
 	sprintf (buf,"STATE %d, DURATION %f",state_,remainLen_);
 	trace_event(buf);
@@ -534,7 +537,7 @@ int ComplexTwoStateErrorModel::command(int argc, const char*const* argv)
 int ComplexTwoStateErrorModel::corruptTime(Packet* p)
 {
 	int error = 0;
-	if (em_[0]->state_ == 1 && em_[1]->state_ == 1)
+	if (em_[0]->state_ == 1 && em_[1]->state_ == 1) 
 		error = 1;
 	return error;
 }
