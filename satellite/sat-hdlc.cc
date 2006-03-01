@@ -37,6 +37,7 @@
 #include <sat-hdlc.h>
 #include <mac.h>
 
+// setting this allows HDLC to reset once it reaches the max-retries.
 #define RESET_HDLC 1
 
 int HDLC::uidcnt_;
@@ -76,8 +77,6 @@ HDLC::HDLC() : SatLL(), list_head_(0)
 	bind("delAckVal_", &delAckVal_);
 	
 	wndmask_ = HDLC_MWM;
-	//seen_ = new Packet*[(HDLC_MWM+1)];
-	//memset(seen_, 0, (sizeof(Packet *) * (HDLC_MWM+1)));
 }
 
 void HDLC::recv(Packet* p, Handler* h)
@@ -96,7 +95,6 @@ void HDLC::recv(Packet* p, Handler* h)
 			arptable_->arpinput(p, this);
 		else 
 			recvIncoming(p);
-		// uptarget_ ? sendUp(p) : drop(p);
 		return;
 	}
 
@@ -157,6 +155,12 @@ void HDLC::recvOutgoing(Packet* p)
 
 void HDLC::inSendBuffer(Packet *p, ARQstate *a) 
 {
+	// check for HDLC buffer overflow
+	if (a->sendBuf_.length() >= queueSize_) {
+		drop(p, "HDLC queue full");
+		return;
+	}
+		
 	hdr_cmn *ch = HDR_CMN(p);
 	hdr_ip *ih = HDR_IP(p);
 	hdr_hdlc *hh = HDR_HDLC(p);
@@ -177,12 +181,9 @@ void HDLC::inSendBuffer(Packet *p, ARQstate *a)
 	
 }
 
-//Packet *HDLC::dataToSend(Packet *p)
 Packet *HDLC::dataToSend(ARQstate *a)
 {
 	Packet *dp;
-	//hdr_ip *ih = HDR_IP(p);
-	//nsaddr_t dst = (nsaddr_t)Address::instance().get_nodeaddr(ih->saddr());
 	
 	// if have any data to send
 	if (a->t_seqno_ <= a->highest_ack_ + wnd_ && \
@@ -201,6 +202,9 @@ Packet *HDLC::dataToSend(ARQstate *a)
 // try to send as much as possible if have any pkts to send
 void HDLC::sendMuch(ARQstate *a)
 {
+	// sanity check for a connection
+	assert(a->SABME_req_ == 2);
+	
 	Packet *p;
 	
 	while (a->t_seqno_ <= a->highest_ack_ + wnd_ && (p = getPkt(a->sendBuf_, a->t_seqno_)) != 0) {
@@ -340,7 +344,6 @@ void HDLC::ack(Packet *p)
 	
 	Packet *dp;
 	
-	//if ((dp = dataToSend(p)) != NULL) {
 	if (a->t_seqno_ > 0 && (dp = dataToSend(a)) != NULL) {
 		output(dp, a, a->t_seqno_);	
 		a->t_seqno_++;
@@ -802,8 +805,8 @@ void HDLC::handleRR(Packet *p)
 	int last_hop = HDR_CMN(p)->last_hop_;
 	ARQstate *a = checkState(last_hop);
 	
-	if (a == 0){
-		printf("handleRR: No state found for %d\n", last_hop);
+	if (a == 0 || a->SABME_req_ != 2){
+		printf("handleRR: No state/connection found for %d\n", last_hop);
 		return;
 	}
 
@@ -871,8 +874,8 @@ void HDLC::handleREJ(Packet *rejp)
 	int last_hop = HDR_CMN(rejp)->last_hop_;
 	ARQstate *a = checkState(last_hop);
 	
-	if (a == 0) {
-		printf("handleREJ: No state found for %d\n", last_hop);
+	if (a == 0 || a->SABME_req_ != 2) {
+		printf("handleREJ: No state/connection found for %d\n", last_hop);
 		return;
 	}
 
@@ -892,8 +895,8 @@ void HDLC::handleSREJ(Packet *rejp)
 	int last_hop = HDR_CMN(rejp)->last_hop_;
 	ARQstate *a = checkState(last_hop);
 	
-	if (a == 0) {
-		printf("handleSREJ: No state found for %d\n", last_hop);
+	if (a == 0 || a->SABME_req_ != 2) {
+		printf("handleSREJ: No state/connection found for %d\n", last_hop);
 		return;
 	}
 
@@ -1059,7 +1062,7 @@ void HDLC::timeout(ARQstate *a)
 	// SABME timeout
 	if (a->SABME_req_ && a->t_seqno_ == 0 ) {
 		
-		if (a->ntimeouts_ < maxTimeouts_) {
+		if (a->ntimeouts_ <= maxTimeouts_) {
 			Packet *p = getPkt(a->sendBuf_, 0);
 			sendUA(p, SABME);
 			set_rtx_timer(a);
@@ -1217,7 +1220,9 @@ void HDLC::selectiveRepeatMode(Packet* p)
 		// Duplicate packet case 1: the packet is to the left edge of
 		// the receive window; therefore we must have seen it
 		// before
+#ifdef DEBUGHDLC
 		printf("%f\t Received duplicate packet %d\n",Scheduler::instance().clock(),seq);
+#endif
 		ack(p);
 		drop(p);
 		return;
@@ -1236,8 +1241,9 @@ void HDLC::selectiveRepeatMode(Packet* p)
 		// Duplicate case 2: the segment has already been
 		// recorded as being received (AND not because we just
 		// marked it as such)
-			
+#ifdef DEBUGHDLC
 			printf("%f\t Received duplicate packet %d\n",Scheduler::instance().clock(),seq);
+#endif
 			ack(p);
 			drop(p);
 			return;

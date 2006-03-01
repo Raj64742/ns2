@@ -37,7 +37,7 @@
 
 /*
   This is an implementation of the ARQ feature used in HDLC working in ABM (Asynchronous Balanced Mode) which provides a reliable mode of link transfer using acknowledgements.
-
+First cut implementation; 
 */
 
 #ifndef ns_hdlc_h
