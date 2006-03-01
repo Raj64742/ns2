@@ -40,8 +40,8 @@ LL set macDA_ 0
 LL/Sat/HDLC set window_size_ 8
 LL/Sat/HDLC set queue_size_ 1000
 LL/Sat/HDLC set timeout_ 0.26
-LL/Sat/HDLC set max_timeouts_ 2 ;# set to a very high value to ensure HDLC ARQ connection
-                              # is never reset;  
+LL/Sat/HDLC set max_timeouts_ 2 ;# other values 3, 5, 50, 200 maybe set from user tcl script
+
 LL/Sat/HDLC set delAck_   false  ;# ack maybe delayed to allow piggybacking
 LL/Sat/HDLC set delAckVal_  0.1  ;# value chosen based on a link delay of 100ms
 LL/Sat/HDLC set selRepeat_ false ;# set to GoBackN by default
