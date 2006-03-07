@@ -15,7 +15,7 @@ a module developed at UNC-Chapel Hill for delaying and/or dropping
 packets in a flow according to a distribution. DelayBox can be used
 with PackMime-HTTP to simulate a "cloud" of clients and servers that
 have different round-trip times, bottleneck link speeds, and amounts
-of packet loss.
+of packet loss (see \ref{sec:pm-db} for more information).
 
 The PackMime HTTP traffic model is described in detail in the following paper:
 J. Cao, W.S. Cleveland, Y. Gao, K. Jeffay, F.D. Smith, and M.C. Weigle
@@ -105,7 +105,7 @@ server is told how many requests will be sent in the connection}
 
 This implementation of PackMimeHTTP provides several ns RandomVariable
 objects for specifying distributions of PackMimeHTTP connection
-variables. The implementations were taked from source code provided by
+variables. The implementations were taken from source code provided by
 Bell Labs and modified to fit into the ns RandomVariable
 framework. This allows PackMimeHTTP connection variables to be
 specified by any type of ns RandomVariable, which now include
@@ -118,11 +118,13 @@ of new connections per second)}
 \item{{\tt \$ns [new RandomVariable/PackMimeHTTPFileSize <rate> <type>]},
 where {\tt type} is 0 for HTTP requests and 1 for HTTP responses} 
 \item{{\tt \$ns [RandomVariable/PackMimeHTTPXmit <rate> <type>]}, where
-{\tt type} is 0 for client-side transmission delays and 1 for
-server-side transmission delays}
+{\tt type} is 0 for client-side delays and 1 for
+server-side delays.  \textbf{Note:} This random variable
+is only used in conjunction with DelayBox.  It returns 1/2 of the actual delay because it is meant to be used with 2 DelayBox nodes, each of which should delay the packets for 1/2 of the actual delay.}
 \end{itemize}
 
 \section{Use of DelayBox with PackMime-HTTP}
+\label{sec:pm-db}
 
 \begin{figure}
 \centering
@@ -134,18 +136,19 @@ server-side transmission delays}
 PackMimeHTTP uses ns to model the TCP-level interaction between web
 clients and servers on the simulated link. To simulate network-level
 effects of HTTP transfer through the clouds, we implemented a new ns
-module called DelayBox. DelayBox is an ns analog to dummynet, often
-used in network testbeds to delay and drop packets. The transit times
-model cloud propagation and queuing delay. Since all HTTP connections
-in PackMimeHTTP take place between only two ns nodes, there had to be
-an ns object to delay packets in each flow, rather than just having a
-static delay on the link between the two nodes. DelayBox also models
-bottleneck links and packet loss on an individual connection
-basis. Two DelayBox nodes are used as shown in Figure
-\ref{fig-pmdb}. One node is placed in front of the web client cloud ns
-node to handle client-side delays, loss, and bottleneck links. The
-other DelayBox node is placed in front of the web server cloud ns node
-to handle the server-side delays, loss, and bottleneck links.
+module called DelayBox (see \ref{chap:delaybox}). DelayBox is an ns
+analog to dummynet, often used in network testbeds to delay and drop
+packets. The delay times model the propagation and queuing
+delay incurred from the source to the edge of the cloud (or edge of the cloud to destination). Since all HTTP connections in PackMimeHTTP take place between
+only two ns nodes, there had to be an ns object to delay packets in
+each flow, rather than just having a static delay on the link between
+the two nodes. DelayBox also models bottleneck links and packet loss
+on an individual connection basis. Two DelayBox nodes are used as
+shown in Figure \ref{fig-pmdb}. One node is placed in front of the web
+client cloud ns node to handle client-side delays, loss, and
+bottleneck links. The other DelayBox node is placed in front of the
+web server cloud ns node to handle the server-side delays, loss, and
+bottleneck links.
 
 \section{Example}
 More examples (including those that demonstrate the use of DelayBox
