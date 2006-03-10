@@ -2,7 +2,7 @@
 /*
  * omni_mcast.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: omni_mcast.cc,v 1.13 2005/09/18 23:33:31 tomh Exp $
+ * $Id: omni_mcast.cc,v 1.14 2006/03/10 12:25:28 mahrenho Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -79,6 +79,14 @@
 #include "ll.h"
 #include "dsr/path.h"
 #include "god.h"
+
+/* Callback helper */
+void OmniMcastXmitFailedCallback(Packet *pkt, void *data)
+{
+  OmniMcastAgent *agent = (OmniMcastAgent *)data;  // cast of trust
+  agent->xmitFailed(pkt);
+}
+
 
 static class OmniMcastClass : public TclClass {
 public:
@@ -416,13 +424,6 @@ void OmniMcastAgent::MACsend(Packet *pkt, Time delay)
     cmh->size() = 36 + 4*(dfh->num_next -1);
 
   Scheduler::instance().schedule(ll, pkt, delay);
-}
-
-
-void OmniMcastXmitFailedCallback(Packet *pkt, void *data)
-{
-  OmniMcastAgent *agent = (OmniMcastAgent *)data;  // cast of trust
-  agent->xmitFailed(pkt);
 }
 
 

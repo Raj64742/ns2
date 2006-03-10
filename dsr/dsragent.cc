@@ -2,7 +2,7 @@
 /*
  * dsragent.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: dsragent.cc,v 1.36 2005/08/28 23:23:03 tomh Exp $
+ * $Id: dsragent.cc,v 1.37 2006/03/10 12:25:28 mahrenho Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -80,7 +80,6 @@ extern "C" {
 #include "routecache.h"
 #include "requesttable.h"
 #include "dsragent.h"
-
 
 /*==============================================================
   Declarations and global defintions
@@ -213,6 +212,22 @@ Our strategy is as follows:
  arrives routine
 
 */
+
+/* Callback helpers */
+void
+XmitFailureCallback(Packet *pkt, void *data)
+{
+  DSRAgent *agent = (DSRAgent *)data; // cast of trust
+  agent->xmitFailed(pkt);
+}
+
+void
+XmitFlowFailureCallback(Packet *pkt, void *data)
+{
+  DSRAgent *agent = (DSRAgent *)data;
+  agent->xmitFlowFailed(pkt);
+}
+
 
 /*===========================================================================
   SendBuf management and helpers
@@ -2785,19 +2800,6 @@ DSRAgent::xmitFailed(Packet *pkt, const char* reason)
   sendOutPacketWithRoute(p, true);
 }
 
-void
-XmitFailureCallback(Packet *pkt, void *data)
-{
-  DSRAgent *agent = (DSRAgent *)data; // cast of trust
-  agent->xmitFailed(pkt);
-}
-
-void
-XmitFlowFailureCallback(Packet *pkt, void *data)
-{
-  DSRAgent *agent = (DSRAgent *)data;
-  agent->xmitFlowFailed(pkt);
-}
 
 #if 0
 

@@ -2,7 +2,7 @@
 /*
  * diffusion.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: diffusion.cc,v 1.13 2005/09/18 23:33:31 tomh Exp $
+ * $Id: diffusion.cc,v 1.14 2006/03/10 12:25:28 mahrenho Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -35,8 +35,7 @@
  * source code.
  *
  * Note that people who make modified versions of this module
- * are not obligated to grant this special exception for their
- * modified versions; it is their choice whether to do so.  The GNU
+ * are not obligated to grant this special exception for their * modified versions; it is their choice whether to do so.  The GNU
  * General Public License gives permission to release a modified
  * version without this exception; this exception also makes it
  * possible to release a modified version which carries forward this
@@ -45,7 +44,7 @@
  */
 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/diffusion/diffusion.cc,v 1.13 2005/09/18 23:33:31 tomh Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/diffusion/diffusion.cc,v 1.14 2006/03/10 12:25:28 mahrenho Exp $
 
 /****************************************************************/
 /* diffusion.cc : Chalermek Intanagonwiwat (USC/ISI)  05/18/99  */
@@ -80,6 +79,13 @@
 #include "dsr/path.h"
 #include "god.h"
 #include "routing_table.h"
+
+/* Callback helper */
+void XmitFailedCallback(Packet *pkt, void *data)
+{
+  DiffusionAgent *agent = (DiffusionAgent *)data;  // cast of trust
+  agent->xmitFailed(pkt);
+}
 
 char *MsgStr[]= {"", "INTEREST", "DATA", "DATA_READY", "DATA_REQUEST",
 		"POS_REINFORCE", "NEG_REINFORCE", "INHIBIT", "TX_FAILED",
@@ -456,13 +462,6 @@ void DiffusionAgent::MACsend(Packet *pkt, Time delay)
     cmh->size() = 36 + 4*(dfh->num_next -1);
 
   Scheduler::instance().schedule(ll, pkt, delay);
-}
-
-
-void XmitFailedCallback(Packet *pkt, void *data)
-{
-  DiffusionAgent *agent = (DiffusionAgent *)data;  // cast of trust
-  agent->xmitFailed(pkt);
 }
 
 
