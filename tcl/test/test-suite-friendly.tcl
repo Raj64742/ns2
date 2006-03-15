@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.72 2006/01/25 22:02:05 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.73 2006/03/15 04:01:57 sallyfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -39,15 +39,6 @@ remove-all-packet-headers       ; # removes all except common
 add-packet-header Flags IP RTP TCP TFRC TFRC_ACK ; # hdrs reqd for validation test
 
 # FOR UPDATING GLOBAL DEFAULTS:
-Agent/TCP set precisionReduce_ false ;   # default changed on 2006/1/24.
-Agent/TCP set rtxcur_init_ 6.0 ;      # Default changed on 2006/01/21
-Agent/TCP set updated_rttvar_ false ;  # Variable added on 2006/1/21
-Agent/TFRC set ss_changes_ 0 ; 	# Added on 10/21/2004, default of 1
-Agent/TFRC set slow_increase_ 1 ; 	# Added on 10/20/2004
-Agent/TFRC set rate_init_ 1 ;          # Added on 10/20/2004, default of 2
-Agent/TFRC set rate_init_option_ 1 ;    # Added on 10/20/2004, default of 2
-Agent/TFRC set useHeaders_ false ;     # Added on 6/24/2004, default of true
-Agent/TFRC set headersize_ 40 ;		# Changed on 6/24/2004 to 32.
 Queue/RED set bytes_ false              
 # default changed on 10/11/2004.
 Queue/RED set queue_in_bytes_ false
@@ -56,26 +47,7 @@ Queue/RED set q_weight_ 0.002
 Queue/RED set thresh_ 5 
 Queue/RED set maxthresh_ 15
 # The RED parameter defaults are being changed for automatic configuration.
-Agent/TCP set tcpTick_ 0.1
-# The default for tcpTick_ is being changed to reflect a changing reality.
-Agent/TCP set rfc2988_ false
-# The default for rfc2988_ is being changed to true.
-Agent/TCP set useHeaders_ false
-# The default is being changed to useHeaders_ true.
-Agent/TCP set windowInit_ 1
-# The default is being changed to 2.
-Agent/TCP set singledup_ 0
-# The default is being changed to 1
-Agent/TCP set oldCode_ true
-# The default for oldCode_ is false.
-Agent/TCP set minrto_ 0
-# The default is being changed to minrto_ 1
-Agent/TCP set syn_ false
-Agent/TCP set delay_growth_ false
-# In preparation for changing the default values for syn_ and delay_growth_.
 ##########################
-Agent/TFRCSink set PreciseLoss_ 1
-# The default for PreciseLoss_ might be changed to 0, at some point.
 Agent/TFRCSink set numPkts_ 1
 # The default for numPkts_ might be changed to 3, at some point.
 # But right now, the code for numPkts does not work, except for numPkts_ 1.
@@ -89,7 +61,7 @@ Agent/TCP set window_ 100
 
 # Uncomment the line below to use a random seed for the
 #  random number generator.
-#ns-random 0
+# ns-random 0
 
 TestSuite instproc finish file {
         global quiet PERL
@@ -155,8 +127,8 @@ Topology/net2a instproc init ns {
     $ns duplex-link $node_(s4) $node_(r2) 10Mb 5ms DropTail
 }
 
-Class Topology/net2b -superclass Topology
-Topology/net2b instproc init ns {
+Class Topology/net2d -superclass Topology
+Topology/net2d instproc init ns {
     $self instvar node_
     set node_(s1) [$ns node]
     set node_(s2) [$ns node]
@@ -169,29 +141,7 @@ Topology/net2b instproc init ns {
     Queue/RED set gentle_ true
     $ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail
     $ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail
-    $ns duplex-link $node_(r1) $node_(r2) 1.5Mb 20ms DropTail
-    # 1.5Mb, 12.5 1500-byte pkts per 100 ms.
-    $ns queue-limit $node_(r1) $node_(r2) 12
-    $ns queue-limit $node_(r2) $node_(r1) 12
-    $ns duplex-link $node_(s3) $node_(r2) 10Mb 4ms DropTail
-    $ns duplex-link $node_(s4) $node_(r2) 10Mb 5ms DropTail
-}
-
-Class Topology/net2c -superclass Topology
-Topology/net2c instproc init ns {
-    $self instvar node_
-    set node_(s1) [$ns node]
-    set node_(s2) [$ns node]
-    set node_(r1) [$ns node]
-    set node_(r2) [$ns node]
-    set node_(s3) [$ns node]
-    set node_(s4) [$ns node]
-
-    $self next
-    Queue/RED set gentle_ true
-    $ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail
-    $ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail
-    $ns duplex-link $node_(r1) $node_(r2) 0.2Mb 20ms RED
+    $ns duplex-link $node_(r1) $node_(r2) 1.5Mb 20ms RED
     # 1.5Mb, 12.5 1500-byte pkts per 100 ms.
     $ns queue-limit $node_(r1) $node_(r2) 50
     $ns queue-limit $node_(r2) $node_(r1) 50
@@ -1344,6 +1294,7 @@ Test/TFRC_FTP instproc init {} {
     Agent/TFRC set ca_ 1
     Agent/TFRC set discount_ 1
     Agent/TCP set oldCode_ false
+    Agent/TFRC set idleFix_ true ;		
     set stopTime1_ 15
     $self next pktTraceFile
 }
@@ -1752,7 +1703,6 @@ Test/initRate instproc init {} {
     set period_ 10000.0
     Agent/TFRC set rate_init_ 1 
     Agent/TFRC set rate_init_option_ 1
-    Agent/TFRC set ss_changes_ 1
     $self next pktTraceFile
 }
 Test/initRate instproc run {} {
@@ -1760,6 +1710,8 @@ Test/initRate instproc run {} {
     $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_ period_
     puts "Guide: $guide_"
     $self setTopo
+    Agent/TFRC set SndrType_ 1
+    Agent/TFRC set idleFix_ true ;		
     set interval_ 0.1
     set stopTime 2.0
     set stopTime0 [expr $stopTime - 0.001]
@@ -1772,7 +1724,10 @@ Test/initRate instproc run {} {
     }
 
     set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
-    $ns_ at 0.0 "$tf1 start"
+    set ftp [new Application/FTP]
+    $ftp attach-agent $tf1
+    $ns_ at 0 "$ftp produce 50"
+    $ns_ at 1.5 "$ftp producemore 50"
 
     $self dropPktsPeriodic [$ns_ link $node_(r2) $node_(s3)] 0 1000.0 $period_
 
@@ -1801,23 +1756,21 @@ Test/initRateLarge instproc init {} {
     set period_ 10000.0
     Agent/TFRC set rate_init_ 4.0 
     Agent/TFRC set rate_init_option_ 1
-    Agent/TFRC set ss_changes_ 1
     Test/initRateLarge instproc run {} [Test/initRate info instbody run ]
     $self next pktTraceFile
 }
 
-Class Test/initRateNo_ss_changes superclass TestSuite
-Test/initRateNo_ss_changes instproc init {} {
+Class Test/initRateLarger superclass TestSuite
+Test/initRateLarger instproc init {} {
     $self instvar net_ test_ guide_ period_
     set net_	net2
-    set test_	initRateNo_ss_changes
+    set test_	initRateLarger
     set guide_  \
-    "One TFRC flow, initial rate of 4 packets per RTT, no ss_changes_."
+    "One TFRC flow, initial rate of 8 packets per RTT."
     set period_ 10000.0
-    Agent/TFRC set rate_init_ 4.0 
+    Agent/TFRC set rate_init_ 8.0 
     Agent/TFRC set rate_init_option_ 1
-    Agent/TFRC set ss_changes_ 0
-    Test/initRateNo_ss_changes instproc run {} [Test/initRate info instbody run ]
+    Test/initRateLarger instproc run {} [Test/initRate info instbody run ]
     $self next pktTraceFile
 }
 
@@ -1830,7 +1783,6 @@ Test/initRateRFC3390 instproc init {} {
     "One TFRC flow, initial rate from RFC 3390."
     set period_ 10000.0
     Agent/TFRC set rate_init_option_ 2
-    Agent/TFRC set ss_changes_ 1
     Test/initRateRFC3390 instproc run {} [Test/initRate info instbody run ]
     $self next pktTraceFile
 }
@@ -1846,7 +1798,7 @@ TestSuite instproc printdrops { fid fmon } {
 Class Test/tfrcOnly superclass TestSuite
 Test/tfrcOnly instproc init {} {
     $self instvar net_ test_ guide_ voip
-    set net_	net2b
+    set net_	net2d
     set test_	tfrcOnly
     set guide_  \
     "One VoIP TFRC flow."
@@ -1876,7 +1828,7 @@ Test/tfrcOnly instproc run {} {
     }
 
     $ns_ at 0.0 "$ns_ bandwidth $node_(r1) $node_(r2) 0.2Mbps duplex"
-    $ns_ queue-limit $node_(r1) $node_(r2) 4 
+    $ns_ queue-limit $node_(r1) $node_(r2) 50
 
     set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
     $tf1 set voip_ $voip
@@ -1905,7 +1857,7 @@ Test/tfrcOnly instproc run {} {
 Class Test/voip superclass TestSuite
 Test/voip instproc init {} {
     $self instvar net_ test_ guide_ voip
-    set net_	net2b
+    set net_	net2d
     set test_	voip
     set guide_  \
     "One VoIP TFRC flow and one TCP flow, different packet sizes."
@@ -1935,7 +1887,7 @@ Test/voip instproc run {} {
     }
 
     $ns_ at 0.0 "$ns_ bandwidth $node_(r1) $node_(r2) 0.2Mbps duplex"
-    $ns_ queue-limit $node_(r1) $node_(r2) 4 
+    $ns_ queue-limit $node_(r1) $node_(r2) 50 
 
     set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
     $tf1 set voip_ $voip
@@ -1972,7 +1924,7 @@ Test/voip instproc run {} {
 Class Test/voipHeader superclass TestSuite
 Test/voipHeader instproc init {} {
     $self instvar net_ test_ guide_ voip
-    set net_	net2b
+    set net_	net2d
     set test_	voip
     set guide_  \
     "One VoIP TFRC flow with headers, and one TCP flow."
@@ -1986,7 +1938,7 @@ Test/voipHeader instproc init {} {
 Class Test/voipNoHeader superclass TestSuite
 Test/voipNoHeader instproc init {} {
     $self instvar net_ test_ guide_ voip
-    set net_	net2b
+    set net_	net2d
     set test_	voip
     set guide_  \
     "One VoIP TFRC flow without headers, and one TCP flow."
@@ -2000,7 +1952,7 @@ Test/voipNoHeader instproc init {} {
 Class Test/voipEcn superclass TestSuite
 Test/voipEcn instproc init {} {
     $self instvar net_ test_ guide_ voip
-    set net_	net2c
+    set net_	net2d
     set test_	voipEcn
     set guide_  \
     "One ECN VoIP TFRC flow and one TCP flow, different packet sizes."
@@ -2009,68 +1961,14 @@ Test/voipEcn instproc init {} {
     Agent/TFRC set ecn_ 1
     Agent/TCP set ecn_ 1
     Queue/RED set setbit_ true
-    Queue/RED set thresh_ 5
+    Test/voipEcn instproc run {} [Test/voip info instbody run ]
     $self next pktTraceFile
 }
-Test/voipEcn instproc run {} {
-    global quiet
-    $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_ voip
-    puts "Guide: $guide_"
-    $self setTopo
-    set interval_ 0.1
-    set stopTime 20.0
-    set stopTime0 [expr $stopTime - 0.001]
-    set stopTime2 [expr $stopTime + 0.001]
-    set pktsize 120
-    set cbrInterval 0.01
-
-    set slink [$ns_ link $node_(r1) $node_(r2)]; # link to collect stats on
-    set fmon [$ns_ makeflowmon Fid]
-    $ns_ attach-fmon $slink $fmon    
-
-    set dumpfile_ [open temp.s w]
-    if {$quiet == "false"} {
-        set tracefile [open all.tr w]
-        $ns_ trace-all $tracefile
-    }
-
-    set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
-    $tf1 set voip_ $voip
-    $tf1 set packetSize_ $pktsize
-    set cbr [new Application/Traffic/CBR]
-    $cbr set packetSize_ $pktsize
-    $cbr set interval_ $cbrInterval
-    $cbr attach-agent $tf1
-    $ns_ at 2.0 "$cbr start"
-    $ns_ at $stopTime0 "$cbr stop"
-
-    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(s4) 1]
-    $tcp1 set window_ 10
-    $tcp1 set packetSize_ 1460
-    set ftp1 [$tcp1 attach-app FTP]
-    $ns_ at 0.0 "$ftp1 start"
-    $ns_ at $stopTime0 "$ftp1 stop"
-
-    $self tfccDump 1 $tf1 $interval_ $dumpfile_ 
-    $self pktsDump 2 $tcp1 $interval_ $dumpfile_
-
-    $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
-    $ns_ at $stopTime0 "$self printdrops 0 $fmon; $self printdrops 1 $fmon"
-    $ns_ at $stopTime "$self cleanupAll $testName_" 
-    if {$quiet == "false"} {
-	$ns_ at $stopTime2 "close $tracefile"
-    }
-    $ns_ at $stopTime2 "exec cp temp2.rands temp.rands; exit 0"
-
-    # trace only the bottleneck link
-    $ns_ run
-}
-
 
 Class Test/noVoip superclass TestSuite
 Test/noVoip instproc init {} {
     $self instvar net_ test_ guide_ voip
-    set net_	net2
+    set net_	net2d
     set test_	noVoip
     set guide_  \
     "One TFRC flow (not voip) and one TCP flow, different packet sizes."
