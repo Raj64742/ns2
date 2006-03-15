@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.22 2006/01/25 22:02:05 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.23 2006/03/15 22:28:53 sallyfloyd Exp $
 #
 # To run all tests: test-all-ecn-ack
 set dir [pwd]
@@ -41,31 +41,6 @@ remove-all-packet-headers       ; # removes all except common
 add-packet-header Flags IP TCP RTP ; # hdrs reqd for validation test
  
 # FOR UPDATING GLOBAL DEFAULTS:
-Agent/TCP set precisionReduce_ false ;   # default changed on 2006/1/24.
-Agent/TCP set syn_ false
-Agent/TCP set delay_growth_ false
-# In preparation for changing the default values for syn_ and delay_growth_.
-Agent/TCP set tcpTick_ 0.1
-# The default for tcpTick_ is being changed to reflect a changing reality.
-Agent/TCP set rfc2988_ false
-# The default for rfc2988_ is being changed to true.
-# FOR UPDATING GLOBAL DEFAULTS:
-Agent/TCP set minrto_ 1
-# default changed on 10/14/2004.
-Queue/RED set bytes_ false              
-# default changed on 10/11/2004.
-Queue/RED set queue_in_bytes_ false
-# default changed on 10/11/2004.
-Queue/RED set q_weight_ 0.002
-Queue/RED set thresh_ 5 
-Queue/RED set maxthresh_ 15
-# The RED parameter defaults are being changed for automatic configuration.
-Agent/TCP set useHeaders_ false
-# The default is being changed to useHeaders_ true.
-Agent/TCP set windowInit_ 1
-# The default is being changed to 2.
-Agent/TCP set singledup_ 0
-# The default is being changed to 1
 
 set flowfile fairflow.tr; # file where flow data is written
 set flowgraphfile fairflow.xgr; # file given to graph tool 
@@ -341,7 +316,7 @@ Test/ecn_ack instproc run {} {
 # SYN packet dropped.
 Class Test/synack0 -superclass TestSuite
 Test/synack0 instproc init {} {
-        $self instvar net_ test_ guide_
+        $self instvar net_ test_ guide_ 
         set net_        net2-lossy
         set test_       synack0_
         set guide_      "SYN packet dropped."
@@ -350,7 +325,7 @@ Test/synack0 instproc init {} {
 }
 Test/synack0 instproc run {} {
         global quiet
-        $self instvar ns_ guide_ node_ guide_ testName_
+        $self instvar ns_ guide_ node_ guide_ testName_ 
         puts "Guide: $guide_"
         Agent/TCP set ecn_ 1
         $self setTopo
@@ -371,7 +346,7 @@ Test/synack0 instproc run {} {
 # SYN packet dropped, old parameters for RTO.
 Class Test/synack0A -superclass TestSuite
 Test/synack0A instproc init {} {
-        $self instvar net_ test_ guide_
+        $self instvar net_ test_ guide_ 
         set net_        net2-lossy
         set test_       synack0A_
         set guide_      "SYN packet dropped, old parameters for RTO."
@@ -385,7 +360,7 @@ Test/synack0A instproc init {} {
 # SYN/ACK packet dropped.
 Class Test/synack1 -superclass TestSuite
 Test/synack1 instproc init {} {
-        $self instvar net_ test_ guide_
+        $self instvar net_ test_ guide_ 
         set net_        net2A-lossy
         set test_       synack1_
         set guide_      "SYN/ACK packet dropped."
@@ -408,14 +383,14 @@ Test/synack1 instproc run {} {
         $self drop_pkt 1
 	$self enable_tracequeue $ns_
         $self tcpDump $tcp1 5.0
-        $ns_ at 10.0 "$self cleanupAll $testName_"
+        $ns_ at 5.0 "$self cleanupAll $testName_"
         $ns_ run
 }
 
 # SYN/ACK packet marked.
 Class Test/synack2 -superclass TestSuite
 Test/synack2 instproc init {} {
-        $self instvar net_ test_ guide_
+        $self instvar net_ test_ guide_ 
         set net_        net2A-lossy
         set test_       synack2_
         set guide_      "SYN/ACK packet marked."
@@ -438,7 +413,7 @@ Test/synack2 instproc run {} {
         $self mark_pkt 1
 	$self enable_tracequeue $ns_
         $self tcpDump $tcp1 5.0
-        $ns_ at 10.0 "$self cleanupAll $testName_"
+        $ns_ at 5.0 "$self cleanupAll $testName_"
         $ns_ run
 }
 
