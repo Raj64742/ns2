@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.362 2006/02/05 03:14:02 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.363 2006/03/15 03:55:05 sallyfloyd Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -896,7 +896,7 @@ Agent/TCP set precisionReduce_ true ;	# default changed on 2006/1/24.
 Agent/TCP set oldCode_ false
 Agent/TCP set useHeaders_ true ;	# default changed on 2001/11/28. 
 
-# These are all variables for experimental high-speed TCP.
+# These are all variables for high-speed TCP.
 Agent/TCP set low_window_ 38 ;		# default changed on 2002/8/12.		
 Agent/TCP set high_window_ 83000
 Agent/TCP set high_p_ 0.0000001
@@ -1030,41 +1030,26 @@ Agent/TCP/RFC793edu set add793exponinc_    false
 
 Agent/TCP/FullTcp instproc done_data {} { }
 
-Agent/TFRC set packetSize_ 1000 
+# Dynamic state:
 Agent/TFRC set rate_ 0 
-Agent/TFRC set df_ 0.95 ;	# decay factor for accurate RTT estimate
-Agent/TFRC set tcp_tick_ 0.1 ;	
 Agent/TFRC set ndatapack_ 0 ;	# Number of packets sent
 Agent/TFRC set ndatabytes_ 0 ;	# Number of bytes sent
+Agent/TFRC set true_loss_rate_ 0.0 ; # For statistics only.
+# RTT:
 Agent/TFRC set srtt_init_ 0 ;	# Variables for tracking RTT	
 Agent/TFRC set rttvar_init_ 12  
 Agent/TFRC set rtxcur_init_ 6.0	
 Agent/TFRC set rttvar_exp_ 2	
 Agent/TFRC set T_SRTT_BITS 3	
 Agent/TFRC set T_RTTVAR_BITS 2	
-Agent/TFRC set InitRate_ 300 ;	# Initial send rate	
-Agent/TFRC set overhead_ 0 ;	# If > 0, dither outgoing packets
-Agent/TFRC set ssmult_ 2 ; 	# Rate of increase during slow-start:
-Agent/TFRC set bval_ 1 ;	# Value of B for TCP formula
-Agent/TFRC set ca_ 1 ; 	 	# Enable Sqrt(RTT) congestion avoidance
-Agent/TFRC set printStatus_ 0 
-Agent/TFRC set maxHeavyRounds_ 1; # Number of rounds for sending rate allowed
-				  #  to be greater than twice receiving rate.
-Agent/TFRC set conservative_ 0 ;  # Set to true for a conservative 
-				  # response to heavy congestion.
-Agent/TFRC set scmult_ 1.5 ;	# self clocking parameter for conservative_
-Agent/TFRC set ecn_ 0 ;		# Set to 1 for ECN-capable connection.
-Agent/TFRC set minrto_ 0.0 ;	# Minimum RTO, for use in TCP equation.
-				# The default is not to use minrto_.
-Agent/TFRC set SndrType_ 0 ;    # Set to 1 to use data-producing applications
-                                #   such as FTP.
-Agent/TFRC set oldCode_ false ; # Set to 1 to use old code for datalimited
-				#   applications.
-				# Parameter added on 12/18/02.
-Agent/TFRC set maxqueue_ MAXSEQ ;  # queue from application.
-Agent/TFRC set rate_init_ 2 ;		# Added on 10/20/2004
-				# Set to 1 for backward compatibility. 
-				# Default changed on 10/21/2004.
+# VoIP mode:
+Agent/TFRC set voip_ 0 ;        # Added on 10/23/2004      
+				# 1 for voip mode.
+Agent/TFRC set voip_max_pkt_rate_ 100 ;  # Max rate in pps, for voip mode.
+Agent/TFRC set fsize_ 1460 ;	# Default size for large TCP packets. 
+				# Used for VoIP mode.
+Agent/TFRC set headersize_ 32 ; # Size for packet headers.
+# Variants in the TFRC algorithms:
 Agent/TFRC set rate_init_option_ 2 ;	# Added on 10/20/2004
 				# Set to 1 for backward compatibility. 
 				# Set to 2 for RFC 3390 initial rates
@@ -1072,19 +1057,36 @@ Agent/TFRC set rate_init_option_ 2 ;	# Added on 10/20/2004
 Agent/TFRC set slow_increase_ 1 ;	# Added on 10/20//2004
 				# Set to 1 for gradual rate changes.  
 				# This also gives backward compatibility.
-Agent/TFRC set ss_changes_ 1 ;	# Added on 10/21//2004. 
-				# Set to 0 for backward compatibility. 
-				# Set to 1 for slow-start changes to 
-				#  accomodate higher initial rates.
-				# Default changed on 10/22/2004.
-Agent/TFRC set voip_ 0 ;        # Added on 10/23/2004      
-				# 1 for voip mode.
-Agent/TFRC set voip_max_pkt_rate_ 100 ;  # Max rate in pps, for voip mode.
-Agent/TFRC set fsize_ 1460 ;	# Default size for large TCP packets. 
-				# Used for VoIP mode.
-Agent/TFRC set headersize_ 32 ; # Size for packet headers.
+# Agent/TFRC set ss_changes_ 1 ;	# Deleted on 3/14//2006. 
+Agent/TFRC set maxHeavyRounds_ 1; # Number of rounds for sending rate allowed
+				  #  to be greater than twice receiving rate.
+Agent/TFRC set conservative_ 0 ;  # Set to true for a conservative 
+				  # response to heavy congestion.
+Agent/TFRC set scmult_ 1.5 ;	# self clocking parameter for conservative_
+Agent/TFRC set oldCode_ false ; # Set to 1 to use old code for datalimited
+				#   applications.
+				# Parameter added on 12/18/02.
+# Parameters:
+Agent/TFRC set packetSize_ 1000 
+Agent/TFRC set df_ 0.95 ;	# decay factor for accurate RTT estimate
+Agent/TFRC set tcp_tick_ 0.1 ;	
+Agent/TFRC set InitRate_ 300 ;	# Initial send rate	
+Agent/TFRC set overhead_ 0 ;	# If > 0, dither outgoing packets
+Agent/TFRC set ssmult_ 2 ; 	# Rate of increase during slow-start:
+Agent/TFRC set bval_ 1 ;	# Value of B for TCP formula
+Agent/TFRC set ca_ 1 ; 	 	# Enable Sqrt(RTT) congestion avoidance
+Agent/TFRC set printStatus_ 0 
+Agent/TFRC set ecn_ 0 ;		# Set to 1 for ECN-capable connection.
+Agent/TFRC set minrto_ 0.0 ;	# Minimum RTO, for use in TCP equation.
+				# The default is not to use minrto_.
+Agent/TFRC set SndrType_ 0 ;    # Set to 1 to use data-producing applications
+                                #   such as FTP.
+Agent/TFRC set maxqueue_ MAXSEQ ;  # queue from application.
+Agent/TFRC set rate_init_ 2 ;		# Added on 10/20/2004
+				# Set to 1 for backward compatibility. 
+				# Default changed on 10/21/2004.
 Agent/TFRC set useHeaders_ true ;	# Added on 2005/06/24. 
-Agent/TFRC set true_loss_rate_ 0.0 ; # For statistics only.
+Agent/TFRC set idleFix_ true ;	# Added on 2006/03/12.
 
 Agent/TFRCSink set packetSize_ 40
 Agent/TFRCSink set InitHistorySize_ 100000
