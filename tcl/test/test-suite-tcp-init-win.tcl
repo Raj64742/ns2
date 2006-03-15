@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.31 2006/01/24 23:00:08 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.32 2006/03/15 17:15:12 sallyfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -40,35 +40,16 @@ source misc_simple.tcl
 remove-all-packet-headers       ; # removes all except common
 add-packet-header Flags IP TCP  ; # hdrs reqd for TCP
 
-Agent/TCP set tcpTick_ 0.1
-# The default for tcpTick_ is being changed to reflect a changing reality.
-Agent/TCP set rfc2988_ false
-# The default for rfc2988_ is being changed to true.
 # FOR UPDATING GLOBAL DEFAULTS:
-Agent/TCP set precisionReduce_ false ;   # default changed on 2006/1/24.
-Agent/TCP set rtxcur_init_ 6.0 ;      # Default changed on 2006/01/21
-Agent/TCP set updated_rttvar_ false ;  # Variable added on 2006/1/21
-Queue/RED set bytes_ false              
+Queue/RED set bytes_ false
 # default changed on 10/11/2004.
 Queue/RED set queue_in_bytes_ false
 # default changed on 10/11/2004.
 Queue/RED set q_weight_ 0.002
-Queue/RED set thresh_ 5 
+Queue/RED set thresh_ 5
 Queue/RED set maxthresh_ 15
-# The RED parameter defaults are being changed for automatic configuration.
-Agent/TCP set useHeaders_ false
-# The default is being changed to useHeaders_ true.
-Agent/TCP set windowInit_ 1
-# The default is being changed to 2.
-Agent/TCP set singledup_ 0
-# The default is being changed to 1
-set plotacks false
 
-Agent/TCP set minrto_ 0
-# The default is being changed to minrto_ 1
-Agent/TCP set syn_ false
-Agent/TCP set delay_growth_ false
-# In preparation for changing the default values for syn_ and delay_growth_.
+set plotacks false
 
 Class Topology
 
@@ -235,9 +216,7 @@ Test/tahoe1 instproc init {} {
 Test/tahoe1 instproc run {} {
         $self instvar ns_ node_ testName_
 	$self setTopo
-	Agent/TCP set syn_ true
-	Agent/TCP set delay_growth_ true
-	Agent/TCP set windowInitOption_ 2
+ 	Agent/TCP set windowInitOption_ 2
 	set tcp1 [$self make_tcp s1 k1 0 Tahoe]
 	$tcp1 set packetSize_ 1000
 	set tcp2 [$self make_tcp s2 k1 1 Tahoe]
@@ -259,6 +238,8 @@ Test/tahoe2 instproc run {} {
 	$self setTopo
 	set tcp1 [$self make_tcp s1 k1 0 Tahoe] 
 	$tcp1 set windowInit_ 6
+	$tcp1 set syn_ false
+	$tcp1 set delay_growth_ false
 	set tcp2 [$self make_tcp s2 k1 1 Tahoe]
 	$tcp2 set syn_ true
 	$tcp2 set delay_growth_ true
@@ -292,8 +273,6 @@ TestSuite instproc drop_pkt { link flow n } {
 Test/tahoe3 instproc run {} {
         $self instvar ns_ node_ testName_ 
 	$self setTopo
-	Agent/TCP set syn_ true
-	Agent/TCP set delay_growth_ true
 	Agent/TCP set windowInitOption_ 2
 	set tcp1 [$self make_tcp s1 k1 0 Tahoe]
 	$tcp1 set packetSize_ 1000
@@ -314,8 +293,6 @@ Test/tahoe4 instproc run {} {
 	$self setTopo
 	Agent/TCP set packetSize_ 1000
 	Agent/TCP set windowInitOption_ 2
-	Agent/TCP set syn_ true
-	Agent/TCP set delay_growth_ true
 
         set tcp1 [$self make_tcp s1 k1 0 Tahoe] 
         set tcp2 [$self make_tcp s2 k1 1 Tahoe]
@@ -332,8 +309,6 @@ Test/reno1 instproc init {} {
 Test/reno1 instproc run {} {
         $self instvar ns_ node_ testName_
 	$self setTopo
-	Agent/TCP set syn_ true
-	Agent/TCP set delay_growth_ true
 	Agent/TCP set windowInitOption_ 2
 	set tcp1 [$self make_tcp s1 k1 0 Reno]
 	$tcp1 set packetSize_ 1000
@@ -356,6 +331,8 @@ Test/reno2 instproc run {} {
 	$self setTopo
 	set tcp1 [$self make_tcp s1 k1 0 Reno] 
 	$tcp1 set windowInit_ 6
+	$tcp1 set syn_ false
+	$tcp1 set delay_growth_ false
 	set tcp2 [$self make_tcp s2 k1 1 Reno]
 	$tcp2 set syn_ true
 	$tcp2 set delay_growth_ true
@@ -389,8 +366,6 @@ TestSuite instproc drop_pkt { link flow n } {
 Test/reno3 instproc run {} {
         $self instvar ns_ node_ testName_ 
 	$self setTopo
-	Agent/TCP set syn_ true
-	Agent/TCP set delay_growth_ true
 	Agent/TCP set windowInitOption_ 2
 	set tcp1 [$self make_tcp s1 k1 0 Reno]
 	$tcp1 set packetSize_ 1000
@@ -411,8 +386,6 @@ Test/reno4 instproc run {} {
 	$self setTopo
 	Agent/TCP set packetSize_ 1000
 	Agent/TCP set windowInitOption_ 2
-	Agent/TCP set syn_ true
-	Agent/TCP set delay_growth_ true
 
         set tcp1 [$self make_tcp s1 k1 0 Reno] 
         set tcp2 [$self make_tcp s2 k1 1 Reno]
@@ -430,8 +403,6 @@ Test/newreno1 instproc init {} {
 Test/newreno1 instproc run {} {
         $self instvar ns_ node_ testName_
 	$self setTopo
-	Agent/TCP set syn_ true
-	Agent/TCP set delay_growth_ true
 	Agent/TCP set windowInitOption_ 2
 	set tcp1 [$self make_tcp s1 k1 0 Newreno]
 	$tcp1 set packetSize_ 1000
@@ -454,6 +425,8 @@ Test/newreno2 instproc run {} {
 	$self setTopo
 	set tcp1 [$self make_tcp s1 k1 0 Newreno] 
 	$tcp1 set windowInit_ 6
+	$tcp1 set syn_ false
+	$tcp1 set delay_growth_ false
 	set tcp2 [$self make_tcp s2 k1 1 Newreno]
 	$tcp2 set syn_ true
 	$tcp2 set delay_growth_ true
@@ -487,8 +460,6 @@ TestSuite instproc drop_pkt { link flow n } {
 Test/newreno3 instproc run {} {
         $self instvar ns_ node_ testName_ 
 	$self setTopo
-	Agent/TCP set syn_ true
-	Agent/TCP set delay_growth_ true
 	Agent/TCP set windowInitOption_ 2
 	set tcp1 [$self make_tcp s1 k1 0 Newreno]
 	$tcp1 set packetSize_ 1000
@@ -509,8 +480,6 @@ Test/newreno4 instproc run {} {
 	$self setTopo
 	Agent/TCP set packetSize_ 1000
 	Agent/TCP set windowInitOption_ 2
-	Agent/TCP set syn_ true
-	Agent/TCP set delay_growth_ true
 
         set tcp1 [$self make_tcp s1 k1 0 Newreno] 
         set tcp2 [$self make_tcp s2 k1 1 Newreno]
@@ -529,8 +498,6 @@ Test/sack1 instproc init {} {
 Test/sack1 instproc run {} {
         $self instvar ns_ node_ testName_
 	$self setTopo
-	Agent/TCP set syn_ true
-	Agent/TCP set delay_growth_ true
 	Agent/TCP set windowInitOption_ 2
 	set tcp1 [$self make_tcp s1 k1 0 Sack]
 	$tcp1 set packetSize_ 1000
@@ -553,6 +520,8 @@ Test/sack2 instproc run {} {
 	$self setTopo
 	set tcp1 [$self make_tcp s1 k1 0 Sack] 
 	$tcp1 set windowInit_ 6
+	$tcp1 set syn_ false
+	$tcp1 set delay_growth_ false
 	set tcp2 [$self make_tcp s2 k1 1 Sack]
 	$tcp2 set syn_ true
 	$tcp2 set delay_growth_ true
@@ -586,8 +555,6 @@ TestSuite instproc drop_pkt { link flow n } {
 Test/sack3 instproc run {} {
         $self instvar ns_ node_ testName_ 
 	$self setTopo
-	Agent/TCP set syn_ true
-	Agent/TCP set delay_growth_ true
 	Agent/TCP set windowInitOption_ 2
 	set tcp1 [$self make_tcp s1 k1 0 Sack]
 	$tcp1 set packetSize_ 1000
@@ -608,8 +575,6 @@ Test/sack4 instproc run {} {
 	$self setTopo
 	Agent/TCP set packetSize_ 1000
 	Agent/TCP set windowInitOption_ 2
-	Agent/TCP set syn_ true
-	Agent/TCP set delay_growth_ true
 
         set tcp1 [$self make_tcp s1 k1 0 Sack] 
         set tcp2 [$self make_tcp s2 k1 1 Sack]
@@ -654,8 +619,6 @@ Test/slowLink instproc init {} {
 Test/slowLink instproc run {} {
         $self instvar ns_ node_ testName_ 
 	$self setTopo
-	Agent/TCP set syn_ true
-	Agent/TCP set delay_growth_ true
 	Agent/TCP set windowInitOption_ 2
 	Agent/TCP set minrto_ 1
 	set tcp1 [$self make_tcp s1 k1 0 Sack]
@@ -679,8 +642,6 @@ Test/slowLink instproc run {} {
 # Test/slowLinkDelayAck instproc run {} {
 #         $self instvar ns_ node_ testName_ 
 # 	$self setTopo
-# 	Agent/TCP set syn_ true
-# 	Agent/TCP set delay_growth_ true
 # 	Agent/TCP set windowInitOption_ 2
 # 	Agent/TCP set minrto_ 1
 # 	set tcp1 [$self make_tcp s1 k1 0 SackDelAck]
@@ -704,8 +665,6 @@ Test/slowLink1 instproc init {} {
 Test/slowLink1 instproc run {} {
         $self instvar ns_ node_ testName_ 
 	$self setTopo
-	Agent/TCP set syn_ true
-	Agent/TCP set delay_growth_ true
 	Agent/TCP set windowInitOption_ 2
 	Agent/TCP set minrto_ 1
 	set tcp1 [$self make_tcp s1 k1 0 Sack]
@@ -729,8 +688,6 @@ Test/slowLink2 instproc init {} {
 Test/slowLink2 instproc run {} {
         $self instvar ns_ node_ testName_ 
 	$self setTopo
-	Agent/TCP set syn_ true
-	Agent/TCP set delay_growth_ true
 	Agent/TCP set windowInitOption_ 1
 	Agent/TCP set minrto_ 1
 	set tcp1 [$self make_tcp s1 k1 0 Sack]
