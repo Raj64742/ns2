@@ -101,15 +101,16 @@ TfrcAgent::TfrcAgent() : Agent(PT_TFRC), send_timer_(this),
 	bind("rate_init_", &rate_init_);
 	bind("rate_init_option_", &rate_init_option_);
 	bind_bool("slow_increase_", &slow_increase_); 
-	bind_bool("ss_changes_", &ss_changes_);
 	bind_bool("voip_", &voip_);
 	bind("voip_max_pkt_rate_", &voip_max_pkt_rate_);
 	bind("fsize_", &fsize_);
 	bind_bool("useHeaders_", &useHeaders_);
+	bind_bool("idleFix_", &idleFix_);
 	bind("headersize_", &headersize_);
 	seqno_ = -1;
 	maxseq_ = 0;
 	datalimited_ = 0;
+	lastlimited_ = 0.0;
 	last_pkt_time_ = 0.0;
 	bind("maxqueue_", &maxqueue_);
 	maxqueue_ = MAXSEQ;
@@ -149,6 +150,8 @@ void TfrcAgent::advanceby(int delta)
 		// We were data-limited - send a packet now!
 		// The old code always waited for a timer to expire!!
 		datalimited_ = 0;
+		lastlimited_ = Scheduler::instance().clock();
+		all_idle_ = 0;
 		if (!oldCode_) {
 			sendpkt();
 		}
@@ -213,6 +216,7 @@ void TfrcAgent::start()
 	t_rttvar_ = int(rttvar_init_/tcp_tick_) << T_RTTVAR_BITS;
 	t_rtxcur_ = rtxcur_init_;
 	rcvrate = 0 ;
+	all_idle_ = 0;
 
 	first_pkt_rcvd = 0 ;
 	// send the first packet
@@ -227,6 +231,8 @@ void TfrcAgent::start()
 void TfrcAgent::stop()
 {
 	active_ = 0;
+	if (idleFix_) 
+ 		datalimited_ = 1;
 	send_timer_.force_cancel();
 }
 
@@ -243,19 +249,26 @@ void TfrcAgent::nextpkt()
 			sendpkt();
 		} else
 			datalimited_ = 1;
+			if (debug_) {
+			 	double now = Scheduler::instance().clock();
+				printf("Time: %5.2f Datalimited now.\n", now);
+			}
 	}
 	
 	// If slow_increase_ is set, then during slow start, we increase rate
 	// slowly - by amount delta per packet 
-	if (slow_increase_ && (!ss_changes_ || round_id > 2) 
-	    && (rate_change_ == SLOW_START) 
+	// SALLY
+        double now = Scheduler::instance().clock();
+	// SALLY
+	if (slow_increase_ && round_id > 2 && (rate_change_ == SLOW_START) 
 		       && (oldrate_+SMALLFLOAT< rate_)) {
 		oldrate_ = oldrate_ + delta_;
 		xrate = oldrate_;
 	} else {
-		if (ca_) 
+		if (ca_) {
+			if (debug_) printf("SQRT: now: %5.2f factor: %5.2f\n", Scheduler::instance().clock(), sqrtrtt_/sqrt(rttcur_));
 			xrate = rate_ * sqrtrtt_/sqrt(rttcur_);
-		else
+		} else
 			xrate = rate_;
 	}
 	if (xrate > SMALLFLOAT) {
@@ -329,7 +342,7 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 	round_id ++ ;
 	UrgentFlag = 0;
 
-	if (rate_since_last_report > 0) {
+	if (round_id > 1 && rate_since_last_report > 0) {
 		/* compute the max rate for slow-start as two times rcv rate */ 
 		ss_maxrate_ = 2*rate_since_last_report*size_;
 		if (conservative_) { 
@@ -349,7 +362,6 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 		ss_maxrate_ = 0;
 		maxrate_ = 0; 
 	}
-
 		
 	/* update the round trip time */
 	update_rtt (ts, now);
@@ -411,6 +423,20 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 }
 
 /*
+ * Calculate initial sending rate from RFC 3390.
+ */
+double TfrcAgent::rfc3390(int size)
+{
+        if (size_ <= 1095) {
+                return (4.0);
+        } else if (size_ < 2190) {
+                return (3.0);
+        } else {
+                return (2.0);
+        }
+}
+
+/*
  * Used in setting the initial rate.
  * This is from TcpAgent::initial_wnd().
  */
@@ -422,13 +448,7 @@ double TfrcAgent::initial_rate()
         }
         else if (rate_init_option_ == 2) {
                 // do initial rate according to RFC 3390.
-                if (size_ <= 1095) {
-                        return (4.0);
-                } else if (size_ < 2190) {
-                        return (3.0);
-                } else {
-                        return (2.0);
-                }
+		return (rfc3390(size_));
         }
         // XXX what should we return here???
         fprintf(stderr, "Wrong number of rate_init_option_ %d\n",
@@ -440,84 +460,83 @@ double TfrcAgent::initial_rate()
 
 // ss_maxrate_ = 2*rate_since_last_report*size_;
 // rate_: the rate set from the last pass through slowstart()
-// oldrate_: the rate the time before that.
 void TfrcAgent::slowstart () 
 {
 	double now = Scheduler::instance().clock(); 
-
-	if (round_id <= 1) {
-		/* This is the first report, so */
-		/*   change rate to initial rate.*/
+	double initrate = initial_rate()*size_/rtt_;
+	// If slow_increase_ is set to true, delta is used so that 
+	//  the rate increases slowly to new value over an RTT. 
+	if (debug_) printf("SlowStart: round_id: %d rate: %5.2f ss_maxrate_: %5.2f\n", round_id, rate_, ss_maxrate_);
+	if (round_id <=1 || (round_id == 2 && initial_rate() > 1)) {
+		// We don't have a good rate report yet, so keep to  
+		//   the initial rate.				     
 		oldrate_ = rate_;
-		rate_ =  initial_rate()*size_/rtt_;
-		/* Compute delta so that if slow_increase_ is set to true, */
-		/*  rate increases slowly to new value. */
+		if (rate_ < initrate) rate_ = initrate;
 		delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
-		last_change_ = now;
-	} else if (!ss_changes_ && rate_+SMALLFLOAT< size_/rtt_) {
-		oldrate_ = rate_;
-		rate_ = size_/rtt_;
-		delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
-		last_change_ = now;
+		last_change_=now;
 	} else if (ss_maxrate_ > 0) {
-		/* Compute delta, so that if slow_increase_ is set,   */
-		/*  the rate increases slowly to its new value.       */
-		if (ssmult_*rate_ < ss_maxrate_ && now - last_change_ > rtt_) {
-			/* Multiply the rate by ssmult_.                 */
-			if (ss_changes_) oldrate_ = rate_;
-			rate_ = ssmult_*rate_; 
+		if (idleFix_ && (datalimited_ || lastlimited_ > now - 1.5*rtt_)
+			     && ss_maxrate_ < initrate) {
+			// Datalimited recently, and maxrate is small.
+			// Don't be limited by maxrate to less that initrate.
+			oldrate_ = rate_;
+			if (rate_ < initrate) rate_ = initrate;
 			delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
 			last_change_=now;
-		} else if (oldrate_ > ss_maxrate_) {
-			// Time to reduce the sending rate,
-			//   to emulate ack-clocking.
-			rate_ = oldrate_ = 0.5*ss_maxrate_;
-			delta_ = 0; 
-			last_change_ = now;
-		} else if ((!ss_changes_ || round_id > 2) 
-			&& rate_ > ss_maxrate_) {
-			// if round_id is 2, then ss_maxrate_ doesn't
-			//   reflect the slow-start sending rate yet.
-			if (ss_changes_) oldrate_ = rate_;
-			rate_ = ss_maxrate_; 
-			delta_ = (rate_ - oldrate_)/ (rate_*rtt_/size_);
-			last_change_ = now; 
-		} else {
-			// rate < ss_maxrate < ssmult_*rate_
-			if (now - last_change_ > rtt_) {
-				if (ss_changes_) oldrate_ = rate_;
+		} else if (rate_ < ss_maxrate_ && 
+		                    now - last_change_ > rtt_) {
+			// Not limited by maxrate, and time to increase.
+			// Multiply the rate by ssmult_, if maxrate allows.
+			oldrate_ = rate_;
+			if (ssmult_*rate_ > ss_maxrate_) 
 				rate_ = ss_maxrate_;
-				delta_ = (rate_ - oldrate_)/ (rate_*rtt_/size_);
-				last_change_=now;
-			}
-		}
+			else rate_ = ssmult_*rate_;
+			if (rate_ < size_/rtt_) 
+				rate_ = size_/rtt_; 
+			delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
+			last_change_=now;
+		} else if (rate_ > ss_maxrate_) {
+			// Limited by maxrate.  
+			rate_ = oldrate_ = ss_maxrate_/2.0;
+			delta_ = 0;
+			last_change_=now;
+		} 
 	} else {
 		// If we get here, ss_maxrate <= 0, so the receive rate is 0.
 		// We should go back to a very small sending rate!!!
-		// Changed by Sally on 10/20/2004.
-		if (ss_changes_) oldrate_ = rate_;
-		if (ss_changes_) rate_ = size_/rtt_; else rate_ = ssmult_*rate_;
-		delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
-		last_change_=now;
+		oldrate_ = rate_;
+		rate_ = size_/rtt_; 
+		delta_ = 0;
+        	last_change_=now;
 	}
-	
+	if (debug_) printf("SlowStart: now: %5.2f rate: %5.2f delta: %5.2f\n", now, rate_, delta_);
 }
 
 void TfrcAgent::increase_rate (double p)
 {               
         double now = Scheduler::instance().clock();
+        double maximumrate;
 
 	double mult = (now-last_change_)/rtt_ ;
 	if (mult > 2) mult = 2 ;
 
 	rate_ = rate_ + (size_/rtt_)*mult ;
-	double maximumrate = (maxrate_>size_/rtt_)?maxrate_:size_/rtt_ ;
+	if (datalimited_ || lastlimited_ > now - 1.5*rtt_) {
+		// Modified by Sally on 3/10/2006
+		// If the sender has been datalimited, rate should be
+		//   at least the initial rate, when increasing rate.
+		double init_rate = initial_rate()*size_/rtt_;
+	   	maximumrate = (maxrate_>init_rate)?maxrate_:init_rate ;
+        } else {
+	   	maximumrate = (maxrate_>size_/rtt_)?maxrate_:size_/rtt_ ;
+	}
 	maximumrate = (maximumrate>rcvrate)?rcvrate:maximumrate;
 	rate_ = (rate_ > maximumrate)?maximumrate:rate_ ;
 	
         rate_change_ = CONG_AVOID;  
         last_change_ = now;
 	heavyrounds_ = 0;
+	if (debug_) printf("Increase: now: %5.2f rate: %5.2f lastlimited: %5.2f rtt: %5.2f\n", now, rate_, lastlimited_, rtt_);
 }       
 
 void TfrcAgent::decrease_rate () 
@@ -570,20 +589,50 @@ void TfrcAgent::sendpkt()
 	}
 }
 
+
+/*
+ * RFC 3448:
+ * "If the sender has been idle since this nofeedback timer was set and
+ * X_recv is less than four packets per round-trip time, then X_recv
+ * should not be halved in response to the timer expiration.  This
+ * ensures that the allowed sending rate is never reduced to less than
+ * two packets per round-trip time as a result of an idle period."
+ */
+ 
 void TfrcAgent::reduce_rate_on_no_feedback()
 {
+	double now = Scheduler::instance().clock();
 	rate_change_ = RATE_DECREASE; 
-	if (oldCode_ || !datalimited_ || rate_ > 4.0 * size_/rtt_ ) {
-		// if we are not datalimited,
-		//   or the current rate is greater than four pkts per RTT
+	if (oldCode_ || (!all_idle_ && !datalimited_)) {
+		// if we are not datalimited
 		rate_*=0.5;
-	}
+	} else if ((datalimited_ || all_idle_) && rate_init_option_ == 1) { 
+		// all_idle_: the sender has been datalimited since the 
+		//    timer was set
+		//  Don't reduce rate below rate_init_ * size_/rtt_.
+                if (rate_ > 2.0 * rate_init_ * size_/rtt_ ) {
+                        rate_*=0.5;
+                } 
+	} else if ((datalimited_ || all_idle_) && rate_init_option_ == 2) {
+                // Don't reduce rate below the RFC3390 rate.
+                if (rate_ > 2.0 * rfc3390(size_) * size_/rtt_ ) {
+                        rate_*=0.5;
+                } else if ( rate_ > rfc3390(size_) * size_/rtt_ ) {
+                        rate_ = rfc3390(size_) * size_/rtt_;
+                }
+        }
+	if (debug_) printf("NO FEEDBACK: time: %5.2f rate: %5.2f all_idle: %d\n", now, rate_, all_idle_);
 	UrgentFlag = 1;
 	round_id ++ ;
 	double t = 2*rtt_ ; 
+	// Set the nofeedback timer.
 	if (t < 2*size_/rate_) 
 		t = 2*size_/rate_ ; 
 	NoFeedbacktimer_.resched(t);
+	if (datalimited_) {
+		all_idle_ = 1;
+		if (debug_) printf("Time: %5.2f Datalimited now.\n", now);
+	}
 	nextpkt();
 }
 
