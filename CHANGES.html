@@ -16,6 +16,24 @@ with the most recent changes coming first.
 <hr>
 <h3>ns-2.30 PENDING RELEASE</h3>
 <ul>
+<p><li><b>[floyd]</b> Tue Mar 14 20:44:56 PST 2006
+<br>TFRC change #1: Added idleFix_, default true, so that when the 
+sender has been datalimited, the sender now doesn't let the
+receive rate limit it to a sending rate less than the initial rate.
+This applies during slow-start, during regular increases in the
+sending rate, and after an idle period.
+
+<p>TFRC change #2: Incorporated RFC3390 initial windows in more 
+places, when RFC3390 initial sending rates are enabled.
+If RFC3390 initial sending rates are enabled, then when reducing
+the sending rate after an idle period, don't reduce the sending
+rate below the initial sending rate.
+
+<p>TFRC change #3:  Changed slowstart so that when the initial rate 
+in pkts/RTT is greater than 1, the receive rate in the second report
+is not used to limit the sending rate.  (This report is not of an 
+entire RTT of data.)
+
 <p><li><b>[mweigle]</b> Thu Feb  2 12:54:05 EST 2006:
 <br>Adding DelayBox and PackMimeHTTP modules.  DelayBox provides
 per-flow loss, delay, and/or bottleneck speed emulation for TCP
@@ -53,19 +71,19 @@ described in detail at
 fix is applied by default, but can be ignored with Mac/802_11
 set bugFix_timer_ false
 
-<li><b>[floyd]<b> Mon Jan 23 15:34:13 PST 2006:
+<li><b>[floyd]</b> Mon Jan 23 15:34:13 PST 2006:
 Changed the default for TCP's precisionReduce_ to true,
 for float rather than integer reductions in TCP's window.
 
-<li><b>[floyd]<b> Mon Jan 23 15:34:13 PST 2006:
+<li><b>[floyd]</b> Mon Jan 23 15:34:13 PST 2006:
 Changed the default for TCP's rtxcur_init_ from 6 seconds to 3 seconds,
 to match RFC 2988.
 
-<li><b>[floyd]<b> Fri Dec  2 21:34:26 PST 2005;
+<li><b>[floyd]</b> Fri Dec  2 21:34:26 PST 2005;
 Added a parameter (use_mark_p_) to RED so that mark_p_ can be used
 to explicitly control whether a packet is marked or dropped, even
 when the average queue size exceeds maxthresh.
-<li><b>[floyd]<b> Fri Dec  2 21:34:26 PST 2005;
+<li><b>[floyd]</b> Fri Dec  2 21:34:26 PST 2005;
 Added a parameter (ecn_syn_) to TCP to allow SYN/ACK packets to be
 ECN-Capable.  From a paper by Aleksandar Kuxmanovic.
 </ul>
