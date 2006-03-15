@@ -369,6 +369,7 @@ void TfrcSinkAgent::nextpkt(double p) {
 	sendpkt(p);
 
 	/* schedule next report rtt/NumFeedback_ later */
+	/* note from Sally: why is this 1.5 instead of 1.0? */
 	if (rtt_ > 0.0 && NumFeedback_ > 0) 
 		nack_timer_.resched(1.5*rtt_/NumFeedback_);
 }
