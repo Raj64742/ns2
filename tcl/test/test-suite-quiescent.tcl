@@ -29,29 +29,22 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-quiescent.tcl,v 1.13 2006/01/25 22:02:05 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-quiescent.tcl,v 1.14 2006/03/15 04:04:28 sallyfloyd Exp $
 #
 
 source misc_simple.tcl
+source support.tcl
 # FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set precisionReduce_ false ;   # default changed on 2006/1/24.
 Agent/TCP set rtxcur_init_ 6.0 ;      # Default changed on 2006/01/21
 Agent/TCP set updated_rttvar_ false ;  # Variable added on 2006/1/21
-Agent/TFRC set ss_changes_ 1 ; 	# Added on 10/21/2004
-Agent/TFRC set slow_increase_ 1 ; 	# Added on 10/20/2004
-Agent/TFRC set rate_init_ 2 ;
-Agent/TFRC set rate_init_option_ 2 ;    # Added on 10/20/2004
-Agent/TFRC set useHeaders_ false ;     # Added on 6/24/2004, default of true
-Agent/TFRC set headersize_ 40 ;         # Changed on 6/24/2004 to 32.
 
-source support.tcl
-Agent/TFRC set SndrType_ 1 
-Agent/TFRC set oldCode_ false
-Agent/TFRC set packetSize_ 500
 Agent/TCP set packetSize_ 500
 Application/Traffic/CBR set packetSize_ 500
 Agent/TCP set window_ 1000
 Agent/TCP set partial_ack_ 1
+Agent/TFRC set SndrType_ 1 
+Agent/TFRC set packetSize_ 500 
 
 # Uncomment the line below to use a random seed for the
 #  random number generator.
