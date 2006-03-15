@@ -149,6 +149,7 @@ public:
 	void update_rtt(double tao, double now); 
 	void increase_rate(double p);
 	void decrease_rate();
+	double rfc3390(int size);
 	double initial_rate();
 	void slowstart();
 	void reduce_rate_on_no_feedback();
@@ -157,26 +158,6 @@ public:
 protected:
 	TfrcSendTimer send_timer_;
 	TfrcNoFeedbackTimer NoFeedbacktimer_;
-	int SndrType_;          // 0 -> infinite sender, 1 -> need FTP
-	int maxseq_;            // max seq produced by the app so far
-	int seqno_;             // next seq to be sent 
-	int psize_;
-	double rate_;		// send rate
-	double oldrate_;	// allows rate to be changed gradually
-	double delta_;		// allows rate to be changed gradually
-	int rate_change_; 	// slow start, cong avoid, decrease ...
-	double rcvrate  ; 	// TCP friendly rate based on current RTT 
-				//  and recever-provded loss estimate
-	double maxrate_;	// prevents sending at more than 2 times the 
-				//  rate at which the receiver is _receving_ 
-	double ss_maxrate_;	// max rate for during slowstart
- 	int printStatus_;	// to print status reports
-	int datalimited_;	// to send immediately when a new packet
-				//   arrives after a data-limited period
-	int oldCode_;		// set to 1 not to use "datalimited_"
-				//   parameter.
-	double last_pkt_time_;	// time the last data packet was sent
-	int maxqueue_;		// max queue from application
 
 	/* "accurate" estimates for formula */
 	double rtt_; /*EWMA version*/
@@ -201,20 +182,41 @@ protected:
 	double rtxcur_init_;
 	/* End of TCP variables for tracking RTT */
 
+	// Dynamic state:
+	int maxseq_;            // max seq produced by the app so far
+	int seqno_;             // next seq to be sent 
+	int psize_;
+	double rate_;		// send rate
+	double oldrate_;	// allows rate to be changed gradually
+	double delta_;		// allows rate to be changed gradually
+	int rate_change_; 	// slow start, cong avoid, decrease ...
+	double last_change_;	// time last change in rate was made
+	double rcvrate  ; 	// TCP friendly rate based on current RTT 
+				//  and recever-provded loss estimate
+	double maxrate_;	// prevents sending at more than 2 times the 
+				//  rate at which the receiver is _receving_ 
+	double ss_maxrate_;	// max rate for during slowstart
+	TracedInt ndatapack_;	// number of packets sent
+	TracedInt ndatabytes_;	// number of bytes sent
+	TracedDouble true_loss_rate_;	// true loss event rate,
+	int active_;		// have we shut down? 
+	int round_id ;		// round id
+	int first_pkt_rcvd ;	// first ack received yet?
+	double last_pkt_time_;	// time the last data packet was sent
+	int maxqueue_;		// max queue from application
+	int UrgentFlag;		// urgent flag
+	int all_idle_;		// has the sender been idle since the
+				//  nofeedback timer was set?
+        double lastlimited_;	// time sender was last datalimited.
+	// End of dynamic state.
+
+	// Parameters:
 	int InitRate_;		// initial send rate
 	double df_;		// decay factor for accurate RTT estimate
-	double last_change_;	// time last change in rate was made
 	double ssmult_;		// during slow start, increase rate by this 
 				//  factor every rtt
 	int bval_;		// value of B for the formula
 	double overhead_;	// if > 0, dither outgoing packets 
-	TracedInt ndatapack_;	// number of packets sent
-	TracedInt ndatabytes_;	// number of bytes sent
-	TracedDouble true_loss_rate_;	// true loss event rate,
-	int UrgentFlag;		// urgent flag
-	int active_;		// have we shut down? 
-	int round_id ;		// round id
-	int first_pkt_rcvd ;	// first ack received yet?
 	int ecn_ ;		// Set to 1 for an ECN-capable connection.
 	double minrto_ ;	// for experimental purposes, for a minimum
 				//  RTO value (for use in the TCP-friendly
@@ -222,14 +224,26 @@ protected:
 	double rate_init_;	// Static value for initial rate, in 
 				//   packets per RTT.
 					// for statistics only
+	int SndrType_;          // 0 -> infinite sender, 1 -> need FTP
+ 	int printStatus_;	// to print status reports
+        // End of parameters:
 
 	/* Variants in the TFRC algorithms.  */
         int rate_init_option_;  /* 1 for using static rate_init_ */
                                 /* 2 for using RFC 3390 */
 	int slow_increase_;	// To use slow increases in the rate during
 				//  slow-start.
-	int ss_changes_;	// To use changes in the slow-start code
-				//  to enable higher initial sending rates.
+	int datalimited_;	// to send immediately when a new packet
+				//   arrives after a data-limited period
+	int oldCode_;		// set to 1 not to use "datalimited_"
+				//   parameter.
+	int heavyrounds_;	// the number of RTTs so far when the
+				//  sending rate > 2 * receiving rate
+	int maxHeavyRounds_;	// the number of allowed rounds for
+				//  sending rate > 2 * receiving rate
+        int useHeaders_;        /* boolean: Add DCCP/IP header sizes */  
+	int idleFix_;		// 1 for fix for receive rate limits
+				//   when sender has been idle
 	/* End of variants.  */
 
 	/* Responses to heavy congestion. */
@@ -238,19 +252,13 @@ protected:
 	double scmult_;         // self clocking parameter for conservative_
 	/* End of responses to heavy congestion.  */
 
-	int heavyrounds_;	// the number of RTTs so far when the
-				//  sending rate > 2 * receiving rate
-	int maxHeavyRounds_;	// the number of allowed rounds for
-				//  sending rate > 2 * receiving rate
-
 	/* VoIP mode, for using small packets. */
 	int voip_;		// 1 for voip mode.
 	int voip_max_pkt_rate_ ;	// Max pkt rate in pps, for voip mode.
 	int fsize_;		// Default size for large TCP packets 
 				//  (e.g., 1460 bytes).
+        int headersize_;	// Size for packet headers.
 	/* end of VoIP mode. */
 
-        int useHeaders_;        /* boolean: Add DCCP/IP header sizes */  
-        int headersize_;	// Size for packet headers.
 
 };
