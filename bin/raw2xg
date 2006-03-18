@@ -20,7 +20,9 @@ options:
     -d		plot only drops and ECN marks
     -v          plot events
     -c          leave out empty lists
+    -x          really leave out ALL of the empty lists
     -f          plot acks from tcp-full
+    -g		for plotting acks from tcp-full, one direction has source 0
     -p          don't add the x-graph preface
     -y		fix the y-axis when there are no drops
     -r		plot arrivals only
@@ -33,7 +35,7 @@ END
 $usage = "usage: $progname [-a] [trace files...]\n";
 
 require 'getopts.pl';
-&Getopts('acefds:m:n:qrplvt:y') || usage;
+&Getopts('acefgds:m:n:qrplvt:xy') || usage;
 
 $c = 0;
 @p = @pc = @pg = @a = @ac = @ae = @d = @lu = @ld = ();
@@ -47,7 +49,9 @@ $plot_ecn = defined($opt_e);
 $plot_drops = defined($opt_d);
 $plot_event = defined($opt_v);
 $no_padding = defined($opt_c);
+$really_no_padding = defined($opt_x);
 $plot_full = defined($opt_f);
+$source_zero = defined($opt_g);
 $no_title = defined($opt_p);
 $last_line = defined($opt_y);
 $plot_arrivals = defined($opt_r);
@@ -56,6 +60,7 @@ $file = $acks = '';
 
 sub translate_point {
     my($time, $seq, $flow) = @_;
+    if ($seq == -1) {$seq = 0;}
     $plotted = $flow * $flow_factor + ($seq % $modulus) * $scale;
     $plotted =~ s/\.e/e/g; # to ensure Cygwin compatibility, 
     return ($time, $plotted); 
@@ -71,10 +76,22 @@ while (<>) {
 	$is_ecn = ($F[6] =~ /E/);
 	$is_cong = ($F[6] =~ /A/);
 	$is_echo = ($F[6] =~ /C/); 
+	$is_tcp = ($F[4] eq 'tcp'); 
+	$source_0 = ($F[8] eq '0.0'); 
+	$large_pkt = ($F[5] > 40);
 	next if ($is_ack && !$plot_acks);
 	next if (($F[0] eq "-") && $plot_arrivals);
+	### if ($large_pkt) { print("Large");} else {print("Small");}
 
-	if ($plot_full) {
+	$use_full = 0;
+	if ($plot_full){ $use_full = 1;}
+##	if ($plot_full){if ($large_pkt) { $use_full = 1;}}
+##if (!$source_zero) { $use_full = 1;  
+##	  } else { if ($source_0) { if ($is_tcp) { $use_full = 1; }
+##	  }}}
+	if ($use_full == 1){
+	    ## ($plot_full && (!$source_zero || ($source_0 && $is_tcp)))
+  	    ## F[10]: seq. no.; F[12]: ack no.; 
   	    ($x, $y) = translate_point(@F[1, 12, 7]);
 	} else {
 	    ($x, $y) = translate_point(@F[1, 10, 7]);
@@ -187,7 +204,7 @@ if (defined($pc[0])) {
 }
 
 # insert dummy data sets so we get X's for marks in data-set 4
-if (!defined($a[0])) {
+if (!$really_no_padding && !defined($a[0])) {
     push(@a, "0 1\n");
 }
 if ($plot_acks) {
@@ -243,7 +260,7 @@ foreach $i (@lu) {
 }
 
 if ($plot_ecn && defined($pg[0])) {
-    if (!defined($d[0])) {
+    if (!$really_no_padding && !defined($d[0])) {
 	printf "\n\"skip-3\n0 1\n";
     }
     @sorted_pg = sort (@pg);
