@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.55 2006/02/02 18:19:44 mweigle Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.56 2006/03/18 05:43:48 sallyfloyd Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -159,6 +159,8 @@ protected:
 	int dupack_reset_;  // zero dupacks on dataful dup acks?
 	int halfclose_;	    // allow simplex closes?
 	int nopredict_;	    // disable header predication
+	int ecn_syn_;       // Make SYN/ACK packets ECN-Capable?
+	int ecn_syn_wait_;  // Wait if SYN/ACK packet is ECN-marked?
 	int dsack_;	    // do DSACK as well as SACK?
 	double delack_interval_;
 

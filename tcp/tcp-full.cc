@@ -108,7 +108,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.120 2006/02/02 18:19:44 mweigle Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.121 2006/03/18 05:43:48 sallyfloyd Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -194,6 +194,8 @@ FullTcpAgent::delay_bind_init_all()
         delay_bind_init_one("open_cwnd_on_pack_");
         delay_bind_init_one("halfclose_");
         delay_bind_init_one("nopredict_");
+        delay_bind_init_one("ecn_syn_");
+        delay_bind_init_one("ecn_syn_wait_");
         delay_bind_init_one("spa_thresh_");
 
 	TcpAgent::delay_bind_init_all();
@@ -222,6 +224,8 @@ FullTcpAgent::delay_bind_dispatch(const char *varName, const char *localName, Tc
         if (delay_bind_bool(varName, localName, "open_cwnd_on_pack_", &open_cwnd_on_pack_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "halfclose_", &halfclose_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "nopredict_", &nopredict_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "ecn_syn_", &ecn_syn_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "ecn_syn_wait_", &ecn_syn_wait_, tracer)) return TCL_OK;
 
         return TcpAgent::delay_bind_dispatch(varName, localName, tracer);
 }
@@ -846,15 +850,21 @@ FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int reas
 	 *	ect_: I am doing ECN (ecn_ should be T and peer does ECN)
 	 */
 
-	// set ect on data packets (not syn or ack packets)
-	if ( datalen > 0 && ecn_ ){
+	if (datalen > 0 && ecn_ ){
+	        // set ect on data packets 
 		fh->ect() = ect_;	// on after mutual agreement on ECT
-	}
-	else {
+        } else if (ecn_ && ecn_syn_ && (pflags & TH_SYN) && (pflags & TH_ACK)) {
+                // set ect on syn/ack packet, if syn packet was negotiating ECT
+                fh->ect() = ect_;
+	} else {
 		/* Set ect() to 0.  -M. Weigle 1/19/05 */
 		fh->ect() = 0;
 	}
-
+	if (ecn_ && ect_ && recent_ce_ ) { 
+		// This is needed here for the ACK in a SYN, SYN/ACK, ACK
+		// sequence.
+		pflags |= TH_ECE;
+	}
         // fill in CWR and ECE bits which don't actually sit in
         // the tcp_flags but in hdr_flags
         if ( pflags & TH_ECE) {
@@ -984,7 +994,6 @@ FullTcpAgent::foutput(int seqno, int reason)
 		datalen = maxseg_;
 	}
 
-
 	//
 	// this is an option that causes us to slow-start if we've
 	// been idle for a "long" time, where long means a rto or longer
@@ -1102,7 +1111,9 @@ send:
 	}
   
         /* set ECE if necessary */
-        if (ecn_ && ect_ && recent_ce_ ) pflags |= TH_ECE;
+        if (ecn_ && ect_ && recent_ce_ ) {
+		pflags |= TH_ECE;
+	}
 
         /* 
          * Tack on the FIN flag to the data segment if close_on_empty_
@@ -1520,7 +1531,6 @@ FullTcpAgent::recv(Packet *pkt, Handler*)
          * Process options if not in LISTEN state,
          * else do it below
          */
-
 	if (state_ != TCPS_LISTEN)
 		dooptions(pkt);
 
@@ -1531,7 +1541,6 @@ FullTcpAgent::recv(Packet *pkt, Handler*)
 	 * at time t0 = (0.0 + k * interval_) for some k such
 	 * that t0 > now
 	 */
-
 	if (delack_interval_ > 0.0 &&
 	    (delack_timer_.status() != TIMER_PENDING)) {
 		int last = int(now() / delack_interval_);
@@ -1539,22 +1548,9 @@ FullTcpAgent::recv(Packet *pkt, Handler*)
 	}
 
 	/*
-	 * sanity check for ECN: shouldn't be seeing a CE bit if
-	 * ECT wasn't set on the packet first.  If we see this, we
-	 * probably have a misbehaving router...
-	 */
-
-	if (fh->ce() && !fh->ect()) {
-	    fprintf(stderr,
-	    "%f: FullTcpAgent::recv(%s): warning: CE bit on, but ECT false!\n",
-		now(), name());
-	}
-
-	/*
 	 * Try header prediction: in seq data or in seq pure ACK
 	 *	with no funny business
 	 */
-
 	if (!nopredict_ && predict_ok(pkt)) {
                 /*
                  * If last ACK falls within this segment's sequence numbers,
@@ -1576,17 +1572,18 @@ FullTcpAgent::recv(Packet *pkt, Handler*)
 		// generate a stream of ecnecho bits until we see a true
 		// cong_action bit
 		//
-		if (ecn_) {
-			if (fh->ce() && fh->ect()) {
-				// no CWR from peer yet... arrange to
-				// keep sending ECNECHO
-				recent_ce_ = TRUE;
-			} else if (fh->cwr()) {
-				// got CWR response from peer.. stop
-				// sending ECNECHO bits
-				recent_ce_ = FALSE;
-			}
-		}
+
+	    	if (ecn_) {
+	    		if (fh->ce() && fh->ect()) {
+	    			// no CWR from peer yet... arrange to
+	    			// keep sending ECNECHO
+	    			recent_ce_ = TRUE;
+	    		} else if (fh->cwr()) {
+	    			// got CWR response from peer.. stop
+	    			// sending ECNECHO bits
+	    			recent_ce_ = FALSE;
+	    		}
+	    	}
 
 		// Header predication basically looks to see
 		// if the incoming packet is an expected pure ACK
@@ -1687,7 +1684,6 @@ FullTcpAgent::recv(Packet *pkt, Handler*)
 
 		// check for a ECN-SYN with ECE|CWR
 		if (ecn_ && fh->ecnecho() && fh->cong_action()) {
-
 			ect_ = TRUE;
 		}
 
@@ -1745,10 +1741,11 @@ cancel_rtx_timer();	// cancel timer on our 1st SYN [does this belong!?]
 
 		if (tiflags & TH_ACK) {
 			// SYN+ACK (our SYN was acked)
-			// CHECKME
-                        // Check ECN-SYN+ACK packet
-                        if (ecn_ && fh->ecnecho() && !fh->cong_action())
+                        if (ecn_ && fh->ecnecho() && !fh->cong_action()) {
                                 ect_ = TRUE;
+	    		        if ( fh->ce() ) 
+	    				recent_ce_ = TRUE;
+	    		}
 			highest_ack_ = ackno;
 			cwnd_ = initial_window();
 
@@ -2015,7 +2012,17 @@ trimthenstep6:
                 } else {
                         newstate(TCPS_ESTABLISHED);
                 }
-		cwnd_ = initial_window();
+		if (ecn_ && ect_ && ecn_syn_ && fh->ecnecho() )
+			// The SYN/ACK packet was ECN-marked.
+			if (ecn_syn_wait_) {
+				// A timer will be called in ecn().
+				cwnd_ = 1;
+				use_rtt_ = 1;
+			} else
+			        // Congestion window will be halved in ecn().
+				cwnd_ = 2;
+		else 
+			cwnd_ = initial_window();
 		/* fall into ... */
 
         /*
@@ -2182,7 +2189,6 @@ process_ACK:
 		 * if this is an ACK with an ECN indication, handle this
 		 * but not if it is a syn packet
 		 */
-
 		if (fh->ecnecho() && !(tiflags&TH_SYN) )
 		if (fh->ecnecho()) {
 			// Note from Sally: In one-way TCP,
