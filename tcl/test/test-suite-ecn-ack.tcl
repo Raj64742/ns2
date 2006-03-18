@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.24 2006/03/18 05:47:45 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.25 2006/03/18 06:12:00 sallyfloyd Exp $
 #
 # To run all tests: test-all-ecn-ack
 set dir [pwd]
@@ -122,16 +122,18 @@ Topology/net2A-lossy instproc init ns {
 TestSuite instproc finish file {
 	global quiet wrap wrap1 PERL
 	$self instvar ns_ tchan_ testName_ cwnd_chan_
-	if {$file == "ecn_ack_fulltcp"} {
+	if {$file == "ecn_ack_fulltcp"} { 
+	   ## tracing forward-path data packets
            exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
-	     $PERL ../../bin/raw2xg -aefcx -s 0.01 -m $wrap -t $file > temp.rands
+	     $PERL ../../bin/raw2xg -aecx -s 0.01 -m $wrap -t $file > temp.rands
   	   exec $PERL ../../bin/getrc -s 3 -d 2 all.tr | \
 	     $PERL ../../bin/raw2xg -aefcx -s 0.01 -m $wrap -t $file > temp1.rands
 	} elseif {$wrap == $wrap1} {
+	   ## tracing reverse-path data packets
            exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
-	     $PERL ../../bin/raw2xg -aefgcx -s 0.01 -m $wrap -t $file > temp.rands
+	     $PERL ../../bin/raw2xg -aefcx -s 0.01 -m $wrap -t $file > temp.rands
   	   exec $PERL ../../bin/getrc -s 3 -d 2 all.tr | \
-	     $PERL ../../bin/raw2xg -aefgcx -s 0.01 -m $wrap -t $file > temp1.rands
+	     $PERL ../../bin/raw2xg -aecx -s 0.01 -m $wrap -t $file > temp1.rands
 	} else {
            exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
 	     $PERL ../../bin/raw2xg -aecx -s 0.01 -m $wrap -t $file > temp.rands
@@ -526,7 +528,9 @@ Test/synack1_fulltcp instproc run {} {
         $ns_ connect $tcp1 $sink
         $sink listen ; # will figure out who its peer is
         set ftp1 [$tcp1 attach-app FTP]
-        $ns_ at 0.00 "$ftp1 produce 20"
+        $ns_ at 0.00 "$ftp1 produce 5"
+        set ftp2 [$sink attach-app FTP]
+        $ns_ at 0.03 "$ftp2 produce 20"
 
         $self drop_pkt 1
         $self tcpDump $tcp1 5.0
@@ -647,30 +651,7 @@ Test/synack2a_fulltcp instproc run {} {
 
 TestSuite runTest
 
-# raw2xg:
-# LARGE PACKETS USE COLUMN 10.
-# SMALL PACKETS USE COLUMN 12.
-# If an ACK and source != 0 and size > 40: use column 10
-# If tcp and source != 0 and size > 40: use column 10
-# If tcp and source == 0 and size > 40: use column 10  ****
-# If tcp and source == 0 and size == 40: use column 12
-# If an ACK and source == 0 and size == 40: probably use column 12
-# Size: f[5]
-
-# OLD:
-#	if ($plot_full){
-#          if (!$source_zero) { $use_full = 1;
-#          } else { if ($source_0) { if ($is_tcp) { $use_full = 1;
-#        }}}}
-
-
 # E: Congestion Experienced in IP header.
 # N: ECN-Capable-Transport (ECT) in IP header.
 # C: ECN-Echo in TCP header.
 # A: Congestion Window Reduced (CWR) in TCP header. 
-
-# DONE: Now the ACK returned ECN-echo, after the SYN/ACK is marked.
-# TODO: Have the receiver respond to the ECN-Echo, and report CRW.
-# This requires setting rtt_timeout() to r_rtxcur_
-
-# grep + all.tr | awk '($3==2){print}' | more
