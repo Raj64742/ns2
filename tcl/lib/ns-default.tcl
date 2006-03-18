@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.363 2006/03/15 03:55:05 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.364 2006/03/18 05:41:27 sallyfloyd Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -896,7 +896,7 @@ Agent/TCP set precisionReduce_ true ;	# default changed on 2006/1/24.
 Agent/TCP set oldCode_ false
 Agent/TCP set useHeaders_ true ;	# default changed on 2001/11/28. 
 
-# These are all variables for high-speed TCP.
+# These are all used for high-speed TCP.
 Agent/TCP set low_window_ 38 ;		# default changed on 2002/8/12.		
 Agent/TCP set high_window_ 83000
 Agent/TCP set high_p_ 0.0000001
@@ -966,7 +966,7 @@ Agent/TCPSink set generateDSacks_ false
 Agent/TCPSink set qs_enabled_ false
 Agent/TCPSink set RFC2581_immediate_ack_ true
 Agent/TCPSink set bytes_ 0
-Agent/TCPSink set ecn_syn_ false ;		# Added 2005/11/21 for SYN/ACK pkts.
+Agent/TCPSink set ecn_syn_ false ;	# Added 2005/11/21 for SYN/ACK pkts.
 
 Agent/XCPSink set packetSize_ 40
 Agent/XCPSink set ts_echo_bugfix_ true
@@ -1132,6 +1132,8 @@ if [TclObject is-class Agent/TCP/FullTcp] {
 	Agent/TCP/FullTcp set open_cwnd_on_pack_ true; # ^ win on partial acks?
 	Agent/TCP/FullTcp set halfclose_ false; # do simplex closes (shutdown)?
 	Agent/TCP/FullTcp set nopredict_ false; # disable header prediction code?
+        Agent/TCP/FullTcp set ecn_syn_ false; # Make SYN/ACK packet ECN-Capable?
+        Agent/TCP/FullTcp set ecn_syn_wait_ false; # Wait after marked SYN/ACK? 
 
 	Agent/TCP/FullTcp/Newreno set recov_maxburst_ 2; # max burst dur recov
 
