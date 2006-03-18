@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.168 2006/02/07 04:58:49 sallyfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.169 2006/03/18 05:46:02 sallyfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -73,7 +73,8 @@ TcpAgent::TcpAgent()
 	  rtx_timer_(this), delsnd_timer_(this), burstsnd_timer_(this), 
 	  dupacks_(0), curseq_(0), highest_ack_(0), cwnd_(0), ssthresh_(0), 
 	  maxseq_(0), count_(0), rtt_active_(0), rtt_seq_(-1), rtt_ts_(0.0), 
-	  lastreset_(0.0), closed_(0), first_decrease_(1), fcnt_(0), 
+	  lastreset_(0.0), closed_(0), use_rtt_(0),
+	  first_decrease_(1), fcnt_(0), 
 	  nrexmit_(0), restart_bugfix_(1), cong_action_(0), 
 	  ecn_burst_(0), ecn_backoff_(0), ect_(0), 
 	  qs_requested_(0), qs_approved_(0),
@@ -527,11 +528,12 @@ double TcpAgent::rtt_timeout()
 	if (rfc2988_) {
 	// Correction from Tom Kelly to be RFC2988-compliant, by
 	// clamping minrto_ before applying t_backoff_.
-		if (t_rtxcur_ < minrto_)
+		if (t_rtxcur_ < minrto_ && !use_rtt_)
 			timeout = minrto_ * t_backoff_;
 		else
 			timeout = t_rtxcur_ * t_backoff_;
 	} else {
+		// only of interest for backwards compatibility
 		timeout = t_rtxcur_ * t_backoff_;
 		if (timeout < minrto_)
 			timeout = minrto_;
@@ -545,9 +547,12 @@ double TcpAgent::rtt_timeout()
 			fprintf(stderr, "TcpAgent: negative RTO!  (%f)\n",
 				timeout);
 			exit(1);
-		}
-		timeout = 2.0 * tcp_tick_;
+		} else if (use_rtt_ && timeout < tcp_tick_)
+			timeout = tcp_tick_;
+		else
+			timeout = 2.0 * tcp_tick_;
 	}
+	use_rtt_ = 0;
 	return (timeout);
 }
 
