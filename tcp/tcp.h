@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.123 2006/02/05 03:14:02 sallyfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.124 2006/03/18 05:44:56 sallyfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -375,6 +375,7 @@ protected:
 	double lastreset_;	/* W.N. Last time connection was reset - for */
 				/* detecting pkts from previous incarnations */
 	int closed_;            /* whether this connection has closed */
+	int use_rtt_;		/* Use RTT for timeout, for ECN-marked SYN-ACK */
 
 	/* Dynamic state used for alternate congestion control mechanisms */
 	double awnd_;		/* averaged window */
