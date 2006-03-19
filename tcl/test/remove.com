@@ -7,7 +7,7 @@ rm -f temp* *.ps *core
 rm -f t?.tcl ? ecn all packets out drops acks 
 rm -f *.tr *.tr1 *.nam *.xgr
 rm -f all.*
-rm -f fairflow.*
+rm -f fairflow.* srr_out.txt
 rm -f t t? t.*
 rm -f chart? 
 rm -f flow? flows? 
