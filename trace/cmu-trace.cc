@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.88 2005/10/08 19:16:16 tomh Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.89 2006/03/21 22:31:32 liyuan Exp $
  */
 
 #include <packet.h>
@@ -287,9 +287,15 @@ CMUTrace::format_mac_common(Packet *p, const char *why, int offset)
 
 	if (thisnode) {
 		if (thisnode->energy_model()) {
+			// log detailed energy consumption
+			// total energy and breakdown in idle, sleep, transmit and receive modes
 			sprintf(pt_->buffer() + offset,
-				"[energy %f] ",
-				thisnode->energy_model()->energy());
+				"[energy %f ei %.3f es %.3f et %.3f er %.3f] ",
+				thisnode->energy_model()->energy(),
+				thisnode->energy_model()->ei(),
+				thisnode->energy_model()->es(),				
+				thisnode->energy_model()->et(),
+				thisnode->energy_model()->er());				
 		}
         }
 }
@@ -539,7 +545,7 @@ CMUTrace::format_tcp(Packet *p, int offset)
 }
 
 /* Armando L. Caro Jr. <acaro@@cis,udel,edu> 6/5/2002
- * (with help from Florina Almenárez <florina@@it,uc3m,es>)
+ * (with help from Florina Almenrez <florina@@it,uc3m,es>)
  */
 void
 CMUTrace::format_sctp(Packet* p,int offset)
