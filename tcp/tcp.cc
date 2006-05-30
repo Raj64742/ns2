@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.169 2006/03/18 05:46:02 sallyfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.170 2006/05/30 20:30:30 pradkin Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -1637,10 +1637,10 @@ void TcpAgent::processQuickStart(Packet *pkt)
                 app_rate = (int) ((hdr_qs::rate_to_Bps(qsh->rate()) *
                       (now - tcph->ts_echo())) / (size_ + headersize()));
 		if (print_request_) {
-		  int num1 = hdr_qs::rate_to_Bps(qsh->rate());
+		  double num1 = hdr_qs::rate_to_Bps(qsh->rate());
 		  double time = now - tcph->ts_echo();
 		  int size = size_ + headersize();
-		  printf("Quick Start approved, rate: %d Bps, window %d rtt: %4.2f pktsize: %d\n", 
+		  printf("Quick Start approved, rate: %g Bps, window %d rtt: %4.2f pktsize: %d\n", 
 		     num1, app_rate, time, size);
 		}
                 if (app_rate > initial_window()) {

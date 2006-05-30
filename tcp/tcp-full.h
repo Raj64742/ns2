@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.56 2006/03/18 05:43:48 sallyfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.57 2006/05/30 20:30:30 pradkin Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -206,7 +206,7 @@ protected:
 			cwnd_++;
 	}
 
-	void sendpacket(int seq, int ack, int flags, int dlen, int why);
+	virtual void sendpacket(int seq, int ack, int flags, int dlen, int why, Packet *p=0);
 	void connect();     		// do active open
 	void listen();      		// do passive open
 	void usrclosed();   		// user requested a close
@@ -296,7 +296,8 @@ protected:
 
 
 	void	reset();
-	void	sendpacket(int seqno, int ackno, int pflags, int datalen, int reason);
+	//XXX not implemented?
+	//void	sendpacket(int seqno, int ackno, int pflags, int datalen, int reason, Packet *p=0);
 
 	ReassemblyQueue sq_;	// SACK queue, used by sender
 	int sack_min_;		// first seq# in sack queue, initializes sq_

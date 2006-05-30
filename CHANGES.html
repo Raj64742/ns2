@@ -16,6 +16,28 @@ with the most recent changes coming first.
 <hr>
 <h3>ns-2.30 PENDING RELEASE</h3>
 <ul>
+<p><li><b>[pradkin]</b> Tue May 30 13:29:08 PDT 2006
+<br>Major XCP cleanup:
+<ul>
+  <li>XCP plumbing changed to derive from tcp-classes instead of
+  duplicating the code.
+  <li>XCP header changed to using "X" (idealized inter-packet time)
+  instead of source rate (throughput) to match NODIV-spec better.
+  <li>XCP plugged into full-tcp (thanks, Amit!).
+  <li>XCP: removed clutter of experimental mode spread_bytes_.
+  <li>XCP: Removed clutter of experimental mode xcp_sparse_.
+</ul>
+<p>Modified test-suite-xcp.tcl to test XCP in full-tcp; disabled two
+previously done tests; re-generated test output.
+<p>Minor changes to TCP:
+<ul>
+  <li> Added extra parameter to FullTcpAgent::sendpacket() and made it virtual.
+  <li> Made XcpEndsys friend of TcpAgent.
+  <li> Made XcpSink friend of TcpSink.
+  <li> Made ~TcpAgent() virtual as a matter of style.
+  <li> A handful small changes to make compile.
+</ul>
+
 <p><li><b>[floyd]</b> Tue Mar 14 20:44:56 PST 2006
 <br>TFRC change #1: Added idleFix_, default true, so that when the 
 sender has been datalimited, the sender now doesn't let the

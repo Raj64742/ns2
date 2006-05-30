@@ -1,63 +1,28 @@
-// -*-  Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*-
-
-/*
- * Copyright (C) 2004 by the University of Southern California
- * $Id: xcpq.cc,v 1.11 2006/02/21 15:20:20 mahrenho Exp $
+/* -*-  Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*-
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
+ * Copyright (C) 2004 by USC/ISI
+ *               2002 by Dina Katabi
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * All rights reserved.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
+ * Redistribution and use in source and binary forms are permitted
+ * provided that the above copyright notice and this paragraph are
+ * duplicated in all such forms and that any documentation, advertising
+ * materials, and other materials related to such distribution and use
+ * acknowledge that the software was developed by the University of
+ * Southern California, Information Sciences Institute.  The name of the
+ * University may not be used to endorse or promote products derived from
+ * this software without specific prior written permission.
  *
- *
- * The copyright of this module includes the following
- * linking-with-specific-other-licenses addition:
- *
- * In addition, as a special exception, the copyright holders of
- * this module give you permission to combine (via static or
- * dynamic linking) this module with free software programs or
- * libraries that are released under the GNU LGPL and with code
- * included in the standard release of ns-2 under the Apache 2.0
- * license or under otherwise-compatible licenses with advertising
- * requirements (or modified versions of such code, with unchanged
- * license).  You may copy and distribute such a system following the
- * terms of the GNU GPL for this module and the licenses of the
- * other code concerned, provided that you include the source code of
- * that other code when and as the GNU GPL requires distribution of
- * source code.
- *
- * Note that people who make modified versions of this module
- * are not obligated to grant this special exception for their
- * modified versions; it is their choice whether to do so.  The GNU
- * General Public License gives permission to release a modified
- * version without this exception; this exception also makes it
- * possible to release a modified version which carries forward this
- * exception.
+ * THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
  */
 
 #include "xcpq.h"
 #include "xcp.h"
 #include "random.h"
-
-
-const double	XCPQueue::ALPHA_		= 0.4;
-const double	XCPQueue::BETA_		= 0.226;
-const double	XCPQueue::GAMMA_		= 0.1;
-const double	XCPQueue::XCP_MAX_INTERVAL= 1.0;
-const double	XCPQueue::XCP_MIN_INTERVAL= .001;
-const double    XCPQueue::BWIDTH  = 0.01;
-//const int       XCPQueue::BSIZE;
-
-
 
 static class XCPQClass : public TclClass {
 public:
@@ -68,13 +33,9 @@ public:
 } class_droptail_xcpq;
 
 
-
-
-
 XCPQueue::XCPQueue(): queue_timer_(NULL), 
 		      estimation_control_timer_(NULL),
-		      rtt_timer_(NULL), effective_rtt_(0.0),
-		      spread_bytes_(false)
+		      rtt_timer_(NULL), effective_rtt_(0.0)
 {
 	init_vars();
 }
@@ -165,41 +126,24 @@ void XCPQueue::do_on_packet_arrival(Packet* pkt){
 	input_traffic_bytes_ += pkt_size;
 
 	hdr_xcp *xh = hdr_xcp::access(pkt); 
-	if (spread_bytes_) {
-		int i = int(xh->rtt_/BWIDTH + .5);
-		if (i > maxb_)
-			maxb_ = i;
-		b_[i] += pkt_size;
-    
-		if (xh->rtt_ != 0.0 && xh->throughput_ != 0.0)
-			t_[i] += pkt_size/xh->throughput_;
-	}
+
 	if (xh->xcp_enabled_ != hdr_xcp::XCP_ENABLED)
 		return;	// Estimates depend only on Forward XCP Traffic
       
 	++num_cc_packets_in_Te_;
   
-	if (xh->rtt_ != 0.0 && xh->throughput_ != 0.0) {
+	if (xh->rtt_ != 0.0) {
 		/* L 2 */
-		double x = pkt_size / xh->throughput_;
-
-		if (xh->xcp_sparse_)
-			x = Te_;
-
-		sum_inv_throughput_ += x;
+		sum_inv_throughput_ += xh->x_;
 		/* L 3 */
 		if (xh->rtt_ < XCP_MAX_INTERVAL) {
 			/* L 4 */
-			double y = xh->rtt_ * pkt_size / xh->throughput_;
-			if (xh->xcp_sparse_)
-				y = Te_ * xh->rtt_;
+			double y = xh->rtt_ * xh->x_;
 			sum_rtt_by_throughput_ += y;
 			/* L 5 */
 		} else {
 			/* L 6 */
-			double y = XCP_MAX_INTERVAL * pkt_size / xh->throughput_;
-			if (xh->xcp_sparse_)
-				y = Te_ * XCP_MAX_INTERVAL;
+			double y = XCP_MAX_INTERVAL * xh->x_;
 			sum_rtt_by_throughput_ += y;
 		}
 	}
@@ -218,24 +162,12 @@ void XCPQueue::do_before_packet_departure(Packet* p)
 		xh->delta_throughput_ = 0;
 		return;
 	}
-	if (xh->throughput_ == 0.0)
-		xh->throughput_ = .1;    // XXX 1bps is small enough
 
-	double inv = 1.0/xh->throughput_;
 	double pkt_size = double(hdr_cmn::access(p)->size());
-	double frac = 1.0;
-	if (spread_bytes_) {
-		// rtt-scaling
-		frac = (xh->rtt_ > Te_) ? Te_ / xh->rtt_ : xh->rtt_ / Te_;
-	}
-	/* L 20, 21 */
-	double pos_fbk = Cp_ * inv * pkt_size;
-	double neg_fbk = Cn_ * pkt_size;
 
-	if (xh->xcp_sparse_) {
-		pos_fbk = Cp_ * xh->rtt_;
-		neg_fbk = Cn_ * xh->rtt_ * xh->throughput_;
-	}
+	/* L 20, 21 */
+	double pos_fbk = Cp_ * xh->x_;
+	double neg_fbk = Cn_ * pkt_size;
 
 	pos_fbk = min(residue_pos_fbk_, pos_fbk);
 
@@ -272,8 +204,8 @@ void XCPQueue::do_before_packet_departure(Packet* p)
 		trace_var("delta_throughput", xh->delta_throughput_);
 		int id = hdr_ip::access(p)->flowid();
 		char buf[25];
-		sprintf(buf, "Thruput%d",id);
-		trace_var(buf, xh->throughput_);
+		sprintf(buf, "X%d",id);
+		trace_var(buf, xh->x_);
 		
 		// tracing measured thruput info
 		if (xh->rtt_ > high_rtt_)
@@ -316,39 +248,18 @@ void XCPQueue::Te_timeout()
 		trace_var("residue_pos_fbk_not_allocated", residue_pos_fbk_);
 		trace_var("residue_neg_fbk_not_allocated", residue_neg_fbk_);
 	}
-	if (spread_bytes_) {
-		double spreaded_bytes = b_[0];
-		double tp = t_[0];
-		for (int i = 1; i <= maxb_; ++i) {
-			double spill = b_[i]/(i+1);
-			spreaded_bytes += spill;
-			b_[i-1] = b_[i] - spill;
-			
-			spill = t_[i]/(i+1);
-		        tp += spill;
-			t_[i-1] = t_[i] - spill;
-		}
-		
-		b_[maxb_] = t_[maxb_] = 0;
-		if (maxb_ > 0)
-			--maxb_;
-		input_traffic_bytes_ = spreaded_bytes;
-		sum_inv_throughput_ = tp;
-	}
+
 	/* L 8 */
 	double input_bw = input_traffic_bytes_ / Te_;
 	double phi_bps = 0.0;
 	double shuffled_traffic_bps = 0.0;
 
-	if (spread_bytes_) {
-		avg_rtt_ = (maxb_ + 1)* BWIDTH/2; // XXX fix me
-	} else {
-		if (sum_inv_throughput_ != 0.0) {
+	if (sum_inv_throughput_ != 0.0) {
 /* L 7 */
-			avg_rtt_ = sum_rtt_by_throughput_ / sum_inv_throughput_;
-		} else
-			avg_rtt_ = INITIAL_Te_VALUE;
-	}
+		avg_rtt_ = sum_rtt_by_throughput_ / sum_inv_throughput_;
+	} else
+		avg_rtt_ = INITIAL_Te_VALUE;
+
 	
 	if (input_traffic_bytes_ > 0) {
 /* L 9 */
@@ -398,10 +309,7 @@ void XCPQueue::Te_timeout()
 /* L 17 */
 	sum_rtt_by_throughput_ = 0.0;
 /* L 18 */
-	if (spread_bytes_)
-		Te_ = BWIDTH;
-	else
-		Te_ = max(avg_rtt_, XCP_MIN_INTERVAL);
+	Te_ = max(avg_rtt_, XCP_MIN_INTERVAL);
 
 /* L 19 */
 	estimation_control_timer_->resched(Te_);
@@ -430,8 +338,6 @@ void XCPQueue::everyRTT ()
 	trace_var("u_elep", thruput_elep_/(Tr_*link_capacity_bps_));
 	trace_var("u_mice", thruput_mice_/(Tr_*link_capacity_bps_));
 	total_thruput_ = 0;
-	thruput_elep_ = 0;
-	thruput_mice_ = 0;
   
 	rtt_timer_->resched(Tr_);
 }
@@ -457,12 +363,8 @@ void XCPQueue::init_vars()
 {
 	link_capacity_bps_	= 0.0;
 	avg_rtt_		= INITIAL_Te_VALUE;
-	if (spread_bytes_)
-		Te_		= BWIDTH;
-	else
-		Te_		= INITIAL_Te_VALUE;
-  
-	Tq_			= INITIAL_Te_VALUE; 
+	Te_			= INITIAL_Te_VALUE;
+  	Tq_			= INITIAL_Te_VALUE; 
 	Tr_                     = 0.1;
 	high_rtt_               = 0.0;
 	Cp_			= 0.0;
@@ -479,10 +381,6 @@ void XCPQueue::init_vars()
   
 	queue_trace_file_ = 0;
 	myQueue_ = 0;
-  
-	for (int i = 0; i<BSIZE; ++i)
-		b_[i] = t_[i] = 0;
-	maxb_ = 0;
   
 	min_queue_ci_ = max_queue_ci_ = length();
   

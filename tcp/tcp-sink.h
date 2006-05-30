@@ -97,6 +97,7 @@ protected:
 };
 
 class TcpSink : public Agent {
+	friend class XcpSink;
 public:
 	TcpSink(Acker*);
 	void recv(Packet* pkt, Handler*);

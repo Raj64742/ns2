@@ -108,7 +108,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.121 2006/03/18 05:43:48 sallyfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.122 2006/05/30 20:30:30 pradkin Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -823,9 +823,9 @@ FullTcpAgent::ack_action(Packet* p)
  * Also, set the size of the tcp header.
  */
 void
-FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int reason)
+FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int reason, Packet *p)
 {
-        Packet* p = allocpkt();
+        if (!p) p = allocpkt();
         hdr_tcp *tcph = hdr_tcp::access(p);
 	hdr_flags *fh = hdr_flags::access(p);
 

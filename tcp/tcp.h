@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.124 2006/03/18 05:44:56 sallyfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.125 2006/05/30 20:30:30 pradkin Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -172,9 +172,10 @@ struct hstcp {
 };
 
 class TcpAgent : public Agent {
+	friend class XcpEndsys;
 public:
 	TcpAgent();
-	~TcpAgent() {free(tss);}
+	virtual ~TcpAgent() {free(tss);}
         virtual void recv(Packet*, Handler*);
 	virtual void timeout(int tno);
 	virtual void timeout_nonrtx(int tno);
@@ -235,7 +236,7 @@ protected:
 	virtual void send_one();		/* do this on 1-2 dupacks */
 	double linear(double x, double x_1, double y_1, double x_2, double y_2);
 	/* the "linear" function is for experimental highspeed TCP */
-	void opencwnd();
+	virtual void opencwnd();
 
 	void slowdown(int how);			/* reduce cwnd/ssthresh */
 	void ecn(int seqno);		/* react to quench */

@@ -1,53 +1,24 @@
-// -*-  Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*-
-
-/*
- * Copyright (C) 2004 by the University of Southern California
+/* -*-  Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*-
+ *
  * Copyright (C) 2004 by USC/ISI
  *               2002 by Dina Katabi
- * $Id: xcpq.h,v 1.10 2006/02/21 15:20:20 mahrenho Exp $
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
+ * All rights reserved.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Redistribution and use in source and binary forms are permitted
+ * provided that the above copyright notice and this paragraph are
+ * duplicated in all such forms and that any documentation, advertising
+ * materials, and other materials related to such distribution and use
+ * acknowledge that the software was developed by the University of
+ * Southern California, Information Sciences Institute.  The name of the
+ * University may not be used to endorse or promote products derived from
+ * this software without specific prior written permission.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
+ * THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- *
- * The copyright of this module includes the following
- * linking-with-specific-other-licenses addition:
- *
- * In addition, as a special exception, the copyright holders of
- * this module give you permission to combine (via static or
- * dynamic linking) this module with free software programs or
- * libraries that are released under the GNU LGPL and with code
- * included in the standard release of ns-2 under the Apache 2.0
- * license or under otherwise-compatible licenses with advertising
- * requirements (or modified versions of such code, with unchanged
- * license).  You may copy and distribute such a system following the
- * terms of the GNU GPL for this module and the licenses of the
- * other code concerned, provided that you include the source code of
- * that other code when and as the GNU GPL requires distribution of
- * source code.
- *
- * Note that people who make modified versions of this module
- * are not obligated to grant this special exception for their
- * modified versions; it is their choice whether to do so.  The GNU
- * General Public License gives permission to release a modified
- * version without this exception; this exception also makes it
- * possible to release a modified version which carries forward this
- * exception.
- *
- */
-
-/*
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcpq.h,v 1.10 2006/02/21 15:20:20 mahrenho Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcpq.h,v 1.11 2006/05/30 20:30:30 pradkin Exp $
  */
 
 
@@ -82,7 +53,6 @@ class XCPQueue : public DropTail {
 	friend class XCPTimer;
 public:
 	XCPQueue();
-	virtual ~XCPQueue() {}
 	void Tq_timeout ();  // timeout every propagation delay 
 	void Te_timeout ();  // timeout every avg. rtt
 	void everyRTT();     // timeout every highest rtt seen by rtr or some
@@ -97,12 +67,6 @@ public:
 	void setChannel(Tcl_Channel queue_trace_file);
 	double totalDrops() { return total_drops_; }
   
-	void spread_bytes(bool b) { 
-		spread_bytes_ = b; 
-		if (b) 
-			Te_ = BWIDTH;
-	}
-	
         // Overloaded functions
 	void enque(Packet* pkt);
 	Packet* deque();
@@ -143,11 +107,11 @@ protected:
 	XCPTimer*        rtt_timer_;
 	double           link_capacity_bps_;
 
-	static const double	ALPHA_		/*= 0.4   */;
-	static const double	BETA_		/*= 0.226 */;
-	static const double	GAMMA_		/*= 0.1   */;
-	static const double	XCP_MAX_INTERVAL/*= 1.0   */;
-	static const double	XCP_MIN_INTERVAL/*= .001  */;
+	static const double	ALPHA_		= 0.4;
+	static const double	BETA_		= 0.226;
+	static const double	GAMMA_		= 0.1;
+	static const double	XCP_MAX_INTERVAL= 1.0;
+	static const double	XCP_MIN_INTERVAL= .001;
 
 	double          Te_;       // control interval
 	double          Tq_;    
@@ -166,25 +130,18 @@ protected:
 	double          running_min_queue_bytes_;
 	unsigned int    num_cc_packets_in_Te_;
   
-	bool			spread_bytes_; 
-	static const int	BSIZE = 4096;
-	double			b_[BSIZE];
-	double			t_[BSIZE];
-	int			maxb_;
-	static const double	BWIDTH/*  = 0.01*/;
-	int			min_queue_ci_;
-	int			max_queue_ci_;
-  
 	double		thruput_elep_;
 	double		thruput_mice_;
 	double		total_thruput_;
 	int		num_mice_;
+	int		min_queue_ci_;
+	int		max_queue_ci_;
 	// drops
-	int drops_;
-	double total_drops_ ;
+	int 		drops_;
+	double		total_drops_ ;
   
 	// ----- For Tracing Vars --------------//
-	Tcl_Channel queue_trace_file_;
+	Tcl_Channel 	queue_trace_file_;
   
 };
 

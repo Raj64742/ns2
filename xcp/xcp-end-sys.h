@@ -1,10 +1,10 @@
 // -*-  Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*-
 
 /*
- * Copyright (C) 2004 by the University of Southern California
- * Copyright (C) 2004 by USC/ISI
- *               2002 by Dina Katabi
- * $Id: xcp-end-sys.h,v 1.9 2006/02/21 15:20:20 mahrenho Exp $
+ * Copyright (C) 2004-2006 by the University of Southern California,
+ * 						   Information Sciences Institute
+ *                    2002 by Dina Katabi
+ * $Id: xcp-end-sys.h,v 1.10 2006/05/30 20:30:30 pradkin Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -19,35 +19,22 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
  *
+ * All rights reserved.
  *
- * The copyright of this module includes the following
- * linking-with-specific-other-licenses addition:
+ * Redistribution and use in source and binary forms are permitted
+ * provided that the above copyright notice and this paragraph are
+ * duplicated in all such forms and that any documentation, advertising
+ * materials, and other materials related to such distribution and use
+ * acknowledge that the software was developed by the University of
+ * Southern California, Information Sciences Institute.  The name of the
+ * University may not be used to endorse or promote products derived from
+ * this software without specific prior written permission.
  *
- * In addition, as a special exception, the copyright holders of
- * this module give you permission to combine (via static or
- * dynamic linking) this module with free software programs or
- * libraries that are released under the GNU LGPL and with code
- * included in the standard release of ns-2 under the Apache 2.0
- * license or under otherwise-compatible licenses with advertising
- * requirements (or modified versions of such code, with unchanged
- * license).  You may copy and distribute such a system following the
- * terms of the GNU GPL for this module and the licenses of the
- * other code concerned, provided that you include the source code of
- * that other code when and as the GNU GPL requires distribution of
- * source code.
+ * THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * Note that people who make modified versions of this module
- * are not obligated to grant this special exception for their
- * modified versions; it is their choice whether to do so.  The GNU
- * General Public License gives permission to release a modified
- * version without this exception; this exception also makes it
- * possible to release a modified version which carries forward this
- * exception.
- *
- */
-
-/*
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.h,v 1.9 2006/02/21 15:20:20 mahrenho Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.h,v 1.10 2006/05/30 20:30:30 pradkin Exp $
  */
 
 #ifndef ns_xcp_end_sys_h
@@ -66,19 +53,18 @@
 
 #include "flags.h"
 #include "tcp-sink.h"
+#include "tcp-full.h"
 
-#define XCP_HDR_LEN  20
+#define XCP_HDR_LEN  20 // to match the internet draft 
 
-//-----------  The Congestion Header ------------//
 struct hdr_xcp {
-	double	throughput_;
+	double  x_;			//idealized inter-packet time
 	double	rtt_;
 	enum {
 		XCP_DISABLED = 0,
 		XCP_ENABLED,
-		XCP_ACK
+		XCP_ACK,
 	} 	xcp_enabled_;		// to indicate that the flow is XCP enabled
-	bool	xcp_sparse_;		// flag used with xcp_sparse extension
 	int	xcpId_;			// Sender's ID (debugging only)
 	double	cwnd_;			// The current window (debugging only) 
 	double	reverse_feedback_;
@@ -98,56 +84,32 @@ struct hdr_xcp {
 	double& rtt() { return (rtt_); }
 };
 
-/*--------------- Cwnd Shrinking Timer ---------------*
- *  If the cwnd becomes smaller than 1 then we keep it
- *  as one and reduce but delay sending the packet
- *  for s_rtt/cwnd
- * 
- * This code is to be written later!
- */
 
 #define		MAX(a,b)	((a) > (b) ? (a) : (b))
 #define		TP_TO_TICKS	MAX(1, (t_srtt_ >> T_SRTT_BITS))
 
 #define TP_AVG_EXP		4	// used for xcp_metered_output_ == true
 
-class XcpAgent;
-  
-class cwndShrinkingTimer : public TimerHandler {
-public: 
-	cwndShrinkingTimer(XcpAgent *a) : TimerHandler() { a_ = a; }
+//Base class for Tcp and FullTcp XCP agents
+class XcpEndsys {
 protected:
-	virtual void expire(Event *e);
-	XcpAgent *a_;
-};
+	XcpEndsys(TcpAgent* tcp);
+	void trace_var(const char *var_name, double var) const;
+	void opencwnd() { /* nothing, cwnd is conrolled in recv() */ }
+	void rtt_update(double tao);
+	void init_rtt_vars() { srtt_estimate_ = 0.0; }
+	void rtt_init();
+	void recv(Packet *);
+	void send(Packet *, int datalen);
 
-class XcpAgent : public RenoTcpAgent {
-public:
-	XcpAgent();
+	TcpAgent *tcp_;
 
-protected:
-	
-	double time_now()  { return  Scheduler::instance().clock(); };
-	void trace_var(char * var_name, double var);
-	
-	void init_rtt_vars(){
-		srtt_estimate_           = 0.0;
-	}
-	virtual void delay_bind_init_all();
-	virtual int delay_bind_dispatch(const char *varName, 
-					const char *localName, 
-					TclObject *tracer);
-	
-	virtual void output(int seqno, int reason = 0);
-	virtual void recv_newack_helper(Packet *); 
-	virtual void opencwnd(); 
-	virtual void rtt_init(); // called in reset()
-	virtual void rtt_update(double tao);
-	
-	/*--------- Variables --------------*/
-	double current_positive_feedback_ ;
-	int    tcpId_;
-	double srtt_estimate_;
+	double	xcp_rev_fb_;	/* Accumulated throughput change to send back, B/s */
+	double	current_positive_feedback_ ;
+	int	tcpId_;
+	double	srtt_estimate_;
+	long	xcp_srtt_; // srtt estimate using the above macros
+
 	/* more bits in delta for better precision, just for SRTT */
 #define	XCP_DELTA_SHIFT		5
 #define XCP_EXPO_SHIFT		3
@@ -160,42 +122,56 @@ protected:
 	((srtt) + (((rtt) << XCP_DELTA_SHIFT)			\
 		   - (((srtt) + (1 << (XCP_EXPO_SHIFT - 1)))	\
 		      >> XCP_EXPO_SHIFT)))
-	long	xcp_srtt_; // srtt estimate using the above macros
-
-	int	xcp_sparse_;
-	int	xcp_sparse_seqno_;
-
-	cwndShrinkingTimer shrink_cwnd_timer_;
+	static unsigned int next_xcp_;
 };
 
-class XcpSink : public Agent {
+class XcpNewRenoFullTcpAgent : public NewRenoFullTcpAgent,
+			       public XcpEndsys {
 public:
-	XcpSink(Acker*);
-	void recv(Packet* pkt, Handler*);
-	void reset();
-	int command(int argc, const char*const* argv);
-// 	TracedInt& maxsackblocks() { return max_sack_blocks_; }
-protected:
-	void ack(Packet*);
-	virtual void add_to_ack(Packet* pkt);
+	XcpNewRenoFullTcpAgent();
 
+protected:
+	/*New*/
 	virtual void delay_bind_init_all();
 	virtual int delay_bind_dispatch(const char *varName, 
 					const char *localName, 
 					TclObject *tracer);
-	Acker* acker_;
-	int ts_echo_bugfix_;
-	int ts_echo_rfc1323_;   // conforms to rfc1323 for timestamps echo
-	// Added by Andrei Gurtov
-	friend void Sacker::configure(TcpSink*);
-// 	TracedInt max_sack_blocks_;	/* used only by sack sinks */
-	Packet* save_;		/* place to stash saved packet while delaying */
-				/* used by DelAckSink */
-	int RFC2581_immediate_ack_;     // Used to generate ACKs immediately
-	int bytes_;     // for JOBS
-	// for RFC2581-compliant gap-filling.
-	double lastreset_;      /* W.N. used for detecting packets
-				 * from previous incarnations */
+	/*New*/
+	virtual void opencwnd() { XcpEndsys::opencwnd(); }
+	virtual void recv(Packet *, Handler *); 
+	virtual void sendpacket(int seq, int ack, int flags, int dlen, int why, Packet *p=0);
+
+	virtual void rtt_init(); // called in reset()
+	virtual void rtt_update(double);
 };
 
+class XcpRenoTcpAgent : public RenoTcpAgent,
+			public XcpEndsys {
+public:
+	XcpRenoTcpAgent();
+protected:
+	virtual void delay_bind_init_all();
+	virtual int delay_bind_dispatch(const char *varName, 
+					const char *localName, 
+					TclObject *tracer);
+        virtual void output_helper(Packet *);
+        virtual void recv_newack_helper(Packet *);
+        virtual void opencwnd() { XcpEndsys::opencwnd(); }
+        virtual void rtt_init(); // called in reset()
+        virtual void rtt_update(double);
+};
+
+class XcpTcpSink : public TcpSink,
+		public XcpEndsys {
+public:
+	XcpTcpSink(Acker *);
+	virtual void recv(Packet* pkt, Handler*);
+protected:
+        virtual void add_to_ack(Packet*);
+        virtual void delay_bind_init_all();
+        virtual int delay_bind_dispatch(const char *varName,
+					const char *localName,
+					TclObject *tracer);
+};
+	
 #endif /* ns_xcp_end_sys_h */

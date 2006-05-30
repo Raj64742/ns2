@@ -1,5 +1,5 @@
 #
-# Copyright (c) 1998 University of Southern California.
+# Copyright (c) 2004-2006 University of Southern California.
 # All rights reserved.						  
 #								 
 # Redistribution and use in source and binary forms are permitted
@@ -19,40 +19,47 @@
 # To run all tests: test-all-xcp
 # to run individual test:
 # ns test-suite-xcp.tcl simple-xcp
+# ns test-suite-xcp.tcl simple-full-xcp
 
 # To view a list of available test to run with this script:
 # ns test-suite-xcp.tcl
 
-# This test-suite validate xcp congestion control scenarios along with xcp-tcp mixed flows through routers.
+# This test-suite validate xcp congestion control scenarios along with
+# xcp-tcp mixed flows through routers.
 
-#source misc_simple.tcl
 remove-all-packet-headers       ; # removes all except common
 add-packet-header Flags IP TCP XCP ; # hdrs reqd for validation
 
-# UPDATING GLOBAL DEFAULTS:
-Agent/TCP set precisionReduce_ false ;   # default changed on 2006/1/24.
-Agent/TCP set rtxcur_init_ 6.0 ;      # Default changed on 2006/01/21
-Agent/TCP set updated_rttvar_ false ;  # Variable added on 2006/1/21
-Agent/TCP set minrto_ 1
-# default changed on 10/14/2004.
-Queue/RED set bytes_ false ;
-Queue/RED set queue_in_bytes_ false ;
-Queue/RED set maxthresh_ [expr 0.8 * [Queue set limit_]]
-Queue/RED set thresh_ [expr 0.6 * [Queue set limit_]]
-Queue/RED set q_weight_ 0.001
-Queue/RED set linterm_ 10
+set fullxcp 1
+set halfxcp 1
+set validtests ""
 
 if {![TclObject is-class Agent/TCP/Reno/XCP]} {
-	puts "xcp module is not present; validation skipped"
-	exit 2
+	puts "xcp (half) module is not present; validation skipped"
+	set halfxcp 0
+} else {
+	set validtests "simple-xcp $validtests"
+}
+if {![TclObject is-class Agent/TCP/FullTcp/Newreno/XCP]} {
+	puts "xcp (full) module is not present; validation skipped"
+	set fullxcp 0
+	if { $halfxcp == 0 } {
+		exit 0; #will skip entire suite
+	}
+} else {
+	set validtests "$validtests simple-full-xcp"
+	# The following tests aren't validated because
+	#   xcp-tcp isn't really testing anything useful and
+	#   parking-lot-topo utilization plot is useless
+	#set validtests "$validtests xcp-tcp parking-lot-topo"
 }
 
 Class TestSuite
 
 proc usage {} {
-	global argv0
+	global argv0 validtests
 	puts stderr "usage: ns $argv0 <tests> "
-	puts "Valid Tests: simple-xcp xcp-tcp parking-lot-topo"
+	puts "Valid Tests: $validtests"
 	exit 1
 }
 
@@ -210,7 +217,10 @@ TestSuite instproc post-process {what PlotTime} {
 		set result [exec awk -v PlotTime=$PlotTime -v what=$what {
 			{
 				if (($6 == what) && ($1 > PlotTime)) {
-					print $1, $7 >> "temp.c";
+				    if ((what == "throughput"))
+                                        print $1, ($7 * 8) >> "temp.c";
+                                    else
+                                  	print $1, $7 >> "temp.c";
 				}
 			}
 		} xcp$i.tr ]
@@ -228,7 +238,7 @@ TestSuite instproc post-process {what PlotTime} {
 
 
 TestSuite instproc finish {} {
-	$self instvar ns_ tracefd_ tracedFlows_ src_ qtraces_ 
+	$self instvar ns_ tracefd_ tracedFlows_ src_ qtraces_
 	if [info exists tracedFlows_] {
 		foreach i $tracedFlows_ {
 			set file [[set src_($i)] set tcpTrace_]
@@ -251,7 +261,6 @@ TestSuite instproc finish {} {
 			}
 		}
 	}
-
 	$ns_ halt
 }
 
@@ -268,13 +277,27 @@ GeneralSender instproc init { ns id srcnode dstnode otherparams } {
 	if { [llength $otherparams] > 1 } {
 		set TCP [lindex $otherparams 1]
 	} else { 
-		set TCP "TCP/Reno"
+		puts stderr "undefined transport protocol type"
+		exit 1
 	}
 	
-	if [string match {TCP/Reno/XCP*} $TCP] {
-		set TCPSINK "XCPSink"
-	} else {
-		set TCPSINK "TCPSink"
+	switch -exact $TCP {
+		TCP/FullTcp/Newreno/XCP {
+			set TCPSINK "TCP/FullTcp/Newreno/XCP"
+		} 
+		TCP/FullTcp/Newreno {
+			set TCPSINK "TCP/FullTcp/Newreno"
+		}
+		TCP/Reno/XCP {
+			set TCPSINK "TCPSink/XCPSink"
+		}
+		TCP/Reno {
+			set TCPSINK "TCPSink"
+		}
+		default {
+			puts stderr "unsupported protocol $TCP"
+			exit 1
+		}
 	}
 	
 	if { [llength $otherparams] > 2 } {
@@ -287,6 +310,7 @@ GeneralSender instproc init { ns id srcnode dstnode otherparams } {
 	set	  tcp_ [new Agent/$TCP]
 	set	  tcp_rcvr_ [new Agent/$TCPSINK]
 	$tcp_ set  packetSize_ 1000	  
+	$tcp_ set  segsize_ 1000
 	$tcp_ set  class_  $id
 
 	switch -exact $traffic_type {
@@ -311,6 +335,8 @@ GeneralSender instproc init { ns id srcnode dstnode otherparams } {
 	$ns	  attach-agent $srcnode $tcp_
 	$ns	  attach-agent $dstnode $tcp_rcvr_
 	$ns	  connect $tcp_	 $tcp_rcvr_
+        $tcp_rcvr_ listen;
+
 	set	  startTime [lindex $otherparams 0]
 	$ns	  at $startTime "$traf_ start"
 
@@ -330,30 +356,37 @@ GeneralSender instproc trace-xcp parameters {
 	if { -1 < [lsearch $parameters ackno] } { $tcp_ tracevar ack_ }
 	if { -1 < [lsearch $parameters rtt]	 } { $tcp_ tracevar rtt_ }
 	if { -1 < [lsearch $parameters ssthresh]  } { $tcp_ tracevar ssthresh_ }
+	if { -1 < [lsearch $parameters throughput]  } { $tcp_ tracevar throughput_ }
 }
 
 
 Class Test/simple-xcp -superclass TestSuite
 
 Test/simple-xcp instproc init {} {
- 	$self instvar ns_ testName_ qType_ qSize_ BW_ delay_ nXCPs_ \
+	global halfxcp
+	if { $halfxcp == 0 } { exit 0 }
+	$self instvar ns_ testName_ qType_ qSize_ BW_ delay_ nXCPs_ \
  	    SimStopTime_ tracedFlows_
 
  	set testName_ simple-xcp
- 	set qType_	XCP
- 	set BW_	20; # in Mb/s
- 	set delay_	10; # in ms
- 	set	 qSize_	 [expr round([expr ($BW_ / 8.0) * 4 * $delay_ * 1.0])];#set buffer to the pipe size
- 	set SimStopTime_	  30
- 	set nXCPs_		  3
- 	set tracedFlows_	   "0 1 2"
+ 	set qType_		XCP
+ 	set BW_			20; # in Mb/s
+ 	set delay_		10; # in ms
+ 	set qSize_		[expr round([expr ($BW_ / 8.0) * 4 * $delay_])];#set buffer to the pipe size
+ 	set SimStopTime_	30
+ 	set nXCPs_		3
+ 	set tracedFlows_	"0 1 2"
  	$self next 
 }
 
+Test/simple-xcp instproc get-tcpType {} {
+	return 	"TCP/Reno/XCP"
+}
+
 Test/simple-xcp instproc run {} {
- 	global R1 n all_links Bottleneck quiet 
+ 	global R1 n all_links Bottleneck
  	$self instvar ns_ SimStopTime_ nXCPs_ qSize_ delay_ rtg_ \
- 	    tracedFlows_ src_ 
+ 	    tracedFlows_ src_ allchan_
 
  	set numsidelinks 3
  	set deltadelay 0.0
@@ -367,20 +400,21 @@ Test/simple-xcp instproc run {} {
  			$queue set-link-capacity [[$link set link_] set bandwidth_];  
  		}
  	}
-	
+
 	# added for troubleshooting purposes - Sally
 	if {$quiet == "false"} {
 		set allchan_ [open all.tr w]
 		$ns_ trace-all $allchan_
-        }
+	}
 
  	# Create sources:
  	set i 0
  	while { $i < $nXCPs_  } {
- 		set StartTime [expr [$rtg_ integer 1000] * 0.001 * (0.01 * $delay_) + $i  * 0.0] 
- 		set src_($i) [new GeneralSender $ns_ $i [set n($i)] $R1 "$StartTime TCP/Reno/XCP"]
+ 		set StartTime [expr $i * 10]
+ 		set src_($i) [new GeneralSender $ns_ $i [set n($i)] $R1 "$StartTime [$self get-tcpType]"]
 		set pktSize_  1000
  		[[set src_($i)] set tcp_]  set	 packetSize_ $pktSize_
+		[[set src_($i)] set tcp_]  set   segsize_ $pktSize_
  		[[set src_($i)] set tcp_]  set	 window_     [expr $qSize_]
  		incr i
  	}
@@ -395,21 +429,39 @@ Test/simple-xcp instproc run {} {
 	
  	# trace sources
  	foreach i $tracedFlows_ {
- 		[set src_($i)] trace-xcp "cwnd"
+ 		#[set src_($i)] trace-xcp "cwnd"
+		[set src_($i)] trace-xcp "throughput"
  	}
-        if {$quiet == "false"} {
-	       $ns_ at $SimStopTime_ "close $allchan_"
+	if {$quiet == "false"} {
+		$ns_ at $SimStopTime_ "close $allchan_"
 	}
+       
  	$ns_ at $SimStopTime_ "$self finish"
  	$ns_ run
 	
- 	$self post-process cwnd_ 0.0
-
+ 	#$self post-process cwnd_ 0.0
+ 	$self post-process throughput 0.0
 }
 
-Class Test/xcp-tcp -superclass TestSuite
+Class Test/simple-full-xcp -superclass Test/simple-xcp
+
+Test/simple-full-xcp instproc init {} {
+	global fullxcp
+	if { $fullxcp == 0 } { exit 0 }
+ 	$self set testName_ simple-full-xcp
+ 	$self next 
+}
+
+Test/simple-full-xcp instproc get-tcpType {} {
+	return 	"TCP/FullTcp/Newreno/XCP"
+}
+
+#disabled on 05/27/06
+ Class Test/xcp-tcp -superclass TestSuite
 
 Test/xcp-tcp instproc init {} {
+	global halfxcp
+	if { $halfxcp == 0 } { exit 0 }
 	$self instvar ns_ testName_ qType_ qSize_ BW_ delay_ nXCPs_ \
 	    SimStopTime_ tracedFlows_
 
@@ -421,9 +473,9 @@ Test/xcp-tcp instproc init {} {
 	
 	set testName_   xcp-tcp
 	set qType_	XCP
-	set BW_	20;         # in Mb/s
+	set BW_		0; # in Mb/s
 	set delay_	10; # in ms
-	set qSize_      [expr round([expr ($BW_ / 8.0) * 4 * $delay_ * 1.0])];#set buffer to the pipe size
+	set qSize_      [expr round([expr ($BW_ / 8.0) * 4 * $delay_])];#set buffer to the pipe size
 	set SimStopTime_	  30
 	set nXCPs_		  3
 	set tracedFlows_	  "0 1 2 3"
@@ -480,11 +532,14 @@ Test/xcp-tcp instproc run {} {
 
 }
 
-Class Test/parking-lot-topo -superclass TestSuite
+#disabled on 05/27/06
+ Class Test/parking-lot-topo -superclass TestSuite
 # This is a downsized version of Dina's original test. We use around 30 flows
 # compared to 300 flows in the original version.
 
 Test/parking-lot-topo instproc init {} {
+	global halfxcp
+	if { $halfxcp == 0 } { exit 0 }
    	$self instvar ns_ testName_ delay_ BW_list_ qType_list_ delay_list_ qSize_list_ nTCPsPerHop_list_ rTCPs_ nAllHopsTCPs_ qEffective_RTT_ numHops_ SimStopTime_ qSize_
 	
    	set testName_   parking-lot-topo
@@ -591,8 +646,8 @@ Test/parking-lot-topo instproc run {} {
    	$ns_ run
 	
    	set flows "0 1 2 3 4 5 6 7 8"
-	#use utilisation as validation output
-	$self process-parking-lot-data "u" "Utilisation" $flows 0.0
+	#use utilization as validation output
+	$self process-parking-lot-data "u" "Utilization" $flows 0.0
 	#$self process-parking-lot-data "q" "Average Queue" $flows 0.0
 
 
@@ -619,16 +674,3 @@ proc runtest {arg} {
 
 global argv arg0
 runtest $argv
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.364 2006/03/18 05:41:27 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.365 2006/05/30 20:30:29 pradkin Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -111,8 +111,6 @@ CMUPriQueue set debug_ false
 #notel's diffserv module
 Queue/dsRED set numQueues_ 4
 Queue/dsRED set ecn_ 0
-
-Queue/XCP set spread_bytes_ 0
 
 # XXX Temporary fix XXX
 # support only xcp flows; set to 1 when supporting both tcp and xcp flows; temporary fix for allocating link BW between xcp and tcp queues until dynamic queue weights come into effect. This fix should then go away
@@ -940,8 +938,7 @@ Agent/TCP/Fack set ss-div4_ false
 Agent/TCP/Fack set rampdown_ false
 
 Agent/TCP/Reno/XCP set timestamps_ true
-Agent/TCP/Reno/XCP set xcp_sparse_ false
-Agent/TCP/Reno/XCP set tcpTick_	0.01
+Agent/TCP/FullTcp/Newreno/XCP set timestamps_ true
 
 Agent/TCP set eln_ 0
 Agent/TCP set eln_rxmit_thresh_ 1
@@ -967,12 +964,6 @@ Agent/TCPSink set qs_enabled_ false
 Agent/TCPSink set RFC2581_immediate_ack_ true
 Agent/TCPSink set bytes_ 0
 Agent/TCPSink set ecn_syn_ false ;	# Added 2005/11/21 for SYN/ACK pkts.
-
-Agent/XCPSink set packetSize_ 40
-Agent/XCPSink set ts_echo_bugfix_ true
-Agent/XCPSink set bytes_ 0
-Agent/XCPSink set RFC2581_immediate_ack_ true
-Agent/XCPSink set ts_echo_rfc1323_ false
 
 Agent/TCPSink/DelAck set interval_ 100ms
 catch {

@@ -258,7 +258,7 @@ void TfrcAgent::nextpkt()
 	// If slow_increase_ is set, then during slow start, we increase rate
 	// slowly - by amount delta per packet 
 	// SALLY
-        double now = Scheduler::instance().clock();
+    //    double now = Scheduler::instance().clock(); //notused
 	// SALLY
 	if (slow_increase_ && round_id > 2 && (rate_change_ == SLOW_START) 
 		       && (oldrate_+SMALLFLOAT< rate_)) {
