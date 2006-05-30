@@ -71,7 +71,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/tcp-full-bay.cc,v 1.4 2001/07/19 17:57:02 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/tcp-full-bay.cc,v 1.5 2006/05/30 21:38:42 pradkin Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -321,9 +321,9 @@ int BayFullTcpAgent::outflags()
 }
 
 void BayFullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen,
-			      int reason)
+			      int reason, Packet *p)
 {
-	Packet* p = allocpkt();
+	if (!p) p = allocpkt();
 	hdr_tcp *tcph = hdr_tcp::access(p);
 	hdr_cmn *th = hdr_cmn::access(p);
 	tcph->seqno() = seqno;

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/tcp-full-bay.h,v 1.2 2001/07/19 17:57:02 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/tcp-full-bay.h,v 1.3 2006/05/30 21:38:42 pradkin Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -167,7 +167,7 @@ class BayFullTcpAgent : public TcpAgent {
     void listen();      // do passive open
     void usrclosed();   // user requested a close
     int need_send();    // need to send ACK/win-update now?
-    void sendpacket(int seqno, int ackno, int pflags, int datalen, int reason);
+    void sendpacket(int seqno, int ackno, int pflags, int datalen, int reason, Packet *p=0);
     void output(int seqno, int reason = 0); // output 1 packet
     void send_much(int force, int reason, int maxburst = 0);
     void newack(Packet* pkt);   // process an ACK
