@@ -529,7 +529,7 @@ tcl/lib/TAGS:	force
 	)
 
 depend: $(SRC)
-	$(MKDEP) -- $(CFLAGS) -- -Y $(SRC) >& /dev/null
+	$(MKDEP) -- $(CFLAGS) $(INCLUDES) -- -Y $(SRC) >& /dev/null
 
 srctar:
 	@cwd=`pwd` ; dir=`basename $$cwd` ; \
