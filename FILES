@@ -2560,6 +2560,8 @@ tcl/test/test-output-tcp/underutilized_100ms_control_Newreno.Z
 tcl/test/test-output-tcp/underutilized_100ms_control_Q.Z
 tcl/test/test-output-tcp/underutilized_100ms_control_Reno.Z
 tcl/test/test-output-tcp/underutilized_100ms_control_Sack.Z
+tcl/test/test-output-tcp-init-win/droppedSYN.Z
+tcl/test/test-output-tcp-init-win/droppedSYN1.Z
 tcl/test/test-output-tcp-init-win/newreno1.Z
 tcl/test/test-output-tcp-init-win/newreno2.Z
 tcl/test/test-output-tcp-init-win/newreno3.Z
