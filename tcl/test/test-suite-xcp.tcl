@@ -384,7 +384,7 @@ Test/simple-xcp instproc get-tcpType {} {
 }
 
 Test/simple-xcp instproc run {} {
- 	global R1 n all_links Bottleneck
+ 	global R1 n all_links Bottleneck quiet
  	$self instvar ns_ SimStopTime_ nXCPs_ qSize_ delay_ rtg_ \
  	    tracedFlows_ src_ allchan_
 
