@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.32 2006/03/15 17:15:12 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.33 2006/06/14 03:49:53 sallyfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -165,7 +165,6 @@ TestSuite instproc runall_test {tcp1 dumptime runtime} {
 	$ns_ at 0.0 "$ftp1 start"
 
 	$self tcpDump $tcp1 $dumptime
-	#$self traceQueues $node_(r1) [$self openTrace $runtime $testName_]
 	$ns_ at $runtime "$self cleanupAll $testName_"
 	$ns_ run
 }
@@ -181,7 +180,6 @@ TestSuite instproc second_test {tcp1 tcp2} {
 	$ns_ at 0.0 "$ftp2 start"
 
 	$self tcpDump $tcp1 5.0
-	#$self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
 	$ns_ at 10.0 "$self cleanupAll $testName_"
 	$ns_ run
 }
@@ -702,6 +700,36 @@ Test/slowLink2 instproc run {} {
 # time 3.9: ACK arrives for (first) pkt 2, pkt 3 retransmitted, pkt 4
 #           transmitted
 # time 5.2: ACK arrives for (first) pkt 3, pkt 5 transmitted.
+
+Class Test/droppedSYN -superclass TestSuite
+Test/droppedSYN instproc init {} {
+	$self instvar net_ test_ 
+	set net_	net6
+	set test_	droppedSYN
+   	Agent/TCP set bugfix_ss_ 0
+        Agent/TCP set windowInit_ 4
+        $self next pktTraceFile
+}
+
+Test/droppedSYN instproc run {} {
+        $self instvar ns_ node_ testName_ 
+	$self setTopo
+	Agent/TCP set windowInitOption_ 1
+	set tcp1 [$self make_tcp s1 k1 0 Reno]
+	$self drop_pkt [$ns_ link $node_(r1) $node_(k1)] 0 1
+	$self runall_test $tcp1 5.0 5.0 
+}
+
+Class Test/droppedSYN1 -superclass TestSuite
+Test/droppedSYN1 instproc init {} {
+	$self instvar net_ test_ 
+	set net_	net6
+	set test_	droppedSYN(bugfix_ss_)
+   	Agent/TCP set bugfix_ss_ 1
+        Agent/TCP set windowInit_ 4
+        Test/droppedSYN1 instproc run {} [Test/droppedSYN info instbody run ]
+        $self next pktTraceFile
+}
 
 TestSuite runTest
 
