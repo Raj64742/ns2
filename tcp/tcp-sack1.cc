@@ -274,7 +274,11 @@ void
 Sack1TcpAgent::dupack_action()
 {
 	int recovered = (highest_ack_ > recover_);
-	if (recovered || (!bug_fix_ && !ecn_)) {
+	if (recovered || (!bug_fix_ && !ecn_) || 
+		(bugfix_ss_ && highest_ack_ == 0)) {
+                // (highest_ack_ == 0) added to allow Fast Retransmit
+                //  when the first data packet is dropped.
+                //  Bug report from Mark Allman.
 		goto sack_action;
 	}
  

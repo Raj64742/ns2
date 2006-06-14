@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.171 2006/06/14 01:12:28 sallyfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.172 2006/06/14 18:05:31 sallyfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -458,6 +458,7 @@ TcpAgent::reset()
 	maxseq_ = -1;
 	last_ack_ = -1;
 	highest_ack_ = -1;
+	//highest_ack_ = 1;
 	ssthresh_ = int(wnd_);
 	if (max_ssthresh_ > 0 && max_ssthresh_ < ssthresh_) 
 		ssthresh_ = max_ssthresh_;
@@ -1573,7 +1574,11 @@ void
 TcpAgent::dupack_action()
 {
 	int recovered = (highest_ack_ > recover_);
-	if (recovered || (!bug_fix_ && !ecn_)) {
+	if (recovered || (!bug_fix_ && !ecn_) || 
+		(bugfix_ss_ && highest_ack_ == 0)) {
+		// (highest_ack_ == 0) added to allow Fast Retransmit
+		//  when the first data packet is dropped.
+		//  Bug report from Mark Allman.
 		goto tahoe_action;
 	}
 

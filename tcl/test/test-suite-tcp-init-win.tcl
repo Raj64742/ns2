@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.33 2006/06/14 03:49:53 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.34 2006/06/14 18:05:30 sallyfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -257,11 +257,11 @@ Test/tahoe3 instproc init {} {
 }
 
 ## Drop the n-th packet for flow on link.
-TestSuite instproc drop_pkt { link flow n } {
+TestSuite instproc drop_pkt { link flow num } {
 	set em [new ErrorModule Fid]
 	set errmodel [new ErrorModel/Periodic]
 	$errmodel unit pkt
-	$errmodel set offset_ n
+	$errmodel set offset_ $num
 	$errmodel set period_ 1000.0
 	$link errormodule $em
 	$em insert $errmodel
@@ -349,18 +349,6 @@ Test/reno3 instproc init {} {
         $self next pktTraceFile
 }
 
-## Drop the n-th packet for flow on link.
-TestSuite instproc drop_pkt { link flow n } {
-	set em [new ErrorModule Fid]
-	set errmodel [new ErrorModel/Periodic]
-	$errmodel unit pkt
-	$errmodel set offset_ n
-	$errmodel set period_ 1000.0
-	$link errormodule $em
-	$em insert $errmodel
-	$em bind $errmodel $flow
-}
-
 Test/reno3 instproc run {} {
         $self instvar ns_ node_ testName_ 
 	$self setTopo
@@ -441,18 +429,6 @@ Test/newreno3 instproc init {} {
 	set net_	net6
 	set test_	newreno3(dropped_syn)
         $self next pktTraceFile
-}
-
-## Drop the n-th packet for flow on link.
-TestSuite instproc drop_pkt { link flow n } {
-	set em [new ErrorModule Fid]
-	set errmodel [new ErrorModel/Periodic]
-	$errmodel unit pkt
-	$errmodel set offset_ n
-	$errmodel set period_ 1000.0
-	$link errormodule $em
-	$em insert $errmodel
-	$em bind $errmodel $flow
 }
 
 Test/newreno3 instproc run {} {
@@ -536,18 +512,6 @@ Test/sack3 instproc init {} {
 	set net_	net6
 	set test_	sack3(dropped_syn)
         $self next pktTraceFile
-}
-
-## Drop the n-th packet for flow on link.
-TestSuite instproc drop_pkt { link flow n } {
-	set em [new ErrorModule Fid]
-	set errmodel [new ErrorModel/Periodic]
-	$errmodel unit pkt
-	$errmodel set offset_ n
-	$errmodel set period_ 1000.0
-	$link errormodule $em
-	$em insert $errmodel
-	$em bind $errmodel $flow
 }
 
 Test/sack3 instproc run {} {
@@ -715,7 +679,7 @@ Test/droppedSYN instproc run {} {
         $self instvar ns_ node_ testName_ 
 	$self setTopo
 	Agent/TCP set windowInitOption_ 1
-	set tcp1 [$self make_tcp s1 k1 0 Reno]
+	set tcp1 [$self make_tcp s1 k1 0 Newreno]
 	$self drop_pkt [$ns_ link $node_(r1) $node_(k1)] 0 1
 	$self runall_test $tcp1 5.0 5.0 
 }
@@ -728,6 +692,66 @@ Test/droppedSYN1 instproc init {} {
    	Agent/TCP set bugfix_ss_ 1
         Agent/TCP set windowInit_ 4
         Test/droppedSYN1 instproc run {} [Test/droppedSYN info instbody run ]
+        $self next pktTraceFile
+}
+
+Class Test/droppedPKT -superclass TestSuite
+Test/droppedPKT instproc init {} {
+	$self instvar net_ test_ 
+	set net_	net6
+	set test_	droppedPKT(Newreno)
+   	Agent/TCP set bugfix_ss_ 0
+        Agent/TCP set windowInit_ 4
+        $self next pktTraceFile
+}
+
+Test/droppedPKT instproc run {} {
+        $self instvar ns_ node_ testName_ 
+	$self setTopo
+	Agent/TCP set windowInitOption_ 1
+	set tcp1 [$self make_tcp s1 k1 0 Newreno]
+	$self drop_pkt [$ns_ link $node_(r1) $node_(k1)] 0 2
+	$self runall_test $tcp1 5.0 5.0 
+}
+
+Class Test/droppedPKT1 -superclass TestSuite
+Test/droppedPKT1 instproc init {} {
+	$self instvar net_ test_ 
+	set net_	net6
+	set test_	droppedPKT(NewReno,bugfix_ss_)
+   	Agent/TCP set bugfix_ss_ 1
+        Agent/TCP set windowInit_ 4
+        Test/droppedPKT1 instproc run {} [Test/droppedPKT info instbody run ]
+        $self next pktTraceFile
+}
+
+Class Test/droppedPKT2 -superclass TestSuite
+Test/droppedPKT2 instproc init {} {
+	$self instvar net_ test_ 
+	set net_	net6
+	set test_	droppedPKT2(Sack)
+   	Agent/TCP set bugfix_ss_ 0
+        Agent/TCP set windowInit_ 4
+        $self next pktTraceFile
+}
+
+Test/droppedPKT2 instproc run {} {
+        $self instvar ns_ node_ testName_ 
+	$self setTopo
+	Agent/TCP set windowInitOption_ 1
+	set tcp1 [$self make_tcp s1 k1 0 Sack]
+	$self drop_pkt [$ns_ link $node_(r1) $node_(k1)] 0 2
+	$self runall_test $tcp1 5.0 5.0 
+}
+
+Class Test/droppedPKT3 -superclass TestSuite
+Test/droppedPKT3 instproc init {} {
+	$self instvar net_ test_ 
+	set net_	net6
+	set test_	droppedPKT3(Sack,bugfix_ss_)
+   	Agent/TCP set bugfix_ss_ 1
+        Agent/TCP set windowInit_ 4
+        Test/droppedPKT3 instproc run {} [Test/droppedPKT2 info instbody run ]
         $self next pktTraceFile
 }
 

@@ -474,6 +474,7 @@ Test/rto-nokarn instproc init {} {
     $self instvar net_ test_ 
     set net_	net7
     set test_   rto-nokarn
+    Agent/TCP set bugfix_ss_ 0
     $self next
 }
 

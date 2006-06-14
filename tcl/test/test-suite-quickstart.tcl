@@ -422,6 +422,7 @@ Test/changing_rtt instproc init {} {
     set sndr TCP/Sack1
     set rcvr TCPSink/Sack1
     set qs ON
+    Agent/TCP set bugfix_ss_ 0
     $self next pktTraceFile
 }
 Test/changing_rtt instproc run {} {

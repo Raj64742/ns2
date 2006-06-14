@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.56 2004/10/26 22:59:42 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.57 2006/06/14 18:05:30 sallyfloyd Exp $ (LBL)";
 #endif
 
 //
@@ -116,7 +116,11 @@ NewRenoTcpAgent::dupack_action()
         int recovered = (highest_ack_ > recover_);
 	int recovered1 = (highest_ack_ == recover_);
         int allowFastRetransmit = allow_fast_retransmit(last_cwnd_action_);
-        if (recovered || (!bug_fix_ && !ecn_) || allowFastRetransmit) {
+        if (recovered || (!bug_fix_ && !ecn_) || allowFastRetransmit 
+    	      || (bugfix_ss_ && highest_ack_ == 0)) {
+                // (highest_ack_ == 0) added to allow Fast Retransmit
+                //  when the first data packet is dropped.
+                //  Bug report from Mark Allman.
                 goto reno_action;
         }
 	if (bug_fix_ && less_careful_ && recovered1) {
