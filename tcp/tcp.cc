@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.170 2006/05/30 20:30:30 pradkin Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.171 2006/06/14 01:12:28 sallyfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -127,6 +127,7 @@ TcpAgent::delay_bind_init_all()
         delay_bind_init_one("ecn_");
         delay_bind_init_one("SetCWRonRetransmit_");
         delay_bind_init_one("old_ecn_");
+        delay_bind_init_one("bugfix_ss_");
         delay_bind_init_one("eln_");
         delay_bind_init_one("eln_rxmit_thresh_");
         delay_bind_init_one("packetSize_");
@@ -236,6 +237,7 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
         if (delay_bind_bool(varName, localName, "ecn_", &ecn_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "SetCWRonRetransmit_", &SetCWRonRetransmit_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "old_ecn_", &old_ecn_ , tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "bugfix_ss_", &bugfix_ss_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "eln_", &eln_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "eln_rxmit_thresh_", &eln_rxmit_thresh_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "packetSize_", &size_ , tracer)) return TCL_OK;
@@ -1858,6 +1860,14 @@ void TcpAgent::timeout(int tno)
 				 * initial windows. 
 				 */
 				wnd_init_option_ = 1;
+                        else if ((highest_ack_ == -1) &&
+                                (wnd_init_option_ == 1) && (wnd_init_ > 1)
+				&& bugfix_ss_)
+                                /*
+                                 * First packet dropped, so don't use larger
+                                 * initial windows.  Bugfix from Mark Allman.
+                                 */
+                                wnd_init_ = 1;
 			if (highest_ack_ == maxseq_ && restart_bugfix_)
 			       /* 
 				* if there is no outstanding data, don't cut 

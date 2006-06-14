@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.365 2006/05/30 20:30:29 pradkin Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.366 2006/06/14 01:12:28 sallyfloyd Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -838,6 +838,7 @@ Agent/TCP set l_parameter_ 1.0 ;  	# for binomial congestion control
 Agent/TCP set overhead_ 0
 Agent/TCP set ecn_ 0
 Agent/TCP set old_ecn_ 0
+Agent/TCP set bugfix_ss_ 1 ;		# Variable added on 2006/06/13
 Agent/TCP set packetSize_ 1000
 Agent/TCP set tcpip_base_hdr_size_ 40
 Agent/TCP set ts_option_size_ 10; 	# in bytes

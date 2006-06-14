@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.125 2006/05/30 20:30:30 pradkin Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.126 2006/06/14 01:12:28 sallyfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -342,6 +342,8 @@ protected:
 				 * old ECN implementation, which never
 				 * reduced the congestion window below
 				 * one packet. */ 
+	int bugfix_ss_;		// 1 to use window of one when SYN
+				//  packet is dropped
 	/* End of parameters for backwards compatility. */
 
 	/* Parameters for alternate congestion control mechanisms. */

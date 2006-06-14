@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.26 2006/01/24 23:00:06 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.27 2006/06/14 01:12:28 sallyfloyd Exp $
 #
 # To run all tests: test-all-adaptive-red
 
@@ -64,6 +64,8 @@ Agent/TCP set singledup_ 0
 # The default is being changed to 1
 Agent/TCP set useHeaders_ false
 # The default is being changed to useHeaders_ true.
+Agent/TCP set bugfix_ss_ 0
+# A new variable on 6/13/06.
 
 set flowfile fairflow.tr; # file where flow data is written
 set flowgraphfile fairflow.xgr; # file given to graph tool 
