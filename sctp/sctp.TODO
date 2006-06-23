@@ -1,9 +1,13 @@
 sctp.TODO - TODO file for NS-2 SCTP module.
-   Armando L. Caro Jr. <acaro@@cis,udel,edu>
+   Armando L. Caro Jr.  <acaro@@cis,udel,edu>
+   Janardhan R. Iyengar <iyengar@@cis,udel,edu>
 
-@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.TODO,v 1.2 2005/10/07 05:58:29 tomh Exp $
+@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.TODO,v 1.3 2006/06/23 14:28:40 tom_henderson Exp $
 
 ------------------------------------------------------------------------------
+
+- consolidate CMT variables. Introduce a single CMT switch, and a switch for the
+  DAC algorithm.
 
 - change trace to use 'C' for COOKIE_ECHO and COOKIE_ACK
 

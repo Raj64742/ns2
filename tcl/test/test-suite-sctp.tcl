@@ -84,6 +84,10 @@
 #
 #  ns test-suite-sctp.tcl sctp-timestamp-multihome2-2Rtx3
 #  ns test-suite-sctp.tcl sctp-timestamp-multihome2-2Timeout
+#  
+#  ns test-suite-sctp.tcl sctp-cmt-2paths-64K
+#  ns test-suite-sctp.tcl sctp-cmt-2paths-64K-withloss
+#  ns test-suite-sctp.tcl sctp-cmt-3paths-64K
 
 Class TestSuite
 
@@ -306,6 +310,19 @@ Class Test/sctp-timestamp-multihome2-2Rtx3 -superclass TestSuite
 # path. The retransmit gets lost and times out, causing a retransmission
 # on the original path (primary).
 Class Test/sctp-timestamp-multihome2-2Timeout -superclass TestSuite
+
+# Demonstrates Concurrent Multipath Transfer (CMT) using multihoming. 
+# Two endpoints with 2 interfaces with direct connections between each pair.
+Class Test/sctp-cmt-2paths-64K -superclass TestSuite
+
+# Demonstrates Concurrent Multipath Transfer (CMT) using multihoming. 
+# Two endpoints with 2 interfaces with direct connections between each pair.
+# Loss introduced on Path0, and delay of Path0 different from Path1.
+Class Test/sctp-cmt-2paths-64K-withloss -superclass TestSuite
+
+# Demonstrates Concurrent Multipath Transfer (CMT) using multihoming. 
+# Two endpoints with 3 interfaces with direct connections between each pair.
+Class Test/sctp-cmt-3paths-64K -superclass TestSuite
 
 
 proc usage {} {
@@ -3058,6 +3075,254 @@ Test/sctp-timestamp-multihome2-2Timeout instproc run {} {
     $ns run
 }
 
+Test/sctp-cmt-2paths-64K instproc init {} {
+    $self instvar ns testName ftp0
+    global quiet
+    set testName cmt-2paths-64K
+    $self next
+
+    set host0_core [$ns node]
+    set host0_if0 [$ns node]
+    set host0_if1 [$ns node]
+    set host0_if2 [$ns node]
+    $host0_core color Red
+    $host0_if0 color Red
+    $host0_if1 color Red
+    $host0_if2 color Red
+    $ns multihome-add-interface $host0_core $host0_if0
+    $ns multihome-add-interface $host0_core $host0_if1
+
+    set host1_core [$ns node]
+    set host1_if0 [$ns node]
+    set host1_if1 [$ns node]
+    $host1_core color Blue
+    $host1_if0 color Blue
+    $host1_if1 color Blue
+    $ns multihome-add-interface $host1_core $host1_if0
+    $ns multihome-add-interface $host1_core $host1_if1
+    
+    $ns duplex-link $host0_if0 $host1_if0 10Mb 45ms DropTail
+    [[$ns link $host0_if0 $host1_if0] queue] set limit_ 50
+    $ns duplex-link $host0_if1 $host1_if1 10Mb 45ms DropTail
+    [[$ns link $host0_if1 $host1_if1] queue] set limit_ 50
+    
+    set cmt_snd [new Agent/SCTP/CMT] 
+    $ns multihome-attach-agent $host0_core $cmt_snd
+    $cmt_snd set initialSsthresh_ 16000
+    $cmt_snd set mtu_ 1500
+    $cmt_snd set dataChunkSize_ 1468
+    $cmt_snd set numOutStreams_ 1
+    $cmt_snd set useCmtReordering_ 1
+    $cmt_snd set useCmtCwnd_ 1
+    $cmt_snd set useCmtDelAck_ 1
+    $cmt_snd set eCmtRtxPolicy_ 2 ; #RTX-SSTHRESH
+
+    if {$quiet == 0} {
+	$cmt_snd set debugMask_ -1 
+	$cmt_snd set debugFileIndex_ 0
+
+	set trace_ch [open trace.sctp w]
+	$cmt_snd set trace_all_ 1
+	$cmt_snd trace cwnd_
+	$cmt_snd trace rto_
+	$cmt_snd trace errorCount_
+	$cmt_snd attach $trace_ch
+    }
+
+    set cmt_rcv [new Agent/SCTP/CMT]
+    $ns multihome-attach-agent $host1_core $cmt_rcv
+    # MTU of 1500 = 1452 data bytes
+    $cmt_rcv set mtu_ 1500
+    $cmt_rcv set initialRwnd_ 65536
+    $cmt_rcv set useDelayedSacks_ 1
+    $cmt_rcv set useCmtDelAck_ 1
+
+    if {$quiet == 0} {
+	$cmt_rcv set debugMask_ -1 
+	$cmt_rcv set debugFileIndex_ 1
+    }
+
+    $ns connect $cmt_snd $cmt_rcv
+    set ftp0 [new Application/FTP]
+    $ftp0 attach-agent $cmt_snd
+    $cmt_snd set-primary-destination $host1_if0
+}
+
+Test/sctp-cmt-2paths-64K instproc run {} {
+    $self instvar ns ftp0
+    $ns at 0.0 "$ftp0 send 1452000"
+    $ns at 20.0 "$self finish"
+    $ns run
+}
+
+Test/sctp-cmt-2paths-64K-withloss instproc init {} {
+    $self instvar ns testName ftp0
+    global quiet
+    set testName cmt-2paths-64K-withloss
+    $self next
+
+    set host0_core [$ns node]
+    set host0_if0 [$ns node]
+    set host0_if1 [$ns node]
+    $host0_core color Red
+    $host0_if0 color Red
+    $host0_if1 color Red
+    $ns multihome-add-interface $host0_core $host0_if0
+    $ns multihome-add-interface $host0_core $host0_if1
+
+    set host1_core [$ns node]
+    set host1_if0 [$ns node]
+    set host1_if1 [$ns node]
+    $host1_core color Blue
+    $host1_if0 color Blue
+    $host1_if1 color Blue
+    $ns multihome-add-interface $host1_core $host1_if0
+    $ns multihome-add-interface $host1_core $host1_if1
+    
+    $ns duplex-link $host0_if0 $host1_if0 10Mb 30ms DropTail
+    [[$ns link $host0_if0 $host1_if0] queue] set limit_ 50
+    $ns duplex-link $host0_if1 $host1_if1 10Mb 45ms DropTail
+    [[$ns link $host0_if1 $host1_if1] queue] set limit_ 50
+    
+    set err [new ErrorModel/List]
+    $err droplist {15 16 17}
+    $ns lossmodel $err $host0_if0 $host1_if0
+
+    set cmt_snd [new Agent/SCTP/CMT] 
+    $ns multihome-attach-agent $host0_core $cmt_snd
+    $cmt_snd set initialSsthresh_ 16000
+    $cmt_snd set mtu_ 1500
+    $cmt_snd set dataChunkSize_ 1468
+    $cmt_snd set numOutStreams_ 1
+    $cmt_snd set useCmtReordering_ 1
+    $cmt_snd set useCmtCwnd_ 1
+    $cmt_snd set useCmtDelAck_ 1
+    $cmt_snd set eCmtRtxPolicy_ 2 ; #RTX-SSTHRESH
+
+    if {$quiet == 0} {
+	$cmt_snd set debugMask_ -1 
+	$cmt_snd set debugFileIndex_ 0
+
+	set trace_ch [open trace.sctp w]
+	$cmt_snd set trace_all_ 1
+	$cmt_snd trace cwnd_
+	$cmt_snd trace rto_
+	$cmt_snd trace errorCount_
+	$cmt_snd attach $trace_ch
+    }
+
+    set cmt_rcv [new Agent/SCTP/CMT]
+    $ns multihome-attach-agent $host1_core $cmt_rcv
+    # MTU of 1500 = 1452 data bytes
+    $cmt_rcv set mtu_ 1500
+    $cmt_rcv set initialRwnd_ 65536
+    $cmt_rcv set useDelayedSacks_ 1
+    $cmt_rcv set useCmtDelAck_ 1
+    
+    if {$quiet == 0} {
+	$cmt_rcv set debugMask_ -1 
+	$cmt_rcv set debugFileIndex_ 1
+    }
+
+    $ns connect $cmt_snd $cmt_rcv
+    set ftp0 [new Application/FTP]
+    $ftp0 attach-agent $cmt_snd
+    $cmt_snd set-primary-destination $host1_if0
+}
+
+Test/sctp-cmt-2paths-64K-withloss instproc run {} {
+    $self instvar ns ftp0
+    $ns at 0.0 "$ftp0 send 1452000"
+    $ns at 20.0 "$self finish"
+    $ns run
+}
+
+Test/sctp-cmt-3paths-64K instproc init {} {
+    $self instvar ns testName ftp0
+    global quiet
+    set testName cmt-3paths-64K
+    $self next
+
+    set host0_core [$ns node]
+    set host0_if0 [$ns node]
+    set host0_if1 [$ns node]
+    set host0_if2 [$ns node]
+    $host0_core color Red
+    $host0_if0 color Red
+    $host0_if1 color Red
+    $host0_if2 color Red
+    $ns multihome-add-interface $host0_core $host0_if0
+    $ns multihome-add-interface $host0_core $host0_if1
+    $ns multihome-add-interface $host0_core $host0_if2
+
+    set host1_core [$ns node]
+    set host1_if0 [$ns node]
+    set host1_if1 [$ns node]
+    set host1_if2 [$ns node]
+    $host1_core color Blue
+    $host1_if0 color Blue
+    $host1_if1 color Blue
+    $host1_if2 color Blue
+    $ns multihome-add-interface $host1_core $host1_if0
+    $ns multihome-add-interface $host1_core $host1_if1
+    $ns multihome-add-interface $host1_core $host1_if2
+    
+    $ns duplex-link $host0_if0 $host1_if0 10Mb 45ms DropTail
+    [[$ns link $host0_if0 $host1_if0] queue] set limit_ 50
+    $ns duplex-link $host0_if1 $host1_if1 10Mb 45ms DropTail
+    [[$ns link $host0_if1 $host1_if1] queue] set limit_ 50
+    $ns duplex-link $host0_if2 $host1_if2 10Mb 45ms DropTail
+    [[$ns link $host0_if2 $host1_if2] queue] set limit_ 50
+    
+    set cmt_snd [new Agent/SCTP/CMT] 
+    $ns multihome-attach-agent $host0_core $cmt_snd
+    $cmt_snd set initialSsthresh_ 16000
+    $cmt_snd set mtu_ 1500
+    $cmt_snd set dataChunkSize_ 1468
+    $cmt_snd set numOutStreams_ 1
+    $cmt_snd set useCmtReordering_ 1
+    $cmt_snd set useCmtCwnd_ 1
+    $cmt_snd set useCmtDelAck_ 1
+    $cmt_snd set eCmtRtxPolicy_ 2 ; #RTX-SSTHRESH
+
+    if {$quiet == 0} {
+	$cmt_snd set debugMask_ -1 
+	$cmt_snd set debugFileIndex_ 0
+
+	set trace_ch [open trace.sctp w]
+	$cmt_snd set trace_all_ 1
+	$cmt_snd trace cwnd_
+	$cmt_snd trace rto_
+	$cmt_snd trace errorCount_
+	$cmt_snd attach $trace_ch
+    }
+
+    set cmt_rcv [new Agent/SCTP/CMT]
+    $ns multihome-attach-agent $host1_core $cmt_rcv
+    # MTU of 1500 = 1452 data bytes
+    $cmt_rcv set mtu_ 1500
+    $cmt_rcv set initialRwnd_ 65536
+    $cmt_rcv set useDelayedSacks_ 1
+    $cmt_rcv set useCmtDelAck_ 1
+    
+    if {$quiet == 0} {
+	$cmt_rcv set debugMask_ -1 
+	$cmt_rcv set debugFileIndex_ 1
+    }
+
+    $ns connect $cmt_snd $cmt_rcv
+    set ftp0 [new Application/FTP]
+    $ftp0 attach-agent $cmt_snd
+    $cmt_snd set-primary-destination $host1_if0
+}
+
+Test/sctp-cmt-3paths-64K instproc run {} {
+    $self instvar ns ftp0
+    $ns at 0.0 "$ftp0 send 1452000"
+    $ns at 20.0 "$self finish"
+    $ns run
+}
+
 proc runtest {arg} {
     global quiet
     set quiet 0
@@ -3114,7 +3379,10 @@ proc runtest {arg} {
 	sctp-multipleFastRtx-multihome2-2Timeout -
 	sctp-mfrHbAfterRto-Rta2-2FRsTimeout -
 	sctp-timestamp-multihome2-2Rtx3 -
-	sctp-timestamp-multihome2-2Timeout {
+	sctp-timestamp-multihome2-2Timeout -
+	sctp-cmt-2paths-64K -
+	sctp-cmt-2paths-64K-withloss -
+	sctp-cmt-3paths-64K {
 	    set t [new Test/$test]
 	}
 	default {

@@ -33,7 +33,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.h,v 1.6 2006/02/21 15:20:20 mahrenho Exp $ (UD/PEL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.h,v 1.7 2006/06/23 14:28:40 tom_henderson Exp $ (UD/PEL)
  */
 
 #ifndef ns_sctp_h
@@ -75,6 +75,25 @@ typedef enum Boolean_E
 {
   FALSE,
   TRUE
+};
+
+/* Each time the sender retransmits marked chunks, how many can be sent? Well,
+ * immediately after a timeout or when the 4 missing report is received, only
+ * one packet of retransmits may be sent. Later, the number of packets is gated
+ * by cwnd
+ */
+typedef enum SctpRtxLimit_E
+{
+  RTX_LIMIT_ONE_PACKET,
+  RTX_LIMIT_CWND,
+  RTX_LIMIT_ZERO
+};
+
+typedef enum MarkedForRtx_E
+{
+  NO_RTX,
+  FAST_RTX,
+  TIMEOUT_RTX
 };
 
 typedef enum RtxToAlt_E
@@ -427,6 +446,7 @@ typedef struct SctpInterface_S
 typedef enum SctpDestStatus_E
 {
   SCTP_DEST_STATUS_INACTIVE,
+  SCTP_DEST_STATUS_POSSIBLY_FAILED,
   SCTP_DEST_STATUS_ACTIVE
 };
 
@@ -455,6 +475,21 @@ typedef struct List_S
   u_int    uiLength;
   Node_S  *spHead;
   Node_S  *spTail;
+};
+
+/* PN 01/20/2006
+ * In CMT-PF, a dest in PF state, could have sent data/HBs and
+ * be in one of the following sub-states.
+ * These sub-states are used for correct processing after receipt
+ * of hb ack/ data ack
+ */
+typedef enum CmtPFSubState_E
+{
+        NOT_PF,
+        NOTHING_SENT,
+        SENT_HB_ONLY,
+        SENT_DATA_ONLY,
+        SENT_HB_AND_DATA
 };
 
 typedef struct SctpSendBufferNode_S;
@@ -492,8 +527,13 @@ typedef struct SctpDest_S
   HeartbeatGenTimer      *opHeartbeatGenTimer;     // to trigger a heartbeat
   HeartbeatTimeoutTimer  *opHeartbeatTimeoutTimer; // heartbeat timeout timer
 
+  float fLossrate;          // Set from tcl, in SetLossrate(). Allows an
+			    // Oracle to tell sender a given destination's
+			    // lossrate. Used in CMT's RTX_LOSSRATE rtx
+			    // policy.
+
   /* these are temporary variables needed per destination and they should
-   * be cleared for each usage.  
+   * be cleared for each usage.
    */
   Boolean_E              eCcApplied;          // cong control already applied?
   SctpSendBufferNode_S  *spFirstOutstanding;  // first outstanding on this dest
@@ -507,30 +547,43 @@ typedef struct SctpDest_S
   RouteCacheFlushTimer  *opRouteCacheFlushTimer;
   RouteCalcDelayTimer   *opRouteCalcDelayTimer;  
   List_S                 sBufferedPackets;
+
+  /* CMT variables follow. These are used only when CMT is used. 
+   */
+  Boolean_E  eSawNewAck;                // was this destination acked 
+                                        // in the current SACK?
+  u_int uiHighestTsnInSackForDest;      // highest TSN newly acked sent to this 
+                                        // destination in SACK
+  u_int      uiExpectedPseudoCum;       // expected pseudo cumack for this dest
+  Boolean_E  eNewPseudoCum;             // is there a new pseudo cum for dest?
+  Boolean_E  eFindExpectedPseudoCum;    // find a new expected pseudo cumack?
+  u_int      uiExpectedRtxPseudoCum;    // expected rtx pseudo cum for dest
+  Boolean_E  eFindExpectedRtxPseudoCum; // find a new expected rtx pseudo cum?
+  u_int uiLowestTsnInSackForDest;       // lowest TSN newly acked sent to this 
+                                        // destination in SACK
+
+  u_int iNumPacketsSent;    // for the one packet limit during rtx. With 
+                            // independent bottlenecks, apply limit per path.
+  u_int uiBurstLength;      // tracks sending burst per SACK per dest
+  Boolean_E eMarkedChunksPending;  // added global var per dest
+  u_int uiRecover;                 // To enable newreno recovery per dest
+  SctpRtxLimit_E eRtxLimit; // Which destination should use RTX_ONE_PACKET_LIMIT
+                            // when calling rtxmarkedchunks()
+
+  u_int uiNumTimeouts;      // track number of timeouts for this dest
+
+  CmtPFSubState_E eCmtPFSubState; // Possible CMT-PF sub-state, for correct 
+                                  // processing on receipt of hb ack/data ack.
+
+  /* End of CMT variables
+   */
+  
 };
 
 typedef struct SctpRecvTsnBlock_S
 {
   u_int  uiStartTsn;
   u_int  uiEndTsn;
-};
-
-/* Each time the sender retransmits marked chunks, how many can be sent? Well,
- * immediately after a timeout or when the 4 missing report is received, only
- * one packet of retransmits may be sent. Later, the number of packets is gated
- * by cwnd
- */
-typedef enum SctpRtxLimit_E
-{
-  RTX_LIMIT_ONE_PACKET,
-  RTX_LIMIT_CWND
-};
-
-typedef enum MarkedForRtx_E
-{
-  NO_RTX,
-  FAST_RTX,
-  TIMEOUT_RTX
 };
 
 typedef struct SctpSendBufferNode_S
@@ -550,6 +603,14 @@ typedef struct SctpSendBufferNode_S
   /* variables used for extensions
    */
   u_int                uiFastRtxRecover;   // sctp-multipleFastRtxs.cc uses this
+
+  Boolean_E eMeasuringRtt;  // Maintain which TSN is being used for RTT
+			    // measurement, so that all TSNs can have
+			    // their timestamp. This timestamp can be used
+			    // for different things, and is used by CMT
+			    // for the RTT heuristic to determine whether
+			    // a TSN should be rtxd or not.  If now <=
+			    // timestamp + srtt, then no rtx.
 };
 
 typedef struct SctpStreamBufferNode_S
@@ -600,7 +661,7 @@ public:
   void          T1CookieTimerExpiration();
   virtual void  Timeout(SctpChunkType_E, SctpDest_S *);
   virtual void  CwndDegradeTimerExpiration(SctpDest_S *);
-  void          HeartbeatGenTimerExpiration(double, SctpDest_S *);
+  virtual void  HeartbeatGenTimerExpiration(double, SctpDest_S *);
   void          SackGenTimerExpiration();
   void          RouteCacheFlushTimerExpiration(SctpDest_S *);
   void          RouteCalcDelayTimerExpiration(SctpDest_S *);
@@ -635,10 +696,13 @@ protected:
   void       AddDestination(int, int);
   int        SetPrimary(int);
   int        ForceSource(int);
+  int        SetLossrate(int, float); // Oracle tells sender lossrate to
+				      // dest. Called by handling of tcl
+				      // set-destination-lossrate command
 
   /* chunk generation functions
    */
-  int          GenChunk(SctpChunkType_E, u_char *);
+  virtual int  GenChunk(SctpChunkType_E, u_char *);
   u_int        GetNextDataChunkSize();
   int          GenOneDataChunk(u_char *);
   virtual int  GenMultipleDataChunks(u_char *, int);
@@ -653,8 +717,8 @@ protected:
   virtual void  SendBufferDequeueUpTo(u_int);
   virtual void  AdjustCwnd(SctpDest_S *);
   void          AdvancePeerAckPoint();
-  u_int         GetHighestOutstandingTsn();
-  void          FastRtx();
+  virtual u_int GetHighestOutstandingTsn();
+  virtual void  FastRtx();
   void          TimeoutRtx(SctpDest_S *);
   void          MarkChunkForRtx(SctpSendBufferNode_S *, MarkedForRtx_E);
   Boolean_E     AnyMarkedChunks();
@@ -689,11 +753,11 @@ protected:
   void               ProcessCookieAckChunk(SctpCookieAckChunk_S *);
   void               ProcessDataChunk(SctpDataChunkHdr_S *);
   virtual Boolean_E  ProcessGapAckBlocks(u_char *, Boolean_E);
-  void               ProcessSackChunk(u_char *);
+  virtual void       ProcessSackChunk(u_char *);
   void               ProcessForwardTsnChunk(SctpForwardTsnChunk_S *);  
   void               ProcessHeartbeatAckChunk(SctpHeartbeatChunk_S *);  
   virtual void       ProcessOptionChunk(u_char *);
-  int                ProcessChunk(u_char *, u_char **);
+  virtual int        ProcessChunk(u_char *, u_char **);
   void               NextChunk(u_char **, int *);
 
   /* misc functions
@@ -702,7 +766,7 @@ protected:
 
   /* debugging functions
    */
-  void DumpSendBuffer();
+  void SctpAgent::DumpSendBuffer();
 
   /* sctp association state variable
    */
@@ -796,6 +860,7 @@ protected:
   double           dRouteCalcDelay; 
   Boolean_E        eTraceAll;     // trace all variables on one line?
   TracedInt        tiCwnd;        // trace cwnd for all destinations
+  TracedInt        tiRwnd;        // trace rwnd
   TracedDouble     tdRto;         // trace rto for all destinations
   TracedInt        tiErrorCount;  // trace error count for all destinations
   TracedInt        tiFrCount;     // trace each time a fast rtx gets triggered

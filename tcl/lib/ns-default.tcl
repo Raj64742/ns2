@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.366 2006/06/14 01:12:28 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.367 2006/06/23 14:29:22 tom_henderson Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -801,6 +801,7 @@ Agent/SCTP set trace_all_ 0             ;# trace all vars ?
 ## These variables are set because they have to be bound to be traceable.
 ## This default does not matter to us at all.
 Agent/SCTP set cwnd_ 0                 ; 
+Agent/SCTP set rwnd_ 0                 ; 
 Agent/SCTP set rto_ 0                  ;
 Agent/SCTP set errorCount_ 0           ;
 Agent/SCTP set frCount_ 0              ;                                      
@@ -810,6 +811,14 @@ Agent/SCTP set rcdCount_ 0             ;# total count of route calc delays
 Agent/SCTP/MultipleFastRtx set mfrCount_ 0                                    
 Agent/SCTP/MfrTimestamp set mfrCount_ 0    
 
+## CMT variables
+Agent/SCTP/CMT set useCmtReordering_ 1  ;# Turn ON CMT Reordering algo
+Agent/SCTP/CMT set useCmtCwnd_ 1        ;# Turn ON CMT cwnd growth algo
+Agent/SCTP/CMT set useCmtDelAck_ 1      ;# Turn ON CMT delayed ack algo
+Agent/SCTP/CMT set eCmtRtxPolicy_ 1     ;# Default policy = RTX_TO_SAME
+## CMT-PF variables
+Agent/SCTP/CMT set useCmtPF_ 0          ;# CMT-PF turned off
+Agent/SCTP/CMT set cmtPFCwnd_ 1	        ;# Cwnd in MTUs after HB-ACK (1 or 2)
 
 Agent/TCP set seqno_ 0
 Agent/TCP set t_seqno_ 0

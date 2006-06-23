@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.cc,v 1.9 2006/02/21 15:20:20 mahrenho Exp $ (UD/PEL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.cc,v 1.10 2006/06/23 14:28:40 tom_henderson Exp $ (UD/PEL)";
 #endif
 
 #include "ip.h"
@@ -206,6 +206,7 @@ void SctpAgent::delay_bind_init_all()
 
   delay_bind_init_one("trace_all_");
   delay_bind_init_one("cwnd_");
+  delay_bind_init_one("rwnd_");
   delay_bind_init_one("rto_");
   delay_bind_init_one("errorCount_");
   delay_bind_init_one("frCount_");
@@ -336,6 +337,9 @@ int SctpAgent::delay_bind_dispatch(const char *cpVarName,
   if(delay_bind(cpVarName, cpLocalName, "cwnd_", &tiCwnd, opTracer)) 
     return TCL_OK;
 
+  if(delay_bind(cpVarName, cpLocalName, "rwnd_", &tiRwnd, opTracer)) 
+    return TCL_OK;
+
   if(delay_bind(cpVarName, cpLocalName, "rto_", &tdRto, opTracer)) 
     return TCL_OK;
 
@@ -375,7 +379,7 @@ void SctpAgent::TraceAll()
       sprintf(cpOutString,
 	      "time: %-8.5f  "
 	      "saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d "
-	      "cwnd: %d pba: %d out: %d ssthresh: %d peerRwnd: %d "
+	      "cwnd: %d pba: %d out: %d ssthresh: %d rwnd: %d peerRwnd: %d "
 	      "rto: %-6.3f srtt: %-6.3f rttvar: %-6.3f "
 	      "assocErrors: %d pathErrors: %d dstatus: %s isPrimary: %s "
 	      "frCount: %d timeoutCount: %d rcdCount: %d\n",
@@ -383,7 +387,7 @@ void SctpAgent::TraceAll()
 	      addr(), port(), spCurrDest->iNsAddr, spCurrDest->iNsPort,
 	      spCurrDest->iCwnd, spCurrDest->iPartialBytesAcked, 
 	      spCurrDest->iOutstandingBytes, spCurrDest->iSsthresh, 
-	      uiPeerRwnd,
+	      uiMyRwnd, uiPeerRwnd,
 	      spCurrDest->dRto, spCurrDest->dSrtt, 
 	      spCurrDest->dRttVar,
 	      iAssocErrorCount,
@@ -430,6 +434,14 @@ void SctpAgent::TraceVar(const char* cpVar)
 	  (void)Tcl_Write(channel_, cpOutString, strlen(cpOutString));
       }
 
+  else if(!strcmp(cpVar, "rwnd_"))
+    {
+      sprintf(cpOutString, "time: %-8.5f rwnd: %d peerRwnd: %d\n", 
+	      dCurrTime, uiMyRwnd, uiPeerRwnd);
+      if(channel_)
+     	(void)Tcl_Write(channel_, cpOutString, strlen(cpOutString));
+    }
+  
   else if(!strcmp(cpVar, "rto_"))
     for(spCurrNode = sDestList.spHead;
 	spCurrNode != NULL;
@@ -833,6 +845,11 @@ void SctpAgent::Reset()
       spCurrDest->eCcApplied = FALSE;
       spCurrDest->spFirstOutstanding = NULL;
 
+      /* per destination vars for CMT
+       */
+      spCurrDest->uiBurstLength = 0;
+      spCurrDest->eMarkedChunksPending = FALSE;
+
       spCurrDest->iRcdCount = 0;      
       spCurrDest->eRouteCached = FALSE;
 
@@ -862,7 +879,7 @@ void SctpAgent::Reset()
   eForwardTsnNeeded = FALSE;
   eSendNewDataChunks = FALSE;
   eMarkedChunksPending = FALSE;
-  eApplyMaxBurst = FALSE;
+  eApplyMaxBurst = FALSE; // Why is MaxBurst init'd to FALSE?? (JRI)
   eDataSource = DATA_SOURCE_APPLICATION;
   uiBurstLength = 0;
 
@@ -893,6 +910,7 @@ void SctpAgent::Reset()
   /* Trigger changes for trace to pick up (we want to know the initial values)
    */
   tiCwnd++;
+  tiRwnd++;
   tdRto++;
   tiErrorCount++;
   tiFrCount = 0;
@@ -1034,6 +1052,26 @@ int SctpAgent::command(int argc, const char*const* argv)
 	  iNsAddr = atoi(argv[2]);
 	  iNsPort = atoi(argv[3]);
 	  AddDestination(iNsAddr, iNsPort);
+	  DBG_X(command);
+	  return (TCL_OK);
+	}
+      else if (strcmp(argv[1], "set-destination-lossrate") == 0)
+	{
+	  opNode = (Node *) TclObject::lookup(argv[2]);
+	  if(opNode == NULL) 
+	    {
+	      oTcl.resultf("no such object %s", argv[2]);
+	      return (TCL_ERROR);
+	    }
+	  iRetVal = SetLossrate( opNode->address(), atof(argv[3]) );
+
+	  if(iRetVal == TCL_ERROR)
+	    {
+	      fprintf(stderr, "[SctpAgent::command] ERROR:"
+		      "%s is not a valid destination\n", argv[2]);
+	      DBG_X(command);
+	      return (TCL_ERROR);
+	    }
 	  DBG_X(command);
 	  return (TCL_OK);
 	}
@@ -1243,6 +1281,30 @@ int SctpAgent::SetPrimary(int iNsAddr)
 
   DBG_PL(SetPrimary, "returning TCL_ERROR") DBG_PR;
   DBG_X(SetPrimary);
+  return (TCL_ERROR);
+}
+
+/* Helps maintain information passed down from the TCL script by an oracle
+ * about path lossrates.  Used in RTX-LOSSRATE rtx policy for
+ * CMT. Lossrate for a path is set in the dest node's datastructure.
+ */
+int SctpAgent::SetLossrate(int iNsAddr, float fLossrate)
+{
+
+  Node_S *spCurrNode = NULL;
+  SctpDest_S *spCurrDest = NULL;
+
+  for(spCurrNode = sDestList.spHead;
+      spCurrNode != NULL;
+      spCurrNode = spCurrNode->spNext)
+    {
+      spCurrDest = (SctpDest_S *) spCurrNode->vpData;
+      if(spCurrDest->iNsAddr == iNsAddr)
+	{
+	  spCurrDest->fLossrate = fLossrate;
+	  return (TCL_OK);
+	}
+    }
   return (TCL_ERROR);
 }
 
@@ -1683,9 +1745,14 @@ int SctpAgent::GenOneDataChunk(u_char *ucpOutData)
 		       uiReliability, spNewTxDest);
     }
   
-  DBG_PL(GenOneDataChunk, "dest=%p"), spNewTxDest DBG_PR;
+  DBG_PL(GenOneDataChunk, "dest=%p chunk length=%d"), 
+    spNewTxDest, ((SctpDataChunkHdr_S *) ucpOutData)->sHdr.usLength DBG_PR;
+
   spNewTxDest->iOutstandingBytes 
     += ((SctpDataChunkHdr_S *) ucpOutData)->sHdr.usLength;
+
+  DBG_PL(GenOneDataChunk,"After adding chunk, out=%d"), 
+    spNewTxDest->iOutstandingBytes DBG_PR;
 
   /* rfc2960 section 6.2.1.B
    */
@@ -1903,7 +1970,6 @@ void SctpAgent::SendBufferDequeueUpTo(u_int uiTsn)
 	    }
 	}
 
-
       /* This is to ensure that Max.Burst is applied when a SACK
        * acknowledges a chunk which has been fast retransmitted. If it is
        * ineligible for fast rtx, that can only be because it was fast
@@ -1929,7 +1995,8 @@ void SctpAgent::SendBufferDequeueUpTo(u_int uiTsn)
 	 spCurrNodeData->eAdvancedAcked == FALSE) 
 	{
 	  /* If the chunk is marked for timeout rtx, then the sender is an 
-	   * ambigious state. Were the sacks lost or was there a failure?
+	   * ambigious state. Were the sacks lost or was there a failure? 
+	   * (See below, where we talk about error count resetting)
 	   * Since we don't clear the error counter below, we also don't
 	   * update the RTT. This could be a problem for late arriving SACKs.
 	   */
@@ -2313,7 +2380,7 @@ void SctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 {
   DBG_I(RtxMarkedChunks);
 
-  u_char *ucpOutData = new u_char[uiMaxPayloadSize]; 
+  u_char ucpOutData[uiMaxPayloadSize]; 
   u_char *ucpCurrOutData = ucpOutData;
   int iBundledControlChunkSize = 0;
   int iCurrSize = 0;
@@ -2501,12 +2568,11 @@ void SctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 		    StartT3RtxTimer(spCurrBuffNodeData->spDest);
 		}
 	      
-	      /* JRI, ALC - Bugfix 2004/01/21 - section 6.1 - Whenever a
-	       * transmission or retransmission is made to any address, if
-	       * the T3-rtx timer of that address is not currently
-	       * running, the sender MUST start that timer.  If the timer
-	       * for that address is already running, the sender MUST
-	       * restart the timer if the earliest (i.e., lowest TSN)
+	      /* section 6.1 - Whenever a transmission or retransmission is 
+	       * made to any address, if the T3-rtx timer of that address 
+	       * is not currently running, the sender MUST start that timer.
+	       * If the timer for that address is already running, the sender 
+	       * MUST restart the timer if the earliest (i.e., lowest TSN)
 	       * outstanding DATA chunk sent to that address is being
 	       * retransmitted.  Otherwise, the data sender MUST NOT
 	       * restart the timer.  
@@ -2627,8 +2693,6 @@ void SctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
    * chunks.
    */
   eMarkedChunksPending = AnyMarkedChunks();
-
-  delete[] ucpOutData;
 
   DBG_X(RtxMarkedChunks);
 }
@@ -2960,6 +3024,7 @@ void SctpAgent::PassToUpperLayer(SctpDataChunkHdr_S *spDataChunkHdr)
    * consumes incoming chunks immediately.  
    */
   uiMyRwnd += spDataChunkHdr->sHdr.usLength; 
+  tiRwnd++; // trigger changes to be traced
 
   DBG_PL(PassToUpperLayer, "uiMyRwnd=%d"), uiMyRwnd DBG_PR;
   DBG_X(PassToUpperLayer);
@@ -3061,12 +3126,13 @@ void SctpAgent::UpdateAllStreams()
   Node_S *spCurrNode = NULL;
   Node_S *spDeleteNode = NULL;
   SctpDataChunkHdr_S *spBufferedChunk = NULL;
+  SctpInStream_S *spStream = NULL;
   int i;
 
   for(i = 0; i < iNumInStreams; i++)
     {
       DBG_PL(UpdateAllStreams, "examining stream %d"), i DBG_PR;
-      SctpInStream_S *spStream = &(spInStreams[i]);
+      spStream = &(spInStreams[i]);
 
       /* Start from the lowest stream seq # buffered and sequentially pass
        * up all the chunks which are "deliverable".  
@@ -3160,6 +3226,8 @@ void SctpAgent::ProcessInitAckChunk(u_char *ucpInitAckChunk)
 
   opT1InitTimer->force_cancel();
   uiPeerRwnd = spInitAckChunk->uiArwnd;
+  tiRwnd++; // trigger changes to be traced
+
   iNumInStreams = spInitAckChunk->usNumOutboundStreams;
   spInStreams = new SctpInStream_S[iNumInStreams];
   memset(spInStreams, 0, (iNumInStreams * sizeof(SctpInStream_S)) );
@@ -3217,6 +3285,8 @@ void SctpAgent::ProcessDataChunk(SctpDataChunkHdr_S *spChunk)
 	   * consumes the incoming chunk 
 	   */
 	  uiMyRwnd -= spChunk->sHdr.usLength;
+	  tiRwnd++; // trigger rwnd changes to be traced
+
 	  UpdateRecvTsnBlocks(spChunk->uiTsn);
 	  PassToStream(spChunk);
 	  UpdateAllStreams();
@@ -3461,7 +3531,7 @@ Boolean_E SctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 		   * failure, but the sacks got lost. When the sender
 		   * retransmits the first outstanding, the receiver will
 		   * sack all the data whose sacks got lost. We don't want
-		   * these sacks * to clear the error counter, or else
+		   * these sacks to clear the error counter, or else
 		   * failover would take longer.
 		   */
 		  if(spCurrNodeData->spDest->iErrorCount != 0 &&
@@ -3825,9 +3895,12 @@ void SctpAgent::ProcessHeartbeatAckChunk(SctpHeartbeatAckChunk_S
    */
   if(spHeartbeatAckChunk->spDest->iErrorCount != 0)
     {
+      DBG_PL(ProcessHeartbeatAckChunk, "marking dest %p to active"),
+                        spHeartbeatAckChunk->spDest DBG_PR;
+      spHeartbeatAckChunk->spDest->eStatus = SCTP_DEST_STATUS_ACTIVE;
       spHeartbeatAckChunk->spDest->iErrorCount = 0; // clear the error count
       tiErrorCount++;                               // ...and trace it too!
-      spHeartbeatAckChunk->spDest->eStatus = SCTP_DEST_STATUS_ACTIVE;
+
       if(spHeartbeatAckChunk->spDest == spPrimaryDest &&
 	 spNewTxDest != spPrimaryDest) 
 	{
@@ -4429,7 +4502,7 @@ void SctpAgent::recv(Packet *opInPkt, Handler*)
   u_char *ucpCurrInChunk = ucpInData;
   int iRemainingDataLen = opInPacketData->size();
 
-  u_char *ucpOutData = new u_char[uiMaxPayloadSize]; 
+  u_char ucpOutData[uiMaxPayloadSize]; 
   u_char *ucpCurrOutData = ucpOutData;
 
   /* local variable which maintains how much data has been filled in the current
@@ -4514,7 +4587,6 @@ void SctpAgent::recv(Packet *opInPkt, Handler*)
   hdr_sctp::access(opInPkt)->SctpTrace() = NULL;
   Packet::free(opInPkt);
   opInPkt = NULL;
-  delete[] ucpOutData;
   DBG_X(recv);
 }
 
@@ -4550,7 +4622,7 @@ void SctpAgent::SendMuch()
       : "DATA_SOURCE_INFINITE" )
     DBG_PR;
 
-  u_char *ucpOutData = new u_char[uiMaxPayloadSize]; 
+  u_char ucpOutData[uiMaxPayloadSize]; 
   int iOutDataSize = 0;
   double dTime = 0;
   double dCurrTime = Scheduler::instance().clock();
@@ -4639,8 +4711,6 @@ void SctpAgent::SendMuch()
    */
   uiBurstLength = 0;
 
-  delete[] ucpOutData;
-
   DBG_X(SendMuch);
 }
 
@@ -4655,7 +4725,7 @@ void SctpAgent::sendmsg(int iNumBytes, const char *cpFlags)
 
   DBG_I(sendmsg);
 
-  u_char *ucpOutData = new u_char[uiMaxPayloadSize];
+  u_char ucpOutData[uiMaxPayloadSize];
   int iOutDataSize = 0;
   AppData_S *spAppData = (AppData_S *) cpFlags;
   Node_S *spNewNode = NULL;
@@ -4744,7 +4814,7 @@ void SctpAgent::sendmsg(int iNumBytes, const char *cpFlags)
 		  spAppData->uiNumBytes);
 	  fprintf(stderr, "%s data chunk size (%d) > max (%d)\n",
 		  "SCTP ERROR:",
-		  static_cast<int>( spAppData->uiNumBytes + sizeof(SctpDataChunkHdr_S) ), 
+		  spAppData->uiNumBytes + sizeof(SctpDataChunkHdr_S), 
 		  MAX_DATA_CHUNK_SIZE);
 	  DBG_PL(sendmsg, "ERROR: message size (%d) too big"),
 		 spAppData->uiNumBytes DBG_PR;
@@ -4763,7 +4833,7 @@ void SctpAgent::sendmsg(int iNumBytes, const char *cpFlags)
 	  fprintf(stderr, 
 		  "%s data chunk size (%d) + SCTP/IP header(%d) > MTU (%d)\n",
 		  "SCTP ERROR:",
-		  static_cast<int>(spAppData->uiNumBytes + sizeof(SctpDataChunkHdr_S) ),
+		  spAppData->uiNumBytes + sizeof(SctpDataChunkHdr_S),
 		  SCTP_HDR_SIZE + uiIpHeaderSize, uiMtu);
 	  fprintf(stderr, "           %s\n",
 		  "...chunk fragmentation is not yet supported!");
@@ -4815,8 +4885,6 @@ void SctpAgent::sendmsg(int iNumBytes, const char *cpFlags)
       break;
     }
 
-  delete[] ucpOutData;
-
   DBG_X(sendmsg);
 }
 
@@ -4824,7 +4892,7 @@ void SctpAgent::T1InitTimerExpiration()
 {
   DBG_I(T1InitTimerExpiration);
 
-  u_char *ucpOutData = new u_char[uiMaxPayloadSize];
+  u_char ucpOutData[uiMaxPayloadSize];
   int iOutDataSize = 0;
 
   iInitTryCount++;
@@ -4844,7 +4912,6 @@ void SctpAgent::T1InitTimerExpiration()
       opT1InitTimer->resched(spPrimaryDest->dRto);
     }
 
-  delete[] ucpOutData;
   DBG_X(T1InitTimerExpiration);
 }
 
@@ -4857,7 +4924,7 @@ void SctpAgent::T1CookieTimerExpiration()
 {
   DBG_I(T1CookieTimerExpiration);
 
-  u_char *ucpOutData = new u_char[uiMaxPayloadSize];
+  u_char ucpOutData[uiMaxPayloadSize];
   int iOutDataSize = 0;
  
   iInitTryCount++;
@@ -4875,7 +4942,6 @@ void SctpAgent::T1CookieTimerExpiration()
       opT1CookieTimer->resched(spPrimaryDest->dRto);
   }
 
-  delete[] ucpOutData;
   DBG_X(T1CookieTimerExpiration);
 }
 
@@ -5172,7 +5238,7 @@ void SctpAgent::SackGenTimerExpiration() // section 6.2
 {
   DBG_I(SackGenTimerExpiration);
 
-  u_char *ucpOutData = new u_char[uiMaxPayloadSize];
+  u_char ucpOutData[uiMaxPayloadSize];
   int iOutDataSize = 0;
   memset(ucpOutData, 0, uiMaxPayloadSize);
 
@@ -5183,7 +5249,6 @@ void SctpAgent::SackGenTimerExpiration() // section 6.2
   SendPacket(ucpOutData, iOutDataSize, spReplyDest); 
   DBG_PL(SackGenTimerExpiration, "SACK sent (%d bytes)"), iOutDataSize DBG_PR;
 
-  delete[] ucpOutData;
   DBG_X(SackGenTimerExpiration);
 }
 

@@ -34,7 +34,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctpDebug.h,v 1.3 2005/10/07 05:58:30 tomh Exp $ (UD/PEL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctpDebug.h,v 1.4 2006/06/23 14:28:40 tom_henderson Exp $ (UD/PEL)
  */
 
 #ifndef ns_sctpDebug_h
@@ -140,6 +140,10 @@ void sctpDebugEmptyPrintf (char const *format, ...);
  */
 #define __dbg_RouteCacheFlushTimerExpiration   0x02000000
 #define __dbg_RouteCalcDelayTimerExpiration    0x02000000
+
+/* CMT debugging
+ */
+#define __dbg_SelectRtxDest                    0x04000000
 
 /* verbose debugging functions
  */
