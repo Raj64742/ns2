@@ -1,11 +1,11 @@
 #
-# $Id: Makefile,v 1.35 2005/01/12 02:11:07 haldar Exp $
+# $Id: Makefile,v 1.36 2006/06/29 06:29:29 tom_henderson Exp $
 #
 
 # by default, just assume latex2html is in the user's path
 LATEX2HTML=	latex2html
 L2H_WORKING_DIR = ./l2h
-WEB_TARGET_DIR = /nfs/web/isi.edu/htdocs/nsnam/ns/doc
+WEB_TARGET_DIR = /nfs/web/isi.edu/htdocs/division7/nsnam/ns/doc
 
 LATEX=          latex
 BIBTEX=         bibtex
