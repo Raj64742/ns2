@@ -108,7 +108,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.122 2006/05/30 20:30:30 pradkin Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.123 2006/06/30 23:18:01 sallyfloyd Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -2114,7 +2114,6 @@ trimthenstep6:
 				} else if (++dupacks_ == tcprexmtthresh_) {
 					// ACK at highest_ack_ AND meets threshold
 					//trace_event("FAST_RECOVERY");
-
 					dupack_action(); // maybe fast rexmt
 					goto drop;
 
@@ -2449,6 +2448,7 @@ drop:
    	Packet::free(pkt);
 	return;
 }
+
 /*  
  * Dupack-action: what to do on a DUP ACK.  After the initial check
  * of 'recover' below, this function implements the following truth
@@ -2475,10 +2475,9 @@ FullTcpAgent::dupack_action()
 	fastrecov_ = TRUE;
 	rtxbytes_ = 0;
 
-        if (recovered || (!bug_fix_ && !ecn_) ||
-	    // Q: is last_cwnd_action == dupack enough to trigger?
-	    // probably not.  may need to fix 1-way reno model as well
-	    last_cwnd_action_ == CWND_ACTION_DUPACK) {
+        if (recovered || (!bug_fix_ && !ecn_) 
+            || (last_cwnd_action_ == CWND_ACTION_DUPACK)
+            || ( highest_ack_ == 0)) {
                 goto full_reno_action;
         }       
     
@@ -2665,9 +2664,7 @@ TahoeFullTcpAgent::dupack_action()
 	fastrecov_ = TRUE;
 	rtxbytes_ = 0;
 
-        if (recovered || (!bug_fix_ && !ecn_) ||
-	    // Q: is last_cwnd_action dupack enough?
-            last_cwnd_action_ == CWND_ACTION_DUPACK) {
+        if (recovered || (!bug_fix_ && !ecn_) || highest_ack_ == 0) {
                 goto full_tahoe_action;
         }
    

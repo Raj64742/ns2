@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple-full.tcl,v 1.12 2006/01/24 23:00:07 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple-full.tcl,v 1.13 2006/06/30 23:18:01 sallyfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -495,6 +495,12 @@ Test/tahoe1 instproc run {} {
 	$ns_ run
 }
 
+# NOT ADDED:
+# tahoe1Bytes - "DropTail queue in bytes instead of packets."
+# tahoe1RED -  "RED queue, configured for 5 packets instead of DropTail's 
+#  6 packets."
+# tahoe1REDbytes: "RED queue in bytes."
+
 Class Test/tahoe2 -superclass TestSuite
 Test/tahoe2 instproc init topo {
 	$self instvar net_ defNet_ test_
@@ -551,51 +557,118 @@ Test/tahoe3 instproc run {} {
 	$ns_ run
 }
 
-# Bug-fix doesn't seem to be working as it should here...
-# Class Test/tahoe4 -superclass TestSuite
-# Test/tahoe4 instproc init topo {
-# 	$self instvar net_ defNet_ test_
-# 	set net_	$topo
-# 	set defNet_	net0
-# 	set test_	tahoe4
-# 	$self next
-# }
-# Test/tahoe4 instproc run {} {
-# 	$self instvar ns_ node_ testName_
-# 
-# 	$ns_ delay $node_(s2) $node_(r1) 200ms
-# 	$ns_ delay $node_(r1) $node_(s2) 200ms
-# 	$ns_ queue-limit $node_(r1) $node_(k1) 11
-# 	$ns_ queue-limit $node_(k1) $node_(r1) 11  
-# 
-# 	set tcp1 [$ns_ create-connection-listen TCP/FullTcp/Tahoe $node_(s1) TCP/FullTcp/Tahoe $node_(k1) 0]
-# 	$tcp1 set window_ 30
-# 	set tcp2 [$ns_ create-connection-listen TCP/FullTcp/Tahoe $node_(s2) TCP/FullTcp/Tahoe $node_(k1) 1]
-# 	$tcp2 set window_ 30
-# 
-# 	set ftp1 [$tcp1 attach-app FTP]
-# 	set ftp2 [$tcp2 attach-app FTP]
-# 
-# 	$ns_ at 0.0 "$ftp1 start"
-# 	$ns_ at 0.0 "$ftp2 start"
-# 
-# 	$self tcpDump $tcp1 5.0
-# 
-# 	# Trace only the bottleneck link
-# 	$self traceQueues $node_(r1) [$self openTrace 25.0 $testName_]
-# 	$ns_ run
-# }
-# 
-# Class Test/tahoe4-nobugfix -superclass TestSuite
-# Test/tahoe4-nobugfix instproc init topo {
-# 	$self instvar net_ defNet_ test_
-# 	set net_	$topo
-# 	set defNet_	net0
-# 	set test_	tahoe4-nobugfix
-# 	Agent/TCP set bugFix_ false
-# 	Test/tahoe4-nobugfix instproc run {} [Test/tahoe4 info instbody run ]
-# 	$self next
-# }
+#NOT ADDED:
+#tahoe3RED: "Tahoe TCP, two packets dropped, RED queue configured for 
+#  5 packets."
+
+Class Test/tahoe4 -superclass TestSuite
+Test/tahoe4 instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net0
+	set test_	tahoe4
+	$self next
+}
+Test/tahoe4 instproc run {} {
+	$self instvar ns_ node_ testName_
+
+	$ns_ delay $node_(s2) $node_(r1) 200ms
+	$ns_ delay $node_(r1) $node_(s2) 200ms
+	$ns_ queue-limit $node_(r1) $node_(k1) 11
+	$ns_ queue-limit $node_(k1) $node_(r1) 11  
+
+	set tcp1 [$ns_ create-connection-listen TCP/FullTcp/Tahoe $node_(s1) TCP/FullTcp/Tahoe $node_(k1) 0]
+	$tcp1 set window_ 30
+	set tcp2 [$ns_ create-connection-listen TCP/FullTcp/Tahoe $node_(s2) TCP/FullTcp/Tahoe $node_(k1) 1]
+	$tcp2 set window_ 30
+
+	set ftp1 [$tcp1 attach-app FTP]
+	set ftp2 [$tcp2 attach-app FTP]
+
+	$ns_ at 0.0 "$ftp1 start"
+	$ns_ at 0.0 "$ftp2 start"
+
+	$self tcpDump $tcp1 5.0
+
+	# Trace only the bottleneck link
+	$self traceQueues $node_(r1) [$self openTrace 25.0 $testName_]
+	$ns_ run
+}
+
+Class Test/no_bug -superclass TestSuite
+Test/no_bug instproc init topo {
+        $self instvar net_ defNet_ test_ guide_
+        set net_        $topo
+        set defNet_     net1
+        set test_       no_bug
+        # set guide_      "Tahoe TCP with TCP/bugFix_ set to true."
+        $self next
+}
+Test/no_bug instproc run {} {
+        global quiet
+        $self instvar ns_ node_ testName_ guide_
+        # puts "Guide: $guide_"
+
+        $ns_ delay $node_(s1) $node_(r1) 3ms
+        $ns_ delay $node_(r1) $node_(s1) 3ms
+ 
+	set tcp1 [$ns_ create-connection-listen TCP/FullTcp/Tahoe $node_(s1) TCP/FullTcp/Tahoe $node_(k1) 0]
+        $tcp1 set window_ 50
+	set tcp2 [$ns_ create-connection-listen TCP/FullTcp/Tahoe $node_(s2) TCP/FullTcp/Tahoe $node_(k1) 1]
+        $tcp2 set window_ 50
+
+        set ftp1 [$tcp1 attach-app FTP]
+        set ftp2 [$tcp2 attach-app FTP]
+
+        $ns_ at 1.0 "$ftp1 start"
+        $ns_ at 1.75 "$ftp2 produce 99"
+
+        $self tcpDump $tcp1 1.0
+
+        # Trace only the bottleneck link
+        $self traceQueues $node_(r1) [$self openTrace 6.0 $testName_]
+        $ns_ run
+}
+
+Class Test/bug -superclass TestSuite
+Test/bug instproc init topo {
+        $self instvar net_ defNet_ test_ guide_
+        set net_        $topo
+        set defNet_     net1
+        set test_       bug
+        # set guide_      "Tahoe TCP with TCP/bugFix_ set to false."
+        $self next
+}
+Test/bug instproc run {} {
+        global quiet
+        $self instvar ns_ node_ testName_ guide_
+        # puts "Guide: $guide_"
+
+        $ns_ delay $node_(s1) $node_(r1) 3ms
+        $ns_ delay $node_(r1) $node_(s1) 3ms
+
+	set tcp1 [$ns_ create-connection-listen TCP/FullTcp/Tahoe $node_(s1) TCP/FullTcp/Tahoe $node_(k1) 0]
+        $tcp1 set window_ 50
+        $tcp1 set bugFix_ false
+	set tcp2 [$ns_ create-connection-listen TCP/FullTcp/Tahoe $node_(s2) TCP/FullTcp/Tahoe $node_(k1) 1]
+        $tcp2 set window_ 50
+        $tcp2 set bugFix_ false
+
+        set ftp1 [$tcp1 attach-app FTP]
+        set ftp2 [$tcp2 attach-app FTP]
+
+        $ns_ at 1.0 "$ftp1 start"
+        $ns_ at 1.75 "$ftp2 produce 100"
+
+        $self tcpDump $tcp1 1.0
+
+        # Trace only the bottleneck link
+        $self traceQueues $node_(r1) [$self openTrace 6.0 $testName_]
+        $ns_ run
+}
+
+
+
 
 Class Test/reno1 -superclass TestSuite
 Test/reno1 instproc init topo {
@@ -745,62 +818,62 @@ Test/reno3 instproc run {} {
 	$ns_ run
 }
 
-# # Delayed Acknowledgements don't seem to work with FullTcp.
-# 
-# Class Test/reno4 -superclass TestSuite
-# Test/reno4 instproc init topo {
-# 	$self instvar net_ defNet_ test_
-# 	set net_	$topo
-# 	set defNet_	net2
-# 	set test_	reno4
-# 	$self next
-# }
-# Test/reno4 instproc run {} {
-# 	$self instvar ns_ node_ testName_
-# 
-# 	$ns_ queue-limit $node_(r1) $node_(r2) 29
-# 
-# 	set tcp1 [$ns_ create-connection-listen TCP/FullTcp $node_(s1) TCP/FullTcp $node_(r2) 0]
-# 	## Set delayed acknowledgements somehow!!
-# 	$tcp1 set window_ 80
-# 	$tcp1 set maxcwnd_ 40
-# 
-# 	set ftp1 [$tcp1 attach-app FTP]
-# 	$ns_ at 0.0 "$ftp1 start"
-# 
-# 	$self tcpDump $tcp1 1.0
-# 
-# 	# Trace only the bottleneck link
-# 	$self traceQueues $node_(s1) [$self openTrace 2.0 $testName_]
-# 	$ns_ run
-# }
-# 
-# Class Test/reno4a -superclass TestSuite
-# Test/reno4a instproc init topo {
-# 	$self instvar net_ defNet_ test_
-# 	set net_	$topo
-# 	set defNet_	net2
-# 	set test_	reno4a
-# 	$self next
-# }
-# Test/reno4a instproc run {} {
-# 	$self instvar ns_ node_ testName_
-# 
-# 	$ns_ queue-limit $node_(r1) $node_(r2) 29
-# 
-# 	set tcp1 [$ns_ create-connection-listen TCP/FullTcp $node_(s1) TCP/FullTcp/DelAck $node_(r2) 0]
-# 	$tcp1 set window_ 40
-# 	$tcp1 set maxcwnd_ 40
-# 
-# 	set ftp1 [$tcp1 attach-app FTP]
-# 	$ns_ at 0.0 "$ftp1 start"
-# 
-# 	$self tcpDump $tcp1 1.0
-# 
-# 	# Trace only the bottleneck link
-# 	$self traceQueues $node_(s1) [$self openTrace 4.0 $testName_]
-# 	$ns_ run
-# }
+Class Test/reno4 -superclass TestSuite
+Test/reno4 instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net2
+	set test_	reno4
+        Agent/TCP/FullTcp set segsperack_ 2
+	# Agent/TCP/FullTcp set interval_ 0.1 
+	$self next
+}
+Test/reno4 instproc run {} {
+	$self instvar ns_ node_ testName_
+
+	$ns_ queue-limit $node_(r1) $node_(r2) 29
+
+	set tcp1 [$ns_ create-connection-listen TCP/FullTcp $node_(s1) TCP/FullTcp $node_(r2) 0]
+	$tcp1 set window_ 80
+	$tcp1 set maxcwnd_ 40
+
+	set ftp1 [$tcp1 attach-app FTP]
+	$ns_ at 0.0 "$ftp1 start"
+
+	$self tcpDump $tcp1 1.0
+
+	# Trace only the bottleneck link
+	$self traceQueues $node_(s1) [$self openTrace 1.0 $testName_]
+	$ns_ run
+}
+
+Class Test/reno4a -superclass TestSuite
+Test/reno4a instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net2
+	set test_	reno4a
+        Agent/TCP/FullTcp set segsperack_ 2
+	$self next
+}
+Test/reno4a instproc run {} {
+	$self instvar ns_ node_ testName_
+
+	$ns_ queue-limit $node_(r1) $node_(r2) 29
+
+	set tcp1 [$ns_ create-connection-listen TCP/FullTcp $node_(s1) TCP/FullTcp $node_(r2) 0]
+	$tcp1 set window_ 40
+	$tcp1 set maxcwnd_ 40
+
+	set ftp1 [$tcp1 attach-app FTP]
+	$ns_ at 0.0 "$ftp1 start"
+
+	$self tcpDump $tcp1 1.0
+
+	# Trace only the bottleneck link
+	$self traceQueues $node_(s1) [$self openTrace 4.0 $testName_]
+	$ns_ run
+}
 
 Class Test/reno5 -superclass TestSuite
 Test/reno5 instproc init topo {
@@ -833,6 +906,38 @@ Test/reno5 instproc run {} {
 	# Trace only the bottleneck link
 	$self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
 	$ns_ run
+}
+
+Class Test/reno5_nobug -superclass TestSuite
+Test/reno5_nobug instproc init topo {
+        $self instvar net_ defNet_ test_ guide_
+        set net_        $topo
+        set defNet_     net0
+        set test_       reno5_nobug
+        # set guide_      "Reno TCP, TCP/bugFix_ set to true."
+        $self next
+}
+Test/reno5_nobug instproc run {} {
+        $self instvar ns_ node_ testName_
+
+        $ns_ queue-limit $node_(r1) $node_(k1) 9
+
+        set tcp1 [$ns_ create-connection-listen TCP/FullTcp $node_(s1) TCP/FullTcp $node_(k1) 0]
+        $tcp1 set window_ 50
+        set tcp2 [$ns_ create-connection-listen TCP/FullTcp $node_(s2) TCP/FullTcp $node_(k1) 1]
+        $tcp2 set window_ 20
+
+        set ftp1 [$tcp1 attach-app FTP]
+        set ftp2 [$tcp2 attach-app FTP]
+
+        $ns_ at 1.0 "$ftp1 start"
+        $ns_ at 1.1 "$ftp2 start"
+
+        $self tcpDump $tcp1 1.0
+
+        # Trace only the bottleneck link
+        $self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
+        $ns_ run
 }
 
 Class Test/telnet -superclass TestSuite
@@ -875,35 +980,33 @@ Test/telnet instproc run {} {
 	$ns_ run
 }
 
-# Delayed acks don't seem to work with FullTcp.
+Class Test/delayed -superclass TestSuite
+Test/delayed instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net0
+	set test_	delayed
+        Agent/TCP/FullTcp set segsperack_ 2
+	$self next
+}
+Test/delayed instproc run {} {
+	$self instvar ns_ node_ testName_
 
-# Class Test/delayed -superclass TestSuite
-# Test/delayed instproc init topo {
-# 	$self instvar net_ defNet_ test_
-# 	set net_	$topo
-# 	set defNet_	net0
-# 	set test_	delayed
-# 	$self next
-# }
-# Test/delayed instproc run {} {
-# 	$self instvar ns_ node_ testName_
-# 
-# 	set tcp1 [$ns_ create-connection-listen TCP/FullTcp/Tahoe $node_(s1) TCP/FullTcp/Tahoe $node_(k1) 0]
-#         # How to set delayed acknowledgements?
-# 	$tcp1 set window_ 50
-# 
-# 	# lookup up the sink and set it's delay interval
-# 	[$node_(k1) agent [$tcp1 dst-port]] set interval 100ms
-# 
-# 	set ftp1 [$tcp1 attach-app FTP];
-# 	$ns_ at 1.0 "$ftp1 start"
-# 
-# 	$self tcpDump $tcp1 1.0
-# 
-# 	# Trace only the bottleneck link
-# 	$self traceQueues $node_(r1) [$self openTrace 4.0 $testName_]
-# 	$ns_ run
-# }
+	set tcp1 [$ns_ create-connection-listen TCP/FullTcp/Tahoe $node_(s1) TCP/FullTcp/Tahoe $node_(k1) 0]
+	$tcp1 set window_ 50
+
+	# lookup up the sink and set it's delay interval
+	[$node_(k1) agent [$tcp1 dst-port]] set interval 100ms
+
+	set ftp1 [$tcp1 attach-app FTP];
+	$ns_ at 1.0 "$ftp1 start"
+
+	$self tcpDump $tcp1 1.0
+
+	# Trace only the bottleneck link
+	$self traceQueues $node_(r1) [$self openTrace 4.0 $testName_]
+	$ns_ run
+}
 
 Class Test/phase -superclass TestSuite
 Test/phase instproc init topo {
@@ -991,10 +1094,10 @@ Test/phase2 instproc run {} {
 
 	set tcp1 [$ns_ create-connection-listen TCP/FullTcp/Tahoe $node_(s1) TCP/FullTcp/Tahoe $node_(k1) 0]
 	$tcp1 set window_ 32 
-	$tcp1 set overhead_ 0.01
+	$tcp1 set overhead_ 0.02
 	set tcp2 [$ns_ create-connection-listen TCP/FullTcp/Tahoe $node_(s2) TCP/FullTcp/Tahoe $node_(k1) 1]
 	$tcp2 set window_ 32 
-	$tcp2 set overhead_ 0.01
+	$tcp2 set overhead_ 0.02
 
 	set ftp1 [$tcp1 attach-app FTP]
 	set ftp2 [$tcp2 attach-app FTP]
@@ -1009,47 +1112,44 @@ Test/phase2 instproc run {} {
 	$ns_ run
 }
 
-# # This test is only interesting if there is exponential backoff of the
-# # retransmit timer.
-# # It needs a delayed-ack TCP.
-# 
-# Class Test/timers -superclass TestSuite
-# Test/timers instproc init topo {
-# 	$self instvar net_ defNet_ test_
-# 	set net_	$topo
-# 	set defNet_	net0
-# 	set test_	timers
-# 	Agent/TCP set timerfix_ false
-# 	# The default is being changed to true.
-# 	$self next
-# }
-# Test/timers instproc run {} {
-# 	$self instvar ns_ node_ testName_
-# 
-# 	$ns_ queue-limit $node_(r1) $node_(k1) 2
-# 	$ns_ queue-limit $node_(k1) $node_(r1) 100
-# 
-# 	set tcp1 [$ns_ create-connection-listen TCP/FullTcp/Tahoe $node_(s1) TCP/FullTcp/Tahoe $node_(k1) 0]
-# 	$tcp1 set window_ 4
-# 	# look up the sink and set its delay interval
-# 	[$node_(k1) agent [$tcp1 dst-port]] set interval_ 100ms
-# 	set tcp2 [$ns_ create-connection-listen TCP/FullTcp/Tahoe $node_(s2) TCP/FullTcp/Tahoe $node_(k1) 1]
-# 	$tcp2 set window_ 4
-# 	# look up the sink and set its delay interval
-# 	[$node_(k1) agent [$tcp2 dst-port]] set interval_ 100ms
-# 
-# 	set ftp1 [$tcp1 attach-app FTP]
-# 	set ftp2 [$tcp2 attach-app FTP]
-# 
-# 	$ns_ at 1.0 "$ftp1 start"
-# 	$ns_ at 1.3225 "$ftp2 start"
-# 
-# 	$self tcpDump $tcp1 5.0
-# 
-# 	# Trace only the bottleneck link
-# 	$self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
-# 	$ns_ run
-# }
+Class Test/timers -superclass TestSuite
+Test/timers instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net0
+	set test_	timers
+	Agent/TCP set timerfix_ false
+	# The default is being changed to true.
+        Agent/TCP/FullTcp set segsperack_ 2
+	$self next
+}
+Test/timers instproc run {} {
+	$self instvar ns_ node_ testName_
+
+	$ns_ queue-limit $node_(r1) $node_(k1) 2
+	$ns_ queue-limit $node_(k1) $node_(r1) 100
+
+	set tcp1 [$ns_ create-connection-listen TCP/FullTcp/Tahoe $node_(s1) TCP/FullTcp/Tahoe $node_(k1) 0]
+	$tcp1 set window_ 4
+	# look up the sink and set its delay interval
+	[$node_(k1) agent [$tcp1 dst-port]] set interval_ 100ms
+	set tcp2 [$ns_ create-connection-listen TCP/FullTcp/Tahoe $node_(s2) TCP/FullTcp/Tahoe $node_(k1) 1]
+	$tcp2 set window_ 4
+	# look up the sink and set its delay interval
+	[$node_(k1) agent [$tcp2 dst-port]] set interval_ 100ms
+
+	set ftp1 [$tcp1 attach-app FTP]
+	set ftp2 [$tcp2 attach-app FTP]
+
+	$ns_ at 1.0 "$ftp1 start"
+	$ns_ at 1.3225 "$ftp2 start"
+
+	$self tcpDump $tcp1 5.0
+
+	# Trace only the bottleneck link
+	$self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
+	$ns_ run
+}
 
 # Many small TCP flows.
 Class Test/manyflows -superclass TestSuite
