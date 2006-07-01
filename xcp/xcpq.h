@@ -18,7 +18,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcpq.h,v 1.11 2006/05/30 20:30:30 pradkin Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcpq.h,v 1.12 2006/07/01 19:40:04 tom_henderson Exp $
  */
 
 
@@ -107,11 +107,11 @@ protected:
 	XCPTimer*        rtt_timer_;
 	double           link_capacity_bps_;
 
-	static const double	ALPHA_		= 0.4;
-	static const double	BETA_		= 0.226;
-	static const double	GAMMA_		= 0.1;
-	static const double	XCP_MAX_INTERVAL= 1.0;
-	static const double	XCP_MIN_INTERVAL= .001;
+	static const double	ALPHA_;
+	static const double	BETA_;
+	static const double	GAMMA_;
+	static const double	XCP_MAX_INTERVAL;
+	static const double	XCP_MIN_INTERVAL;
 
 	double          Te_;       // control interval
 	double          Tq_;    

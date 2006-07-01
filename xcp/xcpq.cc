@@ -24,6 +24,12 @@
 #include "xcp.h"
 #include "random.h"
 
+const double     XCPQueue::ALPHA_          = 0.4;
+const double     XCPQueue::BETA_           = 0.226;
+const double     XCPQueue::GAMMA_          = 0.1;
+const double     XCPQueue::XCP_MAX_INTERVAL= 1.0;
+const double     XCPQueue::XCP_MIN_INTERVAL= .001; 
+
 static class XCPQClass : public TclClass {
 public:
 	XCPQClass() : TclClass("Queue/DropTail/XCPQ") {}
