@@ -12,6 +12,7 @@ rm -f t t? t.*
 rm -f chart? 
 rm -f flow? flows? 
 rm -rf line?
+rm -rf Host_A Host_B queue
 for i in simple tcp full monitor red sack schedule cbq red-v1 cbq-v1 sack-v1 \
   v1 \
 vegas-v1 rbp tcp-init-win tcpVariants ecn manual-routing hier-routing \
