@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.25 2006/03/18 06:12:00 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.26 2006/07/23 20:46:02 sallyfloyd Exp $
 #
 # To run all tests: test-all-ecn-ack
 set dir [pwd]
@@ -152,7 +152,7 @@ TestSuite instproc finish file {
         if { [info exists tchan_] && $quiet == "false" } {
                 $self plotQueue $testName_
         }
-
+	# exec csh gnuplotC2.com temp.rands temp1.rands $file eps
 	$ns_ halt
 }
 
@@ -648,6 +648,15 @@ Test/synack2a_fulltcp instproc run {} {
         $ns_ at 2.0 "$self cleanupAll $testName_"
         $ns_ run
 }
+# time 0: SYN packet sent by A
+# time 0.027277: SYN/ACK packet sent by B
+# time 0.032309: SYN/ACK packet marked
+# time 0.054555: ACK packet sent by A
+# time 0.054555: two request data packets sent by A
+# time 0.08558: ACK packets sent from B
+# time 0.112858: three data packets sent by A
+# time 0.146923: ACK packets sent by B
+# time 0.231832: data packets sent by B
 
 TestSuite runTest
 
