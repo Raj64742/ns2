@@ -30,17 +30,16 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.27 2006/02/03 05:40:08 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.28 2006/07/23 20:47:17 sallyfloyd Exp $
 #
 
 source misc_simple.tcl
+source support.tcl
+# FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set tcpTick_ 0.1
 # The default for tcpTick_ is being changed to reflect a changing reality.
 Agent/TCP set rfc2988_ false
 # The default for rfc2988_ is being changed to true.
-source support.tcl
-
-# FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set precisionReduce_ false ;   # default changed on 2006/1/24.
 Agent/TCP set rtxcur_init_ 6.0 ;      # Default changed on 2006/01/21
 Agent/TCP set updated_rttvar_ false ;  # Variable added on 2006/1/21
@@ -60,7 +59,6 @@ Agent/TCP set windowInit_ 1
 # The default is being changed to 2.
 Agent/TCP set singledup_ 0
 # The default is being changed to 1
-
 Agent/TCP set minrto_ 0
 # The default is being changed to minrto_ 1
 Agent/TCP set syn_ false
