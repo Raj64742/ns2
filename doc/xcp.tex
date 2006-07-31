@@ -85,26 +85,25 @@ the case maybe.
 The packet header that is used by XCP is implemented as a structure
 called hdr\_xcp in \ns{} and is defined as follows:
 \begin{program}
-  double	throughput_;
+  double	x_;					// idealized inter-packet time
   double	rtt_;
   enum \{
     XCP_DISABLED = 0,
     XCP_ENABLED,
     XCP_ACK,
-  \} 	xcp_enabled_;		// to indicate that the flow is XCP enabled
-  bool	xcp_sparse_;    // flag used with xcp_sparse extension
-  int	        xcpId_;		// Sender's ID (debugging only)
-  double	cwnd_;		// The current window (debugging only) 
+  \} 		xcp_enabled_;		// to indicate that the flow is XCP enabled
+  int	    xcpId_;				// Sender's ID (debugging only)
+  double	cwnd_;				// The current window (debugging only) 
   double	reverse_feedback_; 
   
   // --- Initialized by source and Updated by Router 
-  double delta_throughput_;
-  unsigned int controlling_hop_; 
+  double 	delta_throughput_;
+  unsigned int controlling_hop_;// router ID (debugging only)
 \end{program}
   
     The xcp receiver is responsible for copying the delta\_throughput
     value into the reverse\_feedback field of the ack packets. In some
-    cases where delayed ack is used the receiver calculates the sum of
+    cases where delayed ack is used, the receiver calculates the sum of
     the delta\_throughput values in arriving packets for copying into the
     reverse\_feedback field of the outgoing ack packet.
 
@@ -112,7 +111,7 @@ called hdr\_xcp in \ns{} and is defined as follows:
     who has last updated the feedback is used for debugging purposes only.
 
     In case of a packet loss in the network, TCP's Van Jacobson
-    congestion control should most likely override XCP.However in \ns
+    congestion control should most likely override XCP.  However in \ns
     this happens 
     a little differently. With receiving of duplicate acks indicating
     packet loss, the cwnd gets halved and fast retransmit and fast
