@@ -249,7 +249,7 @@ called hdr\_xcp in \ns{} and is defined as follows:
   \begin{program}
     set xcp [new Agent/TCP/Reno/XCP]
     $ns attach-agent $src_node $xcp
-    set xcp_sink [new Agent/XCPSink]
+    set xcp_sink [new Agent/TCPSink/XCPSink]
     $ns attach-agent $rcvr_node $xcp_sink
     $ns connect $xcp $xcp_sink
     ...
@@ -415,7 +415,7 @@ called hdr\_xcp in \ns{} and is defined as follows:
     \code{set xcp_src [new Agent/TCP/Reno/XCP]}\\
     This command creates an XCP source agent.
 
-    \code{set xcp_dst [new Agent/XCPSink]}\\
+    \code{set xcp_dst [new Agent/TCPSink/XCPSink]}\\
     This command creates an XCP sink.
 
     \code{$ns duplex-link $R0 $R1 <BW>Mb <delay>ms XCP}\\
@@ -429,7 +429,7 @@ called hdr\_xcp in \ns{} and is defined as follows:
     queue which uses it for the router feedback calculation.
 
     \code{ set tfile [open tfile w] } \\
-    \code{ $xcp_queue attach $tfile }\\
+    \code{ $xcp_queue attach $tfile } \\
     This Tcl command allows a file to be attached for tracing xcp queue
     parameters. 
     
