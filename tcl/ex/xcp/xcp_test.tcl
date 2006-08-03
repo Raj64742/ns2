@@ -279,8 +279,8 @@ foreach link $all_links {
 # Create sources:
 set i 0
 while { $i < $nXCPs  } {
-    set StartTime [expr [$rtg integer 1000] * 0.001 * (0.01 * $delay) + $i  * 0.0] 
-    set rcvr_XCP      [new Agent/XCPSink]
+    set StartTime [expr [$rtg integer 1000] * 0.001 * (0.01 * $delay) + $i  * 6.0] 
+    set rcvr_XCP      [new Agent/TCPSink/XCPSink]
     $ns attach-agent  $R1 $rcvr_XCP
     set src$i         [new GeneralSender $i [set n$i] $rcvr_XCP "$StartTime TCP/Reno/XCP"]
     [[set src$i] set tcp_]  set  packetSize_ [expr 100 * ($i +10)]

@@ -1,14 +1,12 @@
 #! /usr/bin/env gnuplot
 
-
-set linestyle 1 lw 2 pt 7 
-set linestyle 2 lw 1 pt 2  
-set linestyle 3 lw 1 pt 8 
-set linestyle 4 lw 1 pt 4  
-set linestyle 5 lw 1 pt 6  
-set linestyle 6 lw 1 pt 5  
-set linestyle 7 lw 1 pt 1 
-set linestyle
+set style line 1 lw 2 pt 7 
+set style line 2 lw 1 pt 2  
+set style line 3 lw 1 pt 8 
+set style line 4 lw 1 pt 4  
+set style line 5 lw 1 pt 6  
+set style line 6 lw 1 pt 5  
+set style line 7 lw 1 pt 1 
 
 set term postscript eps 15
 set output "string.eps"

@@ -355,7 +355,7 @@ set i 0
 while { $i < $nAllHopsTCPs  } {
 	set StartTime     [expr [$rtg integer 1000] * 0.001 * (0.01 * $numHops * $delay) + $SimStartTime] 
 	if {$qType == "XCP" } {
-		set rcvr_TCP      [new Agent/XCPSink]
+		set rcvr_TCP      [new Agent/TCPSink/XCPSink]
 		$ns attach-agent  [set n$numHops] $rcvr_TCP
 		set src$i         [new GeneralSender $i $n0 $rcvr_TCP "$StartTime TCP/Reno/XCP"]
 		puts "starttime=$StartTime"
@@ -375,7 +375,7 @@ while {$i < $numHops} {
     while { $j < [expr [lindex $nTCPsPerHop_list $i] + ($i + 1) * 1000]  } {
 	set StartTime     [expr [lindex $StartTime_list $i]+[$rtg integer 1000] * 0.001 * (0.01 * $numHops * $delay)+ $SimStartTime] 
 	if {$qType == "XCP" } {
-	    set rcvr_TCP      [new Agent/XCPSink]
+	    set rcvr_TCP      [new Agent/TCPSink/XCPSink]
 		$ns attach-agent  [set  n[expr $i + 1]] $rcvr_TCP
 	    set src$j         [new GeneralSender $j [set n$i] $rcvr_TCP "$StartTime TCP/Reno/XCP"]
 		puts "starttime=$StartTime"
@@ -401,7 +401,7 @@ while {$i < $numHops} {
 	#puts "s=$s  rTCPs=$rTCPs  l=$l  All=$nAllHopsTCPs"
 	set StartTime     [expr [$rtg integer 1000] * 0.001 * (0.01 * $numHops * $delay)+ 0.0] 
 	if {$qType == "XCP" } {
-	    set rcvr_TCP      [new Agent/XCPSink]
+	    set rcvr_TCP      [new Agent/TCPSink/XCPSink]
 	    $ns attach-agent  [set  n$i] $rcvr_TCP
 		set src$s         [new GeneralSender $s [set  n[expr $i + 1]] $rcvr_TCP "$StartTime TCP/Reno/XCP"]
 		puts "starttime=$StartTime"

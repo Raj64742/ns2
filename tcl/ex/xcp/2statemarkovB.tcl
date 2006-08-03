@@ -27,7 +27,7 @@ GeneralSender instproc init { id srcnode dstnode otherparams } {
 	set TCP "TCP/Reno"
     }
     if [string match {TCP/Reno/XCP*} $TCP] {
-	set TCPSINK "XCPSink"
+	set TCPSINK "TCPSink/XCPSink"
     } else {
 	set TCPSINK "TCPSink"
     }
@@ -77,7 +77,7 @@ GeneralSender instproc init { id srcnode dstnode otherparams } {
 GeneralSender instproc trace-xcp parameters {
     $self instvar tcp_ id_ tcpTrace_
     global ftracetcp$id_ 
-    set ftracetcp$id_ [open  /tmp/xcp$id_.tr  w]
+    set ftracetcp$id_ [open  xcp$id_.tr  w]
     set tcpTrace_ [set ftracetcp$id_]
     $tcp_ attach-trace [set ftracetcp$id_]
     if { -1 < [lsearch $parameters cwnd]  } { $tcp_ tracevar cwnd_ }
@@ -113,7 +113,7 @@ proc plot-xcp { tracevar filename PlotTime} {
 		}  
 	    }
 	    
-	} /tmp/xcp$i.tr]
+	} xcp$i.tr]
 
 	#exec gnuplot "temp.$tracevar$i" &
 	incr i
@@ -131,7 +131,7 @@ proc plot-red {varname filename PlotTime} {
 		print $2, $3 >> file ;
 	    }  
 	}
-    } /tmp/ft_red_Bottleneck.tr]
+    } ft_red_Bottleneck.tr]
 }
 
 proc MarkovErrorModel {lossylink} {
@@ -173,7 +173,7 @@ $ns             use-scheduler Heap
 set rtg         [new RNG]
 $rtg seed       $seed
 
-#set f_all [open /tmp/b2.tr w]
+#set f_all [open b2.tr w]
 #$ns trace-all $f_all
 
 
@@ -270,7 +270,7 @@ for {set i 0} {$i < $nn} {incr i} {
 # add lossy link that models a 2 state markov model
 set lossylink [$ns link $n(0) $n(b1)]
 set durlist {$ubstate $bstate}
-MarkovErrorModel $lossylink $durlist
+MarkovErrorModel $lossylink ;#$durlist
 
 
 #---------- Trace --------------------#
@@ -285,7 +285,7 @@ foreach queue_name "Bottleneck rBottleneck q0" {
 	set queue [set "$queue_name"]
 	if {[$queue info class] == "Queue/XCP"} {
 		global "ft_red_$queue_name"
-		set "ft_red_$queue_name" [open /tmp/ft_red_[set queue_name].tr w]
+		set "ft_red_$queue_name" [open ft_red_[set queue_name].tr w]
 		$queue attach [set ft_red_$queue_name]
 
 	}
