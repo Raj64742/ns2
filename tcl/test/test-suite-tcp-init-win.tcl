@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.34 2006/06/14 18:05:30 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.35 2006/08/12 23:34:24 sallyfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -149,7 +149,7 @@ TestSuite instproc printtimersAll { tcp time interval } {
 # Definition of test-suite tests
 
 TestSuite instproc run_test {tcp1 tcp2 tcp3 dumptime runtime window} {
-	$self instvar ns_ node_ testName_
+	$self instvar ns_ node_ testName_ 
 
 	set ftp2 [$tcp2 attach-app FTP]
 	$ns_ at 0.0 "$ftp2 start"
@@ -159,7 +159,8 @@ TestSuite instproc run_test {tcp1 tcp2 tcp3 dumptime runtime window} {
 }
 
 TestSuite instproc runall_test {tcp1 dumptime runtime} {
-	$self instvar ns_ node_ testName_
+	$self instvar ns_ node_ testName_ guide_
+	puts "Guide: $guide_"
 
 	set ftp1 [$tcp1 attach-app FTP]
 	$ns_ at 0.0 "$ftp1 start"
@@ -170,7 +171,8 @@ TestSuite instproc runall_test {tcp1 dumptime runtime} {
 }
 
 TestSuite instproc second_test {tcp1 tcp2} {
-	$self instvar ns_ node_ testName_
+	$self instvar ns_ node_ testName_ guide_
+	puts "Guide: $guide_"
 	$tcp1 set window_ 40
 	set ftp1 [$tcp1 attach-app FTP]
 	$ns_ at 1.0 "$ftp1 start"
@@ -206,9 +208,10 @@ TestSuite instproc make_tcp {nodeA nodeB ID type} {
 
 Class Test/tahoe1 -superclass TestSuite
 Test/tahoe1 instproc init {} {
-	$self instvar net_ test_ 
+	$self instvar net_ test_ guide_ 
 	set net_	net6
 	set test_	tahoe1(variable_packet_sizes)
+	set guide_	"Tahoe TCP, initial windows with different packet sizes."
         $self next pktTraceFile
 }
 Test/tahoe1 instproc run {} {
@@ -226,9 +229,10 @@ Test/tahoe1 instproc run {} {
 
 Class Test/tahoe2 -superclass TestSuite
 Test/tahoe2 instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net6
 	set test_	tahoe2(static_initial_windows)
+	set guide_	"Tahoe TCP, static initial windows."
 	$self next pktTraceFile
 }
 Test/tahoe2 instproc run {} {
@@ -250,9 +254,10 @@ Test/tahoe2 instproc run {} {
 
 Class Test/tahoe3 -superclass TestSuite
 Test/tahoe3 instproc init {} {
-	$self instvar net_ test_ 
+	$self instvar net_ test_ guide_ 
 	set net_	net6
 	set test_	tahoe3(dropped_syn)
+	set guide_	"Tahoe TCP, initial window after a dropped SYN packet."
         $self next pktTraceFile
 }
 
@@ -269,7 +274,7 @@ TestSuite instproc drop_pkt { link flow num } {
 }
 
 Test/tahoe3 instproc run {} {
-        $self instvar ns_ node_ testName_ 
+        $self instvar ns_ node_ testName_ guide_
 	$self setTopo
 	Agent/TCP set windowInitOption_ 2
 	set tcp1 [$self make_tcp s1 k1 0 Tahoe]
@@ -280,14 +285,15 @@ Test/tahoe3 instproc run {} {
 
 Class Test/tahoe4 -superclass TestSuite
 Test/tahoe4 instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net7
 	set test_	tahoe4(fast_retransmit)
+	set guide_	"Tahoe TCP, window after a Fast Retransmit."
 	Queue/RED set ns1_compat_ true
 	$self next pktTraceFile
 }
 Test/tahoe4 instproc run {} {
-	$self instvar ns_ node_ testName_
+	$self instvar ns_ node_ testName_ guide_
 	$self setTopo
 	Agent/TCP set packetSize_ 1000
 	Agent/TCP set windowInitOption_ 2
@@ -299,9 +305,10 @@ Test/tahoe4 instproc run {} {
 
 Class Test/reno1 -superclass TestSuite
 Test/reno1 instproc init {} {
-	$self instvar net_ test_ 
+	$self instvar net_ test_ guide_ 
 	set net_	net6
 	set test_	reno1(variable_packet_sizes)
+	set guide_	"Reno TCP, initial windows with different packet sizes."
         $self next pktTraceFile
 }
 Test/reno1 instproc run {} {
@@ -319,9 +326,10 @@ Test/reno1 instproc run {} {
 
 Class Test/reno2 -superclass TestSuite
 Test/reno2 instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net6
 	set test_	reno2(static_initial_windows)
+	set guide_	"Reno TCP, static initial windows."
 	$self next pktTraceFile
 }
 Test/reno2 instproc run {} {
@@ -343,9 +351,10 @@ Test/reno2 instproc run {} {
 
 Class Test/reno3 -superclass TestSuite
 Test/reno3 instproc init {} {
-	$self instvar net_ test_ 
+	$self instvar net_ test_ guide_ 
 	set net_	net6
 	set test_	reno3(dropped_syn)
+	set guide_	"Reno TCP, initial window after a dropped SYN packet."
         $self next pktTraceFile
 }
 
@@ -361,9 +370,10 @@ Test/reno3 instproc run {} {
 
 Class Test/reno4 -superclass TestSuite
 Test/reno4 instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net7
 	set test_	reno4(fast_retransmit)
+	set guide_	"Reno TCP, window after a Fast Retransmit."
 	Queue/RED set ns1_compat_ true
 	$self next pktTraceFile
 }
@@ -381,9 +391,10 @@ Test/reno4 instproc run {} {
 
 Class Test/newreno1 -superclass TestSuite
 Test/newreno1 instproc init {} {
-	$self instvar net_ test_ 
+	$self instvar net_ test_ guide_ 
 	set net_	net6
 	set test_	newreno1(variable_packet_sizes)
+	set guide_	"NewReno TCP, initial windows with different packet sizes."
         $self next pktTraceFile
 }
 Test/newreno1 instproc run {} {
@@ -401,9 +412,10 @@ Test/newreno1 instproc run {} {
 
 Class Test/newreno2 -superclass TestSuite
 Test/newreno2 instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net6
 	set test_	newreno2(static_initial_windows)
+	set guide_	"NewReno TCP, static initial windows."
 	$self next pktTraceFile
 }
 Test/newreno2 instproc run {} {
@@ -425,9 +437,10 @@ Test/newreno2 instproc run {} {
 
 Class Test/newreno3 -superclass TestSuite
 Test/newreno3 instproc init {} {
-	$self instvar net_ test_ 
+	$self instvar net_ test_ guide_ 
 	set net_	net6
 	set test_	newreno3(dropped_syn)
+	set guide_	"NewReno TCP, initial window after a dropped SYN packet."
         $self next pktTraceFile
 }
 
@@ -443,9 +456,10 @@ Test/newreno3 instproc run {} {
 
 Class Test/newreno4 -superclass TestSuite
 Test/newreno4 instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net7
 	set test_	newreno4(fast_retransmit)
+	set guide_	"NewReno TCP, window after a Fast Retransmit."
 	Queue/RED set ns1_compat_ true
 	$self next pktTraceFile
 }
@@ -464,9 +478,10 @@ Test/newreno4 instproc run {} {
 
 Class Test/sack1 -superclass TestSuite
 Test/sack1 instproc init {} {
-	$self instvar net_ test_ 
+	$self instvar net_ test_ guide_ 
 	set net_	net6
 	set test_	sack1(variable_packet_sizes)
+	set guide_	"Sack TCP, initial windows with different packet sizes."
         $self next pktTraceFile
 }
 Test/sack1 instproc run {} {
@@ -484,9 +499,10 @@ Test/sack1 instproc run {} {
 
 Class Test/sack2 -superclass TestSuite
 Test/sack2 instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net6
 	set test_	sack2(static_initial_windows)
+	set guide_	"Sack TCP, static initial windows."
 	$self next pktTraceFile
 }
 Test/sack2 instproc run {} {
@@ -508,9 +524,10 @@ Test/sack2 instproc run {} {
 
 Class Test/sack3 -superclass TestSuite
 Test/sack3 instproc init {} {
-	$self instvar net_ test_ 
+	$self instvar net_ test_ guide_ 
 	set net_	net6
 	set test_	sack3(dropped_syn)
+	set guide_	"Sack TCP, initial window after a dropped SYN packet."
         $self next pktTraceFile
 }
 
@@ -526,9 +543,10 @@ Test/sack3 instproc run {} {
 
 Class Test/sack4 -superclass TestSuite
 Test/sack4 instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net7
 	set test_	sack4(fast_retransmit)
+	set guide_	"Sack TCP, window after a Fast Retransmit."
 	Queue/RED set ns1_compat_ true
 	$self next pktTraceFile
 }
@@ -571,9 +589,10 @@ TestSuite instproc printtimersAll { tcp time interval } {
 Class Test/slowLink -superclass TestSuite
 Test/slowLink instproc init {} {
 	global plotacks
-	$self instvar net_ test_ 
+	$self instvar net_ test_ guide_ 
 	set net_	net8
 	set test_	slowLink(9.6K-link,1000-byte-pkt)
+	set guide_	"Slow link, with statistics for sRTT, RTTvar, backoff"
         set plotacks true
         $self next pktTraceFile
 }
@@ -594,7 +613,7 @@ Test/slowLink instproc run {} {
 # Class Test/slowLinkDelayAck -superclass TestSuite
 # Test/slowLinkDelayAck instproc init {} {
 # 	global plotacks
-# 	$self instvar net_ test_ 
+# 	$self instvar net_ test_ guide_ 
 # 	set net_	net8
 # 	set test_	slowLinkDelayAck(9.6K-link,1000-byte-pkt)
 #         set plotacks true
@@ -617,9 +636,10 @@ Test/slowLink instproc run {} {
 Class Test/slowLink1 -superclass TestSuite
 Test/slowLink1 instproc init {} {
 	global plotacks
-	$self instvar net_ test_ 
+	$self instvar net_ test_ guide_ 
 	set net_	net8
 	set test_	slowLink1(9.6K-link,1500-byte-pkt)
+	set guide_	"Slow link, with larger packets and a smaller initial window."
         set plotacks true
         $self next pktTraceFile
 }
@@ -640,9 +660,10 @@ Test/slowLink1 instproc run {} {
 Class Test/slowLink2 -superclass TestSuite
 Test/slowLink2 instproc init {} {
 	global plotacks
-	$self instvar net_ test_ 
+	$self instvar net_ test_ guide_ 
 	set net_	net8
 	set test_	slowLink2(9.6K-link,1500-byte-pkt)
+	set guide_	"Slow link, with an initial window of two packets."
         set plotacks true
         $self next pktTraceFile
 }
@@ -659,7 +680,7 @@ Test/slowLink2 instproc run {} {
 # time 1.1: RTO, pkt 1 retransmitted, slow-start entered.
 # time 1.4: ACK arrives for (first) pkt 1, pkts 2 and 3 transmitted.
 # time 2.4: RTO, pkt 2 retransmitted, slow-start entered.
-# time 2.6: ACK arrives for (second) pkt 1. 
+# time 2.6: ACK arrives for (second) pkt 1.
 # time 3.7: RTO, pkt 2 retransmitted, slow-start entered.
 # time 3.9: ACK arrives for (first) pkt 2, pkt 3 retransmitted, pkt 4
 #           transmitted
@@ -667,9 +688,11 @@ Test/slowLink2 instproc run {} {
 
 Class Test/droppedSYN -superclass TestSuite
 Test/droppedSYN instproc init {} {
-	$self instvar net_ test_ 
+	$self instvar net_ test_ guide_ 
 	set net_	net6
 	set test_	droppedSYN
+	set guide_	"NewReno TCP before bugfix_ss_, dropped SYN packet." 
+	## static initial window of four packets
    	Agent/TCP set bugfix_ss_ 0
         Agent/TCP set windowInit_ 4
         $self next pktTraceFile
@@ -686,9 +709,11 @@ Test/droppedSYN instproc run {} {
 
 Class Test/droppedSYN1 -superclass TestSuite
 Test/droppedSYN1 instproc init {} {
-	$self instvar net_ test_ 
+	$self instvar net_ test_ guide_ 
 	set net_	net6
 	set test_	droppedSYN(bugfix_ss_)
+	set guide_	"NewReno TCP, dropped SYN packet." 
+	## static initial window of four packets
    	Agent/TCP set bugfix_ss_ 1
         Agent/TCP set windowInit_ 4
         Test/droppedSYN1 instproc run {} [Test/droppedSYN info instbody run ]
@@ -697,9 +722,11 @@ Test/droppedSYN1 instproc init {} {
 
 Class Test/droppedPKT -superclass TestSuite
 Test/droppedPKT instproc init {} {
-	$self instvar net_ test_ 
+	$self instvar net_ test_ guide_ 
 	set net_	net6
 	set test_	droppedPKT(Newreno)
+	set guide_	"NewReno TCP without bugfix_ss_, dropped initial data packet."
+	## static initial window of four packets
    	Agent/TCP set bugfix_ss_ 0
         Agent/TCP set windowInit_ 4
         $self next pktTraceFile
@@ -716,9 +743,11 @@ Test/droppedPKT instproc run {} {
 
 Class Test/droppedPKT1 -superclass TestSuite
 Test/droppedPKT1 instproc init {} {
-	$self instvar net_ test_ 
+	$self instvar net_ test_ guide_ 
 	set net_	net6
 	set test_	droppedPKT(NewReno,bugfix_ss_)
+	set guide_	"NewReno TCP, dropped initial data packet."
+	## static initial window of four packets
    	Agent/TCP set bugfix_ss_ 1
         Agent/TCP set windowInit_ 4
         Test/droppedPKT1 instproc run {} [Test/droppedPKT info instbody run ]
@@ -727,9 +756,11 @@ Test/droppedPKT1 instproc init {} {
 
 Class Test/droppedPKT2 -superclass TestSuite
 Test/droppedPKT2 instproc init {} {
-	$self instvar net_ test_ 
+	$self instvar net_ test_ guide_ 
 	set net_	net6
 	set test_	droppedPKT2(Sack)
+	set guide_	"Sack TCP without bugfix_ss_, dropped initial data packet."
+	## static initial window of four packets
    	Agent/TCP set bugfix_ss_ 0
         Agent/TCP set windowInit_ 4
         $self next pktTraceFile
@@ -746,9 +777,11 @@ Test/droppedPKT2 instproc run {} {
 
 Class Test/droppedPKT3 -superclass TestSuite
 Test/droppedPKT3 instproc init {} {
-	$self instvar net_ test_ 
+	$self instvar net_ test_ guide_ 
 	set net_	net6
 	set test_	droppedPKT3(Sack,bugfix_ss_)
+	set guide_	"Sack TCP, dropped initial data packet."
+	## static initial window of four packets
    	Agent/TCP set bugfix_ss_ 1
         Agent/TCP set windowInit_ 4
         Test/droppedPKT3 instproc run {} [Test/droppedPKT2 info instbody run ]
