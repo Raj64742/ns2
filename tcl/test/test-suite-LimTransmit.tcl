@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-LimTransmit.tcl,v 1.13 2006/01/24 23:00:06 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-LimTransmit.tcl,v 1.14 2006/08/13 04:45:59 sallyfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -163,8 +163,9 @@ TestSuite instproc drop_pkts { pkts {ecn 0}} {
 
 TestSuite instproc setup { tcptype list {ecn 0}} {
 	global wrap wrap1
-        $self instvar ns_ node_ testName_
+        $self instvar ns_ node_ testName_ guide_
 	$self setTopo
+	puts "Guide: $guide_"
 
         Agent/TCP set bugFix_ false
 	if {$ecn == "ECN"} {
@@ -202,9 +203,10 @@ TestSuite instproc setup { tcptype list {ecn 0}} {
 
 Class Test/onedrop_sack -superclass TestSuite
 Test/onedrop_sack instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	onedrop_sack
+	set guide_      "Sack TCP, no Limited Transmit, one packet drop, so timeout."
 	$self next pktTraceFile
 }
 Test/onedrop_sack instproc run {} {
@@ -213,9 +215,10 @@ Test/onedrop_sack instproc run {} {
 
 Class Test/onedrop_SA_sack -superclass TestSuite
 Test/onedrop_SA_sack instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	onedrop_SA_sack
+	set guide_      "Sack TCP, Limited Transmit, one packet drop, so Fast Retransmit."
 	Agent/TCP set singledup_ 1
 	Test/onedrop_SA_sack instproc run {} [Test/onedrop_sack info instbody run ]
 	$self next pktTraceFile
@@ -223,9 +226,10 @@ Test/onedrop_SA_sack instproc init {} {
 
 Class Test/onedrop_ECN_sack -superclass TestSuite
 Test/onedrop_ECN_sack instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	onedrop_ECN_sack
+	set guide_      "Sack TCP, ECN, one packet drop, so Fast Retransmit."
 	Agent/TCP set ecn_ 1
 	$self next pktTraceFile
 }
@@ -235,126 +239,14 @@ Test/onedrop_ECN_sack instproc run {} {
 
 Class Test/nodrop_sack -superclass TestSuite
 Test/nodrop_sack instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	nodrop_sack
+	set guide_      "Sack TCP with no packet drops, for comparison."
 	$self next pktTraceFile
 }
 Test/nodrop_sack instproc run {} {
         $self setup Sack1 {1000} 
-}
-
-
-# Bad Retransmit Timeout.
-Class Test/badtimeout -superclass TestSuite
-Test/badtimeout instproc init {} {
-	$self instvar net_ test_
-	set net_	net4
-	set test_	badtimeout
-	$self next pktTraceFile
-}
-Test/badtimeout instproc run {} {
-	global wrap wrap1
-        $self instvar ns_ node_ testName_
-	$self setTopo
-
-	set ecn 0
-        Agent/TCP set bugFix_ false
-	set fid 1
-        # Set up TCP connection
-      	set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) \
-        TCPSink/Sack1/DelAck  $node_(k1) $fid]
-        $tcp1 set window_ 20
-        set ftp1 [$tcp1 attach-app FTP]
-        $ns_ at 0.0 "$ftp1 produce 99"
-	$self drop_pkts {1000}
-
-        $self tcpDump $tcp1 5.0
-
-        #$self traceQueues $node_(r1) [$self openTrace 6.0 $testName_]
-	# 0.5, 0.8, 1450
-	$ns_ at 1.4 "$ns_ delay $node_(r1) $node_(k1) 1650ms simplex"
-	$ns_ at 1.7  "$ns_ delay $node_(r1) $node_(k1) 100ms simplex"
-	$ns_ at 6.0 "$self cleanupAll $testName_"
-        $ns_ run
-}
-
-Class Test/notimeout -superclass TestSuite
-Test/notimeout instproc init {} {
-	$self instvar net_ test_
-	set net_	net4
-	set test_	notimeout
-	Agent/TCP set tcpTick_ 1.0
-	Test/notimeout instproc run {} [Test/badtimeout info instbody run ]
-	$self next pktTraceFile
-}
-
-# Bad Fast Retransmit.
-Class Test/badretransmit -superclass TestSuite
-Test/badretransmit instproc init {} {
-	$self instvar net_ test_
-	set net_	net4
-	set test_	badretransmit
-	$self next pktTraceFile
-}
-Test/badretransmit instproc run {} {
-	global wrap wrap1
-        $self instvar ns_ node_ testName_
-	$self setTopo
-	$ns_ queue-limit $node_(r1) $node_(k1) 100
-
-	set ecn 0
-        Agent/TCP set bugFix_ false
-	set fid 1
-        # Set up TCP connection
-      	set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) \
-        TCPSink/Sack1/DelAck  $node_(k1) $fid]
-        $tcp1 set window_ 25
-        set ftp1 [$tcp1 attach-app FTP]
-        $ns_ at 0.0 "$ftp1 produce 89"
-	$self drop_pkts {1000}
-
-        $self tcpDump $tcp1 5.0
-
-        #$self traceQueues $node_(r1) [$self openTrace 6.0 $testName_]
-	$ns_ at 0.753 "$ns_ delay $node_(r1) $node_(k1) 220ms simplex"
-	$ns_ at 0.756  "$ns_ delay $node_(r1) $node_(k1) 100ms simplex"
-	$ns_ at 6.0 "$self cleanupAll $testName_"
-        $ns_ run
-}
-
-# Bad Fast Retransmit.
-Class Test/nobadretransmit -superclass TestSuite
-Test/nobadretransmit instproc init {} {
-	$self instvar net_ test_
-	set net_	net4
-	set test_	nobadretransmit
-	$self next pktTraceFile
-}
-Test/nobadretransmit instproc run {} {
-	global wrap wrap1
-        $self instvar ns_ node_ testName_
-	$self setTopo
-	$ns_ queue-limit $node_(r1) $node_(k1) 100
-
-	set ecn 0
-        Agent/TCP set bugFix_ false
-	set fid 1
-        # Set up TCP connection
-      	set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) \
-        TCPSink/Sack1/DelAck  $node_(k1) $fid]
-        $tcp1 set window_ 25
-        set ftp1 [$tcp1 attach-app FTP]
-        $ns_ at 0.0 "$ftp1 produce 89"
-	$self drop_pkts {1000}
-
-        $self tcpDump $tcp1 5.0
-
-        #$self traceQueues $node_(r1) [$self openTrace 6.0 $testName_]
-	$ns_ at 0.753 "$ns_ delay $node_(r1) $node_(k1) 210ms simplex"
-	$ns_ at 0.756  "$ns_ delay $node_(r1) $node_(k1) 100ms simplex"
-	$ns_ at 6.0 "$self cleanupAll $testName_"
-        $ns_ run
 }
 
 TestSuite runTest
