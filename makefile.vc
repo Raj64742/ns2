@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: 2002/10/09 15:33:53
+# @(#) $Header: 2002/10/09 15:34:11
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -52,31 +52,34 @@ PERL	= @PERL@
 # for diffusion
 #DIFF_INCLUDES = "./diffusion3/main ./diffusion3/lib ./diffusion3/nr ./diffusion3/ns"
 
-CCOPT	= @V_CCOPT@
+CCOPT	= @V_CCOPT@ 
 STATIC	= @V_STATIC@
-LDFLAGS	= $(STATIC)
+#LDFLAGS	= $(STATIC)
+LDFLAGS	= @LDFLAGS@
 LDOUT	= -o $(BLANK)
 
-DEFINE	= -DTCP_DELAY_BIND_ALL -DNO_TK -DNIXVECTOR @V_DEFINE@ @V_DEFINES@ @DEFS@ -DPGM -DPGM_DEBUG -DNS_DIFFUSION
+DEFINE	= -DTCP_DELAY_BIND_ALL -DNO_TK @V_DEFINE@ @V_DEFINES@ @DEFS@ -DNS_DIFFUSION -DSMAC_NO_SYNC -DCPP_NAMESPACE=@CPP_NAMESPACE@ -DUSE_SINGLE_ADDRESS_SPACE -Drng_test
 
 INCLUDES = \
-	-I. @V_INCLUDE_X11@ \
+	-I. \
 	@V_INCLUDES@ \
-	-I./tcp -I./common -I./link -I./queue \
+	-I./tcp -I./sctp -I./common -I./link -I./queue \
 	-I./adc -I./apps -I./mac -I./mobile -I./trace \
 	-I./routing -I./tools -I./classifier -I./mcast \
-	-I./diffusion3/main -I./diffusion3/lib \
-	-I./diffusion3/nr -I./diffusion3/ns -I./asim/
+	-I./diffusion3/lib/main -I./diffusion3/lib \
+	-I./diffusion3/lib/nr -I./diffusion3/ns \
+	-I./diffusion3/filter_core -I./asim/ -I./qs \
+	-I./diffserv -I./satellite \
+	-I./wpan
 
 
 LIB	= \
 	@V_LIBS@ \
-	@V_LIB_X11@ \
 	@V_LIB@ \
 	-lm @LIBS@
 #	-L@libdir@ \
 
-CFLAGS	= $(CCOPT) $(DEFINE)
+CFLAGS	+= $(CCOPT) $(DEFINE)
 
 # Explicitly define compilation rules since SunOS 4's make doesn't like gcc.
 # Also, gcc does not remove the .o before forking 'as', which can be a
@@ -101,28 +104,51 @@ NSE	= nse
 # To allow conf/makefile.win overwrite this macro
 # We will set these two macros to empty in conf/makefile.win since VC6.0
 # does not seem to support the STL in gcc 2.8 and up. 
-OBJ_STL = linkstate/ls.o linkstate/rtProtoLS.o \
-	pgm/classifier-pgm.o pgm/pgm-agent.o pgm/pgm-sender.o \
-	pgm/pgm-receiver.o pgm/rcvbuf.o \
-	diffusion3/nr/nr.o diffusion3/lib/dr.o \
-	diffusion3/ns/diffagent.o diffusion3/ns/diffrtg.o \
-	diffusion3/ns/difftimer.o diffusion3/main/diffusion.o \
-	diffusion3/main/attrs.o diffusion3/main/iodev.o \
-	diffusion3/main/events.o diffusion3/main/message.o \
-	diffusion3/main/hashutils.o diffusion3/main/stats.o \
-	diffusion3/main/tools.o diffusion3/main/drivers/rpc_stats.o \
-	diffusion3/apps/sysapps/gradient.o \
-	diffusion3/apps/sysapps/log.o \
+OBJ_STL = diffusion3/lib/nr/nr.o diffusion3/lib/dr.o \
+	diffusion3/filters/diffusion/one_phase_pull.o \
+	diffusion3/filters/diffusion/two_phase_pull.o \
 	diffusion3/lib/diffapp.o \
-	diffusion3/apps/agents/ping_sender.o \
-	diffusion3/apps/agents/ping_receiver.o \
-	diffusion3/apps/agents/ping_common.o \
-	diffusion3/apps/gear/geo-attr.o \
-	diffusion3/apps/gear/geo-routing.o \
-	diffusion3/apps/gear/geo-tools.o		
+	diffusion3/ns/diffagent.o diffusion3/ns/diffrtg.o \
+	diffusion3/ns/difftimer.o \
+	diffusion3/filter_core/filter_core.o \
+	diffusion3/filter_core/iolog.o \
+	diffusion3/filter_core/iostats.o \
+	diffusion3/lib/main/attrs.o \
+	diffusion3/lib/main/events.o \
+	diffusion3/lib/main/iodev.o \
+	diffusion3/lib/main/iohook.o \
+	diffusion3/lib/main/timers.o \
+	diffusion3/lib/main/message.o \
+	diffusion3/lib/main/tools.o \
+	diffusion3/apps/gear_examples/gear_common.o \
+	diffusion3/apps/gear_examples/gear_receiver.o \
+	diffusion3/apps/gear_examples/gear_sender.o \
+	diffusion3/apps/rmst_examples/rmst_sink.o \
+	diffusion3/apps/rmst_examples/rmst_source.o \
+	diffusion3/apps/ping/1pp_ping_sender.o \
+	diffusion3/apps/ping/1pp_ping_receiver.o \
+	diffusion3/apps/ping/2pp_ping_sender.o \
+	diffusion3/apps/ping/2pp_ping_receiver.o \
+	diffusion3/apps/ping/ping_common.o \
+	diffusion3/apps/ping/push_receiver.o \
+	diffusion3/apps/ping/push_sender.o \
+	diffusion3/filters/gear/gear_attr.o \
+	diffusion3/filters/gear/gear.o \
+	diffusion3/filters/gear/gear_tools.o \
+	diffusion3/filters/misc/log.o \
+	diffusion3/filters/misc/srcrt.o \
+	diffusion3/filters/misc/tag.o \
+	diffusion3/filters/rmst/rmst.o \
+	diffusion3/filters/rmst/rmst_filter.o \
+	delaybox/delaybox.o \
+	packmime/packmime_HTTP.o packmime/packmime_HTTP_rng.o \
+	packmime/packmime_OL.o packmime/packmime_OL_ranvar.o\
+	packmime/packmime_ranvar.o
 
-NS_TCL_LIB_STL = tcl/rtglib/ns-rtProtoLS.tcl \
-	tcl/lib/ns-diffusion.tcl
+NS_TCL_LIB_STL = tcl/lib/ns-diffusion.tcl \
+	tcl/delaybox/delaybox.tcl \
+	tcl/packmime/packmime.tcl
+
 
 # WIN32: uncomment the following line to include specific make for VC++
 !include <conf/makefile.win>
@@ -139,8 +165,10 @@ OBJ_CC = \
 	classifier/classifier-bst.o \
 	classifier/classifier-mpath.o mcast/replicator.o \
 	classifier/classifier-mac.o \
+	classifier/classifier-qs.o \
 	classifier/classifier-port.o src_rtg/classifier-sr.o \
         src_rtg/sragent.o src_rtg/hdr_src.o adc/ump.o \
+	qs/qsagent.o qs/hdr_qs.o \
 	apps/app.o apps/telnet.o tcp/tcplib-telnet.o \
 	tools/trafgen.o trace/traffictrace.o tools/pareto.o \
 	tools/expoo.o tools/cbr_traffic.o \
@@ -154,15 +182,22 @@ OBJ_CC = \
 	common/agent.o common/message.o apps/udp.o \
 	common/session-rtp.o apps/rtp.o tcp/rtcp.o \
 	common/ivs.o \
+	common/messpass.o common/tp.o common/tpm.o apps/worm.o \
 	tcp/tcp.o tcp/tcp-sink.o tcp/tcp-reno.o \
 	tcp/tcp-newreno.o \
 	tcp/tcp-vegas.o tcp/tcp-rbp.o tcp/tcp-full.o tcp/rq.o \
 	baytcp/tcp-full-bay.o baytcp/ftpc.o baytcp/ftps.o \
-	tcp/scoreboard.o tcp/tcp-sack1.o tcp/tcp-fack.o \
+	tcp/scoreboard.o tcp/scoreboard-rq.o tcp/tcp-sack1.o tcp/tcp-fack.o \
 	tcp/tcp-asym.o tcp/tcp-asym-sink.o tcp/tcp-fs.o \
 	tcp/tcp-asym-fs.o \
 	tcp/tcp-int.o tcp/chost.o tcp/tcp-session.o \
 	tcp/nilist.o \
+	sctp/sctp.o apps/sctp_app1.o\
+	sctp/sctp-timestamp.o sctp/sctp-hbAfterRto.o \
+	sctp/sctp-multipleFastRtx.o sctp/sctp-mfrHbAfterRto.o \
+	sctp/sctp-mfrTimestamp.o \
+	sctp/sctp-cmt.o \
+	sctp/sctpDebug.o \
 	tools/integrator.o tools/queue-monitor.o \
 	tools/flowmon.o tools/loss-monitor.o \
 	queue/queue.o queue/drop-tail.o \
@@ -170,6 +205,7 @@ OBJ_CC = \
 	queue/semantic-packetqueue.o queue/semantic-red.o \
 	tcp/ack-recons.o \
 	queue/sfq.o queue/fq.o queue/drr.o queue/srr.o queue/cbq.o \
+	queue/jobs.o queue/marker.o queue/demarker.o \
 	link/hackloss.o queue/errmodel.o queue/fec.o\
 	link/delay.o tcp/snoop.o \
 	gaf/gaf.o \
@@ -177,14 +213,14 @@ OBJ_CC = \
 	mcast/ctrMcast.o mcast/mcast_ctrl.o mcast/srm.o \
 	common/sessionhelper.o queue/delaymodel.o \
 	mcast/srm-ssm.o mcast/srm-topo.o \
-	apps/mftp.o apps/mftp_snd.o apps/mftp_rcv.o \
-	apps/codeword.o \
 	routing/alloc-address.o routing/address.o \
 	$(LIB_DIR)int.Vec.o $(LIB_DIR)int.RVec.o \
 	$(LIB_DIR)dmalloc_support.o \
 	webcache/http.o webcache/tcp-simple.o webcache/pagepool.o \
 	webcache/inval-agent.o webcache/tcpapp.o webcache/http-aux.o \
 	webcache/mcache.o webcache/webtraf.o \
+	webcache/webserver.o \
+	webcache/logweb.o \
 	empweb/empweb.o \
 	empweb/empftp.o \
 	realaudio/realaudio.o \
@@ -193,18 +229,20 @@ OBJ_CC = \
 	common/Decapsulator.o common/Encapsulator.o \
 	common/encap.o \
 	mac/channel.o mac/mac.o mac/ll.o mac/mac-802_11.o \
-	mac/mac-802_3.o mac/mac-tdma.o \
+	mac/mac-802_3.o mac/mac-tdma.o mac/smac.o \
 	mobile/mip.o mobile/mip-reg.o mobile/gridkeeper.o \
 	mobile/propagation.o mobile/tworayground.o \
 	mobile/antenna.o mobile/omni-antenna.o \
-	mobile/shadowing.o mobile/shadowing-vis.o \
+	mobile/shadowing.o mobile/shadowing-vis.o mobile/dumb-agent.o \
 	common/bi-connector.o common/node.o \
 	common/mobilenode.o \
 	mac/arp.o mobile/god.o mobile/dem.o \
 	mobile/topography.o mobile/modulation.o \
-	queue/priqueue.o \
+	queue/priqueue.o queue/dsr-priqueue.o \
 	mac/phy.o mac/wired-phy.o mac/wireless-phy.o \
 	mac/mac-timers.o trace/cmu-trace.o mac/varp.o \
+	mac/mac-simple.o \
+	satellite/sat-hdlc.o \
 	dsdv/dsdv.o dsdv/rtable.o queue/rtqueue.o \
 	routing/rttable.o \
 	imep/imep.o imep/dest_queue.o imep/imep_api.o \
@@ -246,7 +284,7 @@ OBJ_CC = \
 	nix/nixroute.o \
 	diffserv/dsred.o diffserv/dsredq.o \
 	diffserv/dsEdge.o diffserv/dsCore.o \
-	diffserv/dsPolicy.o diffserv/ew.o\
+	diffserv/dsPolicy.o diffserv/ew.o diffserv/dewp.o \
 	queue/red-pd.o queue/pi.o queue/vq.o queue/rem.o \
 	queue/gk.o \
 	pushback/rate-limit.o pushback/rate-limit-strategy.o \
@@ -256,6 +294,19 @@ OBJ_CC = \
 	pushback/pushback-queue.o pushback/pushback.o \
 	common/parentnode.o trace/basetrace.o \
 	common/simulator.o asim/asim.o \
+	common/scheduler-map.o common/splay-scheduler.o \
+	linkstate/ls.o linkstate/rtProtoLS.o \
+	pgm/classifier-pgm.o pgm/pgm-agent.o pgm/pgm-sender.o \
+	pgm/pgm-receiver.o mcast/rcvbuf.o \
+	mcast/classifier-lms.o mcast/lms-agent.o mcast/lms-receiver.o \
+	mcast/lms-sender.o \
+	queue/delayer.o \
+	xcp/xcpq.o xcp/xcp.o xcp/xcp-end-sys.o \
+	wpan/p802_15_4csmaca.o wpan/p802_15_4fail.o \
+	wpan/p802_15_4hlist.o wpan/p802_15_4mac.o \
+	wpan/p802_15_4nam.o wpan/p802_15_4phy.o \
+	wpan/p802_15_4sscs.o wpan/p802_15_4timer.o \
+	wpan/p802_15_4trace.o wpan/p802_15_4transac.o \
 	@V_STLOBJ@
 
 
@@ -373,9 +424,6 @@ NS_TCL_LIB = \
 	tcl/mcast/srm-ssm.tcl \
 	tcl/mcast/timer.tcl \
 	tcl/mcast/McastMonitor.tcl \
-	tcl/mcast/mftp_snd.tcl \
-	tcl/mcast/mftp_rcv.tcl \
-	tcl/mcast/mftp_rcv_stat.tcl \
 	tcl/mobility/dsdv.tcl \
 	tcl/mobility/dsr.tcl \
         tcl/ctr-mcast/CtrMcast.tcl \
@@ -406,6 +454,8 @@ NS_TCL_LIB = \
 	tcl/mpls/ns-mpls-simulator.tcl \
 	tcl/lib/ns-pushback.tcl \
 	tcl/lib/ns-srcrt.tcl \
+	tcl/mcast/ns-lms.tcl \
+	tcl/lib/ns-qsnode.tcl \
 	@V_NS_TCL_LIB_STL@
 
 $(GEN_DIR)ns_tcl.cc: $(NS_TCL_LIB)
@@ -425,13 +475,21 @@ common/ptypes2tcl.exe: common/ptypes2tcl.o
 
 common/ptypes2tcl.o: common/ptypes2tcl.cc common/packet.h
 
-install: force install-ns install-man install-recursive
+dirs:
+	for d in $(DESTDIR)$(MANDEST)/man1; do \
+		if [ ! -d $$d ]; then \
+			mkdir -p $$d ;\
+		fi;\
+	done
+
+
+install: dirs force install-ns install-man
 
 install-ns: force
-	$(INSTALL) -m 555 -o bin -g bin ns $(DESTDIR)$(BINDEST)
+	$(INSTALL) -m 755 ns $(DESTDIR)$(BINDEST)
 
 install-man: force
-	$(INSTALL) -m 444 -o bin -g bin ns.1 $(DESTDIR)$(MANDEST)/man1
+	$(INSTALL) -m 644 ns.1 $(DESTDIR)$(MANDEST)/man1
 
 install-recursive: force
 	for i in $(SUBDIRS); do ( cd $$i; $(MAKE) install; ) done
@@ -441,7 +499,7 @@ clean:
 
 distclean: distclean-recursive
 	$(RM) $(CLEANFILES) Makefile config.cache config.log config.status \
-	    gnuc.h os-proto.h $(AUTOCONF_GEN); \
+	    autoconf.h gnuc.h os-proto.h $(AUTOCONF_GEN); \
 	$(MV) .configure .configure- ;\
 	echo "Moved .configure to .configure-"
 
@@ -467,7 +525,7 @@ tcl/lib/TAGS:	force
 	)
 
 depend: $(SRC)
-	$(MKDEP) $(CFLAGS) $(INCLUDES) $(SRC)
+	$(MKDEP) -- $(CFLAGS) $(INCLUDES) -- -Y $(SRC) >& /dev/null
 
 srctar:
 	@cwd=`pwd` ; dir=`basename $$cwd` ; \

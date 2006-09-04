@@ -33,7 +33,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.h,v 1.7 2006/06/23 14:28:40 tom_henderson Exp $ (UD/PEL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.h,v 1.7.2.1 2006/09/04 20:03:18 iyappanr Exp $ (UD/PEL)
  */
 
 #ifndef ns_sctp_h
@@ -766,7 +766,7 @@ protected:
 
   /* debugging functions
    */
-  void SctpAgent::DumpSendBuffer();
+  void DumpSendBuffer();
 
   /* sctp association state variable
    */
