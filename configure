@@ -5193,7 +5193,7 @@ else
   d=""
 fi;
 
-OTCL_VERS=1.11
+OTCL_VERS=1.12
 OTCL_ALT_VERS=1.0
 
 OTCL_H_PLACES_D="$d \
@@ -5416,7 +5416,7 @@ else
   d=""
 fi;
 
-TCLCL_VERS=1.17
+TCLCL_VERS=1.18
 TCLCL_ALT_VERS=1.0
 
 TCLCL_H_PLACES="\
