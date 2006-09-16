@@ -4926,7 +4926,10 @@ TK_H_PLACES=" \
                 $x_includes/tk \
                 $x_includes \
                 /usr/include \
-                /usr/include/tcl"
+                /usr/include/tcl \
+                /usr/include/tcl$TK_VERS \
+                /usr/include/tcl$TK_ALT_VERS \
+                /usr/include/tcl$TK_HI_VERS"
 TK_LIB_PLACES_D="$d \
                 $d/lib \
 		$d/unix"
