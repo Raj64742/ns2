@@ -30,19 +30,12 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.28 2006/07/23 20:47:17 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.29 2006/09/26 20:56:06 sallyfloyd Exp $
 #
 
 source misc_simple.tcl
 source support.tcl
 # FOR UPDATING GLOBAL DEFAULTS:
-Agent/TCP set tcpTick_ 0.1
-# The default for tcpTick_ is being changed to reflect a changing reality.
-Agent/TCP set rfc2988_ false
-# The default for rfc2988_ is being changed to true.
-Agent/TCP set precisionReduce_ false ;   # default changed on 2006/1/24.
-Agent/TCP set rtxcur_init_ 6.0 ;      # Default changed on 2006/01/21
-Agent/TCP set updated_rttvar_ false ;  # Variable added on 2006/1/21
 Agent/TCP set minrto_ 1
 # default changed on 10/14/2004.
 Queue/RED set bytes_ false              
@@ -53,17 +46,6 @@ Queue/RED set q_weight_ 0.002
 Queue/RED set thresh_ 5 
 Queue/RED set maxthresh_ 15
 # The RED parameter defaults are being changed for automatic configuration.
-Agent/TCP set useHeaders_ false
-# The default is being changed to useHeaders_ true.
-Agent/TCP set windowInit_ 1
-# The default is being changed to 2.
-Agent/TCP set singledup_ 0
-# The default is being changed to 1
-Agent/TCP set minrto_ 0
-# The default is being changed to minrto_ 1
-Agent/TCP set syn_ false
-Agent/TCP set delay_growth_ false
-# In preparation for changing the default values for syn_ and delay_growth_.
 
 TestSuite instproc finish file {
         global quiet PERL
@@ -92,6 +74,8 @@ TestSuite instproc finish file {
         }
         ## now use default graphing tool to make a data file
         ## if so desired
+        # exec csh gnuplotC2.com temp.rands temp1.rands $file
+        ##
         exit 0
 }
 
@@ -487,6 +471,7 @@ Test/sackB2 instproc init {} {
     set net_	net0
     set test_	sackB2
     set guide_      "Guide: SACK TCP, a connection with a long recovery"
+    Agent/TCP set windowInit_ 1
     $self next pktTraceFile
 }
 Test/sackB2 instproc run {} {
@@ -667,7 +652,7 @@ Test/sack_dupacks1 instproc init {} {
     $self instvar net_ test_ guide_
     set net_	net4
     set test_	sack_dupacks1
-    set guide_      "Guide: SACK TCP, Fast Recovery with modified numdupacks?"
+    set guide_      "Guide: SACK TCP, Fast Recovery with modified numdupacks"
     Agent/TCP set numdupacksFrac_ 4
     Test/sack_dupacks1 instproc run {} [Test/sack_dupacks info instbody run] 
     $self next pktTraceFile
