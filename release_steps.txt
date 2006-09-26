@@ -13,7 +13,10 @@ If necessary, do a otcl,tclcl release. Following are things you need to do for a
 2. update CHANGES.html to show when release happens.
 3. make srctar.
 4. update CHANGES.html to add a new section for the next pending release.
-
+5. nam-- revise the version numbers for Nam and NamGraph in
+tcl/animator.tcl
+tcl/nam-default.tcl
+tcl/www.tcl
 
 NS RELEASE
 
