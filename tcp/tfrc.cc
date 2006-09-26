@@ -390,7 +390,6 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 	
 	/* if we are in slow start and we just saw a loss */
 	/* then come out of slow start */
-
 	if (first_pkt_rcvd == 0) {
 		first_pkt_rcvd = 1 ; 
 		slowstart();
@@ -418,6 +417,8 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 		printf("time: %5.2f rate: %5.2f\n", now, rate_);
 		double packetrate = rate_ * rtt_ / size_;
 		printf("time: %5.2f packetrate: %5.2f\n", now, packetrate);
+		double maxrate = maxrate_ * rtt_ / size_;
+		printf("time: %5.2f maxrate: %5.2f\n", now, maxrate);
 	}
 	Packet::free(pkt);
 }
@@ -510,6 +511,10 @@ void TfrcAgent::slowstart ()
         	last_change_=now;
 	}
 	if (debug_) printf("SlowStart: now: %5.2f rate: %5.2f delta: %5.2f\n", now, rate_, delta_);
+	if (printStatus_) {
+		double rate = rate_ * rtt_ / size_;
+	  	printf("SlowStart: now: %5.2f rate: %5.2f ss_maxrate: %5.2f delta: %5.2f\n", now, rate, ss_maxrate_, delta_);
+	}
 }
 
 void TfrcAgent::increase_rate (double p)
@@ -537,6 +542,10 @@ void TfrcAgent::increase_rate (double p)
         last_change_ = now;
 	heavyrounds_ = 0;
 	if (debug_) printf("Increase: now: %5.2f rate: %5.2f lastlimited: %5.2f rtt: %5.2f\n", now, rate_, lastlimited_, rtt_);
+	if (printStatus_) {
+		double rate = rate_ * rtt_ / size_;
+		printf("Increase: now: %5.2f rate: %5.2f lastlimited: %5.2f rtt: %5.2f\n", now, rate, lastlimited_, rtt_);
+	}
 }       
 
 void TfrcAgent::decrease_rate () 
@@ -558,6 +567,11 @@ void TfrcAgent::decrease_rate ()
 
 	rate_change_ = RATE_DECREASE;
 	last_change_ = now;
+	if (debug_) printf("Decrease: now: %5.2f rate: %5.2f rtt: %5.2f\n", now, rate_, rtt_);
+	if (printStatus_) {
+		double rate = rate_ * rtt_ / size_;
+		printf("Decrease: now: %5.2f rate: %5.2f rtt: %5.2f\n", now, rate, rtt_);
+	}
 }
 
 void TfrcAgent::sendpkt()
@@ -602,7 +616,11 @@ void TfrcAgent::sendpkt()
 void TfrcAgent::reduce_rate_on_no_feedback()
 {
 	double now = Scheduler::instance().clock();
-	rate_change_ = RATE_DECREASE; 
+	if (rate_change_ != SLOW_START)
+		// "if" statement added by Sally on 9/25/06,
+		// so that an idle report doesn't kick us out of
+		// slow-start!
+		rate_change_ = RATE_DECREASE; 
 	if (oldCode_ || (!all_idle_ && !datalimited_)) {
 		// if we are not datalimited
 		rate_*=0.5;
