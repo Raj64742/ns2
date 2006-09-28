@@ -173,9 +173,4 @@ D.~Waitzman, C.~Partridge, and S.E. Deering.
 \newblock {\em {Distance Vector Multicast Routing Protocol}}, {RFC 1075}
   edition, 1988.
 
-\bibitem{Katabi02}
-Dina Katabi, Mark Handley, and Chalrie Rohrs.
-\newblock Congestion Control for High Bandwidth-Delay Product Networks
-\newblock ACM Sigcomm 2002
-
 \end{thebibliography}

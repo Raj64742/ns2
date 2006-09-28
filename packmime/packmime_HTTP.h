@@ -290,9 +290,9 @@ class PackMimeHTTP : public TclObject {
 	}
 
 	// Agent and App Pools	
-	queue<FullTcpAgent*> tcpPool_;
-	queue<PackMimeHTTPClientApp*> clientAppPool_;
-	queue<PackMimeHTTPServerApp*> serverAppPool_;
+	std::queue<FullTcpAgent*> tcpPool_;
+	std::queue<PackMimeHTTPClientApp*> clientAppPool_;
+	std::queue<PackMimeHTTPServerApp*> serverAppPool_;
 
 	// string = tcpAgent's name
 	map<string, PackMimeHTTPClientApp*> clientAppActive_;
