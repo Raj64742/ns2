@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rfc2581.tcl,v 1.9 2006/01/24 23:00:07 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rfc2581.tcl,v 1.10 2006/10/03 11:10:10 sallyfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -47,20 +47,17 @@ Agent/TCP set rtxcur_init_ 6.0 ;      # Default changed on 2006/01/21
 Agent/TCP set updated_rttvar_ false ;  # Variable added on 2006/1/21
 Agent/TCP set tcpTick_ 0.1
 # The default for tcpTick_ is being changed to reflect a changing reality.
-Agent/TCP set rfc2988_ false
-# The default for rfc2988_ is being changed to true.
-# FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set useHeaders_ false
 # The default is being changed to useHeaders_ true.
-Agent/TCP set windowInit_ 1
-# The default is being changed to 2.
-Agent/TCP set singledup_ 0
-# The default is being changed to 1
 Agent/TCP set minrto_ 0
 # The default is being changed to minrto_ 1
 Agent/TCP set syn_ false
 Agent/TCP set delay_growth_ false
 # In preparation for changing the default values for syn_ and delay_growth_.
+
+Agent/TCP set rfc2988_ false
+Agent/TCP set singledup_ 0
+Agent/TCP set windowInit_ 1
 
 Trace set show_tcphdr_ 1
 
@@ -143,8 +140,9 @@ TestSuite instproc drop_pkts pkts {
 
 TestSuite instproc setup {tcptype list} {
 	global wrap wrap1
-        $self instvar ns_ node_ testName_
+        $self instvar ns_ node_ testName_ guide_
 
+	puts "Guide: $guide_"
 	set fid 1
         # Set up TCP connection
     	if {$tcptype == "Tahoe"} {
@@ -177,10 +175,11 @@ TestSuite instproc setup {tcptype list} {
 
 Class Test/immediateAck -superclass TestSuite
 Test/immediateAck instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net4
 	set test_	immediateAck
+	set guide_      "Tahoe, immediate ACK after an out-of-order packet."
 	Agent/TCPSink set RFC2581_immediate_ack_ true
 	$self next
 }
@@ -191,10 +190,11 @@ Test/immediateAck instproc run {} {
 
 Class Test/noImmediateAck -superclass TestSuite
 Test/noImmediateAck instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net4
 	set test_	noImmediateAck
+	set guide_      "Tahoe, no immediate ACK after an out-of-order packet."
 	Agent/TCPSink set RFC2581_immediate_ack_ false
 	Test/noImmediateAck instproc run {} [Test/immediateAck info instbody run ]
 	$self next
@@ -202,10 +202,11 @@ Test/noImmediateAck instproc init topo {
 
 Class Test/immediateAckReno -superclass TestSuite
 Test/immediateAckReno instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net4
 	set test_	immediateAckReno
+	set guide_      "Reno, immediate ACK after an out-of-order packet."
 	Agent/TCPSink set RFC2581_immediate_ack_ true
 	$self next
 }
@@ -216,10 +217,11 @@ Test/immediateAckReno instproc run {} {
 
 Class Test/noImmediateAckReno -superclass TestSuite
 Test/noImmediateAckReno instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net4
 	set test_	noImmediateAckReno
+	set guide_      "Reno, no immediate ACK after an out-of-order packet."
 	Agent/TCPSink set RFC2581_immediate_ack_ false
 	Test/noImmediateAckReno instproc run {} [Test/immediateAckReno info instbody run ]
 	$self next
@@ -227,10 +229,11 @@ Test/noImmediateAckReno instproc init topo {
 
 Class Test/immediateAckNewReno -superclass TestSuite
 Test/immediateAckNewReno instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net4
 	set test_	immediateAckNewReno
+	set guide_      "New Reno, immediate ACK after an out-of-order packet."
 	Agent/TCPSink set RFC2581_immediate_ack_ true
 	$self next
 }
@@ -241,10 +244,11 @@ Test/immediateAckNewReno instproc run {} {
 
 Class Test/noImmediateAckNewReno -superclass TestSuite
 Test/noImmediateAckNewReno instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net4
 	set test_	noImmediateAckNewReno
+	set guide_      "New Reno, no immediate ACK after an out-of-order packet."
 	Agent/TCPSink set RFC2581_immediate_ack_ false
 	Test/noImmediateAckNewReno instproc run {} [Test/immediateAckNewReno info instbody run ]
 	$self next
@@ -252,10 +256,11 @@ Test/noImmediateAckNewReno instproc init topo {
 
 Class Test/immediateAckSack -superclass TestSuite
 Test/immediateAckSack instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net4
 	set test_	immediateAckSack
+	set guide_      "Sack, immediate ACK after an out-of-order packet."
 	Agent/TCPSink set RFC2581_immediate_ack_ true
 	$self next
 }
@@ -266,10 +271,11 @@ Test/immediateAckSack instproc run {} {
 
 Class Test/noImmediateAckSack -superclass TestSuite
 Test/noImmediateAckSack instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net4
 	set test_	noImmediateAckSack
+	set guide_      "Sack, no immediate ACK after an out-of-order packet."
 	Agent/TCPSink set RFC2581_immediate_ack_ false
 	Test/noImmediateAckSack instproc run {} [Test/immediateAckSack info instbody run ]
 	$self next
