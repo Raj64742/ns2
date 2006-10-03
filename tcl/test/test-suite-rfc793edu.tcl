@@ -8,22 +8,18 @@ Agent/TCP set rtxcur_init_ 6.0 ;      # Default changed on 2006/01/21
 Agent/TCP set updated_rttvar_ false ;  # Variable added on 2006/1/21
 Agent/TCP set tcpTick_ 0.1
 # The default for tcpTick_ is being changed to reflect a changing reality.
-Agent/TCP set rfc2988_ false
-# The default for rfc2988_ is being changed to true.
-# FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set minrto_ 1
 # default changed on 10/14/2004.
 Agent/TCP set useHeaders_ false
 # The default is being changed to useHeaders_ true.
-Agent/TCP set windowInit_ 1
-# The default is being changed to 2.
-Agent/TCP set singledup_ 0
-# The default is being changed to 1
-Agent/TCP set minrto_ 0
-# The default is being changed to minrto_ 1
 Agent/TCP set syn_ false
 Agent/TCP set delay_growth_ false
 # In preparation for changing the default values for syn_ and delay_growth_.
+
+Agent/TCP set rfc2988_ false
+Agent/TCP set windowInit_ 1
+Agent/TCP set singledup_ 0
+Agent/TCP set minrto_ 0
 
 Trace set show_tcphdr_ 1
 
@@ -210,8 +206,9 @@ TestSuite instproc printtimersAll { tcp time interval } {
 ## 
 TestSuite instproc setup {tcptype list} {
     global wrap wrap1 quiet
-    $self instvar ns_ node_ testName_
+    $self instvar ns_ node_ testName_ guide_
     $self setTopo
+    puts "Guide: $guide_"
     
     $ns_ color 1 Red
     $ns_ color 2 Green
@@ -409,9 +406,10 @@ TestSuite instproc plotsrtt { tcp interval} {
 ########## Jacobson/RFC793 RTT
 Class Test/rtt-jacobson -superclass TestSuite
 Test/rtt-jacobson instproc init {} {
-    $self instvar net_ test_ 
+    $self instvar net_ test_ guide_ 
     set net_	net5
     set test_   rtt-jacobson
+    set guide_  "Van Jacobson RTO estimation."
     $self next
 }
 
@@ -421,9 +419,10 @@ Test/rtt-jacobson instproc run {} {
 
 Class Test/rtt-rfc793 -superclass TestSuite
 Test/rtt-rfc793 instproc init {} {
-    $self instvar net_ test_ 
+    $self instvar net_ test_ guide_ 
     set net_	net5
     set test_       rtt-rfc793
+    set guide_  "RFC 793 RTO estimation."
     $self next
 }
 
@@ -434,9 +433,10 @@ Test/rtt-rfc793 instproc run {} {
 ########## Arrival rate with/without fast rtx
 Class Test/seqno-nofastrtx -superclass TestSuite   
 Test/seqno-nofastrtx instproc init {} {
-    $self instvar net_ test_ 
+    $self instvar net_ test_ guide_ 
     set net_	net6
     set test_   seqno-nofastrtx
+    set guide_  "Without Fast Retransmit."
     $self next
 }
 
@@ -446,9 +446,10 @@ Test/seqno-nofastrtx instproc run {} {
 
 Class Test/seqno-fastrtx -superclass TestSuite
 Test/seqno-fastrtx instproc init {} {
-    $self instvar net_ test_ 
+    $self instvar net_ test_ guide_ 
     set net_	net6
     set test_   seqno-fastrtx
+    set guide_  "With Fast Retransmit."
     $self next
 }
 
@@ -459,9 +460,10 @@ Test/seqno-fastrtx instproc run {} {
 #### Karn Algorithm (RTT sampling + exp. backoff)
 Class Test/rto-karn -superclass TestSuite
 Test/rto-karn instproc init {} {
-    $self instvar net_ test_ 
+    $self instvar net_ test_ guide_ 
     set net_	net7
     set test_   rto-karn
+    set guide_  "With Karn's RTT Sampling and Exponential Backoff."
     $self next
 }
 
@@ -471,9 +473,10 @@ Test/rto-karn instproc run {} {
 
 Class Test/rto-nokarn -superclass TestSuite
 Test/rto-nokarn instproc init {} {
-    $self instvar net_ test_ 
+    $self instvar net_ test_ guide_ 
     set net_	net7
     set test_   rto-nokarn
+    set guide_  "Without Karn's RTT Sampling and Exponential Backoff."
     Agent/TCP set bugfix_ss_ 0
     $self next
 }
@@ -487,9 +490,10 @@ Test/rto-nokarn instproc run {} {
 ########## Jacobson's SIGCOMM' 88 
 Class Test/jacobson88-noss -superclass TestSuite
 Test/jacobson88-noss instproc init {} {
-    $self instvar net_ test_ 
+    $self instvar net_ test_ guide_ 
     set net_	net8
     set test_   jacobson88-noss
+    set guide_  "Without Slow-Start."
     $self next
 }
 
@@ -499,9 +503,10 @@ Test/jacobson88-noss instproc run {} {
 
 Class Test/jacobson88-ss -superclass TestSuite
 Test/jacobson88-ss instproc init {} {
-    $self instvar net_ test_ 
+    $self instvar net_ test_ guide_ 
     set net_	net8
     set test_   jacobson88-ss
+    set guide_  "With Slow-Start."
     $self next
 }
 
