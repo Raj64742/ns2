@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-oddBehaviors.tcl,v 1.14 2006/01/24 23:00:06 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-oddBehaviors.tcl,v 1.15 2006/10/07 15:38:03 sallyfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -41,25 +41,8 @@ remove-all-packet-headers       ; # removes all except common
 add-packet-header Flags IP TCP  ; # hdrs reqd for validation test
  
 # FOR UPDATING GLOBAL DEFAULTS:
-Agent/TCP set precisionReduce_ false ;   # default changed on 2006/1/24.
-Agent/TCP set rtxcur_init_ 6.0 ;      # Default changed on 2006/01/21
-Agent/TCP set updated_rttvar_ false ;  # Variable added on 2006/1/21
-Agent/TCP set tcpTick_ 0.1
-# The default for tcpTick_ is being changed to reflect a changing reality.
-Agent/TCP set rfc2988_ false
-# The default for rfc2988_ is being changed to true.
-# FOR UPDATING GLOBAL DEFAULTS:
-Agent/TCP set minrto_ 1
-# default changed on 10/14/2004.
-Agent/TCP set useHeaders_ false
-# The default is being changed to useHeaders_ true.
-Agent/TCP set windowInit_ 1
-# The default is being changed to 2.
+
 Agent/TCP set singledup_ 0
-# The default is being changed to 1
-Agent/TCP set syn_ false
-Agent/TCP set delay_growth_ false
-# In preparation for changing the default values for syn_ and delay_growth_.
 
 Trace set show_tcphdr_ 1
 
@@ -156,10 +139,11 @@ TestSuite instproc drop_pkts pkts {
 
 TestSuite instproc setup {tcptype list} {
 	global wrap wrap1
-        $self instvar ns_ node_ testName_
+        $self instvar ns_ node_ testName_ guide_
 	$self setTopo
 
         Agent/TCP set bugFix_ false
+        puts "Guide: $guide_"
 	set fid 1
         # Set up TCP connection
     	if {$tcptype == "Tahoe"} {
@@ -242,19 +226,35 @@ TestSuite instproc setup {tcptype list} {
 
 # 
 # cwnd is 4 when a packet is dropped.
-# cwnd in halved to 2.  When three dup acks come in, dupwnd_ is set
-# to three, so the sender retransmits the lost packet and also
-# sends a new packet off the top.
+# When three dup acks come in, cwnd in halved to 2.  
+# dupwnd_ is set # to three, 
+# so the sender retransmits the lost packet, 
+# and also sends a new packet off the top, because
+# cwnd has been "inflated" by the three dup acks.
+# This occurs, appropriately, with both Reno and Newreno.
 #
 Class Test/onedrop_reno -superclass TestSuite
 Test/onedrop_reno instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	onedrop_reno
+        set guide_      "Reno, inflated congestion window after Fast Retransmit."
 	$self next pktTraceFile
 }
 Test/onedrop_reno instproc run {} {
         $self setup Reno {3}
+}
+
+Class Test/onedrop_sack -superclass TestSuite
+Test/onedrop_sack instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4
+	set test_	onedrop_sack
+        set guide_      "Sack, no inflated congestion window after Fast Retransmit."
+	$self next pktTraceFile
+}
+Test/onedrop_sack instproc run {} {
+        $self setup Sack1 {3}
 }
 
 TestSuite runTest
