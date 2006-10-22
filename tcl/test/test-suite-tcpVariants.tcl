@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.30 2006/01/24 23:00:08 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.31 2006/10/22 15:24:49 sallyfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -116,6 +116,8 @@ TestSuite instproc finish file {
 	}
         ## now use default graphing tool to make a data file
 	## if so desired
+        # exec csh gnuplotC2.com temp.rands temp.rands $file
+        ##
         exit 0
 }
 
