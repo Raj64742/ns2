@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.367 2006/06/23 14:29:22 tom_henderson Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.368 2006/10/22 15:20:46 sallyfloyd Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -827,9 +827,12 @@ Agent/TCP set aggressive_maxburst_ 1 ;  # Added 2003/6/2.
 					# No change to default behavior.
 Agent/TCP set maxcwnd_ 0
 Agent/TCP set numdupacks_ 3
-Agent/TCP set numdupacksFrac_ 100 ;	# Added 2002/10/18.
-					# Set to 100000 for this to have
-					# no effect even for large windows.
+Agent/TCP set numdupacksFrac_ -1 ;	# Added 2002/10/18.
+					# Set to -1  for this to have
+					#   no effect even for large windows.
+					# Default changed to -1 on 2006/09/27.
+                                        # Set to 100 to have numdupacks_
+                                        #   up to 1/100-th of cwnd.
 Agent/TCP set exitFastRetrans_ true ;	# Added 2003/7/28.
 					# For clean exits of Fast Retransmit.
 					# False for old buggy behavior.

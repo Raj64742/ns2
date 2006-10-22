@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpHighspeed.tcl,v 1.20 2006/01/25 22:02:05 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpHighspeed.tcl,v 1.21 2006/10/22 15:20:46 sallyfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -41,6 +41,7 @@ Agent/TCP set precisionReduce_ false ;   # default changed on 2006/1/24.
 Agent/TCP set rtxcur_init_ 6.0 ;      # Default changed on 2006/01/21
 Agent/TCP set updated_rttvar_ false ;  # Variable added on 2006/1/21
 Agent/TCP set minrto_ 1
+Agent/TCP set numdupacksFrac_ 100 ;	# Default changed on 2006/09/27.
 # default changed on 10/14/2004.
 Queue/RED set bytes_ false              
 # default changed on 10/11/2004.
