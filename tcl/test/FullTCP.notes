@@ -2,9 +2,6 @@ Here is the current state of validation tests in NS for FullTCP:
 Last updated: September 5, 2005.
 
 test-suite-simple.tcl, test-suite-simple-full.tcl
-  Tests commented out in test-suite-simple-full.tcl:
-  #Tests needing a Delayed-ACK receiver:
-tahoe4, tahoe4-nobugfix, reno4, reno4a, delayed, timers,
   Tests in test-suite-simple.tcl that have not been added to 
 test-suite-simple-full.tcl: 
 tahoe1Bytes, tahoe1RED, tahoe1REDbytes, tahoe3RED, reno5_nobug,
