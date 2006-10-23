@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.74 2006/09/26 12:34:22 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.75 2006/10/23 05:40:49 sallyfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -606,38 +606,6 @@ Test/impulseCA instproc run {} {
     $ns_ run
 }
 
-# Feedback 4 times per roundtrip time.
-Class Test/impulseMultReportDiscount -superclass TestSuite
-Test/impulseMultReportDiscount instproc init {} {
-    $self instvar net_ test_ guide_
-    set net_	net2
-    set test_	impulseMultReportDiscount
-    set guide_  \
-    "TFRC with feedback four times per round-trip time, discount_ true, ca_ false."
-    Agent/TFRCSink set NumFeedback_ 4
-    Agent/TFRCSink set discount_ 1
-    Agent/TFRC set df_ 0.25
-    Agent/TFRC set ca_ 0
-    Test/impulseMultReportDiscount instproc run {} [Test/impulseMultReport info instbody run ]
-    $self next pktTraceFile
-}
-
-# Feedback 4 times per roundtrip time.
-Class Test/impulseMultReportDiscountCA -superclass TestSuite
-Test/impulseMultReportDiscountCA instproc init {} {
-    $self instvar net_ test_ guide_
-    set net_	net2
-    set test_	impulseMultReportDiscountCA
-    set guide_  \
-    "TFRC with feedback four times per RTT, discount_ and ca_ true."
-    Agent/TFRCSink set NumFeedback_ 4
-    Agent/TFRCSink set discount_ 1
-    Agent/TFRC set df_ 0.95
-    Agent/TFRC set ca_ 1
-    Test/impulseMultReportDiscountCA instproc run {} [Test/impulseMultReport info instbody run ]
-    $self next pktTraceFile
-}
-
 Class Test/impulseMultReport -superclass TestSuite
 Test/impulseMultReport instproc init {} {
     $self instvar net_ test_ guide_
@@ -651,22 +619,6 @@ Test/impulseMultReport instproc init {} {
     Agent/TFRC set ca_ 0
     $self next pktTraceFile
 }
-
-Class Test/impulseMultReportCA -superclass TestSuite
-Test/impulseMultReportCA instproc init {} {
-    $self instvar net_ test_ guide_
-    set net_	net2
-    set test_	impulseMultReportCA
-    set guide_  \
-    "TFRC with feedback four times per RTT, discount_ false, ca_ true." 
-    Agent/TFRCSink set NumFeedback_ 4
-    Agent/TFRCSink set discount_ 0
-    Agent/TFRC set df_ 0.95
-    Agent/TFRC set ca_ 1
-    Test/impulseMultReportCA instproc run {} [Test/impulseMultReport info instbody run ]
-    $self next pktTraceFile
-}
-
 Test/impulseMultReport instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_
@@ -702,6 +654,53 @@ Test/impulseMultReport instproc run {} {
 
     # trace only the bottleneck link
     $ns_ run
+}
+
+# Feedback 4 times per roundtrip time.
+Class Test/impulseMultReportDiscount -superclass TestSuite
+Test/impulseMultReportDiscount instproc init {} {
+    $self instvar net_ test_ guide_
+    set net_	net2
+    set test_	impulseMultReportDiscount
+    set guide_  \
+    "TFRC with feedback four times per round-trip time, discount_ true, ca_ false."
+    Agent/TFRCSink set NumFeedback_ 4
+    Agent/TFRCSink set discount_ 1
+    Agent/TFRC set df_ 0.25
+    Agent/TFRC set ca_ 0
+    Test/impulseMultReportDiscount instproc run {} [Test/impulseMultReport info instbody run ]
+    $self next pktTraceFile
+}
+
+# Feedback 4 times per roundtrip time.
+Class Test/impulseMultReportDiscountCA -superclass TestSuite
+Test/impulseMultReportDiscountCA instproc init {} {
+    $self instvar net_ test_ guide_
+    set net_	net2
+    set test_	impulseMultReportDiscountCA
+    set guide_  \
+    "TFRC with feedback four times per RTT, discount_ and ca_ true."
+    Agent/TFRCSink set NumFeedback_ 4
+    Agent/TFRCSink set discount_ 1
+    Agent/TFRC set df_ 0.95
+    Agent/TFRC set ca_ 1
+    Test/impulseMultReportDiscountCA instproc run {} [Test/impulseMultReport info instbody run ]
+    $self next pktTraceFile
+}
+
+Class Test/impulseMultReportCA -superclass TestSuite
+Test/impulseMultReportCA instproc init {} {
+    $self instvar net_ test_ guide_
+    set net_	net2
+    set test_	impulseMultReportCA
+    set guide_  \
+    "TFRC with feedback four times per RTT, discount_ false, ca_ true." 
+    Agent/TFRCSink set NumFeedback_ 4
+    Agent/TFRCSink set discount_ 0
+    Agent/TFRC set df_ 0.95
+    Agent/TFRC set ca_ 1
+    Test/impulseMultReportCA instproc run {} [Test/impulseMultReport info instbody run ]
+    $self next pktTraceFile
 }
 
 Class Test/impulseTcp -superclass TestSuite
@@ -1455,7 +1454,7 @@ Test/printLossesShort instproc init {} {
     set net_	net2
     set test_	printLossesShort
     set guide_  \
-    "A TFRC flow with ShortIntervals_, loss intervals from the TFRC receiver."
+    "A TFRC-SP flow with ShortIntervals_, loss intervals from the TFRC receiver."
     $self next pktTraceFile
 }
 Test/printLossesShort instproc run {} {
@@ -1478,20 +1477,24 @@ Test/printLossesShort instproc run {} {
     set tf1 [new Agent/TFRC]
     set tf1Dest [new Agent/TFRCSink]
     $tf1 set fid_ 0
+    $tf1 set voip_ 1
+    $tf1 set packetSize_ 125
+    $tf1Dest set ShortIntervals_ 1
     $tf1Dest set fid_ 0
     $ns_ attach-agent $node_(s1) $tf1
     $ns_ attach-agent $node_(s3) $tf1Dest
-    $tf1Dest set ShortIntervals_ 1
     $tf1Dest set printLosses_ 1
     $tf1Dest set printLoss_ 1
     $ns_ connect $tf1 $tf1Dest
-    $ns_ at 0.0 "$tf1 start"
+    set cbr0 [new Application/Traffic/CBR]
+    $cbr0 set packetSize_ 125
+    $cbr0 set interval_ 0.02
+    $cbr0 attach-agent $tf1
+    $ns_ at 0.0 "$cbr0 start"
+
     set tf2 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 1]
     $ns_ at 0.2 "$tf2 start"
-    $ns_ at 2.0 "$tf2 stop"
-    set tf3 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 2]
-    $ns_ at 2.22 "$tf3 start"
-    #$self drop_pkts {80 82 84 160 162 164 166 168 170 250} 
+
 
     $self tfccDump 1 $tf1 $interval_ $dumpfile_
 
@@ -1814,17 +1817,18 @@ TestSuite instproc printdrops { fid fmon } {
 
 Class Test/tfrcOnly superclass TestSuite
 Test/tfrcOnly instproc init {} {
-    $self instvar net_ test_ guide_ voip
+    $self instvar net_ test_ guide_ 
     set net_	net2d
     set test_	tfrcOnly
     set guide_  \
     "One VoIP TFRC flow."
-    set voip 1
+    Agent/TFRC set voip_ 1
+    Agent/TFRCSink set ShortIntervals_ 1
     $self next pktTraceFile
 }
 Test/tfrcOnly instproc run {} {
     global quiet
-    $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_ voip
+    $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_ 
     puts "Guide: $guide_"
     $self setTopo
     set interval_ 0.1
@@ -1848,7 +1852,6 @@ Test/tfrcOnly instproc run {} {
     $ns_ queue-limit $node_(r1) $node_(r2) 50
 
     set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
-    $tf1 set voip_ $voip
     $tf1 set packetSize_ $pktsize
     set cbr [new Application/Traffic/CBR]
     $cbr set packetSize_ $pktsize
@@ -1871,19 +1874,99 @@ Test/tfrcOnly instproc run {} {
     $ns_ run
 }
 
+Class Test/tfrcOnlyHighLoss superclass TestSuite
+Test/tfrcOnlyHighLoss instproc init {} {
+    $self instvar net_ test_ guide_ voip
+    set net_	net2d
+    set test_	tfrcOnlyHighLoss
+    set guide_  "One VoIP TFRC flow, high loss."
+    Agent/TFRC set voip_ 1
+    Agent/TFRCSink set ShortIntervals_ 1
+    $self next pktTraceFile
+}
+Test/tfrcOnlyHighLoss instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_ voip
+    puts "Guide: $guide_"
+    $self setTopo
+    set interval_ 0.1
+    set stopTime 20.0
+    set stopTime0 [expr $stopTime - 0.001]
+    set stopTime2 [expr $stopTime + 0.001]
+    set pktsize 120
+    set cbrInterval 0.01
+    set droprate 0.2
+
+    set slink [$ns_ link $node_(r1) $node_(r2)]; # link to collect stats on
+    set fmon [$ns_ makeflowmon Fid]
+    $ns_ attach-fmon $slink $fmon    
+
+    set lossylink_ [$ns_ link $node_(r1) $node_(r2)]
+    set em [new ErrorModule Fid]
+    set errmodel [new ErrorModel/Uniform $droprate pkt ]
+    $lossylink_ errormodule $em
+    $em insert $errmodel
+    $em bind $errmodel 0 5
+    $em default pass
+
+    set dumpfile_ [open temp.s w]
+    if {$quiet == "false"} {
+        set tracefile [open all.tr w]
+        $ns_ trace-all $tracefile
+    }
+
+    $ns_ at 0.0 "$ns_ bandwidth $node_(r1) $node_(r2) 0.2Mbps duplex"
+    $ns_ queue-limit $node_(r1) $node_(r2) 50
+
+    set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
+    $tf1 set packetSize_ $pktsize
+    set cbr [new Application/Traffic/CBR]
+    $cbr set packetSize_ $pktsize
+    $cbr set interval_ $cbrInterval
+    $cbr attach-agent $tf1
+    $ns_ at 2.0 "$cbr start"
+    $ns_ at $stopTime0 "$cbr stop"
+
+    $self tfccDump 1 $tf1 $interval_ $dumpfile_ 
+
+    $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
+    $ns_ at $stopTime0 "$self printdrops 0 $fmon"
+    $ns_ at $stopTime "$self cleanupAll $testName_" 
+    if {$quiet == "false"} {
+	$ns_ at $stopTime2 "close $tracefile"
+    }
+    $ns_ at $stopTime2 "exec cp temp2.rands temp.rands; exit 0"
+
+    # trace only the bottleneck link
+    $ns_ run
+}
+
+Class Test/tfrcOnlyHighLoss1 superclass TestSuite
+Test/tfrcOnlyHighLoss1 instproc init {} {
+    $self instvar net_ test_ guide_ voip
+    set net_	net2d
+    set test_	tfrcOnlyHighLoss1
+    set guide_  "One VoIP TFRC flow, high loss, old measurement of loss event rate."
+    Agent/TFRC set voip_ 1
+    Agent/TFRCSink set ShortIntervals_ 11
+    Test/tfrcOnlyHighLoss1 instproc run {} [Test/tfrcOnlyHighLoss info instbody run ]
+    $self next pktTraceFile
+}
+
 Class Test/voip superclass TestSuite
 Test/voip instproc init {} {
-    $self instvar net_ test_ guide_ voip
+    $self instvar net_ test_ guide_ 
     set net_	net2d
     set test_	voip
     set guide_  \
     "One VoIP TFRC flow and one TCP flow, different packet sizes."
-    set voip 1
+    Agent/TFRC set voip_ 1
+    Agent/TFRCSink set ShortIntervals_ 1
     $self next pktTraceFile
 }
 Test/voip instproc run {} {
     global quiet
-    $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_ voip
+    $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_ 
     puts "Guide: $guide_"
     $self setTopo
     set interval_ 0.1
@@ -1907,7 +1990,6 @@ Test/voip instproc run {} {
     $ns_ queue-limit $node_(r1) $node_(r2) 50 
 
     set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
-    $tf1 set voip_ $voip
     $tf1 set packetSize_ $pktsize
     set cbr [new Application/Traffic/CBR]
     $cbr set packetSize_ $pktsize
@@ -1940,42 +2022,45 @@ Test/voip instproc run {} {
 
 Class Test/voipHeader superclass TestSuite
 Test/voipHeader instproc init {} {
-    $self instvar net_ test_ guide_ voip
+    $self instvar net_ test_ guide_ 
     set net_	net2d
     set test_	voip
     set guide_  \
     "One VoIP TFRC flow with headers, and one TCP flow."
-    set voip 1
     Agent/TFRC set useHeaders_ true ; 
     Agent/TFRC set headersize_ 32;
+    Agent/TFRC set voip_ 1
+    Agent/TFRCSink set ShortIntervals_ 1
     Test/voipHeader instproc run {} [Test/voip info instbody run ]
     $self next pktTraceFile
 }
 
 Class Test/voipNoHeader superclass TestSuite
 Test/voipNoHeader instproc init {} {
-    $self instvar net_ test_ guide_ voip
+    $self instvar net_ test_ guide_ 
     set net_	net2d
     set test_	voip
     set guide_  \
     "One VoIP TFRC flow without headers, and one TCP flow."
-    set voip 1
     Agent/TFRC set useHeaders_ false ; 
     Agent/TFRC set headersize_ 32;
+    Agent/TFRC set voip_ 1
+    Agent/TFRCSink set ShortIntervals_ 1
     Test/voipNoHeader instproc run {} [Test/voip info instbody run ]
     $self next pktTraceFile
 }
 
 Class Test/voipEcn superclass TestSuite
 Test/voipEcn instproc init {} {
-    $self instvar net_ test_ guide_ voip
+    $self instvar net_ test_ guide_ 
     set net_	net2d
     set test_	voipEcn
     set guide_  \
     "One ECN VoIP TFRC flow and one TCP flow, different packet sizes."
-    set voip 1
     Agent/TFRC set useHeaders_ false ; 
     Agent/TFRC set ecn_ 1
+    Agent/TFRC set voip_ 1
+    Agent/TFRCSink set ShortIntervals_ 1
     Agent/TCP set ecn_ 1
     Queue/RED set setbit_ true
     Test/voipEcn instproc run {} [Test/voip info instbody run ]
@@ -1984,12 +2069,12 @@ Test/voipEcn instproc init {} {
 
 Class Test/noVoip superclass TestSuite
 Test/noVoip instproc init {} {
-    $self instvar net_ test_ guide_ voip
+    $self instvar net_ test_ guide_ 
     set net_	net2d
     set test_	noVoip
     set guide_  \
     "One TFRC flow (not voip) and one TCP flow, different packet sizes."
-    set voip 0
+    Agent/TFRC set voip_ 0
     Test/noVoip instproc run {} [Test/voip info instbody run ]
     $self next pktTraceFile
 }
@@ -2011,6 +2096,7 @@ Test/idleTfrc instproc run {} {
     Agent/TFRC set SndrType_ 1
     Agent/TFRC set datalimited_ 1
     Agent/TFRC set voip_ 1
+    Agent/TFRCSink set ShortIntervals_ 1
     Agent/TFRC set packetSize_ 160
     Agent/TFRC set voip_max_pkt_rate_ 50
     set interval_ 1.0
@@ -2124,6 +2210,7 @@ Test/idleTfrc1 instproc run {} {
     Agent/TFRC set SndrType_ 1
     Agent/TFRC set datalimited_ 1
     Agent/TFRC set voip_ 1
+    Agent/TFRCSink set ShortIntervals_ 1
     Agent/TFRC set packetSize_ 160
     Agent/TFRC set voip_max_pkt_rate_ 50
     set interval_ 1.0
