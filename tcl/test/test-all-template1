@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.36 2003/08/05 17:51:33 difa Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.37 2006/10/23 05:23:26 sallyfloyd Exp $
 #
 # The initial version of this script was written and contributed 
 # by Matt Mathis (mathis@psc.edu).
@@ -121,7 +121,10 @@ for t in $tests; do
 	    cp $datafile.bk $datafile
 	    mv $datafile.Z $directory/$t.Z
 	else
-	    gzip -dc $directory/$t.Z | cmp -s - $datafile
+            # OLD: gzip -dc $directory/$t.Z | cmp -s - $datafile
+            # Deleted because it is not supported in Mac OS X, for "cmp".
+	    gzip -dc $directory/$t.Z > temp.randsZ
+            cmp -s temp.randsZ $datafile
 	    if [ $? = 0 ]; then
 		echo Test output agrees with reference output
 	    else
@@ -131,7 +134,6 @@ for t in $tests; do
 		gzip -dc $directory/$t.Z > $directory/$t
 		echo "Diagnose with: diff $directory/$t.test $directory/$t"
 		echo "Or see URL \"http://www.isi.edu/nsnam/ns/ns-problems.html\"."
-
 	    fi
 	 fi
     else
