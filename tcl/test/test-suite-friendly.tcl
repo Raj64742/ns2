@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.75 2006/10/23 05:40:49 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.76 2006/10/23 06:32:48 sallyfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -1480,6 +1480,69 @@ Test/printLossesShort instproc run {} {
     $tf1 set voip_ 1
     $tf1 set packetSize_ 125
     $tf1Dest set ShortIntervals_ 1
+    $tf1Dest set fid_ 0
+    $ns_ attach-agent $node_(s1) $tf1
+    $ns_ attach-agent $node_(s3) $tf1Dest
+    $tf1Dest set printLosses_ 1
+    $tf1Dest set printLoss_ 1
+    $ns_ connect $tf1 $tf1Dest
+    set cbr0 [new Application/Traffic/CBR]
+    $cbr0 set packetSize_ 125
+    $cbr0 set interval_ 0.02
+    $cbr0 attach-agent $tf1
+    $ns_ at 0.0 "$cbr0 start"
+
+    set tf2 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 1]
+    $ns_ at 0.2 "$tf2 start"
+
+
+    $self tfccDump 1 $tf1 $interval_ $dumpfile_
+
+    $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
+    #$self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    $ns_ at $stopTime "$self cleanupAll $testName_"
+    if {$quiet == "false"} {
+	$ns_ at $stopTime2 "close $tracefile"
+    }
+    $ns_ at $stopTime2 "exec cp temp2.rands temp.rands; exit 0"
+
+    # trace only the bottleneck link
+    $ns_ run
+}
+
+Class Test/printLossesShort3 -superclass TestSuite
+Test/printLossesShort3 instproc init {} {
+    $self instvar net_ test_ guide_
+    set net_	net2
+    set test_	printLossesShort3
+    set guide_  \
+    "A TFRC-SP flow with ShortIntervals_ 3, loss intervals from the TFRC receiver."
+    $self next pktTraceFile
+}
+Test/printLossesShort3 instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_
+    puts "Guide: $guide_"
+    $self setTopo
+    set interval_ 0.1
+    set stopTime 4.0
+    set stopTime0 [expr $stopTime - 0.001]
+    set stopTime2 [expr $stopTime + 0.001]
+
+    set dumpfile_ [open temp.s w]
+    if {$quiet == "false"} {
+        set tracefile [open all.tr w]
+        $ns_ trace-all $tracefile
+    }
+
+    # set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
+    set tf1 [new Agent/TFRC]
+    set tf1Dest [new Agent/TFRCSink]
+    $tf1 set fid_ 0
+    $tf1 set voip_ 1
+    $tf1 set packetSize_ 125
+    $tf1Dest set ShortIntervals_ 3
+    $tf1Dest set ShortRtts_ 3 
     $tf1Dest set fid_ 0
     $ns_ attach-agent $node_(s1) $tf1
     $ns_ attach-agent $node_(s3) $tf1Dest
