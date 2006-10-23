@@ -66,6 +66,7 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 	bind ("discount_", &discount);
 	bind ("smooth_", &smooth_);
 	bind ("ShortIntervals_", &ShortIntervals_);
+	bind ("ShortRtts_", &ShortRtts_);
 
 	// EWMA use only
 	bind ("history_", &history); // EWMA history
@@ -106,6 +107,7 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 	mult = NULL ;
         losses = NULL ;
 	count_losses = NULL ;
+        num_rtts = NULL ;
 	sample_count = 1 ;
 	mult_factor_ = 1.0;
 	init_WALI_flag = 0;
@@ -136,9 +138,13 @@ int TfrcSinkAgent::new_loss(int i, double tstamp)
 	     && (PreciseLoss_ == 0 || (round_id > lastloss_round_id))) {
 		lastloss = tstamp;
 		lastloss_round_id = round_id ;
-                if (time_since_last_loss_interval < 2.0 * rtt_ &&
+                if (time_since_last_loss_interval < ShortRtts_ * rtt_ &&
 				algo == WALI) {
                         count_losses[0] = 1;
+                }
+                if (rtt_ > 0 && algo == WALI) {
+                        num_rtts[0] = (int) floor(time_since_last_loss_interval / rtt_);
+                        if (num_rtts[0] < 1) num_rtts[0] = 1;
                 }
 		return TRUE;
 	} else return FALSE;
@@ -443,6 +449,7 @@ int TfrcSinkAgent::command(int argc, const char*const* argv)
 			sample = (int *)malloc((numsamples+1)*sizeof(int));
 			losses = (int *)malloc((numsamples+1)*sizeof(int));
                         count_losses = (int *)malloc((numsamples+1)*sizeof(int));
+                        num_rtts = (int *)malloc((numsamples+1)*sizeof(int));
 			weights = (double *)malloc((numsamples+1)*sizeof(double));
 			mult = (double *)malloc((numsamples+1)*sizeof(double));
 			fflush(stdout);
@@ -452,6 +459,7 @@ int TfrcSinkAgent::command(int argc, const char*const* argv)
 					sample[count] = 0;
 					losses[count] = 1;
 					count_losses[count] = 0;
+                                        num_rtts[count] = 0;
 					mult[count] = 1;
 					char *w;
 					w = strtok(NULL, "+");
@@ -468,6 +476,7 @@ int TfrcSinkAgent::command(int argc, const char*const* argv)
 				sample[count] = 0;
 				losses[count] = 1;
 				count_losses[count] = 0;
+				num_rtts[count] = 0;
 				weights[count] = 0;
 				mult[count] = 1;
 				free(w);
@@ -520,6 +529,13 @@ void TfrcSinkAgent::print_count_losses_all(int *count_losses)
 		now, count_losses[0], count_losses[1], count_losses[2], count_losses[3], count_losses[4]); 
 }
 
+void TfrcSinkAgent::print_num_rtts_all(int *count_losses) 
+{
+	double now = Scheduler::instance().clock();
+	printf ("%f: rtts 0: %5d 1: %5d 2: %5d 3: %5d 4: %5d\n", 
+ 	   now, num_rtts[0], num_rtts[1], num_rtts[2], num_rtts[3], num_rtts[4]); 
+}
+
 ////////////////////////////////////////
 // algo specific code /////////////////
 ///////////////////////////////////////
@@ -537,24 +553,41 @@ double TfrcSinkAgent::est_loss_WALI ()
 	if (!init_WALI_flag) {
 		init_WALI () ;
 	}
-	// sample[i] counts the number of packets since the i-th loss event
+	// sample[i] counts the number of packets in the i-th loss interval
 	// sample[0] contains the most recent sample.
+        // losses[i] contains the number of losses in the i-th loss interval
+        // count_losses[i] is 1 if the i-th loss interval is short.
+        // num_rtts[i] contains the number of rtts in the i-th loss interval
 	for (i = last_sample; i <= maxseq ; i ++) {
 		sample[0]++;
 		if (lossvec_[i%hsz] == LOST || lossvec_[i%hsz] == ECNLOST) {
 		        //  new loss event
-			// double now = Scheduler::instance().clock();
 			sample_count ++;
 			shift_array (sample, numsamples+1, 0); 
 			shift_array (losses, numsamples+1, 1); 
-			shift_array (count_losses, numsamples+1, 0); 
+			shift_array (count_losses, numsamples+1, 1); 
+			shift_array (num_rtts, numsamples+1, 0); 
 			multiply_array(mult, numsamples+1, mult_factor_);
 			shift_array (mult, numsamples+1, 1.0); 
 			mult_factor_ = 1.0;
 		}
 	}
 	last_sample = maxseq+1 ; 
-
+	double now = Scheduler::instance().clock();
+        if (ShortIntervals_ > 0 && printLoss_ > 0) {
+             printf ("now: %5.2f lastloss: %5.2f ShortRtts_: %d rtt_: %5.2f\n",
+                 now, lastloss, ShortRtts_, rtt_);
+        }
+        if (ShortIntervals_ > 0 && 
+            now - lastloss > ShortRtts_ * rtt_) {
+              // Check if the current loss interval is short.
+              count_losses[0] = 0;
+        }
+        if (ShortIntervals_ > 0 && rtt_ > 0) {
+              // Count number of rtts in current loss interval.
+              num_rtts[0] = (int) floor((now - lastloss) / rtt_);
+              if (num_rtts[0] < 1) num_rtts[0] = 1;
+        }
 	if (sample_count>numsamples+1)
 		// The array of loss intervals is full.
 		ds=numsamples+1;
@@ -566,8 +599,8 @@ double TfrcSinkAgent::est_loss_WALI ()
 		return 0; 
 	/* do we need to discount weights? */
 	if (sample_count > 1 && discount && sample[0] > 0) {
-                double ave = weighted_average1(1, ds, 1.0, mult, weights, sample, ShortIntervals_, losses, count_losses);
-                //double ave = weighted_average(1, ds, 1.0, mult, weights, sample);
+                //double ave = weighted_average1(1, ds, 1.0, mult, weights, sample, ShortIntervals_, losses, count_losses);
+                double ave = weighted_average1(1, ds, 1.0, mult, weights, sample, ShortIntervals_, losses, count_losses, num_rtts);
 		int factor = 2;
 		double ratio = (factor*ave)/sample[0];
 		double min_ratio = 0.5;
@@ -579,15 +612,23 @@ double TfrcSinkAgent::est_loss_WALI ()
 		}
 	}
 	// Calculations including the most recent loss interval.
-        ave_interval1 = weighted_average1(0, ds, mult_factor_, mult, weights, sample, ShortIntervals_, losses, count_losses);
-        //ave_interval1 = weighted_average(0, ds, mult_factor_, mult, weights, sample);
+        ave_interval1 = weighted_average1(0, ds, mult_factor_, mult, weights, sample, ShortIntervals_, losses, count_losses, num_rtts);
+        // Calculations not including the most recent loss interval.
+        ave_interval2 = weighted_average1(1, ds, mult_factor_, mult, weights, sample, ShortIntervals_, losses, count_losses, num_rtts);
 	// The most recent loss interval does not end in a loss
 	// event.  Include the most recent interval in the 
 	// calculations only if this increases the estimated loss
-	// interval.
-        ave_interval2 = weighted_average1(1, ds, mult_factor_, mult, weights, sample, ShortIntervals_, losses, count_losses);
-        //ave_interval2 = weighted_average(1, ds, mult_factor_, mult, weights, sample);
-	if (ave_interval2 > ave_interval1)
+	// interval. 
+        // If ShortIntervals is less than 10, do not count the most
+        //   recent interval if it is a short interval.
+        //   Values of ShortIntervals greater than 10 are only for
+        //   validation purposes, and for backwards compatibility.
+        //
+	if (ave_interval2 > ave_interval1 ||
+             (ShortIntervals_ > 1 && ShortIntervals_ < 10 
+                     && count_losses[0] == 1))
+                // The second condition is to check if the first interval
+                //  is a short interval.  If so, we must use ave_interval2.
 		ave_interval1 = ave_interval2;
 	if (ave_interval1 > 0) { 
 		if (printLoss_ > 0) {
@@ -596,6 +637,7 @@ double TfrcSinkAgent::est_loss_WALI ()
 			if (ShortIntervals_ > 0) {
 				print_losses_all(losses);
 				print_count_losses_all(count_losses);
+                                print_num_rtts_all(num_rtts);
 			}
 		}
 		return 1/ave_interval1; 
@@ -653,26 +695,45 @@ int TfrcSinkAgent::get_sample(int oldSample, int numLosses)
 	return newSample;
 }
 
+int TfrcSinkAgent::get_sample_rtts(int oldSample, int numLosses, int rtts) 
+{
+	int newSample;
+	if (numLosses == 0) {
+		newSample = oldSample;
+                //printf ("sample: %d numLosses: %d\n", oldSample, numLosses);
+	} else {
+                double fraction;
+                if (ShortRtts_ != 0)
+                     fraction = (ShortRtts_ + 1 - rtts) / ShortRtts_;
+                else fraction = 1.0;
+	        int numLoss = (int) floor(fraction * numLosses );
+                if (numLoss != 0)
+		    newSample = (int) floor(oldSample / numLoss);
+                else newSample = oldSample;
+                //printf ("sample: %d rtts: %5.2f numLosses: %d newSample: %d\n",
+                   oldSample, rtts, numLosses, newSample);
+	}
+	return newSample;
+}
+
 // Calculate the weighted average, factor*m[i]*w[i]*sample[i]/wsum.
 // "factor" is "mult_factor_", for weighting the most recent interval
 //    when it is very large
 // "m[i]" is "mult[]", for old values of "mult_factor_".
 //
-// When ShortIntervals_ is 1, the length of a loss interval is
+// When ShortIntervals_%10 is 1, the length of a loss interval is
 //   "sample[i]/losses[i]" for short intervals, not just "sample[i]".
 //   This is equivalent to a loss event rate of "losses[i]/sample[i]",
 //   instead of "1/sample[i]".
 //
-// When ShortIntervals_ is 2, it is like ShortIntervals_ of 1,
+// When ShortIntervals_%10 is 2, it is like ShortIntervals_ of 1,
 //   except that the number of losses per loss interval is at
 //   most 1460/byte-size-of-small-packets.
 //
-// When ShortIntervals_ is 2, it is like ShortIntervals_ of 1,
-//   except that the number of losses per loss interval is at
-//   most 1460/byte-size-of-small-packets, and an interval size is 
-//   at most three RTTs.
+// When ShortIntervals_%10 is 3, short intervals are up to three RTTs,
+//   and the number of losses counted is a function of the interval size.
 //
-double TfrcSinkAgent::weighted_average1(int start, int end, double factor, double *m, double *w, int *sample, int ShortIntervals, int *losses, int *count_losses)
+double TfrcSinkAgent::weighted_average1(int start, int end, double factor, double *m, double *w, int *sample, int ShortIntervals, int *losses, int *count_losses, int *num_rtts)
 {
         int i;
         int ThisSample;
@@ -680,7 +741,7 @@ double TfrcSinkAgent::weighted_average1(int start, int end, double factor, doubl
         double answer = 0;
         if (smooth_ == 1 && start == 0) {
                 if (end == numsamples+1) {
-                        // the array is full, but we don't want to uses
+                        // the array is full, but we don't want to use
                         //  the last loss interval in the array
                         end = end-1;
                 }
@@ -692,15 +753,18 @@ double TfrcSinkAgent::weighted_average1(int start, int end, double factor, doubl
                                 wsum += factor*m[i]*w[i+1];
                 for (i = start ; i < end; i++) {
                         ThisSample = sample[i];
-                        if (ShortIntervals == 1 && count_losses[i] == 1) {
+                        if (ShortIntervals%10 == 1 && count_losses[i] == 1) {
 			       ThisSample = get_sample(sample[i], losses[i]);
                         }
-                        if (ShortIntervals == 2 && count_losses[i] == 1) {
+                        if (ShortIntervals%10 == 2 && count_losses[i] == 1) {
 			       int adjusted_losses = int(fsize_/size_);
 			       if (losses[i] < adjusted_losses) {
 					adjusted_losses = losses[i];
 			       }
 			       ThisSample = get_sample(sample[i], adjusted_losses);
+                        }
+                        if (ShortIntervals%10 == 3 && count_losses[i] == 1) {
+			       ThisSample = get_sample_rtts(sample[i], losses[i], num_rtts[i]);
                         }
                         if (i==0)
                                 answer += m[i]*w[i+1]*ThisSample/wsum;
@@ -719,13 +783,17 @@ double TfrcSinkAgent::weighted_average1(int start, int end, double factor, doubl
                                 wsum += factor*m[i]*w[i];
                 for (i = start ; i < end; i++) {
                        ThisSample = sample[i];
-                       if (ShortIntervals == 1 && count_losses[i] == 1) {
+                       if (ShortIntervals%10 == 1 && count_losses[i] == 1) {
 			       ThisSample = get_sample(sample[i], losses[i]);
                        }
-                       if (ShortIntervals == 2 && count_losses[i] == 1) {
+                       if (ShortIntervals%10 == 2 && count_losses[i] == 1) {
 			       ThisSample = get_sample(sample[i], 7);
 			       // Replace 7 by 1460/packet size.
+                               // NOT FINISHED.
                        }
+                        if (ShortIntervals%10 == 3 && count_losses[i] == 1) {
+			       ThisSample = get_sample_rtts(sample[i], losses[i], (int) num_rtts[i]);
+                        }
                        if (i==0)
                                 answer += m[i]*w[i]*ThisSample/wsum;
                                 //answer += m[i]*w[i]*sample[i]/wsum;
@@ -786,12 +854,15 @@ double TfrcSinkAgent::adjust_history (double ts)
 	losses[0] = 1;
 	count_losses[1] = 0;
 	count_losses[0] = 0;
+        num_rtts[0]=0;
+        num_rtts[1]=0;
 	sample_count++; 
 	if (printLoss_) {
 		print_loss_all (sample);
-		if (ShortIntervals_ == 1) {
+		if (ShortIntervals_ > 0) {
 			print_losses_all(losses);
 			print_count_losses_all(count_losses);
+			print_num_rtts_all(num_rtts);
 		}
 	}
 	false_sample = -1 ; 
@@ -812,6 +883,7 @@ void TfrcSinkAgent::init_WALI () {
 	sample = (int *)malloc((numsamples+1)*sizeof(int));
         losses = (int *)malloc((numsamples+1)*sizeof(int));
         count_losses = (int *)malloc((numsamples+1)*sizeof(int));
+        num_rtts = (int *)malloc((numsamples+1)*sizeof(int));
 	weights = (double *)malloc((numsamples+1)*sizeof(double));
 	mult = (double *)malloc((numsamples+1)*sizeof(double));
 	for (i = 0 ; i < numsamples+1 ; i ++) {

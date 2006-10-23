@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.368 2006/10/22 15:20:46 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.369 2006/10/23 05:33:16 sallyfloyd Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -1102,6 +1102,7 @@ Agent/TFRCSink set printLoss_ 0
 Agent/TFRCSink set smooth_ 1 ;	# smoother Average Loss Interval
 Agent/TFRCSink set ShortIntervals_ 0 ; #  For calculating loss event rates 
                         	# for short loss intervals differently
+Agent/TFRCSink set ShortRtts_ 2 ; # Max num of RTTs in a short interval.
 Agent/TFRCSink set minlc_ 4
 Agent/TFRCSink set algo_ 1 ;  	# 1: algo from sigcomm paper 2: ewma 
 				# 3: fixed window

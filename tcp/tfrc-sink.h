@@ -86,6 +86,7 @@ protected:
 	void print_loss_all(int *sample);
 	void print_losses_all(int *losses);
 	void print_count_losses_all(int *count_losses);
+	void print_num_rtts_all(int *num_rtts);
 	int new_loss(int i, double tstamp);
 	double estimate_tstamp(int before, int after, int i);
 
@@ -97,7 +98,8 @@ protected:
 	void init_WALI();
 	double weighted_average(int start, int end, double factor, double *m, double *w, int *sample);
 	int get_sample(int oldSample, int numLosses);
-	double weighted_average1(int start, int end, double factor, double *m, double *w, int *sample, int ShortIntervals, int *losses, int *count_losses);
+	int get_sample_rtts(int oldSample, int numLosses, int rtts);
+	double weighted_average1(int start, int end, double factor, double *m, double *w, int *sample, int ShortIntervals, int *losses, int *count_losses, int *num_rtts);
 
 	double est_loss_EWMA () ;
 	
@@ -136,7 +138,12 @@ protected:
 				//  loss intervals:  "0" for counting a
 				// single loss; "1" for counting the actual
 				// number of losses; "2" for counting at
-				// most a large packet of losses.
+				// most a large packet of losses (not done);
+				// "3" for decreasing fraction of losses
+                                // counted for longer loss intervals;
+                                // >10 for old methods that don't ignore the
+                                // current short loss interval. 
+        int ShortRtts_ ;	// Max num of RTTs in a short interval.
 
 	// these assist in keep track of incming packets and calculate flost_
 	double last_timestamp_; // timestamp of last new, in-order pkt arrival.
@@ -157,6 +164,7 @@ protected:
 	int *losses ;		// array with number of losses per loss
 				//   interval
 	int *count_losses ;	// "1" to count losses in the loss interval
+        int *num_rtts ;         // number of rtts per loss interval
 	double mult_factor_;	// most recent multiple of mult array
 	int sample_count ;	// number of loss intervals
 	int last_sample ;  	// loss event rate estimated to here
