@@ -711,7 +711,7 @@ int TfrcSinkAgent::get_sample_rtts(int oldSample, int numLosses, int rtts)
 		    newSample = (int) floor(oldSample / numLoss);
                 else newSample = oldSample;
                 //printf ("sample: %d rtts: %5.2f numLosses: %d newSample: %d\n",
-                   oldSample, rtts, numLosses, newSample);
+                //  oldSample, rtts, numLosses, newSample);
 	}
 	return newSample;
 }
