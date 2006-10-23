@@ -143,7 +143,7 @@ int TfrcSinkAgent::new_loss(int i, double tstamp)
                         count_losses[0] = 1;
                 }
                 if (rtt_ > 0 && algo == WALI) {
-                        num_rtts[0] = (int) floor(time_since_last_loss_interval / rtt_);
+                        num_rtts[0] = (int) ceil(time_since_last_loss_interval / rtt_);
                         if (num_rtts[0] < 1) num_rtts[0] = 1;
                 }
 		return TRUE;
@@ -574,10 +574,10 @@ double TfrcSinkAgent::est_loss_WALI ()
 	}
 	last_sample = maxseq+1 ; 
 	double now = Scheduler::instance().clock();
-        if (ShortIntervals_ > 0 && printLoss_ > 0) {
-             printf ("now: %5.2f lastloss: %5.2f ShortRtts_: %d rtt_: %5.2f\n",
-                 now, lastloss, ShortRtts_, rtt_);
-        }
+        //if (ShortIntervals_ > 0 && printLoss_ > 0) {
+        //    printf ("now: %5.2f lastloss: %5.2f ShortRtts_: %d rtt_: %5.2f\n",
+        //         now, lastloss, ShortRtts_, rtt_);
+        //}
         if (ShortIntervals_ > 0 && 
             now - lastloss > ShortRtts_ * rtt_) {
               // Check if the current loss interval is short.
@@ -585,7 +585,7 @@ double TfrcSinkAgent::est_loss_WALI ()
         }
         if (ShortIntervals_ > 0 && rtt_ > 0) {
               // Count number of rtts in current loss interval.
-              num_rtts[0] = (int) floor((now - lastloss) / rtt_);
+              num_rtts[0] = (int) ceil((now - lastloss) / rtt_);
               if (num_rtts[0] < 1) num_rtts[0] = 1;
         }
 	if (sample_count>numsamples+1)
@@ -704,14 +704,14 @@ int TfrcSinkAgent::get_sample_rtts(int oldSample, int numLosses, int rtts)
 	} else {
                 double fraction;
                 if (ShortRtts_ != 0)
-                     fraction = (ShortRtts_ + 1 - rtts) / ShortRtts_;
+                     fraction = (ShortRtts_ + 1.0 - rtts) / ShortRtts_;
                 else fraction = 1.0;
-	        int numLoss = (int) floor(fraction * numLosses );
+	        int numLoss = (int) (floor(fraction * numLosses ));
                 if (numLoss != 0)
-		    newSample = (int) floor(oldSample / numLoss);
+		    newSample = (int) (floor(oldSample / numLoss));
                 else newSample = oldSample;
-                //printf ("sample: %d rtts: %5.2f numLosses: %d newSample: %d\n",
-                //  oldSample, rtts, numLosses, newSample);
+                //printf ("sample: %d rtts: %d numLosses: %d newSample: %d fraction: %5.2f numLoss %d\n",
+                //  oldSample, rtts, numLosses, newSample, fraction, numLoss);
 	}
 	return newSample;
 }
