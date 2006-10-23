@@ -6,7 +6,7 @@
 rm -f temp* *.ps *core
 rm -f t?.tcl ? ecn all packets out drops acks 
 rm -f *.tr *.tr1 *.nam *.xgr
-rm -f all.*
+rm -f all.*  *.png
 rm -f fairflow.* srr_out.txt
 rm -f t t? t.*
 rm -f chart? 
@@ -24,7 +24,7 @@ pushback diffserv tcp-init-win-full ecn ecn-full simple-full \
 red-pd tcpReset LimTransmit pi adaptive-red gk rem vq sack-full \
 testReno-full testReno-bayfull source-routing snoop diffusion3 broken \
 tcpHighspeed smac quiescent example examples quickstart tcpOptions t \
-tagged-trace misc message jobs webtraf 
+tagged-trace misc message jobs webtraf sctp 
 do
 	echo test-output-$i
 	rm -f test-output-$i/*.test
