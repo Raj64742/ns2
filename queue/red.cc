@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-     "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.81 2005/12/03 04:30:25 sallyfloyd Exp $ (LBL)";
+     "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.82 2006/10/27 03:10:54 sallyfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -277,7 +277,7 @@ void REDQueue::reset()
 	 * accordingly.
 	 */
         if (link_) {
-		edp_.ptc = link_->bandwidth() / (8. * edp_.mean_pktsize);
+		edp_.ptc = link_->bandwidth() / (8.0 * edp_.mean_pktsize);
 		initialize_params();
 	}
 	if (edp_.th_max_pkts == 0) 
@@ -316,7 +316,7 @@ void REDQueue::reset()
 	edv_.lastset = 0.0;
 	if (edp_.gentle) {
 		edv_.v_c = ( 1.0 - edv_.cur_max_p ) / edp_.th_max;
-		edv_.v_d = 2 * edv_.cur_max_p - 1.0;
+		edv_.v_d = 2.0 * edv_.cur_max_p - 1.0;
 	}
 
 	idle_ = 1;
@@ -480,7 +480,7 @@ REDQueue::modify_p(double p, int count, int count_bytes, int bytes,
 		if (count1 * p < 1.0)
 			p = 0.0;
 		else if (count1 * p < 2.0)
-			p /= (2 - count1 * p);
+			p /= (2.0 - count1 * p);
 		else
 			p = 1.0;
 	} else {
@@ -490,7 +490,9 @@ REDQueue::modify_p(double p, int count, int count_bytes, int bytes,
 			p = 1.0;
 	}
 	if (bytes && p < 1.0) {
-		p = p * size / mean_pktsize;
+		p = (p * size) / mean_pktsize;
+		//p = p * (size / mean_pktsize);
+
 	}
 	if (p > 1.0)
 		p = 1.0;
@@ -816,7 +818,7 @@ int REDQueue::command(int argc, const char*const* argv)
 			// set ptc now
 			link_ = del;
 			edp_.ptc = link_->bandwidth() /
-				(8. * edp_.mean_pktsize);
+				(8.0 * edp_.mean_pktsize);
 			edp_.delay = link_->delay();
 			if (
 			  (edp_.q_w <= 0.0 || edp_.th_min_pkts == 0 ||
