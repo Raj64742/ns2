@@ -69,19 +69,15 @@ there are no Agents or Applications available in the inactive pools.
 Each PackMimeHTTP client controls the HTTP request sizes that are
 transferred. Each PackMimeHTTP client takes the following steps: 
 \begin{itemize}
-\item{sample the number of requests for this connection from the
-number-of-requests distribution (if the number of requests is 1, this
-is a non-persistent connection)}
-\item{sample the inter-request times from the inter-request-time
-distribution, if there will be more than 1 request}
-\item{sample the HTTP request sizes from the request-size
-distribution}
-\item{send the first HTTP request to the server}
-\item{listen for the HTTP response}
-\item{when the entire HTTP response has been received, the client sets
-a timer to expire when the next request should be made}
-\item{when the timer expires, the next HTTP request is sent, and the
-above process is repeated until all requests have been completed}
+\item{listen for an HTTP request from the associated client}
+\item{when the entire request arrives, the server samples the server
+delay time from the server delay distribution} 
+\item{set a timer to expire when the server delay has passed}
+\item{when the timer expires, the server sends response (the size of
+  which was sampled by the client and passed to the server)}
+\item{this process is repeated until the requests are exhausted -- the
+server is told how many requests will be sent in the connection} 
+\item{send a FIN to close the connection}
 \end{itemize}
 
 \subsection{PackMimeHTTP Server Application}
@@ -286,6 +282,26 @@ request and client receiving complete HTTP response}
 \item{source node and port identifier}
 \item{number of active connections at the time this HTTP
 request-response pair completed}
+\end{itemize}
+
+{\tt \$packmime set-filesz-outfile <filename>}\\
+Right after sending a response, output the following fields (one line
+per HTTP request-reponse pair) to {\tt filename}: 
+\begin{itemize}
+\item{time HTTP response sent}
+\item{HTTP request size (bytes)}
+\item{HTTP response size (bytes)}
+\item{server node and port address}
+\end{itemize}
+
+{\tt \$packmime set-samples-outfile <filename>}\\
+Right before sending a request, output the following fields (one line
+per HTTP request-reponse pair) to {\tt filename}: 
+\begin{itemize}
+\item{time HTTP request sent}
+\item{HTTP request size (bytes)}
+\item{HTTP response size (bytes)}
+\item{server node and port address}
 \end{itemize}
 
 {\tt \$packmime set-debug <int>}\\

@@ -62,7 +62,8 @@ public:
 PackMimeHTTP::PackMimeHTTP() :
 	TclObject(), timer_(this), connection_interval_(0), 
 	next_client_ind_(0), next_server_ind_(0), total_nodes_(0),
-	current_node_(0), outfp_(NULL), rate_(0), segsize_(0), segsperack_(0),
+	current_node_(0), outfp_(NULL), fileszfp_(NULL), 
+	samplesfp_(NULL), rate_(0), segsize_(0), segsperack_(0),
 	interval_(0), ID_(-1), run_(0), debug_(0), 
 	cur_pairs_(0), warmup_(0), http_1_1_(0), 
 	active_connections_(0), total_connections_(-1), running_(0), 
@@ -97,7 +98,8 @@ PackMimeHTTP::~PackMimeHTTP()
 		fprintf (stderr, "total connections created: %d ", 
 			 total_connections_+1);
 		fprintf (stderr, "in pool: %d  active: %d\n", 
-			 serverAppPool_.size(), serverAppActive_.size());
+			 (int) serverAppPool_.size(), 
+			 (int) serverAppActive_.size());
 	}
 	
 	// delete timer
@@ -147,9 +149,13 @@ PackMimeHTTP::~PackMimeHTTP()
 		tcpPool_.pop();
 	}
 
-	// close output file
+	// close output files
 	if (outfp_)
 		fclose(outfp_);
+ 	if (fileszfp_)
+ 		fclose(fileszfp_);
+ 	if (samplesfp_)
+ 		fclose(samplesfp_);
 }
 
 FullTcpAgent* PackMimeHTTP::picktcp()
@@ -177,7 +183,7 @@ FullTcpAgent* PackMimeHTTP::picktcp()
 			fprintf (stderr, "\tflow %d got TCPAgent %s", 
 				 total_connections_, a->name());
 			fprintf (stderr, " from pool (%d in pool)\n",
-				 tcpPool_.size());
+				 (int) tcpPool_.size());
 		}
 	}
 
@@ -215,8 +221,8 @@ PackMimeHTTPServerApp* PackMimeHTTP::pickServerApp()
 
 	if (debug_ > 1)
 		fprintf (stderr, "ServerApp %s (%d in pool, %d active)\n",
-			 a->name(), serverAppPool_.size(), 
-			 serverAppActive_.size()+1);
+			 a->name(), (int) serverAppPool_.size(), 
+			 (int) serverAppActive_.size()+1);
 
 	return a;
 }
@@ -252,8 +258,8 @@ PackMimeHTTPClientApp* PackMimeHTTP::pickClientApp()
 
 	if (debug_ > 1)
 		fprintf (stderr, "ClientApp %s (%d in pool, %d active)\n",
-			 a->name(), clientAppPool_.size(), 
-			 clientAppActive_.size()+1);
+			 a->name(), (int) clientAppPool_.size(), 
+			 (int) clientAppActive_.size()+1);
 
 	return a;
 }
@@ -280,7 +286,7 @@ void PackMimeHTTP::recycle(FullTcpAgent* agent)
 	if (debug_ > 2) {
 		fprintf (stderr, "\tTCPAgent %s moved to pool ", 
 			 agent->name());
-		fprintf (stderr, "(%d in pool)\n", tcpPool_.size());
+		fprintf (stderr, "(%d in pool)\n", (int) tcpPool_.size());
 	}
 }
 
@@ -305,7 +311,8 @@ void PackMimeHTTP::recycle(PackMimeHTTPClientApp* app)
 		fprintf (stderr, "\tClientApp %s (%d) moved to pool ", 
 			 app->name(), app->get_id());
 		fprintf (stderr, "(%d in pool, %d active)\n", 
-			 clientAppPool_.size(), clientAppActive_.size());
+			 (int) clientAppPool_.size(), 
+			 (int) clientAppActive_.size());
 	}
 
 	// recycle app
@@ -333,7 +340,8 @@ void PackMimeHTTP::recycle(PackMimeHTTPServerApp* app)
 		fprintf (stderr, "\tServerApp %s (%d) moved to pool ",
 			 app->name(), app->get_id());
 		fprintf (stderr, "(%d in pool, %d active)\n", 
-			 serverAppPool_.size(), serverAppActive_.size());
+			 (int) serverAppPool_.size(), 
+			 (int) serverAppActive_.size());
 	}
 
 	// recycle app
@@ -695,13 +703,27 @@ int PackMimeHTTP::command(int argc, const char*const* argv) {
 			 flowarrive_rv_)->setntrans((double) atof (argv[2]));
 			return (TCL_OK);
 		}
-		else if (strcmp (argv[1], "set-outfile") == 0) {
+		else if (!strcmp (argv[1], "set-outfile")) {
 			outfp_ = fopen (argv[2], "w");
 			if (outfp_)
 				return (TCL_OK);
 			else 
 				return (TCL_ERROR);
 		}
+		else if (!strcmp (argv[1], "set-filesz-outfile")) {
+ 			fileszfp_ = fopen (argv[2], "w");
+ 			if (fileszfp_) 
+ 				return (TCL_OK);
+ 			else 
+ 				return (TCL_ERROR);
+ 		}
+ 		else if (!strcmp (argv[1], "set-samples-outfile")) {
+ 			samplesfp_ = fopen (argv[2], "w");
+ 			if (samplesfp_) 
+ 				return (TCL_OK);
+ 			else 
+ 				return (TCL_ERROR);
+ 		}
 		else if (strcmp (argv[1], "set-req_size") == 0) {
 			int res = lookup_rv (reqsize_rv_, argv[2]);
 			if (res == TCL_ERROR) {
@@ -942,6 +964,18 @@ void PackMimeHTTPClientApp::timeout()
 	// save time of request
 	time_of_req_ = mgr_->now();
 	
+	// dump request size and response size
+ 	FILE* fp = mgr_->get_samplesfp();
+ 	if (fp) {
+ 		char* nodeaddr = 
+ 			Address::instance().print_nodeaddr(agent_->daddr());
+ 		char* portaddr = 
+ 			Address::instance().print_nodeaddr(agent_->dport());
+ 		fprintf (fp, "%-11.6f %-10d %-10d %s.%-6s\n",
+ 			 time_of_req_, reqsize_, rspsize_, nodeaddr, portaddr);
+ 		fflush (fp);
+ 	}
+
 	// send request
 	agent_->sendmsg(reqsize_);
 	if (mgr_->debug() > 1)
@@ -1040,7 +1074,20 @@ void PackMimeHTTPServerApp::timeout()
 		fprintf(stderr,"server %s (%d)> sent %d-byte response at %f\n",
 			name(), id_, rspsize_, mgr_->now());
 	}
-	
+
+	// dump all request size and response sizes
+ 	double now = mgr_->now();
+ 	FILE* fp = mgr_->get_fileszfp();
+ 	if (fp) {
+ 		char* nodeaddr = 
+ 			Address::instance().print_nodeaddr(agent_->addr());
+ 		char* portaddr = 
+ 			Address::instance().print_nodeaddr(agent_->port());
+		fprintf (fp, "%-11.6f %-10d %-10d %s.%-6s\n",
+ 			 now, reqsize_, rspsize_, nodeaddr, portaddr);
+ 		fflush (fp);
+ 	}
+
 	// send response
 	if (!mgr_->using_http_1_1() || (curreq_ > reqs_)) {
 		// this is the last message

@@ -210,6 +210,8 @@ class PackMimeHTTP : public TclObject {
 	double* get_rspsize_array(int files);
 
 	inline FILE* get_outfp() {return outfp_;}
+	inline FILE* get_fileszfp() {return fileszfp_;}
+	inline FILE* get_samplesfp() {return samplesfp_;}
 
  protected:
 	virtual int command (int argc, const char*const* argv);
@@ -234,7 +236,9 @@ class PackMimeHTTP : public TclObject {
 	Node* server_[MAX_NODES];
 	Node* client_[MAX_NODES];
 	char tcptype_[20];         // {Reno, Tahoe, NewReno, SACK}
-	FILE* outfp_;
+	FILE* outfp_;              // output file for completed pairs
+	FILE* fileszfp_;           // output file for requested pairs (@ server)
+	FILE* samplesfp_;          // output file for requested pairs (@ client)
 	double rate_;              // connections per second
 	int segsize_;              // FullTCP max segment size
 	int segsperack_;           // = 2 for delayed ACKS
