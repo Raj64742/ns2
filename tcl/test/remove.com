@@ -1,7 +1,7 @@
 #!/bin/sh
 # To remove temporary files in tcl/test.
-# To run: "./remove.com"
-# You might have to first make this file executable.
+# To run: "./remove.com" or "sh remove.com".
+# For the first command, you might have to first make this file executable.
 #
 rm -f temp* *.ps *core
 rm -f t?.tcl ? ecn all packets out drops acks 
@@ -24,7 +24,7 @@ pushback diffserv tcp-init-win-full ecn ecn-full simple-full \
 red-pd tcpReset LimTransmit pi adaptive-red gk rem vq sack-full \
 testReno-full testReno-bayfull source-routing snoop diffusion3 broken \
 tcpHighspeed smac quiescent example examples quickstart tcpOptions t \
-tagged-trace misc message jobs webtraf sctp 
+tagged-trace misc message jobs webtraf sctp xcp smac-multihop
 do
 	echo test-output-$i
 	rm -f test-output-$i/*.test
