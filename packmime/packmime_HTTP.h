@@ -196,7 +196,7 @@ class PackMimeHTTP : public TclObject {
 	inline int get_ID() {return ID_;}
 	inline int get_warmup() {return warmup_;}
 	inline double get_rate() {return rate_;}
-	inline int using_http_1_1() {return http_1_1_;}
+	inline bool using_http_1_1() {return http_1_1_;}
 
 	/* HTTP 1.0 random variable fns */
 	double connection_interval();
@@ -217,6 +217,7 @@ class PackMimeHTTP : public TclObject {
 	virtual int command (int argc, const char*const* argv);
 	void start();
 	void stop();
+	void cleanup();
 	void recycle (FullTcpAgent*);
 
 	FullTcpAgent* picktcp();
@@ -249,7 +250,7 @@ class PackMimeHTTP : public TclObject {
 	int goal_pairs_;           // req/rsp pairs to allow
 	int cur_pairs_;            // number of current req/rsp pairs
 	int warmup_;               // warmup interval (s)
-	int http_1_1_;             // use HTTP 1.1?  (default: no)
+	bool http_1_1_;            // use HTTP 1.1?  (default: no)
 
 	int active_connections_;   // number of active connections
 	int total_connections_;    // number of total connections

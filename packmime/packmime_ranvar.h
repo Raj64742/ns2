@@ -39,6 +39,9 @@
  *           Kevin Jeffay (jeffay@cs.unc.edu)
  */
 
+#ifndef ns_pm_ranvar_h
+#define ns_pm_ranvar_h
+
 #include "ranvar.h"
 
 #define PACKMIME_XMIT_CLIENT 0
@@ -53,7 +56,7 @@ struct arima_params {
   int pAR, qMA;
 };
 
-/*:::::::::::::::::::::::::::::::: FX  ::::::::::::::::::::::::::::::::::::::*/
+/*:::::::::::::::::::::::::::::::: FX  :::::::::::::::::::::::::::::::::::::*/
 
 // FX generator based on interpolation
 class FX {
@@ -67,7 +70,7 @@ private:
   double* slope_; // avoid real-time slope computation
 };
 
-/*:::::::::::::::::::::::::::: Fractional ARIMA  ::::::::::::::::::::::::::::*/
+/*:::::::::::::::::::::::::::: Fractional ARIMA  :::::::::::::::::::::::::::*/
 
 class FARIMA {
 public:
@@ -80,12 +83,9 @@ private:
   int t_, N_, pAR_, qMA_, tmod_;
   double* AR_, *MA_, *x_, *y_, *phi_, d_;
   double NextLow();
-
 };
 
-
-
-/*:::::::::::::::::::::: PackMimeHTTP Transmission Delay RanVar :::::::::::::::::*/
+/*:::::::::::::::::::::: PackMimeHTTP Transmission Delay RanVar ::::::::::::*/
 
 class PackMimeHTTPXmitRandomVariable : public RandomVariable {
 
@@ -96,7 +96,6 @@ public:
   PackMimeHTTPXmitRandomVariable(double rate, int type);
   PackMimeHTTPXmitRandomVariable(double rate, int type, RNG* rng);
   ~PackMimeHTTPXmitRandomVariable();
-  void initialize();
   double* ratep() {return &rate_;}
   double rate() {return rate_;}
   void setrate(double r) {rate_ = r;}
@@ -105,23 +104,23 @@ public:
   void settype(int t) {type_ = t;}
 
 private:
+  void initialize();
   double rate_;
   int type_;
   double varRatio_, sigmaNoise_, sigmaEpsilon_;
   double const_;
   double mean_;
   FARIMA* fARIMA_;
-  RNG* myrng_;
-  static const double short_rtt_invcdf_x[];
-  static const double short_rtt_invcdf_y[];
-  static const double long_rtt_invcdf_x[];
-  static const double long_rtt_invcdf_y[];
+  static const double SHORT_RTT_INVCDF_X[];
+  static const double SHORT_RTT_INVCDF_Y[];
+  static const double LONG_RTT_INVCDF_X[];
+  static const double LONG_RTT_INVCDF_Y[];
   static struct arima_params rtt_arima_params[]; 
   static FX rtt_invcdf[2];
-  static const double weibull_shape[2];
+  static const double WEIBULL_SHAPE[2];
 };
 
-/*:::::::::::::::::::::: PackMimeHTTP Flow Arrival RanVar :::::::::::::::::::::::*/
+/*:::::::::::::::::::::: PackMimeHTTP Flow Arrival RanVar :::::::::::::::::*/
 
 class PackMimeHTTPFlowArriveRandomVariable : public RandomVariable {
 public:
@@ -133,52 +132,45 @@ public:
   PackMimeHTTPFlowArriveRandomVariable(double rate);
   PackMimeHTTPFlowArriveRandomVariable(double rate, RNG* rng);
   ~PackMimeHTTPFlowArriveRandomVariable();
-  void initialize();
   double* ratep() {return &rate_;}
   double rate() {return rate_;}
   void setrate(double r) {rate_ = r;}
-  void setnpage(double npage_);
-  void setntrans(double ntrans_);
 
 private:
+  void initialize();
   int Template (int pages, int *objs_per_page);
   double rate_;
   double varRatio_, sigmaNoise_, sigmaEpsilon_, weibullShape_, weibullScale_;
   FARIMA *fARIMA_;
-  RNG* myrng_;
   static struct arima_params flowarrive_arima_params;
-  static const double shapeParam0 = -1.96311;
-  static const double shapeParam1 =  1.275;
-  static const double shapeParam2 =  0.389;
+  static const double P_PERSISTENT;   /* P(persistent=1) */
 
-  static const double p_persistent = 0.09;  /* P(persistent=1) */
+  /* generating num of page reqs */ 
+  static const double P_1PAGE;       /* P(num reqs=1) */
+  static const double SHAPE_NPAGE;   /* shape param for (#page reqs-1)*/
+  static const double SCALE_NPAGE;   /* scale param for (#page reqs-1) */
 
-  /* for generating num of page reqs and num of transfers for each req */
-  static const double p_1page=0.82; /* P(#page reqs=1) */
-  static const double shape_npage = 1;  /* shape param for (#page reqs-1)*/
-  //  double scale_npage; /* scale param for (#page reqs-1) 0.417 */
-  static const double scale_npage = 0.417;
-  static const double shape_ntransfer = 1; /* shape param for (#xfers-1)*/
-  //  double scale_ntransfer; /* scale param for (#xfers-1) 1.578 */
-  static const double scale_ntransfer = 1.578;
-  static const double p_1transfer = 0.69; /* P(#xfers=1 | #page req>=2) */
+  /* generating num of transfers for each req */
+  static const double P_1TRANSFER;     /* P(#xfers=1 | #page req>=2) */
+  static const double SHAPE_NTRANSFER; /* shape param for (#xfers-1)*/
+  static const double SCALE_NTRANSFER; /* scale param for (#xfers-1) 1.578 */
 
   /* time gap within page requests */
-  static const double m_loc_w = -4.15; /* mean of location */
-  static const double v_loc_w = 3.12;  /* variance of location */
-  static const double shape_scale2_w = 2.35; /* Gamma shape param of scale^2*/
-  static const double rate_scale2_w = 2.35; /* Gamma rate param of scale^2 */
-  static const double v_error_w = 1.57; /* variance of error */
+  static const double M_LOC_W;        /* mean of location */
+  static const double V_LOC_W;        /* variance of location */
+  static const double SHAPE_SCALE2_W; /* Gamma shape param of scale^2*/
+  static const double RATE_SCALE2_W;  /* Gamma rate param of scale^2 */
+  static const double V_ERROR_W;      /* variance of error */
 
   /* time gap between page requests */
-  static const double m_loc_b = 3.22; /* mean of location */
-  static const double v_loc_b = 0.73; /* variance of location */
-  static const double shape_scale2_b = 1.85; /* Gamma shape param of scale^2*/
-  static const double rate_scale2_b = 1.85; /* Gamma rate param of scale^2 */
-  static const double v_error_b = 1.21; /* variance of error */
+  static const double M_LOC_B;        /* mean of location */
+  static const double V_LOC_B;        /* variance of location */
+  static const double SHAPE_SCALE2_B; /* Gamma shape param of scale^2*/
+  static const double RATE_SCALE2_B;  /* Gamma rate param of scale^2 */
+  static const double V_ERROR_B;      /* variance of error */
 };
 
-/*:::::::::::::::::::::: PackMimeHTTP File Size RanVar :::::::::::::::::::::::::*/
+/*:::::::::::::::::::::: PackMimeHTTP File Size RanVar :::::::::::::::::::::*/
 
 class PackMimeHTTPFileSizeRandomVariable : public RandomVariable {
 public:
@@ -189,7 +181,6 @@ public:
   PackMimeHTTPFileSizeRandomVariable(double rate, int type);  
   PackMimeHTTPFileSizeRandomVariable(double rate, int type, RNG* rng);  
   ~PackMimeHTTPFileSizeRandomVariable(); 
-  void initialize();
   double* ratep() {return &rate_;}
   double rate() {return rate_;}
   void setrate(double r) {rate_ = r;}
@@ -198,57 +189,57 @@ public:
   void settype(int t) {type_ = t;}
 
 private:
+  void initialize();
   double rate_;
   int type_;
   double varRatio_, sigmaNoise_, sigmaEpsilon_;
   FARIMA* fARIMA_;
-  RNG* myrng_;
   int runlen_, state_;
-  int yold_;
   double shape_[2], scale_[2];
   int rfsize0(int state);
   int qfsize1(double p);
 
   /* fitted inverse cdf curves for file sizes  */
-  static const double fsize0_invcdf_a_x[];
-  static const double fsize0_invcdf_a_y[];
-  static const double fsize0_invcdf_b_x[];
-  static const double fsize0_invcdf_b_y[];
-  static const double fsize1_invcdf_a_x[];
-  static const double fsize1_invcdf_a_y[];
-  static const double fsize1_invcdf_b_x[];
-  static const double fsize1_invcdf_b_y[];
-  static const double fsize1_prob_a=0.5;
-  static const double fsize1_d=0.31; 
-  static const double fsize1_varRatio_intercept=0.123;
-  static const double fsize1_varRatio_slope=0.494;
+  static const double FSIZE0_INVCDF_A_X[];
+  static const double FSIZE0_INVCDF_A_Y[];
+  static const double FSIZE0_INVCDF_B_X[];
+  static const double FSIZE0_INVCDF_B_Y[];
+  static const double FSIZE1_INVCDF_A_X[];
+  static const double FSIZE1_INVCDF_A_Y[];
+  static const double FSIZE1_INVCDF_B_X[];
+  static const double FSIZE1_INVCDF_B_Y[];
+  static const double FSIZE1_PROB_A;
+  static const double FSIZE1_D;
+  static const double FSIZE1_VARRATIO_INTERCEPT;
+  static const double FSIZE1_VARRATIO_SLOPE;
 
   /* server file size run length for downloaded and cache validation */
-  static const double weibullScaleCacheRun = 1.1341;
-  static const double weibullShapeCacheRun_Asymptoe = 0.82;
-  static const double weibullShapeCacheRun_Para1 = 0.6496;
-  static const double weibullShapeCacheRun_Para2 = 0.0150;
-  static const double weibullShapeCacheRun_Para3 = 1.5837;
-  static const double weibullScaleDownloadRun = 3.0059;
-  static const double weibullShapeDownloadRun = 0.82;
-  static const double fsize0_para[];
+  static const double WEIBULLSCALECACHERUN;
+  static const double WEIBULLSHAPECACHERUN_ASYMPTOE;
+  static const double WEIBULLSHAPECACHERUN_PARA1;
+  static const double WEIBULLSHAPECACHERUN_PARA2;
+  static const double WEIBULLSHAPECACHERUN_PARA3;
+  static const double WEIBULLSCALEDOWNLOADRUN;
+  static const double WEIBULLSHAPEDOWNLOADRUN;
+  static const double FSIZE0_PARA[];
   static struct arima_params filesize_arima_params;
-  static const double* p;
+  static const double* P;
   static FX fsize_invcdf[2][2]; 
 
   /* cut off of file size for cache validation */
-  static const int fsize0_cache_cutoff=275; 
-  static const int fsize0_stretch_thres=400;
+  static const int FSIZE0_CACHE_CUTOFF; 
+  static const int FSIZE0_STRETCH_THRES;
   /* mean of log2(fsize0) for non cache validation flows */
-  static const double m_fsize0_notcache = 10.50;
+  static const double M_FSIZE0_NOTCACHE;
   /* variance of log2(fsize0) for non cache validation flows */ 
-  static const double v_fsize0_notcache = 3.23; 
+  static const double V_FSIZE0_NOTCACHE; 
 
   /* fsize0 for non-cache validation flow */
-  static const double m_loc = 10.62; /* mean of location */
-  static const double v_loc = 0.94; /* variance of location */
-  static const double shape_scale2 = 3.22;/*Gamma shape parameter of scale^2*/
-  static const double rate_scale2 = 3.22; /*Gamma rate parameter of scale^2 */
-  static const double v_error = 2.43; /* variance of error */
+  static const double M_LOC;        /* mean of location */
+  static const double V_LOC;        /* variance of location */
+  static const double SHAPE_SCALE2; /* Gamma shape parameter of scale^2*/
+  static const double RATE_SCALE2;  /* Gamma rate parameter of scale^2 */
+  static const double V_ERROR;      /* variance of error */
 };
 
+#endif

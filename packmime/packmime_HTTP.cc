@@ -65,7 +65,7 @@ PackMimeHTTP::PackMimeHTTP() :
 	current_node_(0), outfp_(NULL), fileszfp_(NULL), 
 	samplesfp_(NULL), rate_(0), segsize_(0), segsperack_(0),
 	interval_(0), ID_(-1), run_(0), debug_(0), 
-	cur_pairs_(0), warmup_(0), http_1_1_(0), 
+	cur_pairs_(0), warmup_(0), http_1_1_(false), 
 	active_connections_(0), total_connections_(-1), running_(0), 
 	flowarrive_rv_(NULL), reqsize_rv_(NULL), rspsize_rv_(NULL), 
 	server_delay_rv_(NULL), 
@@ -148,6 +148,9 @@ PackMimeHTTP::~PackMimeHTTP()
 		tcl.evalf ("delete %s", tcp->name());
 		tcpPool_.pop();
 	}
+
+	// delete RNGs and Random Variables
+	cleanup();
 
 	// close output files
 	if (outfp_)
@@ -566,7 +569,7 @@ void PackMimeHTTP::start()
 		rspsize_rng_ = (RNG*) new RNG();
 		// select proper substream
 		for (i=0; i<run_; i++) {
-			reqsize_rng_->reset_next_substream();
+			rspsize_rng_->reset_next_substream();
 		}
 		rspsize_rv_ = (PackMimeHTTPFileSizeRandomVariable*) new
 			PackMimeHTTPFileSizeRandomVariable (rate_, 
@@ -598,6 +601,35 @@ void PackMimeHTTP::stop()
 	running_ = 0;
 }
 
+void PackMimeHTTP::cleanup()
+{
+	// delete all 'new'ed variables
+	if (reqsize_rv_ != NULL) {
+		delete reqsize_rv_;
+	}
+	if (rspsize_rv_ != NULL) {
+		delete rspsize_rv_;
+	}
+	if (flowarrive_rv_ != NULL) {
+		delete flowarrive_rv_;
+	}
+	if (server_delay_rv_ != NULL) {
+		delete server_delay_rv_;
+	}
+	if (flowarrive_rng_ != NULL) {
+		delete flowarrive_rng_;
+	}
+	if (reqsize_rng_ != NULL) {
+		delete reqsize_rng_;
+	}
+	if (rspsize_rng_ != NULL) {
+		delete rspsize_rng_;
+	}
+	if (server_delay_rng_ != NULL) {
+		delete server_delay_rng_;
+	}
+}
+
 int PackMimeHTTP::command(int argc, const char*const* argv) {
 	if (argc == 2) {
 		if (!strcmp (argv[1], "start")) {
@@ -610,7 +642,7 @@ int PackMimeHTTP::command(int argc, const char*const* argv) {
 		}
 		else if ((!strcmp (argv[1], "set-1.1")) ||
 			 (!strcmp (argv[1], "set-http-1.1"))) {
-			http_1_1_ = 1;
+			http_1_1_ = true;
 			return (TCL_OK);
 		}
 		else if (!strcmp (argv[1], "active-connections")) {
@@ -691,18 +723,6 @@ int PackMimeHTTP::command(int argc, const char*const* argv) {
 			server_delay_rv_mean_ = (double) atof (argv[2]);
 			return (TCL_OK);
 		}
-		else if ((!strcmp (argv[1], "set-npage-const")) ||
-			 (!strcmp (argv[1], "npage-const"))) {	
-			((PackMimeHTTPFlowArriveRandomVariable*) 
-			 flowarrive_rv_)->setnpage((double) atof (argv[2]));
-			return (TCL_OK);
-		}
-		else if ((!strcmp (argv[1], "set-ntrans-const")) ||
-			 (!strcmp (argv[1], "ntrans-const"))) {	
-			((PackMimeHTTPFlowArriveRandomVariable*) 
-			 flowarrive_rv_)->setntrans((double) atof (argv[2]));
-			return (TCL_OK);
-		}
 		else if (!strcmp (argv[1], "set-outfile")) {
 			outfp_ = fopen (argv[2], "w");
 			if (outfp_)
@@ -727,9 +747,9 @@ int PackMimeHTTP::command(int argc, const char*const* argv) {
 		else if (strcmp (argv[1], "set-req_size") == 0) {
 			int res = lookup_rv (reqsize_rv_, argv[2]);
 			if (res == TCL_ERROR) {
-				delete reqsize_rv_;
 				fprintf (stderr, "Invalid req size ");
 				fprintf (stderr, "random variable\n");
+				cleanup();
 				return (TCL_ERROR);
 			}
 			return (TCL_OK);
@@ -737,9 +757,9 @@ int PackMimeHTTP::command(int argc, const char*const* argv) {
 		else if (strcmp (argv[1], "set-rsp_size") == 0) {
 			int res = lookup_rv (rspsize_rv_, argv[2]);
 			if (res == TCL_ERROR) {
-				delete rspsize_rv_;
 				fprintf (stderr, "Invalid rsp size ");
 				fprintf (stderr, "random variable\n");
+				cleanup();
 				return (TCL_ERROR);
 			}
 			return (TCL_OK);
@@ -747,9 +767,9 @@ int PackMimeHTTP::command(int argc, const char*const* argv) {
 		else if (strcmp (argv[1], "set-flow_arrive") == 0) {
 			int res = lookup_rv (flowarrive_rv_, argv[2]);
 			if (res == TCL_ERROR) {
-				delete flowarrive_rv_;
 				fprintf (stderr,"Invalid flow arrive ");
 				fprintf (stderr, "random variable\n");
+				cleanup();
 				return (TCL_ERROR);
 			}
 			return (TCL_OK);
@@ -757,9 +777,9 @@ int PackMimeHTTP::command(int argc, const char*const* argv) {
 		else if (strcmp (argv[1], "set-server_delay") == 0) {
 			int res = lookup_rv (server_delay_rv_, argv[2]);
 			if (res == TCL_ERROR) {
-				delete server_delay_rv_;
 				fprintf (stderr,"Invalid server delay ");
 				fprintf (stderr, "random variable\n");
+				cleanup();
 				return (TCL_ERROR);
 			}
 			return (TCL_OK);
@@ -879,6 +899,15 @@ PackMimeHTTPClientApp::~PackMimeHTTPClientApp()
 	if (agent_ != NULL) {
 		tcl.evalf ("delete %s", agent_->name());
 	}
+	if (reqsize_array_ != NULL) {
+		delete []reqsize_array_;
+	}
+	if (rspsize_array_ != NULL) {
+		delete []rspsize_array_;
+	}
+	if (reqgap_array_ != NULL) {
+		delete []reqgap_array_;
+	}
 }
 
 void PackMimeHTTPClientApp::start()
@@ -901,9 +930,15 @@ void PackMimeHTTPClientApp::recycle()
 	server_ = NULL;
 	reqs_ = 0;
 	array_ind_ = 0;
-	delete []reqsize_array_;
-	delete []rspsize_array_;
-	delete []reqgap_array_;
+	if (reqsize_array_ != NULL) {
+		delete []reqsize_array_;
+	}
+	if (rspsize_array_ != NULL) {
+		delete []rspsize_array_;
+	}
+	if (reqgap_array_ != NULL) {
+		delete []reqgap_array_;
+	}
 	reqsize_array_ = NULL;
 	rspsize_array_ = NULL;
 	reqgap_array_ = NULL;
@@ -911,6 +946,8 @@ void PackMimeHTTPClientApp::recycle()
 
 void PackMimeHTTPClientApp::timeout()
 {
+	/* Time to generate a new request */
+
 	reqsize_ = 0;
 	
 	if (!running_) {
