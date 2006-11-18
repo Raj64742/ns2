@@ -321,7 +321,7 @@ void DelayBoxClassifier::list_rules()
 	int i=1;
 
 	fprintf (stderr, "\nClass %s> Rules:  (%d elements)\n", name(),
-		 rules_.size());
+		 (int) rules_.size());
 	for (rule = rules_.begin(); rule != rules_.end(); rule++, i++) {
 		rule->first.format(pair_str);
 		fprintf (stderr, "%4d) %s\n", i, pair_str);
@@ -342,7 +342,7 @@ void DelayBoxClassifier::list_flows()
 	int i=0;
 
 	fprintf (stderr, "\nClass %s> Flows:   (%d elements)\n", name(),
-		 flows_.size());
+		 (int) flows_.size());
 	for (flow = flows_.begin(); flow != flows_.end(); flow++, i++) {
 		flow->first.format(pair_str);
 		flow->second->format(flow_str);
