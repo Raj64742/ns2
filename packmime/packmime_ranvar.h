@@ -127,7 +127,6 @@ public:
   virtual double value();
   virtual double avg();
   virtual double avg(int gap_type_);
-  double* value_array();
   PackMimeHTTPFlowArriveRandomVariable();
   PackMimeHTTPFlowArriveRandomVariable(double rate);
   PackMimeHTTPFlowArriveRandomVariable(double rate, RNG* rng);
@@ -138,36 +137,12 @@ public:
 
 private:
   void initialize();
-  int Template (int pages, int *objs_per_page);
   double rate_;
+  double const_;
+  double mean_;
   double varRatio_, sigmaNoise_, sigmaEpsilon_, weibullShape_, weibullScale_;
   FARIMA *fARIMA_;
   static struct arima_params flowarrive_arima_params;
-  static const double P_PERSISTENT;   /* P(persistent=1) */
-
-  /* generating num of page reqs */ 
-  static const double P_1PAGE;       /* P(num reqs=1) */
-  static const double SHAPE_NPAGE;   /* shape param for (#page reqs-1)*/
-  static const double SCALE_NPAGE;   /* scale param for (#page reqs-1) */
-
-  /* generating num of transfers for each req */
-  static const double P_1TRANSFER;     /* P(#xfers=1 | #page req>=2) */
-  static const double SHAPE_NTRANSFER; /* shape param for (#xfers-1)*/
-  static const double SCALE_NTRANSFER; /* scale param for (#xfers-1) 1.578 */
-
-  /* time gap within page requests */
-  static const double M_LOC_W;        /* mean of location */
-  static const double V_LOC_W;        /* variance of location */
-  static const double SHAPE_SCALE2_W; /* Gamma shape param of scale^2*/
-  static const double RATE_SCALE2_W;  /* Gamma rate param of scale^2 */
-  static const double V_ERROR_W;      /* variance of error */
-
-  /* time gap between page requests */
-  static const double M_LOC_B;        /* mean of location */
-  static const double V_LOC_B;        /* variance of location */
-  static const double SHAPE_SCALE2_B; /* Gamma shape param of scale^2*/
-  static const double RATE_SCALE2_B;  /* Gamma rate param of scale^2 */
-  static const double V_ERROR_B;      /* variance of error */
 };
 
 /*:::::::::::::::::::::: PackMimeHTTP File Size RanVar :::::::::::::::::::::*/
@@ -176,7 +151,6 @@ class PackMimeHTTPFileSizeRandomVariable : public RandomVariable {
 public:
   virtual double value();
   virtual double avg();
-  double* value_array(int);
   PackMimeHTTPFileSizeRandomVariable();
   PackMimeHTTPFileSizeRandomVariable(double rate, int type);  
   PackMimeHTTPFileSizeRandomVariable(double rate, int type, RNG* rng);  
@@ -192,10 +166,14 @@ private:
   void initialize();
   double rate_;
   int type_;
+  double const_;
+  double mean_;
   double varRatio_, sigmaNoise_, sigmaEpsilon_;
   FARIMA* fARIMA_;
   int runlen_, state_;
   double shape_[2], scale_[2];
+  double loc_;
+  double scale2_;
   int rfsize0(int state);
   int qfsize1(double p);
 
@@ -240,6 +218,165 @@ private:
   static const double SHAPE_SCALE2; /* Gamma shape parameter of scale^2*/
   static const double RATE_SCALE2;  /* Gamma rate parameter of scale^2 */
   static const double V_ERROR;      /* variance of error */
+};
+
+/*:::::::::::::::::::::: PackMimeHTTP Persistent Rsp Size RanVar :::::::::::*/
+
+class PackMimeHTTPPersistRspSizeRandomVariable : public RandomVariable {
+public:
+  virtual double value();
+  virtual double avg();
+  PackMimeHTTPPersistRspSizeRandomVariable();
+  PackMimeHTTPPersistRspSizeRandomVariable(RNG* rng);
+  ~PackMimeHTTPPersistRspSizeRandomVariable(); 
+  inline void reset_loc_scale() {loc_ = -1; scale_ = -1;}
+
+  /* cut off of file size for cache validation */
+  static const int FSIZE_CACHE_CUTOFF; 
+
+private:
+  double loc_;
+  double scale_;
+
+  /* fsize for non-cache validation flow */
+  static const double M_LOC;        /* mean of location */
+  static const double V_LOC;        /* variance of location */
+  static const double SHAPE_SCALE2; /* Gamma shape parameter of scale^2*/
+  static const double RATE_SCALE2;  /* Gamma rate parameter of scale^2 */
+  static const double V_ERROR;      /* variance of error */
+};
+
+/*:::::::::::::::::::::: PackMimeHTTP Persistent RanVar ::::::::::::::::::::*/
+
+class PackMimeHTTPPersistentRandomVariable : public RandomVariable {
+public:
+  virtual double value();
+  virtual double avg() {return 0;}
+  PackMimeHTTPPersistentRandomVariable();
+  PackMimeHTTPPersistentRandomVariable(double prob);  
+  PackMimeHTTPPersistentRandomVariable(double prob, RNG* rng);  
+
+  static const double P_PERSISTENT;   /* P(persistent=1) */
+
+private:
+  double probability_;    // probability that the connection is persistent
+
+};
+
+/*:::::::::::::::::::::: PackMimeHTTP NumPages RanVar ::::::::::::::::::::::*/
+
+class PackMimeHTTPNumPagesRandomVariable : public RandomVariable {
+public:
+  virtual double value();
+  virtual double avg() {return 0;}
+  PackMimeHTTPNumPagesRandomVariable();
+  PackMimeHTTPNumPagesRandomVariable(double prob, double shape, double scale);
+  PackMimeHTTPNumPagesRandomVariable(double prob, double shape, double scale, 
+				     RNG* rng);  
+
+  static const double P_1PAGE;       /* P(num reqs=1) */
+  static const double SHAPE_NPAGE;   /* shape param for (#page reqs-1)*/
+  static const double SCALE_NPAGE;   /* scale param for (#page reqs-1) */
+
+private:
+  double probability_;  // probability that the connection has just one page
+  double shape_;        // shape of Weibull for number of pages in connection
+  double scale_;        // scale of Weibull for number of pages in connection
+};
+
+/*:::::::::::::::::::::: PackMimeHTTP SingleObj RanVar :::::::::::::::::::::*/
+
+class PackMimeHTTPSingleObjRandomVariable : public RandomVariable {
+public:
+  virtual double value();
+  virtual double avg() {return 0;}
+  PackMimeHTTPSingleObjRandomVariable();
+  PackMimeHTTPSingleObjRandomVariable(double prob);
+  PackMimeHTTPSingleObjRandomVariable(double prob, RNG* rng);  
+
+  static const double P_1TRANSFER; /* P(#xfers=1 | #page req>=2) */
+
+private:
+  double probability_;    // probability that the num of objs is 1
+};
+
+/*:::::::::::::::::::::: PackMimeHTTP ObjsPerPage RanVar :::::::::::::::::::*/
+
+class PackMimeHTTPObjsPerPageRandomVariable : public RandomVariable {
+public:
+  virtual double value();
+  virtual double avg() {return 0;}
+  PackMimeHTTPObjsPerPageRandomVariable();
+  PackMimeHTTPObjsPerPageRandomVariable(double shape, double scale);
+  PackMimeHTTPObjsPerPageRandomVariable(double shape, double scale, RNG* rng);
+  static const double SHAPE_NTRANSFER; /* shape param for (#xfers-1)*/
+  static const double SCALE_NTRANSFER; /* scale param for (#xfers-1) 1.578 */
+
+private:
+  double shape_;          // shape of Weibull for number of objs in page
+  double scale_;          // scale of Weibull for number of objs in page
+};
+
+/*:::::::::::::::::::::: PackMimeHTTP TimeBtwnPages RanVar :::::::::::::::::*/
+
+class PackMimeHTTPTimeBtwnPagesRandomVariable : public RandomVariable {
+public:
+  virtual double value();
+  virtual double avg() {return 0;}
+  PackMimeHTTPTimeBtwnPagesRandomVariable();
+  PackMimeHTTPTimeBtwnPagesRandomVariable(RNG* rng);
+
+  /* time gap between page requests */
+  static const double M_LOC_B;        /* mean of location */
+  static const double V_LOC_B;        /* variance of location */
+  static const double SHAPE_SCALE2_B; /* Gamma shape param of scale^2*/
+  static const double RATE_SCALE2_B;  /* Gamma rate param of scale^2 */
+  static const double V_ERROR_B;      /* variance of error */
+
+private:
+  double loc_b_;
+  double scale2_b_;
+};
+
+/*:::::::::::::::::::::: PackMimeHTTP TimeBtwnObjs RanVar ::::::::::::::::::*/
+
+class PackMimeHTTPTimeBtwnObjsRandomVariable : public RandomVariable {
+public:
+  virtual double value();
+  virtual double avg() {return 0;}
+  PackMimeHTTPTimeBtwnObjsRandomVariable();
+  PackMimeHTTPTimeBtwnObjsRandomVariable(RNG* rng);
+
+  /* time gap within page requests */
+  static const double M_LOC_W;        /* mean of location */
+  static const double V_LOC_W;        /* variance of location */
+  static const double SHAPE_SCALE2_W; /* Gamma shape param of scale^2*/
+  static const double RATE_SCALE2_W;  /* Gamma rate param of scale^2 */
+  static const double V_ERROR_W;      /* variance of error */
+
+private:
+  double loc_w_;
+  double scale2_w_;
+};
+
+/*:::::::::::::::::::::: PackMimeHTTP ServerDelay RanVar :::::::::::::::::::*/
+
+class PackMimeHTTPServerDelayRandomVariable : public RandomVariable {
+public:
+  virtual double value();
+  virtual double avg() {return 0;}
+  PackMimeHTTPServerDelayRandomVariable();
+  PackMimeHTTPServerDelayRandomVariable(double shape, double scale);
+  PackMimeHTTPServerDelayRandomVariable(double shape, double scale, RNG* rng);
+  static const double SERVER_DELAY_SHAPE;
+  static const double SERVER_DELAY_SCALE;
+  static const double SERVER_DELAY_DIV;
+
+private:
+  double shape_; 
+  double scale_; 
+  double const_;
+  double mean_;
 };
 
 #endif

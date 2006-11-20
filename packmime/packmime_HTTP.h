@@ -100,6 +100,7 @@ protected:
 class PackMimeHTTPClientApp : public Application {
  public:
 	PackMimeHTTPClientApp() : Application(), id_(0), running_(0), 
+				  persistent_(false),
 				  totalbytes_(0), reqsize_(0), rspsize_(0), 
 				  reqs_(0), reqsize_array_(NULL), 
 				  rspsize_array_(NULL), reqgap_array_(NULL), 
@@ -123,13 +124,13 @@ class PackMimeHTTPClientApp : public Application {
 
 	int id_;
 	int running_;
-
+	bool persistent_;                // persistent connection?
 	int totalbytes_;
 	int reqsize_;
 	int rspsize_;
 	int reqs_;                      // total requests in this connection
-	double* reqsize_array_;         // array of requests
-	double* rspsize_array_;         // array of responses
+	int* reqsize_array_;            // array of request sizes
+	int* rspsize_array_;            // array of response sizes
 	double* reqgap_array_;          // array of request intervals
 	int array_ind_;                 // index into the arrays
 	double time_of_req_;
@@ -143,8 +144,8 @@ class PackMimeHTTPServerApp : public Application {
  public:
 	PackMimeHTTPServerApp() : Application(), id_(0), running_(0), 
 				  reqsize_(0), rspsize_(0), reqs_(0),
-				  curreq_(0), totalbytes_(0), timer_(this), 
-				  mgr_(NULL) {};
+				  lastreq_(false), totalbytes_(0), 
+				  timer_(this), mgr_(NULL) {};
 	~PackMimeHTTPServerApp();
 	void timeout();
 	void stop();
@@ -157,7 +158,7 @@ class PackMimeHTTPServerApp : public Application {
 	inline void set_reqsize(int size) {reqsize_ = size;}
 	inline void set_rspsize(int size) {rspsize_ = size;}
 	inline void set_reqs(int reqs) {reqs_ = reqs;}
-	inline void set_curreq(int ind) {curreq_ = ind;}
+	inline void set_last_req() {lastreq_ = true;}
 	void recycle();
 
  protected:
@@ -168,7 +169,7 @@ class PackMimeHTTPServerApp : public Application {
 	int reqsize_;
 	int rspsize_;
 	int reqs_;                    // total number of requests
-	int curreq_;                  // current request number
+	bool lastreq_;                // is this the last request?
 	int totalbytes_;              // total bytes received so far
 
 	PackMimeHTTPServerAppTimer timer_;
@@ -197,6 +198,8 @@ class PackMimeHTTP : public TclObject {
 	inline int get_warmup() {return warmup_;}
 	inline double get_rate() {return rate_;}
 	inline bool using_http_1_1() {return http_1_1_;}
+	inline bool use_pm_persist_rspsz() {return use_pm_persist_rspsz_;}
+	inline bool use_pm_persist_reqsz() {return use_pm_persist_reqsz_;}
 
 	/* HTTP 1.0 random variable fns */
 	double connection_interval();
@@ -205,9 +208,12 @@ class PackMimeHTTP : public TclObject {
 	double get_server_delay();
 
 	/* HTTP 1.1 random variable fns */
-	double* get_reqgap_array();
-	double* get_reqsize_array(int files);
-	double* get_rspsize_array(int files);
+	bool is_persistent();
+	int get_num_pages();
+	int get_num_objs(int pages);
+	double get_reqgap (int page, int obj);
+	int adjust_persist_rspsz();
+	void reset_persist_rspsz();
 
 	inline FILE* get_outfp() {return outfp_;}
 	inline FILE* get_fileszfp() {return fileszfp_;}
@@ -251,6 +257,8 @@ class PackMimeHTTP : public TclObject {
 	int cur_pairs_;            // number of current req/rsp pairs
 	int warmup_;               // warmup interval (s)
 	bool http_1_1_;            // use HTTP 1.1?  (default: no)
+	bool use_pm_persist_rspsz_; // use PM response sizes for persistent conns (def: yes)
+	bool use_pm_persist_reqsz_; // use PM request size rule for persistent conns (def: yes)
 
 	int active_connections_;   // number of active connections
 	int total_connections_;    // number of total connections
@@ -260,24 +268,26 @@ class PackMimeHTTP : public TclObject {
 	RandomVariable* flowarrive_rv_;
 	RandomVariable* reqsize_rv_;
 	RandomVariable* rspsize_rv_;
+	PackMimeHTTPPersistRspSizeRandomVariable* persist_rspsize_rv_;
+	RandomVariable* persistent_rv_;
+	RandomVariable* num_pages_rv_;
+	RandomVariable* single_obj_rv_;
+	RandomVariable* objs_per_page_rv_;
+	RandomVariable* time_btwn_pages_rv_;
+	RandomVariable* time_btwn_objs_rv_;
 	RandomVariable* server_delay_rv_;
 
 	RNG* flowarrive_rng_;
 	RNG* reqsize_rng_;
 	RNG* rspsize_rng_;
+	RNG* persist_rspsize_rng_;
+	RNG* persistent_rng_;
+	RNG* num_pages_rng_;
+	RNG* single_obj_rng_;
+	RNG* objs_per_page_rng_;
+	RNG* time_btwn_pages_rng_;
+	RNG* time_btwn_objs_rng_;
 	RNG* server_delay_rng_;
-
-	double flowarrive_rv_ie_const_;
-	double flowarrive_rv_ir_const_;
-	double reqsize_rv_const_;
-	double rspsize_rv_const_;
-	double server_delay_rv_const_;
-
-	double flowarrive_rv_ie_mean_;
-	double flowarrive_rv_ir_mean_;
-	double reqsize_rv_mean_;
-	double rspsize_rv_mean_;
-	double server_delay_rv_mean_;
 
 	// helper methods
 	TclObject* lookup_obj(const char* name) {

@@ -66,16 +66,16 @@ PackMimeHTTP::PackMimeHTTP() :
 	samplesfp_(NULL), rate_(0), segsize_(0), segsperack_(0),
 	interval_(0), ID_(-1), run_(0), debug_(0), 
 	cur_pairs_(0), warmup_(0), http_1_1_(false), 
+	use_pm_persist_rspsz_(true), use_pm_persist_reqsz_(true),
 	active_connections_(0), total_connections_(-1), running_(0), 
 	flowarrive_rv_(NULL), reqsize_rv_(NULL), rspsize_rv_(NULL), 
-	server_delay_rv_(NULL), 
-	flowarrive_rng_(NULL), reqsize_rng_(NULL),
-	rspsize_rng_(NULL), server_delay_rng_(NULL), 
-	flowarrive_rv_ie_const_(1), 
-	flowarrive_rv_ir_const_(1), reqsize_rv_const_(1), 
-	rspsize_rv_const_(1), server_delay_rv_const_(1), 
-	flowarrive_rv_ie_mean_(0), flowarrive_rv_ir_mean_(0), 
-	reqsize_rv_mean_(0), rspsize_rv_mean_(0), server_delay_rv_mean_(0) 
+	persist_rspsize_rv_(NULL), persistent_rv_(NULL), num_pages_rv_(NULL),
+	single_obj_rv_(NULL), objs_per_page_rv_(NULL), time_btwn_pages_rv_(NULL),
+	time_btwn_objs_rv_(NULL), server_delay_rv_(NULL), 
+	flowarrive_rng_(NULL), reqsize_rng_(NULL), rspsize_rng_(NULL), 
+	persist_rspsize_rng_(NULL), persistent_rng_(NULL), num_pages_rng_(NULL), 
+	single_obj_rng_(NULL), objs_per_page_rng_(NULL), time_btwn_pages_rng_(NULL),
+	time_btwn_objs_rng_(NULL), server_delay_rng_(NULL)
 {
 	int i;
 
@@ -148,7 +148,7 @@ PackMimeHTTP::~PackMimeHTTP()
 		tcl.evalf ("delete %s", tcp->name());
 		tcpPool_.pop();
 	}
-
+	
 	// delete RNGs and Random Variables
 	cleanup();
 
@@ -353,99 +353,87 @@ void PackMimeHTTP::recycle(PackMimeHTTPServerApp* app)
 
 double PackMimeHTTP::connection_interval() 
 {
-	if (flowarrive_rv_ir_const_ == 0) {
-		flowarrive_rv_ir_const_ = flowarrive_rv_ir_mean_ / 
-			((PackMimeHTTPFlowArriveRandomVariable*) 
-			 flowarrive_rv_)->avg(1);
-	}
-	return connection_interval_ * flowarrive_rv_ir_const_;
+	return connection_interval_;
 }
 
 /* HTTP 1.0 functions */
 int PackMimeHTTP::get_reqsize() 
 {
-	if (reqsize_rv_const_ == 0) {
-		reqsize_rv_const_ = reqsize_rv_mean_ /
-			reqsize_rv_->avg();
-	}
-	return (int) (reqsize_rv_->value() * reqsize_rv_const_);
+	return (int) (reqsize_rv_->value());
 }
 
 int PackMimeHTTP::get_rspsize() 
 {
-	if (rspsize_rv_const_ == 0) {
-		rspsize_rv_const_ = rspsize_rv_mean_ /
-			reqsize_rv_->avg();
-	}
-	return (int) (rspsize_rv_->value() * rspsize_rv_const_);
+	return (int) (rspsize_rv_->value());
 }
 
 double PackMimeHTTP::get_server_delay() 
 { 
-	if (server_delay_rv_const_ == 0) {
-		server_delay_rv_const_ = server_delay_rv_mean_ 
-			/ 0.0059;
-	}
-	double rn = server_delay_rv_->value();
-	if (rn < 1 / 0.10) {
-		rn = 1 / 0.10;
-	}
-	return rn / server_delay_rv_const_;
+	return server_delay_rv_->value();
 }
 
 /* HTTP 1.1 functions */
-double* PackMimeHTTP::get_reqgap_array()
+bool PackMimeHTTP::is_persistent()
 {
-	double* array = ((PackMimeHTTPFlowArriveRandomVariable*) 
-			 flowarrive_rv_)->value_array();
-	int totalitems = (int) array[0];
-	int i;
-
-	if (flowarrive_rv_ie_const_ == 0) {
-		flowarrive_rv_ie_const_ = flowarrive_rv_ie_mean_ /
-			((PackMimeHTTPFlowArriveRandomVariable*)
-			 flowarrive_rv_)->avg(0);
+	double val = persistent_rv_->value();
+	if (val == 0) {
+		return false;
+	} else {
+		return true;
 	}
-	for (i=1; i<= totalitems; i++) {
-		array[i] *= flowarrive_rv_ie_const_;
-	}
-	return array;  
 }
 
-double* PackMimeHTTP::get_reqsize_array(int files)
+int PackMimeHTTP::get_num_pages()
 {
-	double* array = ((PackMimeHTTPFileSizeRandomVariable*)
-			 reqsize_rv_)->value_array(files);
-	int totalitems = (int) array[0];
-	int i;
-
-	if (reqsize_rv_const_ == 0) {
-		reqsize_rv_const_ = reqsize_rv_mean_ / 
-			((PackMimeHTTPFileSizeRandomVariable*)
-			 reqsize_rv_)->avg();
-	}
-	for (i=1; i<= totalitems; i++) {
-		array[i] *= reqsize_rv_const_;
-	}
-	return array;  
+	return (int) ceil(num_pages_rv_->value());
 }
-	
-double* PackMimeHTTP::get_rspsize_array(int files)
-{
-	double* array = ((PackMimeHTTPFileSizeRandomVariable*)
-			 rspsize_rv_)->value_array(files);
-	int totalitems = (int) array[0];
-	int i;
 
-	if (rspsize_rv_const_ == 0) {
-		rspsize_rv_const_ = rspsize_rv_mean_ / 
-			((PackMimeHTTPFileSizeRandomVariable*)
-			 rspsize_rv_)->avg();
+int PackMimeHTTP::get_num_objs (int pages)
+{
+	int p_singleobj = 0;
+	int objs = 1;
+
+	if (pages > 1) {
+		// find probabilty there's only one obj in this page
+		p_singleobj = (int) single_obj_rv_->value();
 	}
-	for (i=1; i<= totalitems; i++) {
-		array[i] *= rspsize_rv_const_;
+	if (p_singleobj == 0) {
+		objs = (int) ceil(objs_per_page_rv_->value());	
+		if (objs == 1) {
+			// should be at least 2 objs at this point
+			objs++;
+		}
 	}
-	return array;  
+	return objs;
+}
+
+double PackMimeHTTP::get_reqgap (int page, int obj)
+{
+	double val;
+
+	if (page == 0 && obj == 0) {
+		// first request
+		val = 0;
+	}
+	else if (page != 0 && obj == 0) {
+		// main page (between-page requests)
+		val = time_btwn_pages_rv_->value();
+	}
+	else {
+		// embedded objects (within-page requests)
+		val = time_btwn_objs_rv_->value();
+	}
+	return val;
+}
+
+int PackMimeHTTP::adjust_persist_rspsz()
+{
+	return (int) persist_rspsize_rv_->value();
+}
+
+void PackMimeHTTP::reset_persist_rspsz()
+{
+	persist_rspsize_rv_->reset_loc_scale();
 }
 
 void PackMimeHTTP::incr_pairs()
@@ -585,10 +573,108 @@ void PackMimeHTTP::start()
 		for (i=0; i<run_; i++) {
 			server_delay_rng_->reset_next_substream();
 		}
-		server_delay_rv_ = (WeibullRandomVariable*) new 
-			WeibullRandomVariable (0.63, 305, server_delay_rng_);
+		server_delay_rv_ = (PackMimeHTTPServerDelayRandomVariable*) new 
+			PackMimeHTTPServerDelayRandomVariable 
+			(PackMimeHTTPServerDelayRandomVariable::SERVER_DELAY_SHAPE, 
+			 PackMimeHTTPServerDelayRandomVariable::SERVER_DELAY_SCALE, 
+			 server_delay_rng_);
 		if (debug_ > 1) {
 			fprintf (stderr, "Created ServerDelay RNG and RV\n");
+		}
+	}
+	if (persist_rspsize_rv_ == NULL) {
+		persist_rspsize_rng_ = (RNG*) new RNG();
+		// select proper substream
+		for (i=0; i<run_; i++) {
+			persist_rspsize_rng_->reset_next_substream();
+		}
+		persist_rspsize_rv_ = (PackMimeHTTPPersistRspSizeRandomVariable*) new 
+			PackMimeHTTPPersistRspSizeRandomVariable(persist_rspsize_rng_);
+		if (debug_ > 1) {
+			fprintf (stderr, "Created Persistent RspSz RNG and RV\n");
+		}
+	}
+	if (persistent_rv_ == NULL) {
+		persistent_rng_ = (RNG*) new RNG();
+		// select proper substream
+		for (i=0; i<run_; i++) {
+			persistent_rng_->reset_next_substream();
+		}
+		persistent_rv_ = (PackMimeHTTPPersistentRandomVariable*) new 
+			PackMimeHTTPPersistentRandomVariable
+			(PackMimeHTTPPersistentRandomVariable::P_PERSISTENT,
+			 persistent_rng_);
+		if (debug_ > 1) {
+			fprintf (stderr, "Created Persistent RNG and RV\n");
+		}
+	}
+	if (num_pages_rv_ == NULL) {
+		num_pages_rng_ = (RNG*) new RNG();
+		// select proper substream
+		for (i=0; i<run_; i++) {
+			num_pages_rng_->reset_next_substream();
+		}
+		num_pages_rv_ = (PackMimeHTTPNumPagesRandomVariable*) new 
+			PackMimeHTTPNumPagesRandomVariable
+			(PackMimeHTTPNumPagesRandomVariable::P_1PAGE,
+			 PackMimeHTTPNumPagesRandomVariable::SHAPE_NPAGE,
+			 PackMimeHTTPNumPagesRandomVariable::SCALE_NPAGE,
+			 num_pages_rng_);
+		if (debug_ > 1) {
+			fprintf (stderr, "Created Number of Pages RNG and RV\n");
+		}
+	}
+	if (single_obj_rv_ == NULL) {
+		single_obj_rng_ = (RNG*) new RNG();
+		// select proper substream
+		for (i=0; i<run_; i++) {
+			single_obj_rng_->reset_next_substream();
+		}
+		single_obj_rv_ = (PackMimeHTTPSingleObjRandomVariable*) new 
+			PackMimeHTTPSingleObjRandomVariable
+			(PackMimeHTTPSingleObjRandomVariable::P_1TRANSFER,
+			 single_obj_rng_);
+		if (debug_ > 1) {
+			fprintf (stderr, "Created Single Objects RNG and RV\n");
+		}
+	}
+	if (objs_per_page_rv_ == NULL) {
+		objs_per_page_rng_ = (RNG*) new RNG();
+		// select proper substream
+		for (i=0; i<run_; i++) {
+			objs_per_page_rng_->reset_next_substream();
+		}
+		objs_per_page_rv_ = (PackMimeHTTPObjsPerPageRandomVariable*) new 
+			PackMimeHTTPObjsPerPageRandomVariable
+			(PackMimeHTTPObjsPerPageRandomVariable::SHAPE_NTRANSFER,
+			 PackMimeHTTPObjsPerPageRandomVariable::SCALE_NTRANSFER,
+			 objs_per_page_rng_);
+		if (debug_ > 1) {
+			fprintf (stderr, "Created Objects Per Page RNG and RV\n");
+		}
+	}
+	if (time_btwn_pages_rv_ == NULL) {
+		time_btwn_pages_rng_ = (RNG*) new RNG();
+		// select proper substream
+		for (i=0; i<run_; i++) {
+			time_btwn_pages_rng_->reset_next_substream();
+		}
+		time_btwn_pages_rv_ = (PackMimeHTTPTimeBtwnPagesRandomVariable*) new 
+			PackMimeHTTPTimeBtwnPagesRandomVariable(time_btwn_pages_rng_);
+		if (debug_ > 1) {
+			fprintf (stderr, "Created Time Btwn Pages RNG and RV\n");
+		}
+	}
+	if (time_btwn_objs_rv_ == NULL) {
+		time_btwn_objs_rng_ = (RNG*) new RNG();
+		// select proper substream
+		for (i=0; i<run_; i++) {
+			time_btwn_objs_rng_->reset_next_substream();
+		}
+		time_btwn_objs_rv_ = (PackMimeHTTPTimeBtwnObjsRandomVariable*) new 
+			PackMimeHTTPTimeBtwnObjsRandomVariable(time_btwn_objs_rng_);
+		if (debug_ > 1) {
+			fprintf (stderr, "Created Time Btwn Objs RNG and RV\n");
 		}
 	}
 
@@ -610,11 +696,32 @@ void PackMimeHTTP::cleanup()
 	if (rspsize_rv_ != NULL) {
 		delete rspsize_rv_;
 	}
+	if (persist_rspsize_rv_ != NULL) {
+		delete persist_rspsize_rv_;
+	}
 	if (flowarrive_rv_ != NULL) {
 		delete flowarrive_rv_;
 	}
 	if (server_delay_rv_ != NULL) {
 		delete server_delay_rv_;
+	}
+	if (persistent_rv_ != NULL) {
+		delete persistent_rv_;
+	}
+	if (num_pages_rv_ != NULL) {
+		delete num_pages_rv_;
+	}
+	if (single_obj_rv_ != NULL) {
+		delete single_obj_rv_;
+	}
+	if (objs_per_page_rv_ != NULL) {
+		delete objs_per_page_rv_;
+	}
+	if (time_btwn_pages_rv_ != NULL) {
+		delete time_btwn_pages_rv_;
+	}
+	if (time_btwn_objs_rv_ != NULL) {
+		delete time_btwn_objs_rv_;
 	}
 	if (flowarrive_rng_ != NULL) {
 		delete flowarrive_rng_;
@@ -627,6 +734,24 @@ void PackMimeHTTP::cleanup()
 	}
 	if (server_delay_rng_ != NULL) {
 		delete server_delay_rng_;
+	}
+	if (persistent_rng_ != NULL) {
+		delete persistent_rng_;
+	}
+	if (num_pages_rng_ != NULL) {
+		delete num_pages_rng_;
+	}
+	if (single_obj_rng_ != NULL) {
+		delete single_obj_rng_;
+	}
+	if (objs_per_page_rng_ != NULL) {
+		delete objs_per_page_rng_;
+	}
+	if (time_btwn_pages_rng_ != NULL) {
+		delete time_btwn_pages_rng_;
+	}
+	if (time_btwn_objs_rng_ != NULL) {
+		delete time_btwn_objs_rng_;
 	}
 }
 
@@ -663,6 +788,12 @@ int PackMimeHTTP::command(int argc, const char*const* argv) {
 			tcl.resultf("%d", cur_pairs_);
 			return (TCL_OK);
 		}
+		else if (!strcmp (argv[1], "no-pm-persistent-reqsz") == 0) {
+			use_pm_persist_reqsz_ = false;
+		}
+		else if (!strcmp (argv[1], "no-pm-persistent-rspsz") == 0) {
+			use_pm_persist_rspsz_ = false;
+		}
 	}
 	else if (argc == 3) {
 		if ((!strcmp (argv[1], "set-client")) 
@@ -697,30 +828,6 @@ int PackMimeHTTP::command(int argc, const char*const* argv) {
 		else if ((!strcmp (argv[1], "set-rate")) ||
 			 (!strcmp (argv[1], "rate"))) {
 			rate_ = (double) atof (argv[2]);
-			return (TCL_OK);
-		}
-		else if ((!strcmp (argv[1], "set-flow-ir-const")) ||
-			 (!strcmp (argv[1], "ir-flow-const"))) {
-			flowarrive_rv_ir_const_ = 0;
-			flowarrive_rv_ir_mean_ = (double) atof (argv[2]);
-			return (TCL_OK);
-		}
-		else if ((!strcmp (argv[1], "set-req-const")) ||
-			 (!strcmp (argv[1], "req-const"))) {
-			reqsize_rv_const_ = 0;
-			reqsize_rv_mean_ = (double) atof (argv[2]);
-			return (TCL_OK);
-		}
-		else if ((!strcmp (argv[1], "set-rsp-const")) ||
-			 (!strcmp (argv[1], "rsp-const"))) {
-			rspsize_rv_const_ = 0;
-			rspsize_rv_mean_ = (double) atof (argv[2]);
-			return (TCL_OK);
-		}
-		else if ((!strcmp (argv[1], "set-sdelay-const")) ||
-			 (!strcmp (argv[1], "sdelay-const"))) {
-			server_delay_rv_const_ = 0;
-			server_delay_rv_mean_ = (double) atof (argv[2]);
 			return (TCL_OK);
 		}
 		else if (!strcmp (argv[1], "set-outfile")) {
@@ -783,6 +890,66 @@ int PackMimeHTTP::command(int argc, const char*const* argv) {
 				return (TCL_ERROR);
 			}
 			return (TCL_OK);
+		}
+		else if (!strcmp (argv[1], "set-prob_persistent")) {
+			int res = lookup_rv (persistent_rv_, argv[2]);
+			if (res == TCL_ERROR) {
+				fprintf (stderr,"Invalid percent persistent ");
+				fprintf (stderr, "random variable\n");
+				cleanup();
+				return (TCL_ERROR);
+			}
+			return (TCL_OK);	
+		}
+		else if (!strcmp (argv[1], "set-num_pages")) {
+			int res = lookup_rv (num_pages_rv_, argv[2]);
+			if (res == TCL_ERROR) {
+				fprintf (stderr,"Invalid number of pages ");
+				fprintf (stderr, "random variable\n");
+				cleanup();
+				return (TCL_ERROR);
+			}
+			return (TCL_OK);	
+		}
+		else if (!strcmp (argv[1], "set-prob_single_obj")) {
+			int res = lookup_rv (single_obj_rv_, argv[2]);
+			if (res == TCL_ERROR) {
+				fprintf (stderr,"Invalid probability single obj ");
+				fprintf (stderr, "random variable\n");
+				cleanup();
+				return (TCL_ERROR);
+			}
+			return (TCL_OK);	
+		}
+		else if (!strcmp (argv[1], "set-objs_per_page")) {
+			int res = lookup_rv (objs_per_page_rv_, argv[2]);
+			if (res == TCL_ERROR) {
+				fprintf (stderr,"Invalid objects per page ");
+				fprintf (stderr, "random variable\n");
+				cleanup();
+				return (TCL_ERROR);
+			}
+			return (TCL_OK);	
+		}
+		else if (!strcmp (argv[1], "set-time_btwn_pages")) {
+			int res = lookup_rv (time_btwn_pages_rv_, argv[2]);
+			if (res == TCL_ERROR) {
+				fprintf (stderr,"Invalid time between pages ");
+				fprintf (stderr, "random variable\n");
+				cleanup();
+				return (TCL_ERROR);
+			}
+			return (TCL_OK);	
+		}
+		else if (!strcmp (argv[1], "set-time_btwn_objs")) {
+			int res = lookup_rv (time_btwn_objs_rv_, argv[2]);
+			if (res == TCL_ERROR) {
+				fprintf (stderr,"Invalid time between objs ");
+				fprintf (stderr, "random variable\n");
+				cleanup();
+				return (TCL_ERROR);
+			}
+			return (TCL_OK);	
 		}
 		else if (strcmp (argv[1], "set-ID") == 0) {
 			ID_ = (int) atoi (argv[2]);
@@ -947,9 +1114,11 @@ void PackMimeHTTPClientApp::recycle()
 void PackMimeHTTPClientApp::timeout()
 {
 	/* Time to generate a new request */
-
-	reqsize_ = 0;
 	
+	int i, j, pages, objs, ind;
+	int* objs_per_page;
+	int reqsz, rspsz;
+
 	if (!running_) {
 		return;
 	}
@@ -958,25 +1127,82 @@ void PackMimeHTTPClientApp::timeout()
 	 * Client should get reqsize and rspsize so that for the same
 	 * seed, there will be the same request/response pairs.
 	 */
-	if (mgr_->using_http_1_1()) {
-		// get the interarrival times of req and req sizes
-		if (reqgap_array_ == NULL) {
-			reqgap_array_ = mgr_->get_reqgap_array();
 
-			// first elem is num of requests
-			reqs_ = (int) reqgap_array_[0];  
-			array_ind_ = 1;
-			
-			// get the request sizes
-			reqsize_array_ = mgr_->get_reqsize_array(reqs_);
-			// get the response sizes
-			rspsize_array_ = mgr_->get_rspsize_array(reqs_);
+	if (mgr_->using_http_1_1() && reqs_ == 0) {
+		// determine if this connection is persistent
+		persistent_ = mgr_->is_persistent();
+	}
+	
+	if (persistent_ && reqs_ == 0) {
+		// need to sample the request gaps and file sizes
+		
+		// get number of pages in this connection
+		pages = mgr_->get_num_pages();
+		objs_per_page = new int[pages];
+		for (i=0; i<pages; i++) {
+			// get number of objects on this page
+			objs = mgr_->get_num_objs(pages);
+			objs_per_page[i] = objs;
+			reqs_ += objs;
 		}
-		// get the request size
-		reqsize_ = (int) reqsize_array_[array_ind_];
-		// get the response size
-		rspsize_ = (int) rspsize_array_[array_ind_];		
-		array_ind_++;
+		
+		// allocate space for request gaps and file sizes
+		if (reqgap_array_ == NULL) {
+			reqgap_array_ = new double[reqs_];
+		}
+		if (reqsize_array_ == NULL) {
+			reqsize_array_ = new int[reqs_];
+		}
+		if (rspsize_array_ == NULL) {
+			rspsize_array_ = new int[reqs_];
+		}
+		
+		// fill the arrays
+		ind = 0;
+		reqsz = mgr_->get_reqsize();
+		rspsz = mgr_->get_rspsize();
+		for (i=0; i<pages; i++) {
+			for (j=0; j<objs_per_page[i]; j++) {
+				// sample inter-request time
+				reqgap_array_[ind] = mgr_->get_reqgap(i,j);
+				// all requests are same size
+				reqsize_array_[ind] = reqsz;
+				if (!mgr_->use_pm_persist_reqsz() && ind > 0) {
+					reqsize_array_[ind] = mgr_->get_reqsize();
+				}
+				// all responses start out as same size
+				rspsize_array_[ind] = rspsz;
+				// for non-PM rspsz, choose new response size
+				if (!mgr_->use_pm_persist_rspsz() && ind > 0) {
+					rspsize_array_[ind] = mgr_->get_rspsize();
+				}
+				ind++;
+			}
+		}
+		
+		if (mgr_->use_pm_persist_rspsz()) {
+			// adjust response sizes
+			if (reqs_ > 1 && 
+			    rspsz > 
+			    PackMimeHTTPPersistRspSizeRandomVariable::FSIZE_CACHE_CUTOFF) {
+				for (i=1; i<reqs_; i++) {
+					// leave rspsize_array_[0] alone
+					rspsize_array_[i] = 
+						mgr_->adjust_persist_rspsz();
+				}
+			}
+			mgr_->reset_persist_rspsz();
+		}
+
+		array_ind_ = 0;
+		delete [] objs_per_page;
+	}
+
+	if (persistent_) {
+		// get the current request size
+		reqsize_ = reqsize_array_[array_ind_];
+		// get the current response size
+		rspsize_ = rspsize_array_[array_ind_++];		
 	}
 	else {
 		reqs_ = 1;
@@ -994,7 +1220,9 @@ void PackMimeHTTPClientApp::timeout()
 		rspsize_ = 1;
 
 	server_->set_reqs(reqs_);
-	server_->set_curreq(array_ind_);
+	if (reqs_ == 1 || array_ind_ == reqs_) {
+		server_->set_last_req();
+	}
 	server_->set_reqsize(reqsize_);
 	server_->set_rspsize(rspsize_);
 
@@ -1038,7 +1266,8 @@ void PackMimeHTTPClientApp::recv(int bytes)
 				 rspsize_, mgr_->now());
 		}
 		
-		if (!mgr_->using_http_1_1() || (array_ind_ > reqs_)) {
+		if (reqs_ == 1 || array_ind_ == reqs_) {
+			// either only 1 request or we've sent all requests
 			stop();
 		}
 		else {
@@ -1126,7 +1355,7 @@ void PackMimeHTTPServerApp::timeout()
  	}
 
 	// send response
-	if (!mgr_->using_http_1_1() || (curreq_ > reqs_)) {
+	if (reqs_ == 1 || lastreq_) {
 		// this is the last message
 		agent_->sendmsg(rspsize_, "MSG_EOF");
 		stop();
@@ -1149,7 +1378,7 @@ void PackMimeHTTPServerApp::recycle()
 	totalbytes_ = 0;
 	agent_ = NULL;
 	reqs_ = 0;
-	curreq_ = 0;
+	lastreq_ = false;
 }
 
 
@@ -1170,7 +1399,7 @@ void PackMimeHTTPServerApp::recv(int bytes)
 
 	if (totalbytes_ == reqsize_) {
 		// generate waiting time
-		delay = 1 / mgr_->get_server_delay();
+		delay = mgr_->get_server_delay();
 		if (mgr_->debug() > 1) {
 			fprintf (stderr, 
 				 "server %s (%d)> received total of %d bytes from client\n",

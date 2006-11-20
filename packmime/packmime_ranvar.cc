@@ -411,20 +411,19 @@ public:
 
 
 PackMimeHTTPFlowArriveRandomVariable::PackMimeHTTPFlowArriveRandomVariable() : 
-  fARIMA_(NULL)
+	const_(1), mean_(0), fARIMA_(NULL)
 {
 	bind ("rate_", &rate_);
 }
 
-PackMimeHTTPFlowArriveRandomVariable::PackMimeHTTPFlowArriveRandomVariable 
-(double rate) :
-  rate_(rate), fARIMA_(NULL)
+PackMimeHTTPFlowArriveRandomVariable::PackMimeHTTPFlowArriveRandomVariable(double rate) :
+	rate_(rate), const_(1), mean_(0), fARIMA_(NULL)
 {
 }
 
-PackMimeHTTPFlowArriveRandomVariable::PackMimeHTTPFlowArriveRandomVariable 
-(double rate, RNG* rng) :
-  rate_(rate), fARIMA_(NULL)
+PackMimeHTTPFlowArriveRandomVariable::PackMimeHTTPFlowArriveRandomVariable(double rate, 
+									   RNG* rng) :
+	rate_(rate), const_(1), mean_(0), fARIMA_(NULL)
 {
 	rng_ = rng;
 }
@@ -478,137 +477,13 @@ double PackMimeHTTPFlowArriveRandomVariable::value(void) {
 	yt = yt * sigmaEpsilon_ + rng_->rnorm() * sigmaNoise_;
 	yt = rng_->qweibull(rng_->pnorm(yt), weibullShape_, weibullScale_);
 
-	return(yt);
-}
-
-double* PackMimeHTTPFlowArriveRandomVariable::value_array(void) 
-/** 
- * value_array() samples to see if this connection should be
- * persistent or non-persistent.  It also samples to find the number
- * of requests for this connection.
- */
-{
-	int reqs = 1;        // total number of requests
-	int pages = 1;       // default is 1 page per connection
-
-	// is the connection persistent?
-	if (rng_->rbernoulli (P_PERSISTENT) == 0) {
-		// non-persistent, so no gap needed
-		double* np_array = new double[reqs+1];
-		np_array[0] = 1;
-		np_array[1] = 0;
-		return (double*) np_array;
+	// adjust by const_ and mean_ (by default, this does nothing)
+	if (const_ == 0) {
+		const_ = mean_ / avg(1);
 	}
 
-	// persistent connection
-
-	// how many pages to request?
-	if (rng_->rbernoulli (P_1PAGE) == 0) {
-		// multiple pages per connection
-		pages = (int) ceil (rng_->rweibull (SHAPE_NPAGE, 
-						    SCALE_NPAGE)) + 1;
-		if (pages == 1)
-			pages++;
-	} 
-	int* objs_per_page = new int[pages];
-
-	// objs_per_page will hold an array of objects (requests) per page
-	reqs = Template (pages, objs_per_page);
-
-	// create array for inter-request times
-	double* array = new double[reqs+1];
-	array[0] = (double) reqs;
-	// generate inter-request times
-	int req = 1;		
-	double loc_w = rng_->rnorm()*sqrt(V_LOC_W)+M_LOC_W;
-	double scale2_w = rng_->rgamma(SHAPE_SCALE2_W, 1/RATE_SCALE2_W);
-	double loc_b = rng_->rnorm()*sqrt(V_LOC_B)+M_LOC_B;
-	double scale2_b = rng_->rgamma(SHAPE_SCALE2_B, 1/RATE_SCALE2_B);
-
-	for (int page = 0; page < pages; page++) {
-		// for each page		
-		for (int obj = 0; obj < objs_per_page[page]; obj++) {    
-			// for each object in the page
-			if (page == 0 && obj == 0) {
-				// first request
-				array[req] = 0;
-			} else {
-				if (page != 0 && obj == 0) {
-					// main page (between page requests)
-					array[req] = pow(2.0, loc_b + 
-							 sqrt(scale2_b) * 
-							 rng_->rnorm() * 
-							 sqrt(V_ERROR_B));
-				} else {
-					// embedded objects (within page requests)
-					array[req] = pow(2.0, loc_w + 
-							 sqrt(scale2_w) * 
-							 rng_->rnorm() * 
-							 sqrt(V_ERROR_W));
-				}
-			}
-			req++;
-		}
-	}
-	delete []objs_per_page;
-
-	return (double*) array;
+	return(yt * const_);
 }
-
-int PackMimeHTTPFlowArriveRandomVariable::Template(int pages, int *objs_per_page) {
-	/**
-	 * Template() returns an array with the number of files per page
-	 * 
-	 * pages - number of pages to request
-	 * objs_per_page - array of number of files per page
-	 * reqs - total number of requests
-	 */
-
-	int z, i;
-	int reqs = 0; 
-
-	for (i=0; i<pages; i++){
-		if (pages == 1) {
-			// only one page in this connection
-			z = 0; 
-		} else {
-			// multiple pages in this connection
-			z = rng_->rbernoulli(P_1TRANSFER);
-		}
-		if (z == 0) {
-			// multiple files in this page
-			// masked by Y. Gao
-      			objs_per_page[i] = (int) ceil 
-				(rng_->rweibull (SHAPE_NTRANSFER, 
-						 SCALE_NTRANSFER)) + 1;
-			if (objs_per_page[i] == 1)
-				objs_per_page[i]++;
-		} else {
-			// only one file in this page
-			objs_per_page[i] = 1;
-		}
-		reqs += objs_per_page[i];
-	}
-	return reqs;
-}
-
-const double PackMimeHTTPFlowArriveRandomVariable::P_PERSISTENT = 0.09;
-const double PackMimeHTTPFlowArriveRandomVariable::P_1PAGE = 0.82;      
-const double PackMimeHTTPFlowArriveRandomVariable::SHAPE_NPAGE = 1;
-const double PackMimeHTTPFlowArriveRandomVariable::SCALE_NPAGE = 0.417;
-const double PackMimeHTTPFlowArriveRandomVariable::P_1TRANSFER = 0.69; 
-const double PackMimeHTTPFlowArriveRandomVariable::SHAPE_NTRANSFER = 1; 
-const double PackMimeHTTPFlowArriveRandomVariable::SCALE_NTRANSFER = 1.578;
-const double PackMimeHTTPFlowArriveRandomVariable::M_LOC_W = -4.15; 
-const double PackMimeHTTPFlowArriveRandomVariable::V_LOC_W = 3.12;  
-const double PackMimeHTTPFlowArriveRandomVariable::SHAPE_SCALE2_W = 2.35;
-const double PackMimeHTTPFlowArriveRandomVariable::RATE_SCALE2_W = 2.35; 
-const double PackMimeHTTPFlowArriveRandomVariable::V_ERROR_W = 1.57; 
-const double PackMimeHTTPFlowArriveRandomVariable::M_LOC_B = 3.22; 
-const double PackMimeHTTPFlowArriveRandomVariable::V_LOC_B = 0.73; 
-const double PackMimeHTTPFlowArriveRandomVariable::SHAPE_SCALE2_B = 1.85;
-const double PackMimeHTTPFlowArriveRandomVariable::RATE_SCALE2_B = 1.85; 
-const double PackMimeHTTPFlowArriveRandomVariable::V_ERROR_B = 1.21;
 
 struct arima_params PackMimeHTTPFlowArriveRandomVariable::flowarrive_arima_params =
 	{
@@ -620,7 +495,6 @@ struct arima_params PackMimeHTTPFlowArriveRandomVariable::flowarrive_arima_param
 	};
 
 /*:::::::::::::::::::::: PackMimeHTTP File Size RanVar :::::::::::::::::::::*/
-
 
 static class PackMimeHTTPFileSizeRandomVariableClass : public TclClass {
 public:
@@ -646,19 +520,19 @@ public:
 
 
 PackMimeHTTPFileSizeRandomVariable::PackMimeHTTPFileSizeRandomVariable() : 
-  fARIMA_(NULL)
+  const_(1), mean_(0), fARIMA_(NULL)
 {
 	bind ("rate_", &rate_);
 	bind ("type_", &type_);
 }
 
 PackMimeHTTPFileSizeRandomVariable::PackMimeHTTPFileSizeRandomVariable(double rate, int type) :
-  rate_(rate), type_(type), fARIMA_(NULL)
+  rate_(rate), type_(type), const_(1), mean_(0), fARIMA_(NULL)
 {
 }
 
 PackMimeHTTPFileSizeRandomVariable::PackMimeHTTPFileSizeRandomVariable(double rate, int type, RNG* rng) :
-  rate_(rate), type_(type), fARIMA_(NULL)
+  rate_(rate), type_(type), const_(1), mean_(0), fARIMA_(NULL)
 {	
 	rng_ = rng;
 }
@@ -769,63 +643,22 @@ double PackMimeHTTPFileSizeRandomVariable::value()
 		yt = rfsize0(state_); 
 		runlen_--;
 		
-		return (double) (yt);
+		// adjust by const_ and mean_ (by default, this does nothing)
+		if (const_ == 0) {
+			const_ = mean_ / avg();
+		}
+		return (double) (yt * const_);
 	} else if (type_ == PACKMIME_REQ_SIZE) {		
 		double yx;
 		yx = fARIMA_->Next();
 		yx = yx * sigmaEpsilon_ + rng_->rnorm() * sigmaNoise_;
-
 		yt = qfsize1(rng_->pnorm(yx));
-		return (double) (yt);
-	}
-  	return (0);
-}
 
-double* PackMimeHTTPFileSizeRandomVariable::value_array(int reqs) 
-{
-	
-	double* array = new double[reqs+1];
-	array[0] = (double) reqs;
-	double filesz = value();
-
-	if (type_ == PACKMIME_RSP_SIZE) {
-		int state;
-		double loc, scale2, interrand, interres;		
-
-		for(int i=1; i<=reqs; i++) {
-		        array[i] = filesz;
+		// adjust by const_ and mean_ (by default, this does nothing)
+		if (const_ == 0) {
+			const_ = mean_ / avg();
 		}
-		if (filesz <= FSIZE0_CACHE_CUTOFF) {
-			state = 0; 
-		} else {
-			state = 1;
-		}
-		
-		if (state == 0) {
-			for(int i=1; i<=reqs; i++) {
-				array[i] = filesz;
-			}
-		}  else {
-			if (reqs>=2) {
-				loc = rng_->rnorm() * sqrt(V_LOC)+M_LOC;
-				scale2 = rng_->rgamma(SHAPE_SCALE2, 
-						      1/RATE_SCALE2);			
-				for (int i=2; i<=reqs; i++) { 
-					interrand = rng_->rnorm();
-					interres = loc + sqrt(scale2) * 
-						interrand * sqrt(V_ERROR);	 
-					array[i] = pow(2.0, interres);
-				}
-			}
-			array[1] = filesz;
-		}
-		
-		return (double*) array;
-	} else if (type_ == PACKMIME_REQ_SIZE) {
-		for (int i=1; i<=reqs; i++) {
-			array[i] = filesz;
-		}
-		return (double*) array;
+		return (double) (yt * const_);
 	}
 	return 0;
 }
@@ -1021,3 +854,421 @@ FX PackMimeHTTPFileSizeRandomVariable::fsize_invcdf[2][2] = {
 	     sizeof(FSIZE1_INVCDF_B_X)/sizeof(double))
 	}
 };
+
+/*:::::::::::::::::::::: PackMimeHTTP Persistent Response Size RanVar ::::::::::::::::::*/
+
+
+static class PackMimeHTTPPersistRspSizeRandomVariableClass : public TclClass {
+public:
+	PackMimeHTTPPersistRspSizeRandomVariableClass() : 
+		TclClass("RandomVariable/PackMimeHTTPPersistRspSize"){}
+	TclObject* create(int argc, const char*const* argv) {
+		return(new PackMimeHTTPPersistRspSizeRandomVariable());
+	}
+} class_packmimepersistrspsizeranvar;
+
+
+PackMimeHTTPPersistRspSizeRandomVariable::PackMimeHTTPPersistRspSizeRandomVariable() : 
+	loc_(-1), scale_(-1)
+{
+	rng_ = new RNG();
+}
+
+PackMimeHTTPPersistRspSizeRandomVariable::PackMimeHTTPPersistRspSizeRandomVariable(RNG* rng) : 
+	loc_(-1), scale_(-1)
+{
+	rng_ = rng;
+}
+
+PackMimeHTTPPersistRspSizeRandomVariable::~PackMimeHTTPPersistRspSizeRandomVariable() 
+{
+	if (rng_)
+		delete rng_;
+}
+
+double PackMimeHTTPPersistRspSizeRandomVariable::value()
+{
+	double interrand;
+	double interres; 
+
+	if (loc_ == -1 || scale_ == -1) {
+		loc_ = rng_->rnorm() * sqrt(V_LOC) + M_LOC;
+		scale_ = rng_->rgamma(SHAPE_SCALE2, 1/RATE_SCALE2);
+	}
+
+	interrand = rng_->rnorm();
+	interres = loc_ + sqrt(scale_) * interrand * sqrt(V_ERROR);	 
+	return pow(2.0, interres);
+}
+
+double PackMimeHTTPPersistRspSizeRandomVariable::avg()
+{
+	return 0;
+}
+
+const int PackMimeHTTPPersistRspSizeRandomVariable::FSIZE_CACHE_CUTOFF=275; 
+const double PackMimeHTTPPersistRspSizeRandomVariable::M_LOC = 10.62;
+const double PackMimeHTTPPersistRspSizeRandomVariable::V_LOC = 0.94;
+const double PackMimeHTTPPersistRspSizeRandomVariable::SHAPE_SCALE2 = 3.22;
+const double PackMimeHTTPPersistRspSizeRandomVariable::RATE_SCALE2 = 3.22;
+const double PackMimeHTTPPersistRspSizeRandomVariable::V_ERROR = 2.43;
+
+/*:::::::::::::::::::::: PackMimeHTTP Persistent RanVar :::::::::::::::::::::::::*/
+
+static class PackMimeHTTPPersistentRandomVariableClass : public TclClass {
+public:
+	PackMimeHTTPPersistentRandomVariableClass() : 
+		TclClass("RandomVariable/PackMimeHTTPPersistent"){}
+	TclObject* create(int argc, const char*const* argv) {
+		if (argc == 5) {
+			// probability
+			return(new PackMimeHTTPPersistentRandomVariable 
+			       ((double) atof(argv[4])));
+		} else if (argc == 6) {
+			// probability, RNG
+			RNG* rng = (RNG*)TclObject::lookup(argv[5]);
+			return(new PackMimeHTTPPersistentRandomVariable ((double) 
+									 atof(argv[4]), 
+									 rng));
+		} else {
+			return(new PackMimeHTTPPersistentRandomVariable());
+		}
+	}
+} class_packmimepersistentranvar;
+
+
+PackMimeHTTPPersistentRandomVariable::PackMimeHTTPPersistentRandomVariable()
+{
+	bind ("probability_", &probability_);
+}
+
+PackMimeHTTPPersistentRandomVariable::PackMimeHTTPPersistentRandomVariable(double prob) :
+	probability_(prob)
+{
+}
+
+PackMimeHTTPPersistentRandomVariable::PackMimeHTTPPersistentRandomVariable(double prob, 
+									   RNG* rng) :
+	probability_(prob)
+{	
+	rng_ = rng;
+}
+
+double PackMimeHTTPPersistentRandomVariable::value(void)
+{
+	return ((double) rng_->rbernoulli (probability_));
+}
+
+const double PackMimeHTTPPersistentRandomVariable::P_PERSISTENT = 0.09;
+
+/*:::::::::::::::::::::: PackMimeHTTP Num Pages RanVar :::::::::::::::::::::::::*/
+
+static class PackMimeHTTPNumPagesRandomVariableClass : public TclClass {
+public:
+	PackMimeHTTPNumPagesRandomVariableClass() : 
+		TclClass("RandomVariable/PackMimeHTTPNumPages"){}
+	TclObject* create(int argc, const char*const* argv) {
+		if (argc == 7) {
+			// probability, shape, scale
+			return(new PackMimeHTTPNumPagesRandomVariable 
+			       ((double) atof(argv[4]), (double) atof(argv[5]), 
+				(double) atof(argv[6])));
+		} else if (argc == 8) {
+			// probability, shape, scale, RNG
+			RNG* rng = (RNG*)TclObject::lookup(argv[7]);
+			return(new PackMimeHTTPNumPagesRandomVariable 
+			       ((double) atof(argv[4]), (double) atof(argv[5]),
+				(double) atof(argv[6]), rng));
+		} else {
+			return(new PackMimeHTTPNumPagesRandomVariable());
+		}
+	}
+} class_packmimenumpagesranvar;
+
+
+PackMimeHTTPNumPagesRandomVariable::PackMimeHTTPNumPagesRandomVariable() :
+	probability_(P_1PAGE), shape_(SHAPE_NPAGE), scale_(SCALE_NPAGE)
+{
+}
+
+PackMimeHTTPNumPagesRandomVariable::PackMimeHTTPNumPagesRandomVariable(double prob, 
+								       double shape,
+								       double scale) :
+	probability_(prob), shape_(shape), scale_(scale)
+{
+}
+
+PackMimeHTTPNumPagesRandomVariable::PackMimeHTTPNumPagesRandomVariable(double prob, 
+								       double shape,
+								       double scale,
+								       RNG* rng) :
+	probability_(prob), shape_(shape), scale_(scale)
+{	
+	rng_ = rng;
+}
+
+double PackMimeHTTPNumPagesRandomVariable::value(void)
+{
+	double pages = 1;
+	if (rng_->rbernoulli(probability_) == 0) {
+		// multiple pages in this connection
+		pages = rng_->rweibull (shape_, scale_) + 1;
+		if (pages == 1) {
+			// should be at least 2 pages at this point
+			pages++;
+		}
+	}
+	return (pages);
+}
+
+const double PackMimeHTTPNumPagesRandomVariable::P_1PAGE = 0.82;      
+const double PackMimeHTTPNumPagesRandomVariable::SHAPE_NPAGE = 1;
+const double PackMimeHTTPNumPagesRandomVariable::SCALE_NPAGE = 0.417;
+
+/*:::::::::::::::::::::: PackMimeHTTP SingleObj RanVar :::::::::::::::::::::::::*/
+
+static class PackMimeHTTPSingleObjRandomVariableClass : public TclClass {
+public:
+	PackMimeHTTPSingleObjRandomVariableClass() : 
+		TclClass("RandomVariable/PackMimeHTTPSingleObj"){}
+	TclObject* create(int argc, const char*const* argv) {
+		if (argc == 5) {
+			// probability
+			return(new PackMimeHTTPSingleObjRandomVariable 
+			       ((double) atof(argv[4])));
+		} else if (argc == 6) {
+			// probability, RNG
+			RNG* rng = (RNG*)TclObject::lookup(argv[5]);
+			return(new PackMimeHTTPSingleObjRandomVariable 
+			       ((double) atof(argv[4]), rng));
+		} else {
+			return(new PackMimeHTTPSingleObjRandomVariable());
+		}
+	}
+} class_packmimesingleobjranvar;
+
+
+PackMimeHTTPSingleObjRandomVariable::PackMimeHTTPSingleObjRandomVariable() :
+	probability_(P_1TRANSFER)
+{
+}
+
+PackMimeHTTPSingleObjRandomVariable::PackMimeHTTPSingleObjRandomVariable(double prob) :
+	probability_(prob)
+{
+}
+
+PackMimeHTTPSingleObjRandomVariable::PackMimeHTTPSingleObjRandomVariable(double prob, 
+								       RNG* rng) :
+	probability_(prob)
+{	
+	rng_ = rng;
+}
+
+double PackMimeHTTPSingleObjRandomVariable::value(void)
+{
+	return (rng_->rbernoulli(probability_));
+}
+
+const double PackMimeHTTPSingleObjRandomVariable::P_1TRANSFER = 0.69; 
+
+/*:::::::::::::::::::::: PackMimeHTTP ObjsPerPage RanVar :::::::::::::::::::::::::*/
+
+static class PackMimeHTTPObjsPerPageRandomVariableClass : public TclClass {
+public:
+	PackMimeHTTPObjsPerPageRandomVariableClass() : 
+		TclClass("RandomVariable/PackMimeHTTPObjsPerPage"){}
+	TclObject* create(int argc, const char*const* argv) {
+		if (argc == 6) {
+			// shape, scale
+			return(new PackMimeHTTPObjsPerPageRandomVariable 
+			       ((double) atof(argv[4]), (double) atof(argv[5])));
+		} else if (argc == 7) {
+			// shape, scale, RNG
+			RNG* rng = (RNG*)TclObject::lookup(argv[6]);
+			return(new PackMimeHTTPObjsPerPageRandomVariable 
+			       ((double) atof(argv[4]), (double) atof(argv[5]), rng));
+		} else {
+			return(new PackMimeHTTPObjsPerPageRandomVariable());
+		}
+	}
+} class_packmimeobjsperpageranvar;
+
+
+PackMimeHTTPObjsPerPageRandomVariable::PackMimeHTTPObjsPerPageRandomVariable() :
+	shape_(SHAPE_NTRANSFER), scale_(SCALE_NTRANSFER)
+{
+}
+
+PackMimeHTTPObjsPerPageRandomVariable::PackMimeHTTPObjsPerPageRandomVariable(double shape,
+								       double scale) :
+	shape_(shape), scale_(scale)
+{
+}
+
+PackMimeHTTPObjsPerPageRandomVariable::PackMimeHTTPObjsPerPageRandomVariable(double shape,
+								       double scale,
+								       RNG* rng) :
+	shape_(shape), scale_(scale)
+{	
+	rng_ = rng;
+}
+
+double PackMimeHTTPObjsPerPageRandomVariable::value(void)
+{
+	return (rng_->rweibull (shape_, scale_) + 1);
+}
+
+const double PackMimeHTTPObjsPerPageRandomVariable::SHAPE_NTRANSFER = 1; 
+const double PackMimeHTTPObjsPerPageRandomVariable::SCALE_NTRANSFER = 1.578;
+
+/*:::::::::::::::::::::: PackMimeHTTP TimeBtwnPages RanVar :::::::::::::::::::::::::*/
+
+static class PackMimeHTTPTimeBtwnPagesRandomVariableClass : public TclClass {
+public:
+	PackMimeHTTPTimeBtwnPagesRandomVariableClass() : 
+		TclClass("RandomVariable/PackMimeHTTPTimeBtwnPages"){}
+	TclObject* create(int argc, const char*const* argv) {
+		if (argc == 5) {
+			// rng
+			RNG* rng = (RNG*)TclObject::lookup(argv[4]);
+			return(new PackMimeHTTPTimeBtwnPagesRandomVariable(rng));
+		} else {
+			return(new PackMimeHTTPTimeBtwnPagesRandomVariable());
+		}
+	}
+} class_packmimetimebtwnpagesranvar;
+
+
+PackMimeHTTPTimeBtwnPagesRandomVariable::PackMimeHTTPTimeBtwnPagesRandomVariable()
+{
+	loc_b_ = rng_->rnorm() * sqrt(V_LOC_B) + M_LOC_B;
+	scale2_b_ = rng_->rgamma(SHAPE_SCALE2_B, 1/RATE_SCALE2_B);
+}
+
+PackMimeHTTPTimeBtwnPagesRandomVariable::PackMimeHTTPTimeBtwnPagesRandomVariable(RNG* rng)
+{	
+	rng_ = rng;
+	loc_b_ = rng_->rnorm() * sqrt(V_LOC_B) + M_LOC_B;
+	scale2_b_ = rng_->rgamma(SHAPE_SCALE2_B, 1/RATE_SCALE2_B);
+}
+
+double PackMimeHTTPTimeBtwnPagesRandomVariable::value(void)
+{
+	return (pow (2.0, loc_b_ + sqrt(scale2_b_) * rng_->rnorm() * sqrt(V_ERROR_B)));
+}
+
+const double PackMimeHTTPTimeBtwnPagesRandomVariable::M_LOC_B = 3.22; 
+const double PackMimeHTTPTimeBtwnPagesRandomVariable::V_LOC_B = 0.73; 
+const double PackMimeHTTPTimeBtwnPagesRandomVariable::SHAPE_SCALE2_B = 1.85;
+const double PackMimeHTTPTimeBtwnPagesRandomVariable::RATE_SCALE2_B = 1.85; 
+const double PackMimeHTTPTimeBtwnPagesRandomVariable::V_ERROR_B = 1.21; 
+
+/*:::::::::::::::::::::: PackMimeHTTP TimeBtwnObjs RanVar :::::::::::::::::::::::::*/
+
+static class PackMimeHTTPTimeBtwnObjsRandomVariableClass : public TclClass {
+public:
+	PackMimeHTTPTimeBtwnObjsRandomVariableClass() : 
+		TclClass("RandomVariable/PackMimeHTTPTimeBtwnObjs"){}
+	TclObject* create(int argc, const char*const* argv) {
+		if (argc == 5) {
+			// rng
+			RNG* rng = (RNG*)TclObject::lookup(argv[4]);
+			return(new PackMimeHTTPTimeBtwnObjsRandomVariable(rng));
+		} else {
+			return(new PackMimeHTTPTimeBtwnObjsRandomVariable());
+		}
+	}
+} class_packmimetimebtwnobjsranvar;
+
+
+PackMimeHTTPTimeBtwnObjsRandomVariable::PackMimeHTTPTimeBtwnObjsRandomVariable()
+{
+	loc_w_ = rng_->rnorm() * sqrt(V_LOC_W) + M_LOC_W;
+	scale2_w_ = rng_->rgamma(SHAPE_SCALE2_W, 1/RATE_SCALE2_W);
+}
+
+PackMimeHTTPTimeBtwnObjsRandomVariable::PackMimeHTTPTimeBtwnObjsRandomVariable(RNG* rng)
+{	
+	rng_ = rng;
+	loc_w_ = rng_->rnorm() * sqrt(V_LOC_W) + M_LOC_W;
+	scale2_w_ = rng_->rgamma(SHAPE_SCALE2_W, 1/RATE_SCALE2_W);
+}
+
+double PackMimeHTTPTimeBtwnObjsRandomVariable::value(void)
+{
+	return (pow (2.0, loc_w_ + sqrt(scale2_w_) * rng_->rnorm() * sqrt(V_ERROR_W)));
+}
+
+const double PackMimeHTTPTimeBtwnObjsRandomVariable::M_LOC_W = -4.15; 
+const double PackMimeHTTPTimeBtwnObjsRandomVariable::V_LOC_W = 3.12;  
+const double PackMimeHTTPTimeBtwnObjsRandomVariable::SHAPE_SCALE2_W = 2.35;
+const double PackMimeHTTPTimeBtwnObjsRandomVariable::RATE_SCALE2_W = 2.35; 
+const double PackMimeHTTPTimeBtwnObjsRandomVariable::V_ERROR_W = 1.57; 
+
+/*:::::::::::::::::::::: PackMimeHTTP ServerDelay RanVar :::::::::::::::::::::::::*/
+
+static class PackMimeHTTPServerDelayRandomVariableClass : public TclClass {
+public:
+	PackMimeHTTPServerDelayRandomVariableClass() : 
+		TclClass("RandomVariable/PackMimeHTTPServerDelay"){}
+	TclObject* create(int argc, const char*const* argv) {
+		if (argc == 6) {
+			// shape, scale
+			return(new PackMimeHTTPServerDelayRandomVariable 
+			       ((double) atof(argv[4]), (double) atof(argv[5])));
+		} else if (argc == 7) {
+			// shape, scale, RNG
+			RNG* rng = (RNG*)TclObject::lookup(argv[6]);
+			return(new PackMimeHTTPServerDelayRandomVariable 
+			       ((double) atof(argv[4]), (double) atof(argv[5]), rng));
+		} else {
+			return(new PackMimeHTTPServerDelayRandomVariable());
+		}
+	}
+} class_packmimeserverdelayranvar;
+
+
+PackMimeHTTPServerDelayRandomVariable::PackMimeHTTPServerDelayRandomVariable() : 
+	shape_(SERVER_DELAY_SHAPE), scale_(SERVER_DELAY_SCALE), const_(1), mean_(0)
+{
+}
+
+PackMimeHTTPServerDelayRandomVariable::PackMimeHTTPServerDelayRandomVariable(double shape,
+									     double scale) :
+	shape_(shape), scale_(scale), const_(1), mean_(0)
+{
+}
+
+PackMimeHTTPServerDelayRandomVariable::PackMimeHTTPServerDelayRandomVariable(double shape,
+									     double scale,
+									     RNG* rng) :
+	shape_(shape), scale_(scale), const_(1), mean_(0)
+{	
+	rng_ = rng;
+}
+
+double PackMimeHTTPServerDelayRandomVariable::value(void)
+{
+	/*
+	 *  sample from Weibull distribution.
+	 *  delay is 1/sample, with a max delay of 0.1 sec
+	 */
+	double val = rng_->rweibull(shape_, scale_);
+
+	if (val < 10) {
+		val = 10;
+	}
+
+	// adjust by const_ and mean_ (by default, this does nothing)
+	if (const_ == 0) {
+		const_ = mean_ / SERVER_DELAY_DIV;
+	}
+	val = val / const_;
+
+	return (1 / val);  // delay in seconds
+}
+
+const double PackMimeHTTPServerDelayRandomVariable::SERVER_DELAY_SHAPE = 0.63;
+const double PackMimeHTTPServerDelayRandomVariable::SERVER_DELAY_SCALE = 305;
+const double PackMimeHTTPServerDelayRandomVariable::SERVER_DELAY_DIV = 0.0059;
