@@ -92,8 +92,8 @@ PackMimeHTTP client takes the following steps:
 \item{when the entire request arrives, the server samples the server
 delay time from the server delay distribution} 
 \item{set a timer to expire when the server delay has passed}
-\item{when the timer expires, the server samples the HTTP response
-sizes from the HTTP response size distribution} 
+\item{when the timer expires, the server sends response (the size of
+  which was sampled by the client and passed to the server)}
 \item{this process is repeated until the requests are exhausted -- the
 server is told how many requests will be sent in the connection} 
 \item{send a FIN to close the connection}
@@ -107,18 +107,48 @@ variables. The implementations were taken from source code provided by
 Bell Labs and modified to fit into the ns RandomVariable
 framework. This allows PackMimeHTTP connection variables to be
 specified by any type of ns RandomVariable, which now include
-PackMimeHTTP-specific random variables. The PackMimeHTTP-specific
-random variable syntax for TCL scripts is as follows: 
+PackMimeHTTP-specific random variables. If no RandomVariables are
+specified in the TCL script, PackMimeHTTP will set these
+automatically.  
+
+The PackMimeHTTP-specific random variable syntax for TCL scripts is as
+follows:  
 \begin{itemize}
 \item{{\tt \$ns [new RandomVariable/PackMimeHTTPFlowArrive <rate>]},
 where {\tt rate} is the specified PackMimeHTTP connection rate (number  
 of new connections per second)}
-\item{{\tt \$ns [new RandomVariable/PackMimeHTTPFileSize <rate> <type>]},
-where {\tt type} is 0 for HTTP requests and 1 for HTTP responses} 
+\item{{\tt \$ns [new RandomVariable/PackMimeHTTPReqSize <rate>]},
+where {\tt rate} is the specified PackMimeHTTP connection rate} 
+\item{{\tt \$ns [new RandomVariable/PackMimeHTTPRspSize <rate>]},
+where {\tt rate} is the specified PackMimeHTTP connection rate}
+\item{{\tt \$ns [new RandomVariable/PackMimeHTTPPersistRspSize]}}
+\item{{\tt \$ns [new RandomVariable/PackMimeHTTPPersistent
+    <probability>]},
+where {\tt probability} is the probability that the connection is
+    persistent} 
+\item{{\tt \$ns [new RandomVariable/PackMimeHTTPNumPages <probability>
+<shape> <scale>]}, where {\tt probability} is the probability that
+  there is a single page in the connection and {\tt shape} and {\tt
+    scale} are parameters to the Weibull distribution to determine the
+number of pages in the connection.}
+\item{{\tt \$ns [new RandomVariable/PackMimeHTTPSingleObjPages
+      <probability>]}, where {\tt probability} is the probability that
+      there is a single object on the current page.}
+\item{{\tt \$ns [new RandomVariable/PackMimeHTTPObjsPerPage <shape>
+      <scale>]}, where {\tt shape} and {\tt scale} are parameters to
+      the Gamma distribution to determine the number of objects on a
+      single page.}
+\item{{\tt \$ns [new RandomVariable/PackMimeHTTPTimeBtwnObjs]}}
+\item{{\tt \$ns [new RandomVariable/PackMimeHTTPTimeBtwnPages]}}
+\item{{\tt \$ns [new RandomVariable/PackMimeHTTPServerDelay <shape>
+      <scale>]}, where {\tt shape} and {\tt scale} are paramters to
+      the Weibull distribution to determine server delay.}
 \item{{\tt \$ns [RandomVariable/PackMimeHTTPXmit <rate> <type>]}, where
 {\tt type} is 0 for client-side delays and 1 for
 server-side delays.  \textbf{Note:} This random variable
-is only used in conjunction with DelayBox.  It returns 1/2 of the actual delay because it is meant to be used with 2 DelayBox nodes, each of which should delay the packets for 1/2 of the actual delay.}
+is only used in conjunction with DelayBox.  It returns 1/2 of the
+actual delay because it is meant to be used with 2 DelayBox nodes,
+each of which should delay the packets for 1/2 of the actual delay.} 
 \end{itemize}
 
 \section{Use of DelayBox with PackMime-HTTP}
@@ -128,7 +158,9 @@ is only used in conjunction with DelayBox.  It returns 1/2 of the actual delay b
 \centering
 \includegraphics[scale=0.75, angle=270]{figures/packmime-delaybox.eps}
 \label{fig-pmdb}
-\caption{Example Topology Using PackMimeHTTP and DelayBox. The cloud of web clients is a single ns node, and the cloud of web servers is a single ns node. Each of the DelayBox nodes is a single ns node.}
+\caption{Example Topology Using PackMimeHTTP and DelayBox. The cloud
+  of web clients is a single ns node, and the cloud of web servers is
+  a single ns node. Each of the DelayBox nodes is a single ns node.} 
 \end{figure}  
 
 PackMimeHTTP uses ns to model the TCP-level interaction between web
@@ -136,14 +168,15 @@ clients and servers on the simulated link. To simulate network-level
 effects of HTTP transfer through the clouds, we implemented a new ns
 module called DelayBox (see \ref{chap:delaybox}). DelayBox is an ns
 analog to dummynet, often used in network testbeds to delay and drop
-packets. The delay times model the propagation and queuing
-delay incurred from the source to the edge of the cloud (or edge of the cloud to destination). Since all HTTP connections in PackMimeHTTP take place between
-only two ns nodes, there had to be an ns object to delay packets in
-each flow, rather than just having a static delay on the link between
-the two nodes. DelayBox also models bottleneck links and packet loss
-on an individual connection basis. Two DelayBox nodes are used as
-shown in Figure \ref{fig-pmdb}. One node is placed in front of the web
-client cloud ns node to handle client-side delays, loss, and
+packets. The delay times model the propagation and queuing delay
+incurred from the source to the edge of the cloud (or edge of the
+cloud to destination). Since all HTTP connections in PackMimeHTTP take
+place between only two ns nodes, there had to be an ns object to delay
+packets in each flow, rather than just having a static delay on the
+link between the two nodes. DelayBox also models bottleneck links and
+packet loss on an individual connection basis. Two DelayBox nodes are
+used as shown in Figure \ref{fig-pmdb}. One node is placed in front of
+the web client cloud ns node to handle client-side delays, loss, and
 bottleneck links. The other DelayBox node is placed in front of the
 web server cloud ns node to handle the server-side delays, loss, and
 bottleneck links.
@@ -154,6 +187,12 @@ with PackMime) are available in the {\tt tcl/ex/packmime/} directory of the
 ns source code.  The validation script {\tt test-suite-packmime.tcl}
 is in {\tt tcl/test/} and can be run with the command {\tt
 test-all-packmime} from that directory.
+
+\textbf{Note:}  The only PackMime-HTTP parameters that \emph{must} be set are
+       {\tt rate}, {\tt client}, {\tt server}, {\tt flow\_arrive}, {\tt
+       req\_size}, and {\tt rsp\_size}.  The example below shows the
+       minimum, but other parameters can be set to change the default
+       behavior (see ``Commands at a Glance''). 
 
 \begin{verbatim}
 # test-packmime.tcl
@@ -209,8 +248,7 @@ $pm set-rsp_size $rsp_size
 $pm set-outfile "data-test-packmime.dat"
 
 $ns at 0.0 "$pm start"
-$ns at 300.0 "$pm stop"
-$ns at 301.0 "exit 0"
+$ns at 30.0 "$pm stop"
 
 $ns run
 \end{verbatim}
@@ -220,6 +258,12 @@ The following commands on the PackMimeHTTP class can be accessed from OTcl:
 
 {\tt [new PackMimeHTTP]}\\
 Creates a new PackMimeHTTP object.
+
+{\tt \$packmime start}\\
+Start generating connections
+
+{\tt \$packmime stop}\\
+Stop generating new connections
 
 {\tt \$packmime set-client <node>}\\
 Associates the node with the PackMimeHTTP client cloud 
@@ -237,30 +281,14 @@ Set the HTTP request size distribution
 Set the HTTP response size distribution 
 
 {\tt \$packmime set-flow\_arrive <RandomVariable>}\\
-Set the distribution of time between two consecutive connections starting
+Set the time between two consecutive connections starting
 
 {\tt \$packmime set-server\_delay <RandomVariable>}\\
 Set the web server delay for fetching pages 
 
-{\tt \$packmime start}\\
-Start generating connections
-
-{\tt \$packmime stop}\\
-Stop generating new connections
-
-{\tt \$packmime set-http-1.1}\\
-Use HTTP/1.1 distributions for persistent connections instead of HTTP/1.0.
-
 {\tt \$packmime set-run <int>}\\
 Set the run number so that the RNGs used for the random variables will
 use the same substream (see Chapter \ref{chap:math} on RNG for more details).
-
-{\tt \$packmime active-connections}\\
-Output the current number of active HTTP connections to standard error 
-
-{\tt \$packmime total-connections}\\
-Output the total number of completed HTTP connections to standard
-error
 
 {\tt \$packmime get-pairs}\\
 Return the number of completed HTTP request-response pairs.  See 
@@ -271,6 +299,54 @@ pairs have completed.
 {\tt \$packmime set-TCP <protocol>}\\
 Sets the TCP type (Reno, Newreno, or Sack) for all connections in the
 client and server clouds - Reno is the default
+
+{\bf HTTP/1.1-Specific Commands}
+
+{\tt \$packmime set-http-1.1}\\
+Use HTTP/1.1 distributions for persistent connections instead of HTTP/1.0.
+
+{\tt \$packmime no-pm-persistent-reqsz}\\
+By default, PackMime-HTTP sets all request sizes in a persistent
+connection to be the same. This option turns that behavior off and
+samples a new request size from the request size distribution for each
+request in a persistent connection.
+
+{\tt \$packmime no-pm-persistent-rspsz}\\
+By default, PackMime-HTTP uses an algorithm (see {\tt
+  PackMimeHTTPPersistRspSizeRandomVariable::value()} in {\tt
+  packmime\_ranvar.h} for details) for setting the response sizes in a
+persistent connection.  This option turns that behavior off and
+samples a new response size from the response size distribution for
+each response in a persistent connection.
+
+{\tt \$packmime set-prob\_persistent <RandomVariable>}\\
+Set the probability that the connection is persistent (HTTP/1.1 only)
+
+{\tt \$packmime set-num\_pages <RandomVariable>}\\
+Set the number of pages per connection (HTTP/1.1 only)
+
+{\tt \$packmime set-prob\_single\_obj <RandomVariable>}\\
+Set the probability that the page contains a single object (HTTP/1.1 only)
+
+{\tt \$packmime set-objs\_per\_page <RandomVariable>}\\
+Set the number of objects per page (HTTP/1.1 only)
+
+{\tt \$packmime set-time\_btwn\_pages <RandomVariable>}\\
+Set the time between page requests (\emph{i.e.}, think time) (HTTP/1.1 only)
+
+{\tt \$packmime set-time\_btwn\_objs <RandomVariable>}\\
+Set the time between object requests (HTTP/1.1 only)
+
+{\bf Output-Specific Commands}
+
+{\tt \$packmime active-connections}\\
+Output the current number of active HTTP connections to standard error 
+
+{\tt \$packmime total-connections}\\
+Output the total number of completed HTTP connections to standard error
+
+{\tt \$packmime set-warmup <int>}\\
+Sets what time output should start.  Only used with {\tt set outfile}.
 
 {\tt \$packmime set-outfile <filename>}\\
 Output the following fields (one line per HTTP request-reponse pair)
