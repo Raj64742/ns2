@@ -788,11 +788,13 @@ int PackMimeHTTP::command(int argc, const char*const* argv) {
 			tcl.resultf("%d", cur_pairs_);
 			return (TCL_OK);
 		}
-		else if (!strcmp (argv[1], "no-pm-persistent-reqsz") == 0) {
+		else if (!strcmp (argv[1], "no-pm-persistent-reqsz")) {
 			use_pm_persist_reqsz_ = false;
+			return (TCL_OK);
 		}
-		else if (!strcmp (argv[1], "no-pm-persistent-rspsz") == 0) {
+		else if (!strcmp (argv[1], "no-pm-persistent-rspsz")) {
 			use_pm_persist_rspsz_ = false;
+			return (TCL_OK);
 		}
 	}
 	else if (argc == 3) {
