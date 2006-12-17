@@ -41,6 +41,7 @@
 int ScoreBoardRQ::IsEmpty(){
 	printf("ScoreBoardRQ::IsEmpty not implemented\n");
 	exit(1);
+	return 0;
 }
 
 int ScoreBoardRQ::GetNextRetran(){
@@ -111,6 +112,7 @@ int ScoreBoardRQ::GetNextUnacked (int seqno)
 int ScoreBoardRQ::CheckSndNxt(hdr_tcp* h) {
 	printf("ScoreBoardRQ::CheckSndNxt not implemented\n");
 	exit(1);
+	return 0;
 }
 
 void ScoreBoardRQ::Dump() {
