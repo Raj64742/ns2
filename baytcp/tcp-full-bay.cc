@@ -71,7 +71,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/tcp-full-bay.cc,v 1.5 2006/05/30 21:38:42 pradkin Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/tcp-full-bay.cc,v 1.6 2006/12/17 15:17:01 mweigle Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -102,6 +102,7 @@ public:
     fprintf(stderr,"Tahoe, NewReno or Sack flavors are NOT available for BayTCP!! Use BayFullTcp only, which actually implements Reno.\n");
 
     exit(1);
+    return NULL;
 	}
 } class_tahoe_bayfull;
 
@@ -114,6 +115,7 @@ public:
 	  //return (new BayFullTcpAgent());
 	  fprintf(stderr,"Tahoe, NewReno or Sack flavors are NOT available for BayFullTCP!! Use BayFullTcp only, which actually implements Reno.\n");
 	  exit(1);
+	  return NULL;
 	}
 } class_newreno_bayfull;
 
@@ -124,6 +126,7 @@ public:
 	  //return (new BayFullTcpAgent());
 	  fprintf(stderr,"Tahoe, NewReno or Sack flavors are NOT available for BayFullTCP!! Use BayFullTcp only, which actually implements Reno.\n");
 	  exit(1);
+	  return NULL;
 	}
 } class_sack_bayfull;
 
