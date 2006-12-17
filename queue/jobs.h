@@ -46,7 +46,7 @@
  * Grateful acknowledgments to Tarek Abdelzaher for his help and       
  * comments.                                                           
  *                                                                     
- * $Id: jobs.h,v 1.2 2003/07/11 00:10:10 johnh Exp $
+ * $Id: jobs.h,v 1.3 2006/12/17 15:22:42 mweigle Exp $
  */
 
 #ifndef JOBS_H
@@ -64,7 +64,12 @@
 
 /* JoBS Queuing */
 #ifndef INFINITY
-#define	INFINITY	+1.0e499
+# ifdef __SUNPRO_CC
+#  include <values.h>
+#  define	INFINITY	MAXDOUBLE
+# else
+#  define	INFINITY	+1.0e499
+# endif
 #endif
 #define	PRECISION_ERROR +1.0e-10
 #define TOL		0.02		// Tolerance in the constraints (2%)
