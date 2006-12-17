@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.cc,v 1.10 2006/06/23 14:28:40 tom_henderson Exp $ (UD/PEL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.cc,v 1.11 2006/12/17 15:20:41 mweigle Exp $ (UD/PEL)";
 #endif
 
 #include "ip.h"
@@ -2380,7 +2380,7 @@ void SctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 {
   DBG_I(RtxMarkedChunks);
 
-  u_char ucpOutData[uiMaxPayloadSize]; 
+  u_char *ucpOutData = new u_char[uiMaxPayloadSize];
   u_char *ucpCurrOutData = ucpOutData;
   int iBundledControlChunkSize = 0;
   int iCurrSize = 0;
@@ -2695,6 +2695,7 @@ void SctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
   eMarkedChunksPending = AnyMarkedChunks();
 
   DBG_X(RtxMarkedChunks);
+  delete [] ucpOutData;
 }
 
 /* Updates uiHighestRecvTsn
@@ -4502,7 +4503,7 @@ void SctpAgent::recv(Packet *opInPkt, Handler*)
   u_char *ucpCurrInChunk = ucpInData;
   int iRemainingDataLen = opInPacketData->size();
 
-  u_char ucpOutData[uiMaxPayloadSize]; 
+  u_char *ucpOutData = new u_char[uiMaxPayloadSize];
   u_char *ucpCurrOutData = ucpOutData;
 
   /* local variable which maintains how much data has been filled in the current
@@ -4588,6 +4589,7 @@ void SctpAgent::recv(Packet *opInPkt, Handler*)
   Packet::free(opInPkt);
   opInPkt = NULL;
   DBG_X(recv);
+  delete [] ucpOutData;
 }
 
 u_int SctpAgent::TotalOutstanding()
@@ -4622,7 +4624,7 @@ void SctpAgent::SendMuch()
       : "DATA_SOURCE_INFINITE" )
     DBG_PR;
 
-  u_char ucpOutData[uiMaxPayloadSize]; 
+  u_char *ucpOutData = new u_char[uiMaxPayloadSize];
   int iOutDataSize = 0;
   double dTime = 0;
   double dCurrTime = Scheduler::instance().clock();
@@ -4712,6 +4714,7 @@ void SctpAgent::SendMuch()
   uiBurstLength = 0;
 
   DBG_X(SendMuch);
+  delete [] ucpOutData;
 }
 
 void SctpAgent::sendmsg(int iNumBytes, const char *cpFlags)
@@ -4725,7 +4728,7 @@ void SctpAgent::sendmsg(int iNumBytes, const char *cpFlags)
 
   DBG_I(sendmsg);
 
-  u_char ucpOutData[uiMaxPayloadSize];
+  u_char *ucpOutData = new u_char[uiMaxPayloadSize];
   int iOutDataSize = 0;
   AppData_S *spAppData = (AppData_S *) cpFlags;
   Node_S *spNewNode = NULL;
@@ -4886,13 +4889,14 @@ void SctpAgent::sendmsg(int iNumBytes, const char *cpFlags)
     }
 
   DBG_X(sendmsg);
+  delete [] ucpOutData;
 }
 
 void SctpAgent::T1InitTimerExpiration()
 {
   DBG_I(T1InitTimerExpiration);
 
-  u_char ucpOutData[uiMaxPayloadSize];
+  u_char *ucpOutData = new u_char[uiMaxPayloadSize];
   int iOutDataSize = 0;
 
   iInitTryCount++;
@@ -4913,6 +4917,7 @@ void SctpAgent::T1InitTimerExpiration()
     }
 
   DBG_X(T1InitTimerExpiration);
+  delete [] ucpOutData;
 }
 
 void T1InitTimer::expire(Event*)
@@ -4924,7 +4929,7 @@ void SctpAgent::T1CookieTimerExpiration()
 {
   DBG_I(T1CookieTimerExpiration);
 
-  u_char ucpOutData[uiMaxPayloadSize];
+  u_char *ucpOutData = new u_char[uiMaxPayloadSize];
   int iOutDataSize = 0;
  
   iInitTryCount++;
@@ -4943,6 +4948,7 @@ void SctpAgent::T1CookieTimerExpiration()
   }
 
   DBG_X(T1CookieTimerExpiration);
+  delete [] ucpOutData;
 }
 
 void T1CookieTimer::expire(Event*)
@@ -5238,7 +5244,7 @@ void SctpAgent::SackGenTimerExpiration() // section 6.2
 {
   DBG_I(SackGenTimerExpiration);
 
-  u_char ucpOutData[uiMaxPayloadSize];
+  u_char *ucpOutData = new u_char[uiMaxPayloadSize];
   int iOutDataSize = 0;
   memset(ucpOutData, 0, uiMaxPayloadSize);
 
@@ -5250,6 +5256,7 @@ void SctpAgent::SackGenTimerExpiration() // section 6.2
   DBG_PL(SackGenTimerExpiration, "SACK sent (%d bytes)"), iOutDataSize DBG_PR;
 
   DBG_X(SackGenTimerExpiration);
+  delete [] ucpOutData;
 }
 
 void SackGenTimer::expire(Event*)
