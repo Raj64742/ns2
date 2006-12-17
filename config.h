@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.56 2006/02/21 15:20:15 mahrenho Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.57 2006/12/17 15:15:56 mweigle Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -200,6 +200,21 @@ extern "C" {
 }
 #endif
 
+#if defined(__SUNPRO_CC)
+#include <cmath>
+
+static double log(const int x)
+{ return log((double)x); }
+
+static double log10(const int x)
+{ return log10((double)x); }
+
+static double pow(const int x, const int y)
+{ return std::pow((double)x,(double)y); }
+
+static double pow(const int x, const double y)
+{ return std::pow((double)x,y); }
+#endif
 
 
 #ifdef WIN32
