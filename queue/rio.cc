@@ -66,7 +66,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/rio.cc,v 1.12 2004/05/25 03:23:05 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/rio.cc,v 1.13 2006/12/17 15:21:59 mweigle Exp $ (LBL)";
 #endif
 
 #include "rio.h"
@@ -560,7 +560,8 @@ void RIOQueue::enque(Packet* pkt)
 void
 RIOQueue::trace(TracedVar* v)
 {
-	char wrk[500], *p;
+	char wrk[500];
+	const char *p;
 
 	if (((p = strstr(v->name(), "ave")) == NULL) &&
 	    ((p = strstr(v->name(), "in_ave")) == NULL) &&

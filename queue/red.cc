@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-     "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.82 2006/10/27 03:10:54 sallyfloyd Exp $ (LBL)";
+     "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.83 2006/12/17 15:21:59 mweigle Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -873,7 +873,8 @@ int REDQueue::command(int argc, const char*const* argv)
 void
 REDQueue::trace(TracedVar* v)
 {
-	char wrk[500], *p;
+	char wrk[500];
+	const char *p;
 
 	if (((p = strstr(v->name(), "ave")) == NULL) &&
 	    ((p = strstr(v->name(), "prob")) == NULL) &&

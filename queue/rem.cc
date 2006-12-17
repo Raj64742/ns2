@@ -330,7 +330,8 @@ int REMQueue::command(int argc, const char*const* argv)
 void
 REMQueue::trace(TracedVar* v)
 {
-	char wrk[500], *p;
+	char wrk[500];
+	const char *p;
 
 	if (((p = strstr(v->name(), "ave")) == NULL) &&
 	    ((p = strstr(v->name(), "prob")) == NULL) &&

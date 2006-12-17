@@ -92,7 +92,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/vq.cc,v 1.5 2003/01/28 19:50:51 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/vq.cc,v 1.6 2006/12/17 15:21:59 mweigle Exp $ (LBL)";
 #endif
 #include "flags.h"
 #include "delay.h"
@@ -328,7 +328,8 @@ Packet* Vq::deque()
 
 void Vq::trace(TracedVar* v)
 {
-	char wrk[500], *p;
+	char wrk[500];
+	const char *p;
 
 	if ((p = strstr(v->name(), "curq")) == NULL) {
 		fprintf(stderr, "Vq:unknown trace var %s\n", v->name());

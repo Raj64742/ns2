@@ -311,7 +311,8 @@ int PIQueue::command(int argc, const char*const* argv)
 
 void PIQueue::trace(TracedVar* v)
 {
-	char wrk[500], *p;
+	char wrk[500];
+	const char *p;
 
 	if (((p = strstr(v->name(), "prob")) == NULL) &&
 	    ((p = strstr(v->name(), "curq")) == NULL)) {

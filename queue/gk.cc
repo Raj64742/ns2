@@ -202,7 +202,8 @@ void GK::deque_vq(){
 
 void GK::trace(TracedVar* v)
 {
-	char wrk[500], *p;
+	char wrk[500];
+	const char *p;
 
 	if ((p = strstr(v->name(), "curq")) == NULL) {
 		fprintf(stderr, "Vq:unknown trace var %s\n", v->name());
