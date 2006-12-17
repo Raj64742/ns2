@@ -690,7 +690,7 @@ int TfrcSinkAgent::get_sample(int oldSample, int numLosses)
 	if (numLosses == 0) {
 		newSample = oldSample;
 	} else {
-		newSample = (int) floor(oldSample / numLosses);
+		newSample = oldSample / numLosses;
 	}
 	return newSample;
 }
@@ -706,9 +706,9 @@ int TfrcSinkAgent::get_sample_rtts(int oldSample, int numLosses, int rtts)
                 if (ShortRtts_ != 0)
                      fraction = (ShortRtts_ + 1.0 - rtts) / ShortRtts_;
                 else fraction = 1.0;
-	        int numLoss = (int) (floor(fraction * numLosses ));
+		int numLoss = (int) (floor(fraction * numLosses ));
                 if (numLoss != 0)
-		    newSample = (int) (floor(oldSample / numLoss));
+		  newSample = oldSample / numLoss;
                 else newSample = oldSample;
                 //printf ("sample: %d rtts: %d numLosses: %d newSample: %d fraction: %5.2f numLoss %d\n",
                 //  oldSample, rtts, numLosses, newSample, fraction, numLoss);
