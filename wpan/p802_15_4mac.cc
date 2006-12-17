@@ -13,7 +13,7 @@
 // File:  p802_15_4mac.cc
 // Mode:  C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t
 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4mac.cc,v 1.2 2005/01/25 23:29:16 haldar Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4mac.cc,v 1.3 2006/12/17 15:25:24 mweigle Exp $
 
 /*
  * Copyright (c) 2003-2004 Samsung Advanced Institute of Technology and
@@ -3299,7 +3299,7 @@ void Mac802_15_4::mlme_reset_request(bool SetDefaultPIB,bool frUpper,PHYenum sta
 			taskP.taskStep(task)++;
 			strcpy(taskP.taskFrFunc(task),"PLME_SET_TRX_STATE_confirm");
 			taskP.mlme_reset_request_SetDefaultPIB = SetDefaultPIB;
-			plme_set_trx_state_request(p_TRX_OFF);
+			{plme_set_trx_state_request(p_TRX_OFF);}
 			break;
 		case 1:
 			taskP.taskStatus(task) = false;
@@ -3544,7 +3544,7 @@ void Mac802_15_4::mlme_scan_request(UINT_8 ScanType,UINT_32 ScanChannels,UINT_8 
 		case 1:
 			taskP.taskStep(task)++;
 			strcpy(taskP.taskFrFunc(task),"PLME_SET_TRX_STATE_confirm");
-			plme_set_trx_state_request(p_RX_ON);
+			{plme_set_trx_state_request(p_RX_ON);}
 			break;
 		case 2:
 			if (status == p_RX_ON)
@@ -4078,7 +4078,7 @@ void Mac802_15_4::mlme_sync_request(UINT_8 LogicalChannel, bool TrackBeacon,bool
 			tmp_ppib.phyCurrentChannel = LogicalChannel;
 			phy->PLME_SET_request(phyCurrentChannel,&tmp_ppib);
 			//enable the receiver
-			plme_set_trx_state_request(p_RX_ON);
+			{plme_set_trx_state_request(p_RX_ON);}
 			BO = (macBeaconOrder2 == 15)?14:macBeaconOrder2;
 			if (bcnSearchT->busy())
 				bcnSearchT->stop();
