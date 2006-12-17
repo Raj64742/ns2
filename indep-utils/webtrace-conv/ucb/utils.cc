@@ -32,7 +32,7 @@
  *   o thread-safe strtok
  *   o thread-unsafe AVL trees (with dorky deletion)
  *
- * $Id: utils.cc,v 1.4 2002/05/23 21:26:03 buchheim Exp $
+ * $Id: utils.cc,v 1.5 2006/12/17 15:26:33 mweigle Exp $
  * 
  */
 
@@ -403,6 +403,7 @@ int ll_add_to_start(ll *addToMe, void *data)
 
 }
 
+extern "C"
 ll  ll_find(ll *findInMe, void *data, int (*compare)(void *d1, void *d2))
 {
    ll temp = *findInMe;
@@ -417,6 +418,7 @@ ll  ll_find(ll *findInMe, void *data, int (*compare)(void *d1, void *d2))
    return temp;
 }
 
+extern "C"
 int ll_sorted_insert(ll *insertme, void *data, 
 		     int (*compare)(void *d1, void *d2))
 {
@@ -443,6 +445,7 @@ int ll_sorted_insert(ll *insertme, void *data,
   return ll_add_to_end(insertme, data);
 }
 
+extern "C"
 int  ll_del(ll *delFromMe, void *data, int (*compare)(void *d1, void *d2),
             void (*nukeElement)(void *nukeMe))
 {
@@ -471,6 +474,7 @@ int  ll_del(ll *delFromMe, void *data, int (*compare)(void *d1, void *d2),
    return 0;
 }
 
+extern "C"
 int ll_delfirst(ll *delFromMe, void (*nukeElement)(void *nukeMe))
 {
    ll temp = *delFromMe;
@@ -493,6 +497,7 @@ int ll_delfirst(ll *delFromMe, void (*nukeElement)(void *nukeMe))
    return 1;
 }
 
+extern "C"
 int ll_destroy(ll *destroyMe, void (*nukeElement)(void *nukeMe))
 {
    ll temp = *destroyMe, next;
