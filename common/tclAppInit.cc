@@ -274,7 +274,7 @@ Tcl_AppInit(Tcl_Interp *interp)
 
 #ifndef WIN32
 void
-abort() throw ()
+abort()
 {
 	Tcl& tcl = Tcl::instance();
 	tcl.evalc("[Simulator instance] flush-trace");
