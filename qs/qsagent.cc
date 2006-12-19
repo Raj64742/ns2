@@ -2,7 +2,7 @@
 /*
  * qsagent.cc
  * Copyright (C) 2001 by the University of Southern California
- * $Id: qsagent.cc,v 1.7 2005/08/25 18:58:10 johnh Exp $
+ * $Id: qsagent.cc,v 1.8 2006/12/19 18:10:57 sallyfloyd Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -147,7 +147,6 @@ void QSAgent::recv(Packet* packet, Handler*)
 			if (link != NULL && queue != NULL) {
 				app_rate = process(link, queue, hdr_qs::rate_to_Bps(qsh->rate()));
 				if (app_rate > 0) {    
-					aggr_approval_ += app_rate; // add approved to current bucket
 					qsh->ttl() -= 1;
 					qsh->rate() = hdr_qs::Bps_to_rate(app_rate); //update rate
 				}
