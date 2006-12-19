@@ -930,6 +930,184 @@ Test/routers3 instproc init {} {
     $self next pktTraceFile
 }
 
+# This router allocates the full link bandwidth for QS,
+# and the sender requests the full bandwidth for QS.
+Class Test/routers4 -superclass TestSuite
+Test/routers4 instproc init {} {
+    $self instvar net_ test_ guide_ sndr rcvr qs
+    set net_	net3
+    set test_ routers4	
+    set guide_  "Quick-Start, request for full link bandwidth."
+
+    set qs ON
+    set sndr TCP/Newreno
+    set rcvr TCPSink
+    Agent/QSAgent set algorithm_ 3
+    Agent/QSAgent set threshold_ 1.0
+    Agent/QSAgent set alloc_rate_ 1.0
+    Agent/QSAgent set rate_function_ 2
+    $self next pktTraceFile
+}
+Test/routers4 instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ guide_ sndr rcvr qs
+    puts "Guide: $guide_"
+    $ns_ node-config -QS $qs
+    $self setTopo
+    set stopTime 4
+    if {$quiet == "false"} {
+        Agent/TCP set print_request_ true
+    }
+    $ns_ at 0.0 "$ns_ bandwidth $node_(r1) $node_(r2) 0.64Mbps duplex"
+
+    Agent/TCP set window_ 10000
+    set tcp1 [$ns_ create-connection TCP/Newreno $node_(s1) TCPSink $node_(s3) 0]
+    $tcp1 set rate_request_ 80
+    set ftp1 [new Application/FTP]
+    $ftp1 attach-agent $tcp1
+    $ns_ at 1.0 "$ftp1 produce 100"
+
+    $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
+
+    $ns_ run
+}
+
+# This router allocates the full link bandwidth for QS,
+Class Test/routers5 -superclass TestSuite
+Test/routers5 instproc init {} {
+    $self instvar net_ test_ guide_ sndr rcvr qs
+    set net_	net3
+    set test_ routers5	
+    set guide_  "Quick-Start, two requests, total for full link bandwidth."
+
+    set qs ON
+    set sndr TCP/Newreno
+    set rcvr TCPSink
+    Agent/QSAgent set algorithm_ 3
+    Agent/QSAgent set threshold_ 1.0
+    Agent/QSAgent set alloc_rate_ 1.0
+    Agent/QSAgent set rate_function_ 2
+    $self next pktTraceFile
+}
+Test/routers5 instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ guide_ sndr rcvr qs
+    puts "Guide: $guide_"
+    $ns_ node-config -QS $qs
+    $self setTopo
+    set stopTime 4
+    if {$quiet == "false"} {
+        Agent/TCP set print_request_ true
+    }
+    $ns_ at 0.0 "$ns_ bandwidth $node_(r1) $node_(r2) 0.64Mbps duplex"
+
+    Agent/TCP set window_ 10000
+    set tcp1 [$ns_ create-connection TCP/Newreno $node_(s1) TCPSink $node_(s3) 0]
+    $tcp1 set rate_request_ 40
+    set ftp1 [new Application/FTP]
+    $ftp1 attach-agent $tcp1
+    $ns_ at 1.0 "$ftp1 produce 100"
+
+    set tcp2 [$ns_ create-connection TCP/Newreno $node_(s1) TCPSink $node_(s3) 1]
+    $tcp2 set rate_request_ 40
+    set ftp2 [new Application/FTP]
+    $ftp2 attach-agent $tcp2
+    $ns_ at 1.1 "$ftp2 produce 100"
+
+    $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
+
+    $ns_ run
+}
+
+# This router allocates the full link bandwidth for QS,
+Class Test/routers6 -superclass TestSuite
+Test/routers6 instproc init {} {
+    $self instvar net_ test_ guide_ sndr rcvr qs
+    set net_	net3
+    set test_ routers6	
+    set guide_  "Quick-Start, three requests, total for more than link bandwidth."
+
+    set qs ON
+    set sndr TCP/Newreno
+    set rcvr TCPSink
+    Agent/QSAgent set algorithm_ 3
+    #Agent/QSAgent set algorithm_ 2
+    Agent/QSAgent set threshold_ 1.0
+    Agent/QSAgent set alloc_rate_ 1.0
+    Agent/QSAgent set rate_function_ 2
+    $self next pktTraceFile
+}
+Test/routers6 instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ guide_ sndr rcvr qs
+    puts "Guide: $guide_"
+    $ns_ node-config -QS $qs
+    $self setTopo
+    set stopTime 4
+    if {$quiet == "false"} {
+        Agent/TCP set print_request_ true
+    }
+    $ns_ at 0.0 "$ns_ bandwidth $node_(r1) $node_(r2) 0.64Mbps duplex"
+
+    Agent/TCP set window_ 10000
+    set tcp1 [$ns_ create-connection TCP/Newreno $node_(s1) TCPSink $node_(s3) 0]
+    $tcp1 set rate_request_ 40
+    set ftp1 [new Application/FTP]
+    $ftp1 attach-agent $tcp1
+    $ns_ at 1.0 "$ftp1 produce 100"
+
+    set tcp2 [$ns_ create-connection TCP/Newreno $node_(s1) TCPSink $node_(s3) 1]
+    $tcp2 set rate_request_ 40
+    set ftp2 [new Application/FTP]
+    $ftp2 attach-agent $tcp2
+    $ns_ at 1.1 "$ftp2 produce 100"
+
+    set tcp3 [$ns_ create-connection TCP/Newreno $node_(s1) TCPSink $node_(s3) 2]
+    $tcp3 set rate_request_ 40
+    set ftp3 [new Application/FTP]
+    $ftp3 attach-agent $tcp3
+    $ns_ at 1.2 "$ftp3 produce 100"
+
+    $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
+
+    $ns_ run
+}
+
+Class Test/small-request -superclass TestSuite
+Test/small-request instproc init {} {
+    $self instvar net_ test_ guide_ sndr rcvr qs
+    set net_	net3
+    set test_ small-request	
+    set guide_  "Quick-Start, a very small request."
+    set qs ON
+    set sndr TCP/Newreno
+    set rcvr TCPSink
+    $self next pktTraceFile
+}
+Test/small-request instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ guide_ sndr rcvr qs
+    puts "Guide: $guide_"
+    $ns_ node-config -QS $qs
+    $self setTopo
+    set stopTime 6
+    if {$quiet == "false"} {
+        Agent/TCP set print_request_ true
+    }
+
+    Agent/TCP set window_ 10000
+    set tcp1 [$ns_ create-connection TCP/Newreno $node_(s1) TCPSink $node_(s3) 0]
+    $tcp1 set rate_request_ 4
+    set ftp1 [new Application/FTP]
+    $ftp1 attach-agent $tcp1
+    $ns_ at 1.0 "$ftp1 produce 100"
+
+    $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
+
+    $ns_ run
+}
+
+
 # We still need a test that tests state_delay_:
 # Agent/QSAgent set state_delay_  0.3
 
