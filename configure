@@ -5731,9 +5731,6 @@ _ACEOF
 
 	;;
 sparc-sun-solaris*)
-	if test $CC = gcc ; then
-		V_DEFINE="$V_DEFINE -mv8 -msupersparc"
-	fi
 	V_DEFINE="$V_DEFINE -D__svr4__"
 	V_LIB="$V_LIB -ldl"
 	;;
