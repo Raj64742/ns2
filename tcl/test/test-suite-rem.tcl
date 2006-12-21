@@ -545,7 +545,7 @@ TestSuite instproc create_flow_graph { graphtitle graphfile } {
         	puts "writing flow xgraph data to $graphfile..."
 	}
 
-        exec sort -n +1 -o $flowfile $flowfile
+        exec sort -n -k2 -o $flowfile $flowfile
         exec awk [$self $awkprocedure_] $flowfile >@ $outdesc
         close $outdesc
 }
