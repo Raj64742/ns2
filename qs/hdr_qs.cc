@@ -2,7 +2,7 @@
 /*
  * hdr_qs.cc
  * Copyright (C) 2001 by the University of Southern California
- * $Id: hdr_qs.cc,v 1.6 2006/12/19 18:17:05 sallyfloyd Exp $
+ * $Id: hdr_qs.cc,v 1.7 2006/12/24 16:49:36 sallyfloyd Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -86,10 +86,8 @@ double hdr_qs::rate_to_Bps(int rate)
        case 1:
        default:
                return rate * 10240; // rate unit: 10 kilobytes per sec
-               break;
        case 2:
                return pow(2, rate) * 5000; // exponential, base 2
-               break;
        }
 }
 
@@ -101,12 +99,10 @@ int hdr_qs::Bps_to_rate(double Bps)
        case 1:
        default:
                return (int) Bps / 10240; // rate unit: 10 kilobytes per sec
-               break;
        case 2:
-               // return (int) (log(Bps / 5000) / log(2));
+	       // Add an option for rounding either up or down.
 	       int bpstorate = (int) (log(Bps / 5000) / log(2));
                return (bpstorate >= 1 ? bpstorate : 0);
-               break;
        }
 }
 
