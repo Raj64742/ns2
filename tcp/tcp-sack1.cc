@@ -433,7 +433,8 @@ void Sack1TcpAgent::send_much(int force, int reason, int maxburst)
 	 */
 	while (((!fastrecov_ && (t_seqno_ <= last_ack_ + win)) ||
 			(fastrecov_ && (pipe_ < int(cwnd_)))) 
-			&& t_seqno_ < curseq_ && found) {
+			// && t_seqno_ < curseq_ && found) {
+			&& (last_ack_ + 1) < curseq_ && found) {
 
 		if (overhead_ == 0 || force) {
 			found = 0;
@@ -446,8 +447,10 @@ void Sack1TcpAgent::send_much(int force, int reason, int maxburst)
 			if (xmit_seqno == -1) { 
 				if ((!fastrecov_ && t_seqno_<=highest_ack_+win)||
 					(fastrecov_ && t_seqno_<=highest_ack_+int(wnd_))) {
-					found = 1;
-					xmit_seqno = t_seqno_++;
+					if (t_seqno_ < curseq_) {
+						found = 1;
+						xmit_seqno = t_seqno_++;
+					}
 #ifdef DEBUGSACK1A
 					printf("sending %d fastrecovery: %d win %d\n",
 						xmit_seqno, fastrecov_, win);

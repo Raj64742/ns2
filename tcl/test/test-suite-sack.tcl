@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.29 2006/09/26 20:56:06 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.30 2006/12/24 17:04:44 sallyfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -637,6 +637,40 @@ Test/sack_dupacks instproc run {} {
     $ns_ at 0.1 "$ftp1 start"
 
     $self tcpDump $tcp1 1.0
+
+    # trace only the bottleneck link
+    $ns_ at 3.0 "$self cleanupAll $testName_"
+    $ns_ run
+}
+
+# finite flow
+# make sure that the last packets are fast retransmitted if lost
+Class Test/sack_finiteflow -superclass TestSuite
+Test/sack_finiteflow instproc init {} {
+    $self instvar net_ test_ guide_
+    set net_    net4
+    set test_   sack_finiteflow
+    set guide_      "Guide: SACK TCP, Fast Recovery with last packets in a finite flow"
+    $self next pktTraceFile
+}
+Test/sack_finiteflow instproc run {} {
+    $self instvar ns_ node_ testName_ guide_
+    $self setTopo
+    puts $guide_
+
+    $ns_ duplex-link $node_(r1) $node_(k1) 100Mb 5ms DropTail
+    $ns_ queue-limit $node_(r1) $node_(k1) 4
+    $ns_ queue-limit $node_(k1) $node_(r1) 4
+
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(r1) TCPSink/Sack1 $node_(k1) 0]
+    $tcp1 set window_ 200
+    set ftp1 [$tcp1 attach-app FTP]
+
+    # send 21 packets only
+    set bytesToSend [expr 21 * [ $tcp1 set packetSize_ ]  ]
+    $ns_ at 0.01 "$ftp1 send $bytesToSend"
+
+    $self tcpDump $tcp1 0.1
 
     # trace only the bottleneck link
     $ns_ at 3.0 "$self cleanupAll $testName_"
