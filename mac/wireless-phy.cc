@@ -32,7 +32,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.cc,v 1.25 2005/08/22 05:08:33 tomh Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.cc,v 1.26 2006/12/27 14:57:22 tom_henderson Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma Haldar.
  * wireless-phy.cc
@@ -52,6 +52,7 @@
 #include <ip.h>
 #include <agent.h>
 #include <trace.h>
+#include <sys/param.h>  /* for MIN/MAX */
 
 #include "diffusion/diff_header.h"
 

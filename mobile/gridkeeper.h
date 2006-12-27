@@ -12,8 +12,6 @@
 
 #include "mobilenode.h"
 
-// MIN is defined already
-// MAX is defined already
 #define aligngrid(a,b) (((a)==(b))?((b)-1):((a)))
 
 

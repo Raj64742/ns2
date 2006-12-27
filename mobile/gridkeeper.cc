@@ -8,6 +8,7 @@
  */
 
 #include "gridkeeper.h"
+#include <sys/param.h> /* For MIN/MAX */
 
 static double d2(double x1, double x2, double y1, double y2)
 {

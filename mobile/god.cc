@@ -32,7 +32,7 @@ er in the
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mobile/god.cc,v 1.19 2004/12/10 22:07:13 johnh Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mobile/god.cc,v 1.20 2006/12/27 14:57:23 tom_henderson Exp $
  */
 
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
@@ -53,6 +53,7 @@ er in the
 #include <packet.h>
 #include <ip.h>
 #include <god.h>
+#include <sys/param.h>  /* for MIN/MAX */
 
 #include "diffusion/hash_table.h"
 #include "mobilenode.h"
