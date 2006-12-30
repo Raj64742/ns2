@@ -2,7 +2,7 @@
 /*
  * hdr_qs.cc
  * Copyright (C) 2001 by the University of Southern California
- * $Id: hdr_qs.cc,v 1.7 2006/12/24 16:49:36 sallyfloyd Exp $
+ * $Id: hdr_qs.cc,v 1.8 2006/12/30 05:22:51 sallyfloyd Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -102,7 +102,11 @@ int hdr_qs::Bps_to_rate(double Bps)
        case 2:
 	       // Add an option for rounding either up or down.
 	       int bpstorate = (int) (log(Bps / 5000) / log(2));
-               return (bpstorate >= 1 ? bpstorate : 0);
+               // return (bpstorate >= 1 ? bpstorate : 0);
+	       if (bpstorate >= 1) 
+			return bpstorate;
+	       else 
+			return 0;
        }
 }
 
