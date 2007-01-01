@@ -75,20 +75,6 @@ AC_CHECK_TYPE(u_int32_t,unsigned int)
 AC_CHECK_TYPE(u_char, unsigned char)
 AC_CHECK_TYPE(u_int, unsigned int)
 
-dnl
-dnl Sun C needs __func__ instead of the GNU-esque __FUNCTION__
-dnl It also needs "extensions" enabled for __func__ to work.
-dnl
-AC_MSG_CHECKING([for __FUNCTION__])
-AC_TRY_COMPILE([], [return __FUNCTION__;],
-  AC_MSG_RESULT([yes]),
-  CPPFLAGS="$CPPFLAGS -D__FUNCTION__=__func__"
-  CFLAGS="$CFLAGS -features=extensions"
-  CXXFLAGS="$CXXFLAGS -features=extensions"
-  AC_TRY_COMPILE([], [return __FUNCTION__;],
-    AC_MSG_RESULT([use __func__ instead]),
-    AC_MSG_ERROR([neither __FUNCTION__ nor __func__ work])))
-
 builtin(include, ./conf/configure.in.int64_t)
 
 dnl Look for emulation specific stuff
