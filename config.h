@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.57 2006/12/17 15:15:56 mweigle Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.58 2007/01/01 17:38:41 mweigle Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -189,6 +189,16 @@ int getpid();
 int gethostname(char*, int);
 void abort();
 }
+#endif
+
+#if defined(SOLARIS_MIN_MAX)
+/* Macros for min/max. */
+#ifndef MIN
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#endif /* MIN */
+#ifndef MAX
+#define MAX(a,b) (((a)>(b))?(a):(b))
+#endif  /* MAX */
 #endif
 
 #if defined(NEED_SUNOS_PROTOS) || defined(solaris)
