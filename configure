@@ -5731,7 +5731,10 @@ _ACEOF
 
 	;;
 sparc-sun-solaris*)
-	V_DEFINE="$V_DEFINE -D__svr4__ -D__FUNCTION__=__func__ -features=extensions -DSOLARIS_MIN_MAX"
+	if test $CC != gcc ; then
+	        V_DEFINE="$V_DEFINE -D__FUNCTION__=__func__ -features=extensions"
+	fi
+        V_DEFINE="$V_DEFINE -D__svr4__ -DSOLARIS_MIN_MAX"
 	V_LIB="$V_LIB -ldl"
 	;;
 sparc-sun-sunos*)
