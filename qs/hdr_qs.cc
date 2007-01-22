@@ -2,7 +2,7 @@
 /*
  * hdr_qs.cc
  * Copyright (C) 2001 by the University of Southern California
- * $Id: hdr_qs.cc,v 1.8 2006/12/30 05:22:51 sallyfloyd Exp $
+ * $Id: hdr_qs.cc,v 1.9 2007/01/22 05:33:57 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -63,6 +63,8 @@
 #include "qsagent.h"
 #include <math.h>
 
+#define Epsilon 0.000001
+
 int hdr_qs::offset_;
 
 static class QSHeaderClass : public PacketHeaderClass {
@@ -73,6 +75,24 @@ public:
 
 } class_qshdr;
 
+/*
+ * Helper function contributed by Olivier Dalle to solve portability
+ * problems in the Bps_to_rate function.  
+ * Choose Epsilon such that any floating point in range [(n - Epsilon); n]
+ * will be converted to int value n.
+ */
+int fuzzy_cast(double f) {
+        int temp = (int)f;
+        if ( (f- (float)temp) >= (1.0-Epsilon) )         
+                /*
+                 * Adding a small value such as 2*Epsilon may be risky
+                 * if Epsilon is very small and f is big, while 0.5 should
+                 * work in any case
+                 */
+                return (int)(f+0.5);    
+        else
+                return temp;
+}
 
 /*
  * These two functions convert rate in QS packet to 10 KBps units
@@ -101,7 +121,7 @@ int hdr_qs::Bps_to_rate(double Bps)
                return (int) Bps / 10240; // rate unit: 10 kilobytes per sec
        case 2:
 	       // Add an option for rounding either up or down.
-	       int bpstorate = (int) (log(Bps / 5000) / log(2));
+	       int bpstorate = fuzzy_cast(log(Bps / 5000) / log(2));
                // return (bpstorate >= 1 ? bpstorate : 0);
 	       if (bpstorate >= 1) 
 			return bpstorate;
