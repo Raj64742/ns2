@@ -16,6 +16,28 @@ with the most recent changes coming first.
 <hr>
 <h3>ns-2.31 PENDING RELEASE</h3>
 <ul>
+<p><li><b>[tomh]</b>Mon Jan 29 21:00:00 EST 2007:
+<br>Several changes to WPAN module, contributed by Iyappan Ramachanran.
+<ul>
+<li> Ability to put a WPAN node to sleep has been added with appropriate actions to decrement energy in sleep state and in transitions. Appropriate code has been added to enable node sleep at any time that the user wishes from the tcl interface.
+</li>
+<li> The earlier implementation was indefinitely attempting transimission of a packet. This has been fixed; after backing of macMaxCSMABackoffs, a node just reports access failure to the upper layer.
+</li>
+<li> Owing to the lack of a detailed-enough PHY layer, CCA has to be done at one instant (the end of the 8th symbol, in the earlier implementation) instead of integration over 8 symbols. As this was leading to unrealistic behavior, CCA has been modified to be done at the end of the 4th symbol but reported to MAC at the end of the 8th.
+</li>
+<li> Code has been added to decrement appropritate energy in the carrier sensing process.
+</li>
+<li> The WirelessChannel::sendUp() function call by Phy802 15 4::PD DATA indication() causes receive energy to be decremented twice and has been fixed.
+</li>
+<li> Several other smaller bugs have been fixed.  
+</li>
+</ul>
+Files changed:
+<br>&nbsp; wireles-phy.cc, wireless-phy.h, ns-lib.tcl, ns-mobilenode.tcl
+<br>&nbsp; wpan.Z, p802_15_4const.h, p802_15_4csmaca.cc, p802_15_4csmaca.h,
+<br>&nbsp; p802_15_4def.h, p802_15_4mac.cc, p802_15_4mac.h, p802_15_4phy.cc
+<br>&nbsp; p802_15_4phy.h, p802_15_4timer.cc, p802_15_4timer.h
+
 <p><li><b>[mweigle]</b>Sun Dec 17 10:07:18 EST 2006:
 <br>Several changes to allow ns to compile on Solaris with the Sun C compiler. Fixes contributed by Emil Mikulic from RMIT University. Files change:
 <br>&nbsp; Makefile.in, config.h, configure.in, configure, 
