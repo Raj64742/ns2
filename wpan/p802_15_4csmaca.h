@@ -13,7 +13,7 @@
 // File:  p802_15_4csmaca.h
 // Mode:  C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t
 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4csmaca.h,v 1.1 2005/01/24 18:34:24 haldar Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4csmaca.h,v 1.2 2007/01/30 05:00:52 tom_henderson Exp $
 
 /*
  * Copyright (c) 2003-2004 Samsung Advanced Institute of Technology and
@@ -61,6 +61,7 @@
 class CsmaCA802_15_4
 {
 	friend class macBackoffTimer;
+	friend class macWakeupTimer; //2.31 change: Timer to control node shutdown and wakeup
 	friend class macBeaconOtherTimer;
 	friend class macDeferCCATimer;
 	friend class Mac802_15_4;

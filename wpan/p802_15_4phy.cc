@@ -13,7 +13,7 @@
 // File:  p802_15_4phy.cc
 // Mode:  C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t
 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4phy.cc,v 1.3 2005/07/27 01:13:46 tomh Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4phy.cc,v 1.4 2007/01/30 05:00:52 tom_henderson Exp $
 
 /*
  * Copyright (c) 2003-2004 Samsung Advanced Institute of Technology and
@@ -95,6 +95,8 @@ void Phy802_15_4Timer::handle(Event* e)
 		phy->recvOverHandler((Packet *)e);
 	else if(type == phySendOverHType)
 		phy->sendOverHandler();
+	else if(type == phyCCAReportHType) // 2.31 change: new timer added for CCA reporting
+		phy->CCAReportHandler();
 	else	
 		assert(0);
 }
@@ -113,7 +115,8 @@ Phy802_15_4::Phy802_15_4(PHY_PIB *pp)
   EDH(this, phyEDHType),
   TRXH(this, phyTRXHType),
   recvOverH(this, phyRecvOverHType),
-  sendOverH(this, phySendOverHType)
+  sendOverH(this, phySendOverHType),
+  CCAReportH(this, phyCCAReportHType) // 2.31 change: new timer added for CCA reporting
 {
 	int i;
 	ppib = *pp;
@@ -128,6 +131,7 @@ Phy802_15_4::Phy802_15_4(PHY_PIB *pp)
 		rxThisTotNum[i] = 0;
 	}
 	mac = 0;
+	T_transition_local_ = T_transition_; // 2.31 change: set local variable since WirelessPhy::T_transition_ is not visible to CsmaCA802_15_4
 }
 
 void Phy802_15_4::macObj(Mac802_15_4 *m)
@@ -246,9 +250,12 @@ void Phy802_15_4::PD_DATA_indication(UINT_8 psduLength,Packet *psdu,UINT_8 ppduL
 
 	wph->ppduLinkQuality = ppduLinkQuality;
 
+/*	2.31 change. sendUp() function call is not necessary as recv() already does it. 
+	Including this only causes energy to be decremented a second time.
 	if (sendUp(psdu) == 0)
 		Packet::free(psdu);
 	else
+*/
 		uptarget_->recv(psdu, (Handler*) 0);
 }
 
@@ -259,8 +266,7 @@ void Phy802_15_4::PLME_CCA_request()
 		//perform CCA
 		//refer to sec 6.7.9 for CCA details
 		//we need to delay 8 symbols
-		CCAH.start(8/getRate('s'));
-
+		CCAH.start(4/getRate('s')); // 2.32 change: start CCA at the end of 4th symbol
 	}
 	else
 		mac->PLME_CCA_confirm(trx_state);
@@ -352,6 +358,7 @@ void Phy802_15_4::PLME_SET_TRX_STATE_request(PHYenum state)
 				HDR_CMN(txPkt)->error() = 1;
 				sendOverH.cancel();
 				Packet::free(txPktCopy);
+				last_tx_time=NOW;
 				tx_state = p_IDLE;
 				mac->PD_DATA_confirm(p_TRX_OFF);
 				if (trx_state_defer_set != p_IDLE)
@@ -431,6 +438,7 @@ void Phy802_15_4::PLME_SET_request(PPIBAenum PIBAttribute,PHY_PIB *PIBAttributeV
 					HDR_CMN(txPkt)->error() = 1;
 					sendOverH.cancel();
 					Packet::free(txPktCopy);
+					last_tx_time=NOW;
 					tx_state = p_IDLE;
 					mac->PD_DATA_confirm(p_TRX_OFF);
 					if (trx_state_defer_set != p_IDLE)
@@ -502,6 +510,7 @@ void Phy802_15_4::recv(Packet *p, Handler *h)
 	hdr_lrwpan* wph = HDR_LRWPAN(p);
 	hdr_cmn *ch = HDR_CMN(p);
         FrameCtrl frmCtrl;
+	PacketStamp s;
 
 	switch(ch->direction())
 	{
@@ -515,7 +524,29 @@ void Phy802_15_4::recv(Packet *p, Handler *h)
 	default:
 		if (sendUp(p) == 0)	
 		{
-			Packet::free(p);
+// 2.31 change: sendUp(p) returns 0 if the node is asleep or if the received power is less than CS threshold. In the former case, we still need rxTotPower and rxTotNum for CS (for future csma). recvOverHandler frees that packet when it finds that it is not destined for the node. recvOverHandler also decrements rxTotPower and rxTotNum. In the latter case, the packet is simply freed without further action.
+			if(propagation_) {
+				s.stamp((MobileNode*)node(), ant_, 0, lambda_);
+				if (propagation_->Pr(&p->txinfo_, &s, this) < CSThresh_) {
+					Packet::free(p);
+					return;
+				}
+			}
+
+                	frmCtrl.FrmCtrl = wph->MHR_FrmCtrl;
+                	frmCtrl.parse();
+			//tap out
+			if (mac->tap() && frmCtrl.frmType == defFrmCtrl_Type_Data)
+				mac->tap()->tap(p);
+	
+			if (node()->energy_model() && node()->energy_model()->adaptivefidelity())
+				node()->energy_model()->add_neighbor(p802_15_4macSA(p));
+	
+			rxTotPower[wph->phyCurrentChannel] += p->txinfo_.RxPr;
+			rxTotNum[wph->phyCurrentChannel]++;
+//			printf("RxTotNum at node %d is %d\n", index_, rxTotNum[wph->phyCurrentChannel]);
+			Scheduler::instance().schedule(&recvOverH, (Event *)p, trxTime(p,true));
+//			Packet::free(p);
 			return;
 		}
 
@@ -644,7 +675,30 @@ void Phy802_15_4::CCAHandler(void)
 	{
 		t_status = ((rxTotPower[ppib.phyCurrentChannel] >= CSThresh_)&&(rxTotNum[ppib.phyCurrentChannel] > 0))?p_BUSY:p_IDLE;
 	}
-	mac->PLME_CCA_confirm(t_status);
+	CCAReportH.start(4/getRate('s')); // 2.31 change: Report CCA at the end of 8th symbol (i.e. wait 4 more symbols)
+	sensed_ch_state = t_status; // 2.31 change: CCA reporting is done by CCAReportHandler
+
+// 2.31 change: Decrement energy spent in CCA
+	if (node()->energy_model()) { 
+		if((NOW-4/getRate('s')-aTurnaroundTime/getRate('s'))-channel_idle_time_ > 0) {
+			node()->energy_model()->DecrIdleEnergy((NOW-4/getRate('s')-aTurnaroundTime/getRate('s'))-channel_idle_time_, P_idle_);
+		}
+		if ((NOW-4/getRate('s')-aTurnaroundTime/getRate('s')+aCCATime/getRate('s'))-channel_idle_time_ > 0){
+			node()->energy_model()->DecrRcvEnergy((aTurnaroundTime+aCCATime)/getRate('s'),Pr_consume_);
+			channel_idle_time_ = NOW-4/getRate('s')+aCCATime/getRate('s');
+			update_energy_time_ = NOW-4/getRate('s')+aCCATime/getRate('s');
+		}
+		else {
+			node()->energy_model()->DecrRcvEnergy((aTurnaroundTime+aCCATime)/getRate('s'),2*Pr_consume_-P_idle_); // P_idle_ has already been decremented; just compensating for that
+			channel_idle_time_ = MAX(channel_idle_time_, NOW-4/getRate('s')+aCCATime/getRate('s'));
+			update_energy_time_ = MAX(channel_idle_time_,NOW-4/getRate('s')+aCCATime/getRate('s'));
+		}
+	} 
+}
+
+void Phy802_15_4::CCAReportHandler(void) // 2.31 change: New timer added to report CCA
+{
+	mac->PLME_CCA_confirm(sensed_ch_state);
 }
 
 void Phy802_15_4::EDHandler(void)
@@ -749,6 +803,7 @@ void Phy802_15_4::sendOverHandler(void)
 	assert(tx_state == p_BUSY);
 	assert(txPktCopy);
 	Packet::free(txPktCopy);
+	last_tx_time=NOW;
 	tx_state = p_IDLE;
 	mac->PD_DATA_confirm(p_SUCCESS);
 	if (trx_state_defer_set != p_IDLE)
@@ -767,6 +822,33 @@ void Phy802_15_4::sendOverHandler(void)
 			TRXH.start(aTurnaroundTime/getRate('s'));
 		}
 	}
+}
+
+void Phy802_15_4::wakeupNode(int cause)
+{
+//	cause=0 for beacon reception (to account for sleep-to-wake ramp-up) and 1 for outgoing packtes
+	if (node()->energy_model()->sleep())
+	{
+		node()->energy_model()->set_node_sleep(0);
+		node()->energy_model()->DecrSleepEnergy(NOW-channel_sleep_time_-T_transition_,P_sleep_);
+		if (cause==0){
+			node()->energy_model()->DecrIdleEnergy(T_transition_,P_transition_);
+		}
+		channel_idle_time_ = NOW; 
+		update_energy_time_ = NOW;
+		status_ = IDLE; 
+	}
+}
+
+void Phy802_15_4::putNodeToSleep(void)
+{
+	node()->energy_model()->set_node_sleep(1);
+	channel_sleep_time_=NOW;
+	update_energy_time_ = NOW;
+	if (mac->wakeupT->busy())
+		mac->wakeupT->stop();
+	mac->wakeupT->start(); // This function will automatically determine the time to wake up for the next beacon and set itself an alarm
+	status_ = SLEEP;
 }
 
 // End of file: p802_15_4phy.cc

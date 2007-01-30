@@ -13,7 +13,7 @@
 // File:  p802_15_4timer.h
 // Mode:  C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t
 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4timer.h,v 1.1 2005/01/24 18:34:25 haldar Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4timer.h,v 1.2 2007/01/30 05:00:52 tom_henderson Exp $
 
 /*
  * Copyright (c) 2003-2004 Samsung Advanced Institute of Technology and
@@ -230,6 +230,18 @@ public:
 	void	handle(Event *e);
 private:
 	Mac802_15_4	*mac;
+};
+
+//2.31 change: Timer to control node shutdown and wakeup
+class macWakeupTimer : public Mac802_15_4Timer
+{
+public:
+	macWakeupTimer(Mac802_15_4 *m) : Mac802_15_4Timer() {mac = m;lastTime = 0.0;}
+	void	start(void);
+	void	handle(Event *e);
+private:
+	Mac802_15_4	*mac;
+	double		lastTime;
 };
 
 #endif

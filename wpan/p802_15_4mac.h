@@ -13,7 +13,7 @@
 // File:  p802_15_4mac.h
 // Mode:  C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t
 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4mac.h,v 1.2 2005/07/13 03:51:33 tomh Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4mac.h,v 1.3 2007/01/30 05:00:52 tom_henderson Exp $
 
 /*
  * Copyright (c) 2003-2004 Samsung Advanced Institute of Technology and
@@ -494,6 +494,7 @@ class Mac802_15_4 : public Mac
 	friend class macBeaconTxTimer;
 	friend class macBeaconRxTimer;
 	friend class macBeaconSearchTimer;
+	friend class macWakeupTimer; // 2.31 change: 
 	friend class CsmaCA802_15_4;
 	friend class SSCS802_15_4;
 	friend class Nam802_15_4;
@@ -683,6 +684,7 @@ private:
 	macBeaconTxTimer *bcnTxT;		//beacon transmission timer
 	macBeaconRxTimer *bcnRxT;		//beacon reception timer
 	macBeaconSearchTimer *bcnSearchT;	//beacon search timer
+	macWakeupTimer *wakeupT; 		// 2.31 change:
 
 	//handlers
 	Mac802_15_4Handler txCmdDataH;

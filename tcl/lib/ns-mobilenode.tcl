@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.55 2005/09/22 18:34:03 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.56 2007/01/30 05:00:51 tom_henderson Exp $
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 #
@@ -631,7 +631,12 @@ Node/MobileNode instproc setPsleep { val } {
 	$self instvar netif_
 	$netif_(0) setSleepPower $val
 }
-
+#
+Node/MobileNode instproc setTSleep { val } {
+	$self instvar netif_
+	$netif_(0) setSleepTime $val
+}
+#
 Node/MobileNode instproc setPtransition { val } {
 	$self instvar netif_
 	$netif_(0) setTransitionPower $val

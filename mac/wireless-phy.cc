@@ -32,7 +32,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.cc,v 1.26 2006/12/27 14:57:22 tom_henderson Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.cc,v 1.27 2007/01/30 05:00:50 tom_henderson Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma Haldar.
  * wireless-phy.cc
@@ -120,7 +120,9 @@ WirelessPhy::WirelessPhy() : Phy(), sleep_timer_(this), status_(IDLE)
 
 	P_idle_ = 0.0;
 	P_sleep_ = 0.00;
+	T_sleep_ = 10000;
 	P_transition_ = 0.00;
+	T_transition_ = 0.00; // 2.31 change: Was not initialized earlier
 	node_on_=1;
 	
 	channel_idle_time_ = NOW;
@@ -171,6 +173,9 @@ WirelessPhy::command(int argc, const char*const* argv)
 		}else if (strcasecmp(argv[1], "setSleepPower") == 0) {
 			P_sleep_ = atof(argv[2]);
 			return TCL_OK;
+		}else if (strcasecmp(argv[1], "setSleepTime") == 0) {
+			T_sleep_ = atof(argv[2]);
+			return TCL_OK;		
 		} else if (strcasecmp(argv[1], "setTransitionPower") == 0) {
 			P_transition_ = atof(argv[2]);
 			return TCL_OK;
@@ -592,7 +597,7 @@ void WirelessPhy::UpdateSleepEnergy()
 			node_sleep();
 		else
 			node_wakeup();			
-		printf("\n AF hack %d\n",em()->sleep());	
+//		printf("\n AF hack %d\n",em()->sleep());	
 	}	
 	
 	sleep_timer_.resched(10.0);

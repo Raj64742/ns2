@@ -13,7 +13,7 @@
 // File:  p802_15_4const.h
 // Mode:  C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t
 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4const.h,v 1.1 2005/01/24 18:34:24 haldar Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4const.h,v 1.2 2007/01/30 05:00:51 tom_henderson Exp $
 
 /*
  * Copyright (c) 2003-2004 Samsung Advanced Institute of Technology and
@@ -58,6 +58,7 @@
 //---PHY layer constants (Table 18)---
 const UINT_8 aMaxPHYPacketSize	= 	127;		//max PSDU size (in bytes) the PHY shall be able to receive
 const UINT_8 aTurnaroundTime		= 12;		//Rx-to-Tx or Tx-to-Rx max turnaround time (in symbol period)
+const UINT_8 aCCATime		= 8; 			//2.31 change: CCA duration (in symbol period) 
 
 //---PHY_PIB default values---
 //All the default values are not given in the draft.

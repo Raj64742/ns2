@@ -13,7 +13,7 @@
 // File:  p802_15_4phy.h
 // Mode:  C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t
 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4phy.h,v 1.1 2005/01/24 18:34:25 haldar Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4phy.h,v 1.2 2007/01/30 05:00:52 tom_henderson Exp $
 
 /*
  * Copyright (c) 2003-2004 Samsung Advanced Institute of Technology and
@@ -98,6 +98,7 @@ struct PHY_PIB
 #define phyTRXHType		3
 #define phyRecvOverHType	4
 #define phySendOverHType	5
+#define phyCCAReportHType	6  // 2.31 change: new timer added for CCA reporting
 class Phy802_15_4;
 class Phy802_15_4Timer : public Handler
 {
@@ -141,9 +142,15 @@ public:
 	UINT_8 measureLinkQ(Packet *p);
 	void recv(Packet *p, Handler *h);
 	Packet* rxPacket(void) {return rxPkt;}
+	void wakeupNode(int cause); // 2.31 change: for MAC to wake up the node
+	void putNodeToSleep(); // 2.31 change: for MAC to put the node to sleep
+	double channel_sleep_time_;	// 2.31 change: time when node was put to sleep 
+	double T_transition_local_;	// 2.31 change: created a local variable since WirelessPhy::T_transition_ is not visible to CsmaCA802_15_4
+
 	
 public:
 	static PHY_PIB PPIB;
+	double last_tx_time;	// 2.31 change: 
 
 protected:
 	void	CCAHandler(void);
@@ -151,6 +158,7 @@ protected:
 	void	TRXHandler(void);
 	void	recvOverHandler(Packet *p);
 	void	sendOverHandler(void);
+	void	CCAReportHandler(void); // 2.31 change: new timer added to report CCA
 
 private:
 	PHY_PIB ppib;
@@ -158,6 +166,7 @@ private:
 	PHYenum trx_state_defer_set;	//defer setting tranceiver state: TX_ON/RX_ON/TRX_OFF/IDLE (IDLE = no defer pending)
 	PHYenum trx_state_turnaround;	//defer setting tranceiver state in case Tx2Rx or Rx2Tx
 	PHYenum tx_state;		//transmitting state: IDLE/BUSY
+	PHYenum sensed_ch_state;	//Stored value of ch state done at beginning of 					//backoffSlot for forwarding to MAC after ccaDetectTime
 	Packet *rxPkt;			//the packet meets the following conditions:
 					// -- on the current channel
 					// -- for this node (not interference)
@@ -174,6 +183,7 @@ private:
 	Phy802_15_4Timer TRXH;
 	Phy802_15_4Timer recvOverH;
 	Phy802_15_4Timer sendOverH;
+	Phy802_15_4Timer CCAReportH; // 2.31 change: new timer to report CCA
 };
 
 #endif

@@ -13,7 +13,7 @@
 // File:  p802_15_4mac.cc
 // Mode:  C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t
 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4mac.cc,v 1.3 2006/12/17 15:25:24 mweigle Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4mac.cc,v 1.4 2007/01/30 05:00:52 tom_henderson Exp $
 
 /*
  * Copyright (c) 2003-2004 Samsung Advanced Institute of Technology and
@@ -429,6 +429,8 @@ backoffBoundH(this,macBackoffBoundType)
 	assert(bcnRxT);
 	bcnSearchT = new macBeaconSearchTimer(this);
 	assert(bcnSearchT);
+	wakeupT = new macWakeupTimer(this); // 2.31 change: Wake up timer
+	assert(wakeupT);  // 2.31 change: Wake up timer
 	sscs = new SSCS802_15_4(this);
 	assert(sscs);
 	nam = new Nam802_15_4((isPANCoor)?Nam802_15_4::def_PANCoor_clr:"black","black",this);
@@ -941,11 +943,9 @@ void Mac802_15_4::recv(Packet *p, Handler *h)
 				drop(p,"ENE");
 				return;
 			}
-			if (em->sleep())
-			{
-				em->set_node_sleep(0);
-				em->set_node_state(EnergyModel::INROUTE);
-			}
+#ifdef SHUTDOWN
+			phy->wakeupNode(1);
+#endif
 		}
 		/* SSCS should call MCPS_DATA_request() directly
 		if (from SSCS)
@@ -1378,6 +1378,14 @@ void Mac802_15_4::recvBeacon(Packet *p)
 			mlme_poll_request(frmCtrl.srcAddrMode,wph->MHR_SrcAddrInfo.panID,wph->MHR_SrcAddrInfo.addr_64,capability.secuCapable,true,true);
 		}
 
+		else
+		{
+#ifdef SHUTDOWN
+			if ((backoffStatus!=99) && ((!capability.FFD)||(numberDeviceLink(&deviceLink1) == 0)) && (NOW>phy->T_sleep_)) { //2.31 change: added this if statement to put the node to sleep after beacon reception if the node is not attempting to tx a pkt
+				phy->putNodeToSleep();
+			}
+#endif
+		}
 		log(p);
 	}
 }
@@ -1665,7 +1673,7 @@ double Mac802_15_4::locateBoundary(bool parent,double wtime)
 #ifdef DEBUG802_15_4
 	//fprintf(stdout,"[%s::%s][%f](node %d) delay = bPeriod - fmod = %f - %f = %f\n",__FILE__,__FUNCTION__,CURRENT_TIME,index_,bPeriod,newtime,bPeriod - newtime);
 #endif
-	if(newtime > 0.0)
+	if(newtime > 0.000001) // 2.31 change
 	{
 		/* Linux floating number compatibility
 		newtime = wtime + (bPeriod - newtime);
@@ -2571,6 +2579,7 @@ void Mac802_15_4::mcps_data_request(UINT_8 SrcAddrMode,UINT_16 SrcPANId,IE3ADDR 
 	FrameCtrl frmCtrl;
 	double kpTime;
 	int i;
+	EnergyModel *em = netif_->node()->energy_model();
 
 	task = TP_mcps_data_request;
 	if (frUpper) checkTaskOverflow(task);	
@@ -2730,7 +2739,16 @@ void Mac802_15_4::mcps_data_request(UINT_8 SrcAddrMode,UINT_16 SrcPANId,IE3ADDR 
 					}
 					else
 					{
-						csmacaResume();
+// 						2.31 change. An access failure needs to be 							reported here. Earlier csmacaResume() was being 						called indefinetely. This has been commented and 							the folowing 3 lines of code have been added 							within else.
+//						csmacaResume();
+						taskP.taskStatus(task) = false;
+						resetTRX();
+						taskFailed('d',m_CHANNEL_ACCESS_FAILURE,0);
+#ifdef SHUTDOWN
+						if ((em) && ((!capability.FFD)||(numberDeviceLink(&deviceLink1) == 0)) && (NOW>phy->T_sleep_)){ //I can sleep only if i am not a coordinator
+							phy->putNodeToSleep();
+						}
+#endif
 					}
 				}
 				break;
@@ -2753,6 +2771,13 @@ void Mac802_15_4::mcps_data_request(UINT_8 SrcAddrMode,UINT_16 SrcPANId,IE3ADDR 
 					taskP.taskStatus(task) = false;
 					resetTRX();
 					taskSuccess('d');
+// 2.31 change: added this to put the node to sleep after successful pkt tx
+#ifdef SHUTDOWN
+					if ((em) && ((!capability.FFD)||(numberDeviceLink(&deviceLink1) == 0)) && (NOW>phy->T_sleep_)){ //I can sleep only if i am not a coordinator
+						phy->putNodeToSleep();
+					}
+#endif
+
 				}
 				break;
 			case 3:
@@ -2779,6 +2804,11 @@ void Mac802_15_4::mcps_data_request(UINT_8 SrcAddrMode,UINT_16 SrcPANId,IE3ADDR 
 						taskFailed('d',m_NO_ACK);
 					}
 				}
+#ifdef SHUTDOWN
+				if ((em) && ((!capability.FFD)||(numberDeviceLink(&deviceLink1) == 0)) && (NOW>phy->T_sleep_)){ //I can sleep only if i am not a coordinator
+					phy->putNodeToSleep();
+				}
+#endif
 				break;
 			default:
 				break;

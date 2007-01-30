@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.h,v 1.14 2005/06/13 17:50:41 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.h,v 1.15 2007/01/30 05:00:50 tom_henderson Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma Haldar.
  *
@@ -96,6 +96,7 @@ public:
 	void node_wakeup();
 	inline bool& Is_node_on() { return node_on_; }
 	inline bool Is_sleeping() { if (status_==SLEEP) return(1); else return(0); }
+	double T_sleep_;	// 2.31 change: Time at which sleeping is to be enabled (sec)
 
 protected:
 	double Pt_;		// transmitted signal power (W)

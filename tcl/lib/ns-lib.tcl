@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.273 2006/02/02 18:19:44 mweigle Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.274 2007/01/30 05:00:51 tom_henderson Exp $
 
 
 #
@@ -327,7 +327,7 @@ Simulator instproc dumper obj {
 #                  -idlePower      (in W)
 #
 #                  -sleepPower 	   (in W)
-#
+#		   -sleepTime	   (in sec indicating when the node can start sleeping)
 #                  -agentTrace  ON
 #                  -routerTrace ON 
 #                  -macTrace OFF 
@@ -360,6 +360,7 @@ Simulator instproc rxPower  {val} { $self set rxPower_  $val }
 Simulator instproc idlePower  {val} { $self set idlePower_  $val }
 #
 Simulator instproc sleepPower  {val} { $self set sleepPower_  $val }
+Simulator instproc sleepTime  {val} { $self set sleepTime_  $val }
 Simulator instproc transitionPower  {val} { $self set transitionPower_  $val }
 Simulator instproc transitionTime  {val} { $self set transitionTime_  $val }
 #
@@ -444,7 +445,7 @@ Simulator instproc node-config args {
         $self instvar addressType_  routingAgent_ propType_  macTrace_ \
 	    routerTrace_ agentTrace_ movementTrace_ channelType_ channel_ \
 	    chan topoInstance_ propInstance_ mobileIP_ \
-	    rxPower_ txPower_ idlePower_ sleepPower_ transitionPower_ \
+	    rxPower_ txPower_ idlePower_ sleepPower_ sleepTime_ transitionPower_ \
 	    transitionTime_ satNodeType_ eotTrace_
 
         if [info exists macTrace_] {
@@ -592,7 +593,7 @@ Simulator instproc create-wireless-node args {
         $self instvar routingAgent_ wiredRouting_ propInstance_ llType_ \
 	    macType_ ifqType_ ifqlen_ phyType_ chan antType_ \
 	    energyModel_ initialEnergy_ txPower_ rxPower_ \
-	    idlePower_ sleepPower_ transitionPower_ transitionTime_ \
+	    idlePower_ sleepPower_ sleepTime_ transitionPower_ transitionTime_ \
 	    topoInstance_ level1_ level2_ inerrProc_ outerrProc_ FECProc_
 
 	Simulator set IMEPFlag_ OFF
@@ -733,6 +734,9 @@ Simulator instproc create-wireless-node args {
 #
 	if [info exists sleepPower_] {
 		$node setPsleep $sleepPower_
+        }
+	if [info exists sleepTime_] {
+		$node setTSleep $sleepTime_
         }
 	if [info exists transitionPower_] {
 		$node setPtransition $transitionPower_

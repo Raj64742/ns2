@@ -13,7 +13,7 @@
 // File:  p802_15_4csmaca.cc
 // Mode:  C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t
 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4csmaca.cc,v 1.2 2005/07/13 03:51:33 tomh Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4csmaca.cc,v 1.3 2007/01/30 05:00:51 tom_henderson Exp $
 
 /*
  * Copyright (c) 2003-2004 Samsung Advanced Institute of Technology and
@@ -464,6 +464,11 @@ void CsmaCA802_15_4::start(bool firsttime,Packet *pkt,bool ackreq)
 	}
 
 	wtime = (Random::random() % (1<<BE)) * bPeriod;
+#ifdef SHUTDOWN
+	if (BE == mac->mpib.macMinBE)
+		wtime=MAX(wtime,ceil(phy->T_transition_local_/bPeriod)*bPeriod); // 2.31 change: added this to take care of sleep-idle ramp-up
+#endif
+
 	wtime = adjustTime(wtime);
 	backoff = true;
 	if (beaconEnabled||beaconOther)

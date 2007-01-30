@@ -13,7 +13,7 @@
 // File:  p802_15_4timer.cc
 // Mode:  C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t
 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4timer.cc,v 1.1 2005/01/24 18:34:25 haldar Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4timer.cc,v 1.2 2007/01/30 05:00:52 tom_henderson Exp $
 
 /*
  * Copyright (c) 2003-2004 Samsung Advanced Institute of Technology and
@@ -383,4 +383,38 @@ void macBeaconSearchTimer::handle(Event *e)
 	mac->beaconSearchHandler();
 }
 
+// 2.31 change: Timer to control node shutdown and wakeup
+void macWakeupTimer::start(void)
+{
+	double BI,bcnRxTime,now,wtime;
+	double tmpf;
+	BI = (aBaseSuperframeDuration * (1 << mac->macBeaconOrder2)) / mac->phy->getRate('s');
+	bcnRxTime = mac->macBcnRxTime / mac->phy->getRate('s');
+	now = CURRENT_TIME;
+	while (now - bcnRxTime > BI)
+	bcnRxTime += BI;
+	{
+		tmpf = (now - bcnRxTime);;
+		wtime = BI - tmpf-aTurnaroundTime/mac->phy->getRate('s');
+//		wtime=wtime-3*mac->csmaca->bPeriod;
+		if (wtime < 0) {
+			printf("WARNING: negative time for wakeup timer");
+			abort();
+		}
+	}
+	tmpf = now + wtime;
+	lastTime = now + wtime;
+	Mac802_15_4Timer::start(wtime);
+}
+
+// 2.31 change: Timer to control node shutdown and wakeup
+void macWakeupTimer::handle(Event *e)
+{
+	reset();
+	EnergyModel *em = mac->netif_->node()->energy_model();
+	if (em)
+	{
+		mac->phy->wakeupNode(0);
+	}
+}
 // End of file: p802_15_4timer.cc
