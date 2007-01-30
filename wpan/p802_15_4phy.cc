@@ -13,7 +13,7 @@
 // File:  p802_15_4phy.cc
 // Mode:  C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t
 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4phy.cc,v 1.4 2007/01/30 05:00:52 tom_henderson Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4phy.cc,v 1.5 2007/01/30 15:54:40 tom_henderson Exp $
 
 /*
  * Copyright (c) 2003-2004 Samsung Advanced Institute of Technology and
@@ -59,6 +59,13 @@
 #include "p802_15_4trace.h"
 #include "p802_15_4fail.h"
 #include "p802_15_4nam.h"
+
+#ifndef MAX
+#define MAX(x,y)        (((x)>(y))?(x):(y))
+#endif
+#ifndef MIN
+#define MIN(x,y)        (((x)<(y))?(x):(y))
+#endif
 
 
 PHY_PIB Phy802_15_4::PPIB =

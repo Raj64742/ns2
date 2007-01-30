@@ -13,7 +13,7 @@
 // File:  p802_15_4csmaca.cc
 // Mode:  C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t
 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4csmaca.cc,v 1.3 2007/01/30 05:00:51 tom_henderson Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4csmaca.cc,v 1.4 2007/01/30 15:54:40 tom_henderson Exp $
 
 /*
  * Copyright (c) 2003-2004 Samsung Advanced Institute of Technology and
@@ -53,6 +53,14 @@
 #include "p802_15_4csmaca.h"
 #include "p802_15_4const.h"
 #include "p802_15_4trace.h"
+
+#ifndef MAX
+#define MAX(x,y)        (((x)>(y))?(x):(y))
+#endif
+#ifndef MIN
+#define MIN(x,y)        (((x)<(y))?(x):(y))
+#endif
+
 
 
 CsmaCA802_15_4::CsmaCA802_15_4(Phy802_15_4 *p, Mac802_15_4 *m)
