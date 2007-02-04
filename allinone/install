@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.29 2005/02/03 20:15:00 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.30 2007/02/04 01:38:09 tom_henderson Exp $
 
 die() {
 	echo "$@"  1>&2
@@ -201,14 +201,14 @@ cygwin_tests() {
 
 
 # Package VERSIONs. Change these when releasing new packages
-TCLVER=8.4.5
-TKVER=8.4.5
-OTCLVER=1.9
-TCLCLVER=1.16
-NSVER=2.28
-NAMVER=1.11
+TCLVER=8.4.13
+TKVER=8.4.13
+OTCLVER=1.12
+TCLCLVER=1.18
+NSVER=2.30
+NAMVER=1.12
 XGRAPHVER=12.1
-ZLIBVER=1.1.4
+ZLIBVER=1.2.3
 
 # Get current path
 CUR_PATH=`pwd`
@@ -495,7 +495,7 @@ cd ./tclcl-$TCLCLVER
 if  [ "${test_cygwin}" = "true" ]; then
         ./configure --x-libraries=/usr/X11R6/lib --x-includes=/usr/X11R6/include || die "tclcl-$TCLCLVER configuration failed! Exiting ...";
 else
-        ./configure || die "tclcl-$TCLCLVER configuration failed! Exiting ..."
+        ./configure --with-otcl=../otcl-$OTCLVER || die "tclcl-$TCLCLVER configuration failed! Exiting ..."
 fi
 
 if make
@@ -524,7 +524,7 @@ fi
 if  [ "${test_cygwin}" = "true" ]; then
         ./configure --x-libraries=/usr/X11R6/lib --x-includes=/usr/X11R6/include || die "Ns configuration failed! Exiting ...";
 else
-        ./configure || die "Ns configuration failed! Exiting ...";
+        ./configure --with-otcl=../otcl-$OTCLVER --with-tclcl=../tclcl-$TCLCLVER || die "Ns configuration failed! Exiting ...";
 fi
 
 if make
@@ -544,12 +544,15 @@ echo "============================================================"
 echo "* Build nam-$NAMVER"
 echo "============================================================"
 
+ln -s otcl-$OTCLVER otcl
+ln -s tclcl-$TCLCLVER tclcl
+
 cd ./nam-$NAMVER
 
 if  [ "${test_cygwin}" = "true" ]; then
         ./configure --x-libraries=/usr/X11R6/lib --x-includes=/usr/X11R6/include --with-tclcl=$CUR_PATH/tclcl-$TCLCLVER  || die "Nam configuration failed! Exiting ...";
 else
-        ./configure --with-tclcl=$CUR_PATH/tclcl-$TCLCLVER  || die "Nam configuration failed! Exiting ...";
+        ./configure --with-otcl=../otcl-$OTCLVER --with-tclcl=../tclcl-$TCLCLVER || die "Nam configuration failed! Exiting ...";
 fi
 
 if make
