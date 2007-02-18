@@ -25,9 +25,9 @@ adc/tbf.h
 adc/timewindow-est.cc
 adc/ump.cc
 adc/ump.h
-AllinOne/install
-AllinOne/INSTALL.WIN32
-AllinOne/README
+allinone/install
+allinone/INSTALL.WIN32
+allinone/README
 aodv/aodv.cc
 aodv/aodv.h
 aodv/aodv.tcl
@@ -506,6 +506,7 @@ doc/undocumented.tex
 doc/unicast.tex
 doc/webcache.tex
 doc/worm-model.tex
+doc/wpan.tex
 doc/xcp.tex
 dsdv/dsdv.cc
 dsdv/dsdv.h
@@ -1931,6 +1932,10 @@ tcl/test/test-output-friendly/HighLossImprecise.Z
 tcl/test/test-output-friendly/HighLossMinRTO.Z
 tcl/test/test-output-friendly/HighLossShort.Z
 tcl/test/test-output-friendly/HighLossTCP.Z
+tcl/test/test-output-friendly/idleTcp.Z
+tcl/test/test-output-friendly/idleTcp1.Z
+tcl/test/test-output-friendly/idleTfrc.Z
+tcl/test/test-output-friendly/idleTfrc1.Z
 tcl/test/test-output-friendly/impulse.Z
 tcl/test/test-output-friendly/impulseCA.Z
 tcl/test/test-output-friendly/impulseDiscount.Z
@@ -1950,6 +1955,7 @@ tcl/test/test-output-friendly/noVoip.Z
 tcl/test/test-output-friendly/OnlyTcp.Z
 tcl/test/test-output-friendly/printLosses.Z
 tcl/test/test-output-friendly/printLossesShort.Z
+tcl/test/test-output-friendly/printLossesShort3.Z
 tcl/test/test-output-friendly/randomized.Z
 tcl/test/test-output-friendly/randomized1.Z
 tcl/test/test-output-friendly/randomized1CA.Z
@@ -1968,6 +1974,8 @@ tcl/test/test-output-friendly/statsTFRC.Z
 tcl/test/test-output-friendly/TFRC_CBR.Z
 tcl/test/test-output-friendly/TFRC_FTP.Z
 tcl/test/test-output-friendly/tfrcOnly.Z
+tcl/test/test-output-friendly/tfrcOnlyHighLoss.Z
+tcl/test/test-output-friendly/tfrcOnlyHighLoss1.Z
 tcl/test/test-output-friendly/two-friendly.Z
 tcl/test/test-output-friendly/two-friendlyCA.Z
 tcl/test/test-output-friendly/twoDrops.Z
@@ -2246,6 +2254,10 @@ tcl/test/test-output-quickstart/rate_request4.Z
 tcl/test/test-output-quickstart/routers1.Z
 tcl/test/test-output-quickstart/routers2.Z
 tcl/test/test-output-quickstart/routers3.Z
+tcl/test/test-output-quickstart/routers4.Z
+tcl/test/test-output-quickstart/routers5.Z
+tcl/test/test-output-quickstart/routers6.Z
+tcl/test/test-output-quickstart/small-request.Z
 tcl/test/test-output-quickstart/stats.Z
 tcl/test/test-output-quickstart/stats1.Z
 tcl/test/test-output-quiescent/tcp_cbr.Z
@@ -2346,6 +2358,7 @@ tcl/test/test-output-sack/sack5.Z
 tcl/test/test-output-sack/sack5a.Z
 tcl/test/test-output-sack/sack_dupacks.Z
 tcl/test/test-output-sack/sack_dupacks1.Z
+tcl/test/test-output-sack/sack_finiteflow.Z
 tcl/test/test-output-sack/sackB2.Z
 tcl/test/test-output-sack/sackB4.Z
 tcl/test/test-output-sack/sackB4a.Z
