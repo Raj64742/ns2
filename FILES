@@ -590,7 +590,6 @@ emulate/tcptap.cc
 emulate/tcptap.h
 emulate/thrutcp.tcl
 FILES
-foo
 gaf/gaf.cc
 gaf/gaf.h
 HOWTO-CONTRIBUTE
