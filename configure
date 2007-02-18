@@ -4370,7 +4370,7 @@ if test "${with_tcl_ver+set}" = set; then
   withval="$with_tcl_ver"
   TCL_VERS=$withval
 else
-  TCL_VERS=8.4.11
+  TCL_VERS=8.4.14
 fi;
 
 
@@ -4836,7 +4836,7 @@ if test "${with_tk_ver+set}" = set; then
   withval="$with_tk_ver"
   TK_VERS=$withval
 else
-  TK_VERS=8.4.11
+  TK_VERS=8.4.14
 fi;
 
 
@@ -5220,7 +5220,7 @@ else
   d=""
 fi;
 
-OTCL_VERS=1.12
+OTCL_VERS=1.13
 OTCL_ALT_VERS=1.0
 
 OTCL_H_PLACES_D="$d \
@@ -5443,7 +5443,7 @@ else
   d=""
 fi;
 
-TCLCL_VERS=1.18
+TCLCL_VERS=1.19
 TCLCL_ALT_VERS=1.0
 
 TCLCL_H_PLACES="\
@@ -7551,6 +7551,9 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 fi
+
+
+
 
 
 for ac_func in strtoq strtoll
