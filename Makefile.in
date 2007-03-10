@@ -542,8 +542,8 @@ srctar:
 	    "(rm -f $$tar; cd .. ; ln -s $$dir $$name)" ; \
 	     (rm -f $$tar; cd .. ; ln -s $$dir $$name) ; \
 	    echo \
-	    "(cd .. ; tar cfh $$tar [lots of files])" ; \
-	     (cd .. ; tar cfh - $$list) | gzip -c > $$tar ; \
+	    "(cd .. ; tar cfhz $$tar [lots of files])" ; \
+	     (cd .. ; tar cfhz - $$list) > $$tar ; \
 	    echo \
 	    "rm ../$$name; chmod 444 $$tar" ;  \
 	     rm ../$$name; chmod 444 $$tar
