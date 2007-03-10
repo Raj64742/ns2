@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.30 2007/02/04 01:38:09 tom_henderson Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.31 2007/03/10 23:40:05 tom_henderson Exp $
 
 die() {
 	echo "$@"  1>&2
@@ -201,17 +201,27 @@ cygwin_tests() {
 
 
 # Package VERSIONs. Change these when releasing new packages
-TCLVER=8.4.13
-TKVER=8.4.13
-OTCLVER=1.12
-TCLCLVER=1.18
-NSVER=2.30
-NAMVER=1.12
+TCLVER=8.4.14
+TKVER=8.4.14
+OTCLVER=1.13
+TCLCLVER=1.19
+NSVER=2.31
+NAMVER=1.13
 XGRAPHVER=12.1
 ZLIBVER=1.2.3
 
 # Get current path
 CUR_PATH=`pwd`
+
+echo "============================================================"
+echo "* Testing for Darwin (OS X) environment"
+echo "============================================================"
+if  [ `uname` = "Darwin" ]; then
+    echo "Darwin detected";
+    DYLD_LIBRARY_PATH=$CUR_PATH/tcl$TCLVER/unix:$CUR_PATH/tk$TKVER/unix:$DYLD_LIBRARY_PATH
+    export DYLD_LIBRARY_PATH
+    test_darwin=true
+fi
 
 # A Cygwin install requires these packages:
 packages_base="gcc gcc-g++ gawk tar gzip make patch perl w32api"
@@ -549,6 +559,11 @@ ln -s tclcl-$TCLCLVER tclcl
 
 cd ./nam-$NAMVER
 
+# XXX temporary OS X hack
+if  [ "${test_darwin}" = "true" ]; then
+ln -s /System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation libcorefoundation.dylib
+fi
+
 if  [ "${test_cygwin}" = "true" ]; then
         ./configure --x-libraries=/usr/X11R6/lib --x-includes=/usr/X11R6/include --with-tclcl=$CUR_PATH/tclcl-$TCLCLVER  || die "Nam configuration failed! Exiting ...";
 else
@@ -558,6 +573,17 @@ fi
 if make
 then 
     echo "Nam has been installed successfully."
+elif  [ "${test_darwin}" = "true" ]; then
+    # XXX workaround for OS X nam Tcl/Tk problems
+    echo "Nam make failed! Trying to relink..."
+    echo "g++ -o nam tkcompat.o tkUnixInit.o xwd.o netview.o netmodel.o edge.o packet.o node.o main.o trace.o queue.o drop.o animation.o agent.o feature.o route.o transform.o paint.o state.o monitor.o anetmodel.o random.o rng.o view.o graphview.o netgraph.o tracehook.o lan.o psview.o group.o editview.o tag.o address.o animator.o wnetmodel.o nam_stream.o enetmodel.o testview.o parser.o trafficsource.o lossmodel.o queuehandle.o gen/version.o gen/nam_tcl.o  ../tcl8.4.14/unix/libtcl8.4.a ../tk8.4.14/unix/libtk8.4.a ../tcl8.4.14/unix/libtclstub8.4.a -L../tclcl-1.19 -ltclcl -L../otcl -lotcl -L/usr/lib -lz -L/usr/X11R6/lib -lXext -lX11 -lm -L. -lcorefoundation"
+    g++ -o nam tkcompat.o tkUnixInit.o xwd.o netview.o netmodel.o edge.o packet.o node.o main.o trace.o queue.o drop.o animation.o agent.o feature.o route.o transform.o paint.o state.o monitor.o anetmodel.o random.o rng.o view.o graphview.o netgraph.o tracehook.o lan.o psview.o group.o editview.o tag.o address.o animator.o wnetmodel.o nam_stream.o enetmodel.o testview.o parser.o trafficsource.o lossmodel.o queuehandle.o gen/version.o gen/nam_tcl.o  ../tcl8.4.14/unix/libtcl8.4.a ../tk8.4.14/unix/libtk8.4.a ../tcl8.4.14/unix/libtclstub8.4.a -L../tclcl-1.19 -ltclcl -L../otcl -lotcl -L/usr/lib -lz -L/usr/X11R6/lib -lXext -lX11 -lm -L. -lcorefoundation
+    if [ -e nam ]; then
+        echo "Nam relinking succeeded; nam has been installed successfully."
+    else
+        echo "Nam make failed! You may want to tweak the above linker path if libraries are not being picked up successfuly.  Continue ..."
+        echo "See http://www.isi.edu/nsnam/ns-problems.html for problems"
+    fi
 else
     echo "Nam make failed! Continue ..."
     echo "See http://www.isi.edu/nsnam/ns-problems.html for problems"
@@ -601,6 +627,7 @@ else
     echo "Please compile your gt-itm & sgb2ns separately."
 fi
 
+echo ""
 echo "Ns-allinone package has been installed successfully."
 echo "Here are the installation places:"
 echo "tcl$TCLVER:	$CUR_PATH/{bin,include,lib}"
@@ -643,8 +670,6 @@ echo ""
 echo "(2) You MUST put $CUR_PATH/tcl$TCLVER/library into your TCL_LIBRARY environmental"
 echo "    variable. Otherwise ns/nam will complain during startup."
 echo ""
-echo "(3) [OPTIONAL] To save disk space, you can now delete directories tcl$TCLVER "
-echo "    and tk$TKVER. They are now installed under $CUR_PATH/{bin,include,lib}"
 echo ""
 echo "After these steps, you can now run the ns validation suite with"
 echo "cd ns-$NSVER; ./validate"
