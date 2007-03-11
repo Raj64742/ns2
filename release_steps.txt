@@ -71,3 +71,10 @@ If making a ns-allinone release,
    accordingly
 2. follow steps as above.
 3. update install in the cvs under ~ns/allinone
+
+WEB PAGE UPDATES:
+
+Update these web pages, or contact someone who has permissions to do so:
+http://www.isi.edu/nsnam/ns/ns-build.html
+http://www.isi.edu/nsnam/ns/ns-cygwin.html
+http://nsnam.isi.edu/nsnam/index.php/Main_Page (News)
