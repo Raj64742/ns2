@@ -17,6 +17,11 @@ If necessary, do a otcl,tclcl release. Following are things you need to do for a
 tcl/animator.tcl
 tcl/nam-default.tcl
 tcl/www.tcl
+6.  commit the changes
+7. tag the cvs archive; e.g.:
+   cd otcl; cvs tag OTCL_1_13
+   cd tclcl; cvs tag TCLCL_1_19
+   cd nam-1; cvs tag NAM_1_13
 
 NS RELEASE
 
