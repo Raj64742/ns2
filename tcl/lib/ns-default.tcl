@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.369 2006/10/23 05:33:16 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.370 2007/03/28 18:15:00 sallyfloyd Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -1098,6 +1098,7 @@ Agent/TFRCSink set NumFeedback_ 1
 Agent/TFRCSink set AdjustHistoryAfterSS_ 1
 Agent/TFRCSink set NumSamples_ -1
 Agent/TFRCSink set discount_ 1;	# History Discounting
+Agent/TFRCSink set minDiscountRatio_ 0.5; # Minimum for history discounting.
 Agent/TFRCSink set printLoss_ 0
 Agent/TFRCSink set smooth_ 1 ;	# smoother Average Loss Interval
 Agent/TFRCSink set ShortIntervals_ 0 ; #  For calculating loss event rates 

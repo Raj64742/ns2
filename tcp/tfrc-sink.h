@@ -131,8 +131,10 @@ protected:
 	int maxseqList;         // max seq number checked for dropped packets
 	int numPkts_;		// Num non-sequential packets before
 				//  inferring loss
+        double minDiscountRatio_; 	// Minimum for history discounting.
 	int numPktsSoFar_;	// Num non-sequential packets so far
 	int PreciseLoss_;       // to estimate loss events more precisely
+
 	// an option for single-RTT loss intervals
 	int ShortIntervals_ ;	// For calculating loss event rates for short 
 				//  loss intervals:  "0" for counting a
@@ -145,7 +147,7 @@ protected:
                                 // current short loss interval. 
         int ShortRtts_ ;	// Max num of RTTs in a short interval.
 
-	// these assist in keep track of incming packets and calculate flost_
+	// these assist in keep track of incoming packets and calculate flost_
 	double last_timestamp_; // timestamp of last new, in-order pkt arrival.
 	double last_arrival_;   // time of last new, in-order pkt arrival.
 	int hsz;		// InitHistorySize_, number of pkts in history

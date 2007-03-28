@@ -60,6 +60,7 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 	bind ("algo_", &algo); // algo for loss estimation
 	bind ("PreciseLoss_", &PreciseLoss_);
 	bind ("numPkts_", &numPkts_);
+	bind("minDiscountRatio_", &minDiscountRatio_);
 
 	// for WALI ONLY
 	bind ("NumSamples_", &numsamples);
@@ -599,14 +600,13 @@ double TfrcSinkAgent::est_loss_WALI ()
 		return 0; 
 	/* do we need to discount weights? */
 	if (sample_count > 1 && discount && sample[0] > 0) {
-                //double ave = weighted_average1(1, ds, 1.0, mult, weights, sample, ShortIntervals_, losses, count_losses);
                 double ave = weighted_average1(1, ds, 1.0, mult, weights, sample, ShortIntervals_, losses, count_losses, num_rtts);
 		int factor = 2;
 		double ratio = (factor*ave)/sample[0];
-		double min_ratio = 0.5;
 		if ( ratio < 1.0) {
 			// the most recent loss interval is very large
 			mult_factor_ = ratio;
+			double min_ratio = minDiscountRatio_;
 			if (mult_factor_ < min_ratio) 
 				mult_factor_ = min_ratio;
 		}
