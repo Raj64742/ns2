@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.76 2006/10/23 06:32:48 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.77 2007/03/28 18:23:28 sallyfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -47,13 +47,14 @@ Queue/RED set q_weight_ 0.002
 Queue/RED set thresh_ 5 
 Queue/RED set maxthresh_ 15
 # The RED parameter defaults are being changed for automatic configuration.
+
 ##########################
 Agent/TFRCSink set numPkts_ 1
 # The default for numPkts_ might be changed to 3, at some point.
 # But right now, the code for numPkts does not work, except for numPkts_ 1.
 # With numPkts set to 1, TFRCSink is not robust to reordering.
 ##########################
-
+Agent/TFRC set maxHeavyRounds_ 0
 Agent/TCP set window_ 100
 
 # Uncomment the line below to use a random seed for the
@@ -301,6 +302,23 @@ Test/slowStartDiscount instproc init {} {
     Agent/TFRC set ca_ 0
     Queue/RED set gentle_ false
     Test/slowStartDiscount instproc run {} [Test/slowStart info instbody run ]
+    $self next pktTraceFile
+}
+
+Class Test/slowStartDiscount1 -superclass TestSuite
+Test/slowStartDiscount1 instproc init {} {
+    $self instvar net_ test_ guide_
+    set net_	net2
+    set test_	slowStartDiscount1
+    set guide_  \
+    "TFRC with minDiscountRatio_ set to 0.25, for stronger discounting."
+    Agent/TFRCSink set discount_ 1
+    Agent/TFRCSink set smooth_ 0
+    Agent/TFRCSink set minDiscountRatio_ 0.25
+    Agent/TFRC set df_ 0.25
+    Agent/TFRC set ca_ 0
+    Queue/RED set gentle_ false
+    Test/slowStartDiscount1 instproc run {} [Test/slowStart info instbody run ]
     $self next pktTraceFile
 }
 
@@ -2359,6 +2377,114 @@ Test/idleTcp1 instproc run {} {
     $self dropPktsPeriodic [$ns_ link $node_(r2) $node_(s3)] 0 1000.0 $period_
 
     $self pktsDump 1 $tcp1 $interval_ $dumpfile_
+
+    $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
+    $ns_ at $stopTime "$self cleanupAll $testName_" 
+    if {$quiet == "false"} {
+	$ns_ at $stopTime2 "close $tracefile"
+    }
+    $ns_ at $stopTime2 "exec cp temp2.rands temp.rands; exit 0"
+
+    $ns_ run
+}
+
+Class Test/shortIdleTcp superclass TestSuite
+Test/shortIdleTcp instproc init {} {
+    $self instvar net_ test_ guide_ period_
+    set net_	net3
+    set test_	shortIdleTcp
+    set guide_  "TCP with two short idle periods during slow-start."
+    set period_ 10000.0
+    $self next pktTraceFile
+}
+Test/shortIdleTcp instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_ period_
+    puts "Guide: $guide_"
+    $self setTopo
+    Agent/TCP set packetSize_ 160
+    Agent/TCP set window_ 30
+    set interval_ 1.0
+    set start_time 0.0
+    set stopTime 25.0
+    set stopTime0 [expr $stopTime - 0.001]
+    set stopTime2 [expr $stopTime + 0.001]
+
+    set dumpfile_ [open temp.s w]
+    if {$quiet == "false"} {
+        set tracefile [open all.tr w]
+        $ns_ trace-all $tracefile
+    }
+
+    set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(s3) 0]
+    set ftp [new Application/FTP]
+    $ftp attach-agent $tcp1
+    $ns_ at 0 "$ftp produce 280"
+    $ns_ at 9.2 "$ftp producemore 280"
+    $ns_ at 15.8 "$ftp producemore 280"
+
+    $self dropPktsPeriodic [$ns_ link $node_(r2) $node_(s3)] 0 1000.0 $period_
+
+    $self pktsDump 1 $tcp1 $interval_ $dumpfile_
+
+    $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
+    $ns_ at $stopTime "$self cleanupAll $testName_" 
+    if {$quiet == "false"} {
+	$ns_ at $stopTime2 "close $tracefile"
+    }
+    $ns_ at $stopTime2 "exec cp temp2.rands temp.rands; exit 0"
+
+    $ns_ run
+}
+
+Class Test/idleTfrc1 superclass TestSuite
+Test/idleTfrc1 instproc init {} {
+    $self instvar net_ test_ guide_ period_
+    set net_	net3
+    set test_	idleTfrc1
+    set guide_  "TFRC with only one idle period during slow-start."
+    set period_ 10000.0
+    $self next pktTraceFile
+}
+Test/idleTfrc1 instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_ period_
+    puts "Guide: $guide_"
+    $self setTopo
+    Agent/TFRC set SndrType_ 1
+    Agent/TFRC set datalimited_ 1
+    Agent/TFRC set voip_ 1
+    Agent/TFRCSink set ShortIntervals_ 1
+    Agent/TFRC set packetSize_ 160
+    Agent/TFRC set voip_max_pkt_rate_ 50
+    set interval_ 1.0
+    set start_time 0.0
+    set stopTime 60.0
+    set stopTime0 [expr $stopTime - 0.001]
+    set stopTime2 [expr $stopTime + 0.001]
+
+    set dumpfile_ [open temp.s w]
+    if {$quiet == "false"} {
+        set tracefile [open all.tr w]
+        $ns_ trace-all $tracefile
+    }
+
+    set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
+    set cbr0 [new Application/Traffic/CBR]
+    $cbr0 set packetSize_ 160
+    $cbr0 set interval_ 0.02
+    $cbr0 attach-agent $tf1
+
+    $ns_ at $start_time "$cbr0 start"
+    $ns_ at 10.0 "$cbr0 stop"
+    $ns_ at 20.0 "$cbr0 start"
+    $ns_ at 30.0 "$cbr0 stop"
+    $ns_ at 40.0 "$cbr0 start"
+    $ns_ at $stopTime "$cbr0 stop"
+
+    $self dropPktsPeriodic [$ns_ link $node_(r2) $node_(s3)] 0 1000.0 $period_
+
+    $self tfccDump 1 $tf1 $interval_ $dumpfile_
 
     $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
     $ns_ at $stopTime "$self cleanupAll $testName_" 
