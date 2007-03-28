@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.38 2006/01/25 22:02:05 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.39 2007/03/28 18:37:26 sallyfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -294,8 +294,7 @@ Test/timersAfix instproc init topo {
 	set net_	$topo
 	set defNet_	net4
 	set test_	timersAfix_(early_packet_dropped)
-	set guide_	"Agent/TCP, timerfix_ set to true, for updating
-	the timer *after* updating the round-trip time." 
+	set guide_	"Agent/TCP, timerfix_ set, for updating timer *after* updating the RTT." 
 	Agent/TCP set timerfix_ true
         Test/timersAfix instproc run {} [Test/timersA info instbody run]
 	$self next
