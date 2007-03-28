@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.126 2006/06/14 01:12:28 sallyfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.127 2007/03/28 18:42:19 sallyfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -195,7 +195,70 @@ protected:
 	virtual void delay_bind_init_all();
 	virtual int delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer);
 
+	double boot_time_;	/* where between 'ticks' this sytem came up */
+	double overhead_;
+	double wnd_;
+	double wnd_const_;
+	double wnd_th_;		/* window "threshold" */
+	double wnd_init_;
+	double wnd_restart_;
+	double tcp_tick_;	/* clock granularity */
+	int wnd_option_;
+	int wnd_init_option_;   /* 1 for using wnd_init_ */
+				/* 2 for using large initial windows */
+	double decrease_num_;   /* factor for multiplicative decrease */
+	double increase_num_;   /* factor for additive increase */
+	int tcpip_base_hdr_size_;  /* size of base TCP/IP header */
+	int maxcwnd_;		/* max # cwnd can ever be */
+        int numdupacks_;	/* dup ACKs before fast retransmit */
+	int numdupacksFrac_;	/* for a larger numdupacks_ with large */
+				/* windows */
+
+	/* connection and packet dynamics */
+	virtual void output(int seqno, int reason = 0);
+	virtual void send_much(int force, int reason, int maxburst = 0);
+	virtual void newtimer(Packet*);
+	virtual void dupack_action();		/* do this on dupacks */
+	virtual void send_one();		/* do this on 1-2 dupacks */
+	virtual void opencwnd();
+
+	void slowdown(int how);			/* reduce cwnd/ssthresh */
+	void ecn(int seqno);		/* react to quench */
+	virtual void set_initial_window();	/* set IW */
+	double initial_window();		/* what is IW? */
+	void reset();
+	void newack(Packet*);
+	void finish(); /* called when the connection is terminated */
+	int network_limited();	/* Sending limited by network? */
+	double limited_slow_start(double cwnd, int max_ssthresh, double increment);
+				/* Limited slow-start for high windows */
+	virtual int numdupacks(double cwnd); 	/* for getting numdupacks_ */
+	/* End of section of connection and packet dynamics.  */
+
+	/* General dynamic state. */
 	TracedInt t_seqno_;	/* sequence number */
+	TracedInt dupacks_;	/* number of duplicate acks */
+	TracedInt curseq_;	/* highest seqno "produced by app" */
+	TracedInt highest_ack_;	/* not frozen during Fast Recovery */
+	TracedDouble cwnd_;	/* current window */
+	TracedInt ssthresh_;	/* slow start threshold */
+	TracedInt maxseq_;	/* used for Karn algorithm */
+				/* highest seqno sent so far */
+	int last_ack_;		/* largest consecutive ACK, frozen during
+				 *		Fast Recovery */
+	int recover_;		/* highest pkt sent before dup acks, */
+				/*   timeout, or source quench/ecn */
+	int last_cwnd_action_;	/* CWND_ACTION_{TIMEOUT,DUPACK,ECN} */
+	int count_;		/* used in window increment algorithms */
+	int rtt_active_;	/* 1 if a rtt sample is pending */
+	int rtt_seq_;		/* seq # of timed seg if rtt_active_ is 1 */
+	double rtt_ts_;		/* time at which rtt_seq_ was sent */
+	double firstsent_;	/* When first packet was sent  --Allman */
+	double lastreset_;	/* W.N. Last time connection was reset - for */
+				/* detecting pkts from previous incarnations */
+	int closed_;            /* whether this connection has closed */
+	/* End of general dynamic state. */
+
 	/*
 	 * State encompassing the round-trip-time estimate.
 	 * srtt and rttvar are stored as fixed point;
@@ -219,6 +282,16 @@ protected:
 	virtual void rtt_backoff();		/* double multiplier */
 	/* End of state for the round-trip-time estimate. */
 
+        /* RTOs: */
+	double maxrto_;		/* max value of an RTO */
+	double minrto_;         /* min value of an RTO */
+	int ts_resetRTO_;	/* Un-backoff RTO after any valid RTT, */
+				/*   including from a retransmitted pkt?  */
+				/* The old version was "false". */
+				/* But "true" gives better performance, and */
+                                /* seems conformant with RFC 2988. */
+        /* End of section for RTOs. */
+
 	/* Timestamps. */
 	double ts_peer_;        /* the most recent timestamp the peer sent */
 	double ts_echo_;        /* the most recent timestamp the peer echoed */
@@ -228,35 +301,7 @@ protected:
 	int ts_option_;		/* use RFC1323-like timestamps? */
 	/* End of timestamps. */
 
-	/* connection and packet dynamics */
-	virtual void output(int seqno, int reason = 0);
-	virtual void send_much(int force, int reason, int maxburst = 0);
-	virtual void newtimer(Packet*);
-	virtual void dupack_action();		/* do this on dupacks */
-	virtual void send_one();		/* do this on 1-2 dupacks */
-	double linear(double x, double x_1, double y_1, double x_2, double y_2);
-	/* the "linear" function is for experimental highspeed TCP */
-	virtual void opencwnd();
-
-	void slowdown(int how);			/* reduce cwnd/ssthresh */
-	void ecn(int seqno);		/* react to quench */
-	virtual void set_initial_window();	/* set IW */
-	double initial_window();		/* what is IW? */
-	void reset();
-	void newack(Packet*);
-	void tcp_eln(Packet *pkt); /* reaction to ELN (usually wireless) */
-	void finish(); /* called when the connection is terminated */
-	void reset_qoption();	/* for QOption with EnblRTTCtr_ */
-	void rtt_counting();	/* for QOption with EnblRTTCtr_ */
-	int network_limited();	/* Sending limited by network? */
-	double limited_slow_start(double cwnd, int max_ssthresh, double increment);
-				/* Limited slow-start for high windows */
-	virtual int numdupacks(double cwnd); 	/* for getting numdupacks_ */
-	virtual void processQuickStart(Packet *pkt);
-	virtual void endQuickStart();
-	int lossQuickStart();
-
-	/* Helper functions. Currently used by tcp-asym */
+	/* Helper functions.  Used by tcp-asym */
 	virtual void output_helper(Packet*) { return; }
 	virtual void send_helper(int) { return; }
 	virtual void send_idle_helper() { return; }
@@ -288,31 +333,6 @@ protected:
 	int rfc2988_;		/* Use updated RFC 2988 timers */
 	/* End of timers. */ 
 
-	double boot_time_;	/* where between 'ticks' this sytem came up */
-	double overhead_;
-	double wnd_;
-	double wnd_const_;
-	double wnd_th_;		/* window "threshold" */
-	double wnd_init_;
-	double wnd_restart_;
-	double tcp_tick_;	/* clock granularity */
-	int wnd_option_;
-	int wnd_init_option_;   /* 1 for using wnd_init_ */
-				/* 2 for using large initial windows */
-	double decrease_num_;   /* factor for multiplicative decrease */
-	double increase_num_;   /* factor for additive increase */
-	int tcpip_base_hdr_size_;  /* size of base TCP/IP header */
-	int ts_resetRTO_;	/* Un-backoff RTO after any valid RTT, */
-				/*   including from a retransmitted pkt?  */
-				/* The old version was "false". */
-				/* But "true" gives better performance, and */
-                                /* seems conformant with RFC 2988. */
-	int maxcwnd_;		/* max # cwnd can ever be */
-        int numdupacks_;	/* dup ACKs before fast retransmit */
-	int numdupacksFrac_;	/* for a larger numdupacks_ with large */
-				/* windows */
-	double maxrto_;		/* max value of an RTO */
-	double minrto_;         /* min value of an RTO */
 
 	/* For modeling SYN and SYN/ACK packets. */
 	int syn_;		/* 1 for modeling SYN/ACK exchange */
@@ -355,30 +375,6 @@ protected:
 	/* End of parameters for alternate congestion control mechanisms. */
 
 	FILE *plotfile_;
-	/*
-	 * Dynamic state.
-	 */
-	TracedInt dupacks_;	/* number of duplicate acks */
-	TracedInt curseq_;	/* highest seqno "produced by app" */
-	TracedInt highest_ack_;	/* not frozen during Fast Recovery */
-	TracedDouble cwnd_;	/* current window */
-	TracedInt ssthresh_;	/* slow start threshold */
-	TracedInt maxseq_;	/* used for Karn algorithm */
-				/* highest seqno sent so far */
-	int last_ack_;		/* largest consecutive ACK, frozen during
-				 *		Fast Recovery */
-	int recover_;		/* highest pkt sent before dup acks, */
-				/*   timeout, or source quench/ecn */
-	int last_cwnd_action_;	/* CWND_ACTION_{TIMEOUT,DUPACK,ECN} */
-	int count_;		/* used in window increment algorithms */
-	int rtt_active_;	/* 1 if a rtt sample is pending */
-	int rtt_seq_;		/* seq # of timed seg if rtt_active_ is 1 */
-	double rtt_ts_;		/* time at which rtt_seq_ was sent */
-	double firstsent_;	/* When first packet was sent  --Allman */
-	double lastreset_;	/* W.N. Last time connection was reset - for */
-				/* detecting pkts from previous incarnations */
-	int closed_;            /* whether this connection has closed */
-	int use_rtt_;		/* Use RTT for timeout, for ECN-marked SYN-ACK */
 
 	/* Dynamic state used for alternate congestion control mechanisms */
 	double awnd_;		/* averaged window */
@@ -434,15 +430,19 @@ protected:
 	int SetCWRonRetransmit_;  /* True to allow setting CWR on */
 				  /*  retransmitted packets.   Affects */
 				  /*  performance for Reno with ECN.  */
+	int use_rtt_;	     /* Use RTT for timeout for ECN-marked SYN-ACK */
 	/* end of ECN */
 
 	/* used for Explicit Loss Notification */
+	void tcp_eln(Packet *pkt); /* reaction to ELN (usually wireless) */
         int eln_;               /* Explicit Loss Notification (wireless) */
         int eln_rxmit_thresh_;  /* Threshold for ELN-triggered rxmissions */
         int eln_last_rxmit_;    /* Last packet rxmitted due to ELN info */
 	/* end of Explicit Loss Notification */
 
-	/* for experimental high-speed TCP */
+	/* for High-Speed TCP, RFC 3649 */
+	double linear(double x, double x_1, double y_1, double x_2, double y_2);
+	  /* the "linear" function is for experimental highspeed TCP */
 	/* These four parameters define the HighSpeed response function. */
 	int low_window_;	/* window for turning on high-speed TCP */
 	int high_window_;	/* target window for new response function */
@@ -458,7 +458,10 @@ protected:
 	hstcp hstcp_;		/* HighSpeed TCP variables */
         /* end of section for experimental high-speed TCP */
 
-	/* for Quick-Start, experimental. */
+	/* for Quick-Start, RFC 4782 */
+	virtual void processQuickStart(Packet *pkt);
+	virtual void endQuickStart();
+	int lossQuickStart();
 	int rate_request_;      /* Rate request in KBps, for QuickStart.  */
 	int qs_enabled_;        /* to enable QuickStart. */
 	int qs_requested_;
@@ -500,6 +503,8 @@ protected:
 	/* TCP quiescence, reducing cwnd after an idle period */
 	void process_qoption_after_send() ;
 	void process_qoption_after_ack(int seqno) ;
+	void reset_qoption();	/* for QOption with EnblRTTCtr_ */
+	void rtt_counting();	/* for QOption with EnblRTTCtr_ */
 	int QOption_ ; /* TCP quiescence option */
 	int EnblRTTCtr_ ; /* are we using a corase grained timer? */
 	int T_full ; /* last time the window was full */
