@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.370 2007/03/28 18:15:00 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.371 2007/03/29 04:54:45 sallyfloyd Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -869,7 +869,8 @@ Agent/TCP set slow_start_restart_ true
 Agent/TCP set restart_bugfix_ true
 Agent/TCP set tcpTick_ 0.01 ;		# default changed on 2002/03/07
 					# to reflect a changing reality.
-Agent/TCP set maxrto_ 100000
+Agent/TCP set maxrto_ 60 ; 		# default changed on 2007/03/28
+					#  to reflect RFC2988.
 Agent/TCP set minrto_ 0.2 ;		# Default changed to 200ms on 
 					#  2004/10/14, to match values
 					#  used by many implementations.
@@ -1053,6 +1054,7 @@ Agent/TFRC set voip_max_pkt_rate_ 100 ;  # Max rate in pps, for voip mode.
 Agent/TFRC set fsize_ 1460 ;	# Default size for large TCP packets. 
 				# Used for VoIP mode.
 Agent/TFRC set headersize_ 32 ; # Size for packet headers.
+# End of VoIP mode.
 # Variants in the TFRC algorithms:
 Agent/TFRC set rate_init_option_ 2 ;	# Added on 10/20/2004
 				# Set to 1 for backward compatibility. 
@@ -1062,14 +1064,17 @@ Agent/TFRC set slow_increase_ 1 ;	# Added on 10/20//2004
 				# Set to 1 for gradual rate changes.  
 				# This also gives backward compatibility.
 # Agent/TFRC set ss_changes_ 1 ;	# Deleted on 3/14//2006. 
-Agent/TFRC set maxHeavyRounds_ 1; # Number of rounds for sending rate allowed
+Agent/TFRC set maxHeavyRounds_ 0; # Number of rounds for sending rate allowed
 				  #  to be greater than twice receiving rate.
+				  # Default changed on 3/27/2007, to conform
+				  # to RFC3448 and CCID 3.
 Agent/TFRC set conservative_ 0 ;  # Set to true for a conservative 
 				  # response to heavy congestion.
 Agent/TFRC set scmult_ 1.5 ;	# self clocking parameter for conservative_
 Agent/TFRC set oldCode_ false ; # Set to 1 to use old code for datalimited
 				#   applications.
 				# Parameter added on 12/18/02.
+# End of Variands.
 # Parameters:
 Agent/TFRC set packetSize_ 1000 
 Agent/TFRC set df_ 0.95 ;	# decay factor for accurate RTT estimate
