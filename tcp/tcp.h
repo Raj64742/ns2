@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.127 2007/03/28 18:42:19 sallyfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.128 2007/03/29 04:56:46 sallyfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -267,7 +267,8 @@ protected:
 	TracedInt t_rtt_;      	/* round trip time */
 	TracedInt t_srtt_;     	/* smoothed round-trip time */
 	TracedInt t_rttvar_;   	/* variance in round-trip time */
-	TracedInt t_backoff_;	/* current multiplier, 1 if not backed off */
+	TracedInt t_backoff_;	/* current multiplier of RTO, */
+				/*   1 if not backed off */
 	#define T_RTT_BITS 0
 	int T_SRTT_BITS;        /* exponent of weight for updating t_srtt_ */
 	int srtt_init_;		/* initial value for computing t_srtt_ */

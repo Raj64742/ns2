@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.173 2007/01/12 18:08:52 sallyfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.174 2007/03/29 04:56:46 sallyfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -609,8 +609,10 @@ void TcpAgent::rtt_update(double tao)
 
 void TcpAgent::rtt_backoff()
 {
-	if (t_backoff_ < 64)
-		t_backoff_ <<= 1;
+	if (t_backoff_ < 64 || rfc2988_)
+        	t_backoff_ <<= 1;
+        // RFC2988 allows a maximum for the backed-off RTO of 60 seconds.
+        // This is applied by maxrto_.
 
 	if (t_backoff_ > 8) {
 		/*
