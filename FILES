@@ -1959,10 +1959,12 @@ tcl/test/test-output-friendly/randomized.Z
 tcl/test/test-output-friendly/randomized1.Z
 tcl/test/test-output-friendly/randomized1CA.Z
 tcl/test/test-output-friendly/randomizedCA.Z
+tcl/test/test-output-friendly/shossrtIdleTcp.Z
 tcl/test/test-output-friendly/slow.Z
 tcl/test/test-output-friendly/slowStart.Z
 tcl/test/test-output-friendly/slowStartCA.Z
 tcl/test/test-output-friendly/slowStartDiscount.Z
+tcl/test/test-output-friendly/slowStartDiscount1.Z
 tcl/test/test-output-friendly/slowStartDiscountCA.Z
 tcl/test/test-output-friendly/slowStartEWMA.Z
 tcl/test/test-output-friendly/slowStartFixed.Z
@@ -2575,6 +2577,7 @@ tcl/test/test-output-tcp/quiescent_500ms_fine.Z
 tcl/test/test-output-tcp/quiescentB.Z
 tcl/test/test-output-tcp/quiescentB_qoption.Z
 tcl/test/test-output-tcp/stats1.Z
+tcl/test/test-output-tcp/timers_backoffs.Z
 tcl/test/test-output-tcp/timers.Z
 tcl/test/test-output-tcp/timers1.Z
 tcl/test/test-output-tcp/timers2.Z
