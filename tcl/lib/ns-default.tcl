@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.371 2007/03/29 04:54:45 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.371.2.1 2007/06/01 21:21:23 tom_henderson Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -672,6 +672,7 @@ Snoop set debug_ false
  Mac/802_11 set CWMax_         1023
  Mac/802_11 set SlotTime_      0.000020        ;# 20us
  Mac/802_11 set SIFS_          0.000010        ;# 10us
+ Mac/802_11 set BeaconInterval_ 0.1		;# 100 ms
  Mac/802_11 set PreambleLength_        144             ;# 144 bit
  Mac/802_11 set PLCPHeaderLength_      48              ;# 48 bits
  Mac/802_11 set PLCPDataRate_  1.0e6           ;# 1Mbps

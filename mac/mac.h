@@ -33,7 +33,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.36 2005/07/27 01:13:44 tomh Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.36.4.1 2007/06/01 21:21:20 tom_henderson Exp $ (UCB)
  */
 
 #ifndef ns_mac_h
@@ -83,9 +83,12 @@ enum MacState {
 	MAC_RECV 	= 0x0010,
 	MAC_SEND 	= 0x0100,
 	MAC_RTS		= 0x0200,
+	MAC_BCN		= 0x0300,
+	MAC_BEACON	= 0x0300,
 	MAC_CTS		= 0x0400,
 	MAC_ACK		= 0x0800,
-	MAC_COLL	= 0x1000
+	MAC_COLL	= 0x1000,
+	MAC_MGMT	= 0x1001
 };
 
 enum MacFrameType {

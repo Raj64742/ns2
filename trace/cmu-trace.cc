@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.89 2006/03/21 22:31:32 liyuan Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.89.4.1 2007/06/01 21:21:24 tom_henderson Exp $
  */
 
 #include <packet.h>
@@ -253,8 +253,11 @@ CMUTrace::format_mac_common(Packet *p, const char *why, int offset)
 		  (mh->dh_fc.fc_subtype == MAC_Subtype_RTS) ? "RTS"  :
 		  (mh->dh_fc.fc_subtype == MAC_Subtype_CTS) ? "CTS"  :
 		  (mh->dh_fc.fc_subtype == MAC_Subtype_ACK) ? "ACK"  :
+		  (mh->dh_fc.fc_subtype == MAC_Subtype_11_Beacon) ? "BCN"  :  	//Beacon	
+		  (mh->dh_fc.fc_subtype == MAC_Subtype_AssocReq) ? "ACRQ"  :	//Association request
+		  (mh->dh_fc.fc_subtype == MAC_Subtype_AssocRep) ? "ACRP"  :	//Association Response
 		  //<zheng: add for 802.15.4>
-		  (mh->dh_fc.fc_subtype == MAC_Subtype_Beacon) ? "BCN"  :		//Beacon
+//		  (mh->dh_fc.fc_subtype == MAC_Subtype_Beacon) ? "BCN"  :		//Beacon
 		  (mh->dh_fc.fc_subtype == MAC_Subtype_Command_AssoReq) ? "CM1"  :	//CMD: Association request
 		  (mh->dh_fc.fc_subtype == MAC_Subtype_Command_AssoRsp) ? "CM2"  :	//CMD: Association response
 		  (mh->dh_fc.fc_subtype == MAC_Subtype_Command_DAssNtf) ? "CM3"  :	//CMD: Disassociation notification

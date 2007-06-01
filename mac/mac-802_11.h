@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.h,v 1.27 2006/02/22 13:25:43 mahrenho Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.h,v 1.27.4.1 2007/06/01 21:21:16 tom_henderson Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  * wireless-mac-802_11.h
@@ -71,6 +71,12 @@ class EventTrace;
 #define MAC_Subtype_Data	0x00
 
 
+#define MAC_Subtype_11_Beacon	0x08 
+#define	MAC_Subtype_AssocReq	0x00
+#define	MAC_Subtype_AssocRep	0x01
+
+#define SSID_LENGTH	32
+
 struct frame_control {
 	u_char		fc_subtype		: 4;
 	u_char		fc_type			: 2;
@@ -108,6 +114,40 @@ struct ack_frame {
 	u_char			af_fcs[ETHER_FCS_LEN];
 };
 
+struct beacon_frame {		
+	struct frame_control	bf_fc;
+	u_int16_t		bf_duration;
+	u_char			bf_ra[ETHER_ADDR_LEN];
+	u_char			bf_ta[ETHER_ADDR_LEN];
+	u_char			bf_3a[ETHER_ADDR_LEN];
+	u_int16_t		bf_scontrol;
+	double			bf_timestamp;
+	double			bf_beaconint;
+	u_int8_t		bf_datarates[1];
+	u_char			bf_fcs[ETHER_FCS_LEN];
+};
+
+struct assocreq_frame {           
+	struct frame_control	acf_fc;
+	u_int16_t		acf_duration;
+	u_char			acf_ra[ETHER_ADDR_LEN];
+	u_char			acf_ta[ETHER_ADDR_LEN];
+	u_char			acf_3a[ETHER_ADDR_LEN];
+	u_int16_t		acf_scontrol;
+	u_char			acf_fcs[ETHER_FCS_LEN];
+};
+
+struct assocrep_frame {           
+	struct frame_control	acf_fc;
+	u_int16_t		acf_duration;
+	u_char			acf_ra[ETHER_ADDR_LEN];
+	u_char			acf_ta[ETHER_ADDR_LEN];
+	u_char			acf_3a[ETHER_ADDR_LEN];
+	u_int16_t		acf_scontrol;
+	u_int16_t		acf_statuscode;
+	u_char			acf_fcs[ETHER_FCS_LEN];
+};
+
 // XXX This header does not have its header access function because it shares
 // the same header space with hdr_mac.
 struct hdr_mac802_11 {
@@ -116,8 +156,20 @@ struct hdr_mac802_11 {
 	u_char                  dh_ra[ETHER_ADDR_LEN];
         u_char                  dh_ta[ETHER_ADDR_LEN];
         u_char                  dh_3a[ETHER_ADDR_LEN];
+	u_char			dh_4a[ETHER_ADDR_LEN];
 	u_int16_t		dh_scontrol;
 	u_char			dh_body[1]; // size of 1 for ANSI compatibility
+};
+
+struct ap_table {	
+	int node_id;
+	struct ap_table *next;
+};
+
+struct beacon_table {	
+	int ap_id;
+	double beacon_power;
+	struct beacon_table *next;
 };
 
 
@@ -138,6 +190,7 @@ public:
 	inline u_int32_t getCWMin() { return(CWMin); }
         inline u_int32_t getCWMax() { return(CWMax); }
 	inline double getSlotTime() { return(SlotTime); }
+	inline double getBeaconInterval() { return(BeaconInterval); }  
 	inline double getSIFS() { return(SIFSTime); }
 	inline double getPIFS() { return(SIFSTime + SlotTime); }
 	inline double getDIFS() { return(SIFSTime + 2 * SlotTime); }
@@ -148,6 +201,7 @@ public:
 	}
 	inline u_int32_t getPreambleLength() { return(PreambleLength); }
 	inline double getPLCPDataRate() { return(PLCPDataRate); }
+	
 	
 	inline u_int32_t getPLCPhdrLen() {
 		return((PreambleLength + PLCPHeaderLength) >> 3);
@@ -169,6 +223,15 @@ public:
 	inline u_int32_t getACKlen() {
 		return(getPLCPhdrLen() + sizeof(struct ack_frame));
 	}
+	inline u_int32_t getBEACONlen() {	
+		return(getPLCPhdrLen() + sizeof(struct beacon_frame)); 
+	}
+	inline u_int32_t getASSOCREQlen() {	
+		return(getPLCPhdrLen() + sizeof(struct assocreq_frame)); 
+	}
+	inline u_int32_t getASSOCREPlen() {	
+		return(getPLCPhdrLen() + sizeof(struct assocrep_frame)); 
+	}
 
  private:
 
@@ -179,6 +242,7 @@ public:
 	u_int32_t	CWMax;
 	double		SlotTime;
 	double		SIFSTime;
+	double		BeaconInterval;		
 	u_int32_t	PreambleLength;
 	u_int32_t	PLCPHeaderLength;
 	double		PLCPDataRate;
@@ -230,7 +294,7 @@ public:
 class Mac802_11 : public Mac {
 	friend class DeferTimer;
 
-
+	friend class BeaconTimer; 
 	friend class BackoffTimer;
 	friend class IFTimer;
 	friend class NavTimer;
@@ -248,23 +312,38 @@ public:
 	// Added by Sushmita to support event tracing
         void trace_event(char *, Packet *);
         EventTrace *et_;
+	int ap_addr;
+	u_char ssid_[SSID_LENGTH];
 
 protected:
 	void	backoffHandler(void);
 	void	deferHandler(void);
+	void	BeaconHandler(void); 
 	void	navHandler(void);
 	void	recvHandler(void);
 	void	sendHandler(void);
 	void	txHandler(void);
 
 private:
-	int		command(int argc, const char*const* argv);
+	void	update_ap_table(int num);
+	void 	push(int num);		
+	int	find_node(int num);	
+	void	add_beacon_table(int num, double power);	
+	void 	push_ap(int num, double power);	
+	int 	strongest_beacon();
+	int	find_ap(int num, double power);
+	void 	deletelist(struct beacon_table *ptr);
+	int	command(int argc, const char*const* argv);
 
 	/* In support of bug fix described at
 	 * http://www.dei.unipd.it/wdyn/?IDsezione=2435	 
 	 */
 	int bugFix_timer_;
-
+	double BeaconTxtime_;
+	int associated;
+	double Pr;
+	int ap;
+	
 	/*
 	 * Called by the timers.
 	 */
@@ -273,7 +352,9 @@ private:
 	int		check_pktCTRL();
 	int		check_pktRTS();
 	int		check_pktTx();
-
+	int		check_pktASSOCREQ();  
+	int		check_pktASSOCREP();
+	int		check_pktBEACON();
 	/*
 	 * Packet Transmission Functions.
 	 */
@@ -282,9 +363,12 @@ private:
 	void	sendCTS(int dst, double duration);
 	void	sendACK(int dst);
 	void	sendDATA(Packet *p);
+	void	sendBEACON(int src);		
+	void	sendASSOCREQ(int dst);
+	void	sendASSOCREP(int dst);
 	void	RetransmitRTS();
 	void	RetransmitDATA();
-
+	
 	/*
 	 * Packet Reception Functions.
 	 */
@@ -292,6 +376,9 @@ private:
 	void	recvCTS(Packet *p);
 	void	recvACK(Packet *p);
 	void	recvDATA(Packet *p);
+	void	recvBEACON(Packet *p);		
+	void	recvASSOCREQ(Packet *p);
+	void	recvASSOCREP(Packet *p);
 
 	void		capture(Packet *p);
 	void		collision(Packet *p);
@@ -360,12 +447,15 @@ protected:
         * purpose
         */
        int     bss_id_;
+       int     scan_;
        enum    {IBSS_ID=MAC_BROADCAST};
 
 
 private:
 	double		basicRate_;
  	double		dataRate_;
+	struct ap_table	*node_list;	
+	struct beacon_table	*power_list;
 	
 	/*
 	 * Mac Timers
@@ -377,6 +467,7 @@ private:
 
 	DeferTimer	mhDefer_;	// defer timer
 	BackoffTimer	mhBackoff_;	// backoff timer
+	BeaconTimer	mhBeacon_;	// Beacon Timer
 
 	/* ============================================================
 	   Internal MAC State
@@ -391,6 +482,9 @@ private:
 
 	Packet		*pktRTS_;	// outgoing RTS packet
 	Packet		*pktCTRL_;	// outgoing non-RTS packet
+	Packet		*pktBEACON_;	//outgoing Beacon Packet
+	Packet		*pktASSOCREQ_;	//Association request
+	Packet		*pktASSOCREP_;	// Association reply
 
 	u_int32_t	cw_;		// Contention Window
 	u_int32_t	ssrc_;		// STA Short Retry Count
@@ -400,8 +494,6 @@ private:
 
 	NsObject*	logtarget_;
 	NsObject*       EOTtarget_;     // given a copy of packet at TX end
-
-
 
 
 	/* ============================================================
