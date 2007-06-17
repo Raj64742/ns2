@@ -1,7 +1,10 @@
 /*
- * Copyright (c) 2001-2003 by the Protocol Engineering Lab, U of Delaware
+ * Copyright (c) 2006-2007 by the Protocol Engineering Lab, U of Delaware
  * All rights reserved.
  *
+ * Protocol Engineering Lab web page : http://pel.cis.udel.edu/
+ *
+ * Paul D. Amer        <amer@@cis,udel,edu>
  * Armando L. Caro Jr. <acaro@@cis,udel,edu>
  *
  * Armando's debugging output system. 
@@ -34,7 +37,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctpDebug.cc,v 1.1 2005/07/18 18:28:34 tomh Exp $ (UD/PEL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctpDebug.cc,v 1.2 2007/06/17 21:44:45 tom_henderson Exp $ (UD/PEL)
  */
 
 #include "sctpDebug.h"

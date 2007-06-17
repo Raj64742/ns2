@@ -1,56 +1,28 @@
-sctp.README - README file for NS-2 SCTP module release 3.3
-   Armando L. Caro Jr. <acaro@@cis,udel,edu>
+sctp.README - README file for NS-2 SCTP module release 3.7
+
+###############################################################################
+# Copyright (c) 2006-2007 by the Protocol Engineering Lab, U of Delaware      #
+# All rights reserved.                                                        #
+#                                                                             #
+# Protocol Engineering Lab web page : http://pel.cis.udel.edu/                #
+#                                                                             #
+# Paul D. Amer        <amer@@cis,udel,edu>                                    #
+# Armando L. Caro Jr. <acaro@@cis,udel,edu>                                   #
+# Janardhan Iyengar   <iyengar@@cis,udel,edu>                                 #
+# Preethi Natarajan   <nataraja@@cis,udel,edu>                                #
+# Nasif Ekiz          <nekiz@@cis,udel,edu>                                   #
+###############################################################################
 
 Please submit bug reports to pel@@cis,udel,edu
-
-@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.README,v 1.1 2003/08/21 18:29:14 haldar Exp $
-
-
-------------------------------------------------------------------------------
-INSTALL:
-
-1. For first installs only:
-
-      a. download ns-allinone-2.1b8 from:
-	    http://www.isi.edu/nsnam/dist/ns-allinone-2.1b8.tar.gz
-
-      b. untar the file by doing:
-	    %  gtar zxvf ns-allinone-2.1b8.tar.gz
-
-
-2. Download the appropriate patch (http://pel.cis.udel.edu):
-
-      ns-allinone-2.1b8.sctp-rel3.3.patch.orig    (for first installs)
-   or
-      ns-allinone-2.1b8.sctp-rel3.3.patch.relx.x  (x.x is ver of prev install)
-
-
-3. At the parent directory of the untar'd source, do:
-
-      %  patch -p0 < ns-allinone-2.1b8.sctp-rel3.3.patch.orig
-   or
-      %  patch -p0 < ns-allinone-2.1b8.sctp-rel3.3.patch.relx.x
-
-
-4. Run the ns-2 install script:
-
-      %  cd ns-allinone-2.1b8
-      %  ./install
-
-
-5. For first installs only: add ns-allinone-2.1b8/bin to your path
-
-
-6. (optional) Download latest test-output-sctp from http://pel.cis.udel.edu
-
-
+@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.README,v 1.2 2007/06/17 21:44:44 tom_henderson Exp $
 ------------------------------------------------------------------------------
 MODULE INFO:
 
 The SCTP module for NS-2 currently supports the features in the following
-sections of RFC2960 (with draft-ietf-tsvwg-sctpimpguide-04.txt):
+sections of RFC4460 (with draft-ietf-tsvwg-sctpimpguide-04.txt):
 
    5.1 Normal Establishment of an Association (rudimentary handshake)
+   5.4 Path Verification
    6.1 Transmission of DATA Chunks
    6.2 Acknowledgement of Reception of DATA Chunks
    6.3 Management Retransmission Timer
@@ -160,14 +132,6 @@ corresponding variables to be used in tcl are (with explanations):
 
       Sets the parameters HB.interval. Setting this parameter to 0 turns
       off HEARTBEATing. The default is 30 seconds.
-
-   oneHeartbeatTimer_
-
-      Toggles the use of one HEARTBEAT timer for all destinations or a
-      timer per destination. If 0 is used, there is a separate HEARTBEAT
-      timer for each destination. If 1 is used, there is a single
-      HEARTBEAT timer for all destinations (similar to the reference
-      implementation). The default is 1.
 
    mtu_
 
@@ -372,6 +336,103 @@ The SCTP module also comes with some "interesting features" :-).
                   |              \
                   +-  iface 2     O=====
 
+
+SCTP version 3.6 includes implementation for Concurrent Multipath
+Transfer (CMT)[1].
+
+CMT uses SCTP's multihoming feature to distribute data across multiple
+end-to-end paths in a multihomed SCTP association to increase an
+application's throughput. The ns-2 CMT module implements Split Fast
+Retransmit (SFR), Cwnd Update for CMT (CUC) and Delayed Ack for CMT
+(DAC) algorithms as explained in [1].
+
+SCTP version 3.7 includes implementation for CMT with Potentially
+Failed (CMT-PF) destination state that improves CMT performance during
+failures. Detailed information regarding CMT-PF can be found in [2].
+
+The SCTP module uses several variables for CMT and CMT-PF which can be
+bound from within tcl. The corresponding variables used in tcl are
+(with explanations):
+
+CMT variables:
+
+        useCmtReordering_
+ 	
+          Variable to turn ON/OFF CMT's Split Fast Retransmit (SFR)
+          algorithm which eliminates unnecessary fast retransmissions
+          due to reordering. Unnecessary fast retransmissions have 2
+          negative consequences: 1) reduced cwnd for the destination
+          to which the retransmitted data was outstanding.  2)
+          aggressive cwnd growth for the destination to which the
+          retransmissions are sent. Details of the algorithm can be
+          found in [1]. The default value is 1 (ON).
+	
+        useCmtCwnd_
+  
+          Variable to turn ON/OFF CMT's Cwnd Update for CMT (CUC)
+          algorithm. The CUC algorithm eliminates reduced cwnd growth
+          due to reordering caused fewer cwnd updates. Reordering
+          causes many SACKs to be sent containing gaps reports but not
+          new cum acks. With CUC algorithm, cwnd is updated even in
+          the absence of new cum acks. The details of the algorithm
+          can be found in [1]. The default value is 1 (ON).
+
+       useCmtDelAck_
+
+         Variable to turn ON/OFF CMT's Delayed Ack for CMT (DAC)
+         algorithm. DAC algorithm eliminates the increased ack traffic
+         due to fewer delayed acks. Acks are delayed only as long as
+         the receiver recieves data in order. Due to reordering
+         introduced with CMT, an SCTP receiver does not frequently
+         delay acks. With DAC algorithm, a CMT receiver always delays
+         acks irrespective of whether or not data is received in
+         order. The details of the algorithm can be found in [1]. The
+         default value is 1 (ON).
+
+       eCmtRtxPolicy_
+
+         Variable to define retransmission policy for CMT
+         sender. Currently there are 5 retransmission policies for
+         CMT, of which two are recommended and the rest are
+         experimental. The retransmission policies for CMT are:
+
+         RTX_ASAP (experimental) - A retransmission of a data chunk is
+         sent to any destination for which the sender has cwnd space
+         available at the time of retransmission. If multiple
+         destinations have available cwnd space, one is chosen
+         randomly. Set value to 0 for RTX_ASAP.
+
+         RTX_SAME (experimental) - All retransmissions of the data
+         chunk are sent to the same destination until the destination
+         is deemed inacive due to failure. Set value to 1 for RTX_SAME.
+	  
+	 RTX_SSTHRESH (recommended) - A retransmission is sent to the
+         destination for which the sender has the largest ssthresh
+         value. A tie is broken by random selection. Set value to 2
+         for RTX_SSTHRESH.
+	  
+         RTX_LOSSRATE (experimental) - A retransmission is sent to the
+         destination with the lowest loss rate path. A tie is broken
+         by random selection. Set value to 3 for RTX_LOSSRATE.
+	  
+         RTX_CWND (recommended, default) - A retransmission is sent to
+         the destination for which the sender has the largest cwnd. A
+         tie is broken by random selection. Set value to 4 for
+         RTX_CWND. This policy is the default policy for CMT.
+
+
+CMT-PF variables:
+
+       useCmtPF_
+
+          This variable is used to turn the CMT-PF extension
+          ON/OFF. The default value is 0 (OFF).
+
+       cmtPFCwnd_
+
+          This variable is used to set cwnd (in MTUs) after HB-ACK is
+          received (PF->ACTIVE) at the sender. Two possible values for
+          this variable are 1 or 2. The default value is 1.
 
 ------------------------------------------------------------------------------
 # EXAMPLE SCRIPT 1
@@ -804,3 +865,285 @@ $ns at 0.5 "$ftp0 start"
 $ns at 12.0 "finish"
 
 $ns run
+
+-------------------------------------------------------------------------------
+# EXAMPLE SCRIPT 5
+#
+# Demonstrates Concurrent Multipath Transfer (CMT). Two endpoints with
+# 2 interfaces with direct connections between each pair. Data is
+# transfered using both paths concurrently.
+#
+#       host0_if0      O===========O    host1_if0
+#                     /             \
+#       host0_core   O               O  host1_core
+#                     \             /
+#       host0_if1      O===========O    host1_if1
+
+Trace set show_sctphdr_ 1
+
+set ns [new Simulator]
+set nf [open sctp.nam w]
+$ns namtrace-all $nf
+
+set allchan [open all.tr w]
+$ns trace-all $allchan
+
+proc finish {} {
+    global ns nf allchan
+
+    set PERL "/usr/bin/perl"
+    set NSHOME "/home/userA/ns-allinone-2.31"
+    set XGRAPH "$NSHOME/bin/xgraph"
+    set SETFID "$NSHOME/ns-2.31/bin/set_flow_id"
+    set RAW2XG_SCTP "$NSHOME/ns-2.31/bin/raw2xg-sctp"
+    set GETRC "$NSHOME/ns-2.31/bin/getrc"
+
+    $ns flush-trace
+    close $nf
+    close $allchan
+
+    # Graph the host0_if0 <-> host1_if0
+    exec $PERL $GETRC -s 1 -d 4 all.tr > all.tr.if0 
+    exec $PERL $GETRC -s 4 -d 1 all.tr >> all.tr.if0 
+    exec $PERL $SETFID -s all.tr.if0 | \
+ 	    $PERL $RAW2XG_SCTP -A -q -t if0 > temp.rands.if0
+    exec $XGRAPH -bb -tk -nl -m -x time -y packets temp.rands.if0 &
+    
+    # Graph the host0_if1 <-> host1_if1
+    exec $PERL $GETRC -s 2 -d 5 all.tr > all.tr.if1 
+    exec $PERL $GETRC -s 5 -d 2 all.tr >> all.tr.if1 
+    exec $PERL $SETFID -s all.tr.if1 | \
+	    $PERL $RAW2XG_SCTP -A -q -t if1 > temp.rands.if1
+    exec $XGRAPH -bb -tk -nl -m -x time -y packets temp.rands.if1 &
+    
+    # Graph the entire association on one graph
+    exec $PERL $SETFID -s all.tr | \
+	    $PERL $RAW2XG_SCTP -A -q -t all > temp.rands
+    exec $XGRAPH -bb -tk -nl -m -x time -y packets temp.rands &
+    
+    exec nam sctp.nam &
+
+    exit 0
+}
+
+set host0_core [$ns node]
+set host0_if0 [$ns node]
+set host0_if1 [$ns node]
+
+$host0_core color Red
+$host0_if0 color Red
+$host0_if1 color Red
+
+$ns multihome-add-interface $host0_core $host0_if0
+$ns multihome-add-interface $host0_core $host0_if1
+
+set host1_core [$ns node]
+set host1_if0 [$ns node]
+set host1_if1 [$ns node]
+
+$host1_core color Blue
+$host1_if0 color Blue
+$host1_if1 color Blue
+
+$ns multihome-add-interface $host1_core $host1_if0
+$ns multihome-add-interface $host1_core $host1_if1
+
+$ns duplex-link $host0_if0 $host1_if0 10Mb 45ms DropTail
+[[$ns link $host0_if0 $host1_if0] queue] set limit_ 50
+$ns duplex-link $host0_if1 $host1_if1 10Mb 45ms DropTail
+[[$ns link $host0_if1 $host1_if1] queue] set limit_ 50
+
+set sctp0 [new Agent/SCTP/CMT]
+$ns multihome-attach-agent $host0_core $sctp0
+$sctp0 set fid_ 0 
+$sctp0 set debugMask_ -1
+$sctp0 set debugFileIndex_ 0
+$sctp0 set mtu_ 1500
+$sctp0 set dataChunkSize_ 1468
+$sctp0 set numOutStreams_ 1
+$sctp0 set useCmtReordering_ 1   # turn on Reordering algo.
+$sctp0 set useCmtCwnd_ 1         # turn on CUC algo.
+$sctp0 set useCmtDelAck_ 1       # turn on DAC algo.
+$sctp0 set eCmtRtxPolicy_ 4      # rtx. policy : RTX_CWND
+
+set trace_ch [open trace.sctp w]
+$sctp0 set trace_all_ 1          # trace them all on one line
+$sctp0 trace cwnd_
+$sctp0 trace rto_
+$sctp0 trace errorCount_
+$sctp0 attach $trace_ch
+
+set sctp1 [new Agent/SCTP/CMT]
+$ns multihome-attach-agent $host1_core $sctp1
+$sctp1 set debugMask_ -1
+$sctp1 set debugFileIndex_ 1
+$sctp1 set mtu_ 1500
+$sctp1 set initialRwnd_ 65536 
+$sctp1 set useDelayedSacks_ 1
+$sctp1 set useCmtDelAck_ 1
+
+$ns color 0 Red
+$ns color 1 Blue
+
+$ns connect $sctp0 $sctp1
+
+set ftp0 [new Application/FTP]
+$ftp0 attach-agent $sctp0
+
+# set primary before association starts
+$sctp0 set-primary-destination $host1_if0
+
+$ns at 0.5 "$ftp0 start"
+$ns at 10.0 "finish"
+
+$ns run
+
+-------------------------------------------------------------------------------
+# EXAMPLE SCRIPT 6
+#
+# Demonstrates Concurrent Multipath Transfer with Potentially Failed
+# (CMT-PF).  Two endpoints with 2 interfaces with direct connections
+# between each pair.  A link failure is introduced at 10.0 sec to one
+# of the paths. Data transfer continues with the other path.
+#
+#       host0_if0      O===========O    host1_if0
+#                     /             \
+#       host0_core   O               O  host1_core
+#                     \             /
+#       host0_if1      O===========O    host1_if1
+
+Trace set show_sctphdr_ 1
+
+set ns [new Simulator]
+set nf [open sctp.nam w]
+$ns namtrace-all $nf
+
+set allchan [open all.tr w]
+$ns trace-all $allchan
+
+proc finish {} {
+    global ns nf allchan
+
+    set PERL "/usr/bin/perl"
+    set NSHOME "/home/userA/ns-allinone-2.31"
+    set XGRAPH "$NSHOME/bin/xgraph"
+    set SETFID "$NSHOME/ns-2.31/bin/set_flow_id"
+    set RAW2XG_SCTP "$NSHOME/ns-2.31/bin/raw2xg-sctp"
+    set GETRC "$NSHOME/ns-2.31/bin/getrc"
+
+    $ns flush-trace
+    close $nf
+    close $allchan
+
+    # Graph the host0_if0 <-> host1_if0
+    exec $PERL $GETRC -s 1 -d 4 all.tr > all.tr.if0 
+    exec $PERL $GETRC -s 4 -d 1 all.tr >> all.tr.if0 
+    exec $PERL $SETFID -s all.tr.if0 | \
+ 	    $PERL $RAW2XG_SCTP -A -q -t if0 > temp.rands.if0
+    exec $XGRAPH -bb -tk -nl -m -x time -y packets temp.rands.if0 &
+    
+    # Graph the host0_if1 <-> host1_if1
+    exec $PERL $GETRC -s 2 -d 5 all.tr > all.tr.if1 
+    exec $PERL $GETRC -s 5 -d 2 all.tr >> all.tr.if1
+    exec $PERL $SETFID -s all.tr.if1 | \
+	    $PERL $RAW2XG_SCTP -A -q -t if1 > temp.rands.if1
+    exec $XGRAPH -bb -tk -nl -m -x time -y packets temp.rands.if1 &
+    
+    # Graph the entire association on one graph
+    exec $PERL $SETFID -s all.tr | \
+	    $PERL $RAW2XG_SCTP -A -q -t all > temp.rands
+    exec $XGRAPH -bb -tk -nl -m -x time -y packets temp.rands &
+    
+    exec nam sctp.nam &
+
+    exit 0
+}
+
+set host0_core [$ns node]
+set host0_if0 [$ns node]
+set host0_if1 [$ns node]
+
+$host0_core color Red
+$host0_if0 color Red
+$host0_if1 color Red
+
+$ns multihome-add-interface $host0_core $host0_if0
+$ns multihome-add-interface $host0_core $host0_if1
+
+set host1_core [$ns node]
+set host1_if0 [$ns node]
+set host1_if1 [$ns node]
+
+$host1_core color Blue
+$host1_if0 color Blue
+$host1_if1 color Blue
+
+$ns multihome-add-interface $host1_core $host1_if0
+$ns multihome-add-interface $host1_core $host1_if1
+
+$ns duplex-link $host0_if0 $host1_if0 10Mb 45ms DropTail
+[[$ns link $host0_if0 $host1_if0] queue] set limit_ 50
+$ns duplex-link $host0_if1 $host1_if1 10Mb 45ms DropTail
+[[$ns link $host0_if1 $host1_if1] queue] set limit_ 50
+
+set sctp0 [new Agent/SCTP/CMT]
+$ns multihome-attach-agent $host0_core $sctp0
+$sctp0 set fid_ 0 
+$sctp0 set debugMask_ -1
+$sctp0 set debugFileIndex_ 0
+$sctp0 set mtu_ 1500
+$sctp0 set dataChunkSize_ 1468
+$sctp0 set numOutStreams_ 1
+$sctp0 set useCmtReordering_ 1    # turn on Reordering algo.
+$sctp0 set useCmtCwnd_ 1          # turn on CUC algo.
+$sctp0 set useCmtDelAck_ 1        # turn on DAC algo.
+$sctp0 set eCmtRtxPolicy_ 4       # rtx. policy : RTX_CWND
+$sctp0 set useCmtPF_ 1	          # turn on CMT-PF
+$sctp0 set cmtPFCwnd_ 2           # cwnd=2*MTU after HB-ACK
+
+set trace_ch [open trace.sctp w]
+$sctp0 set trace_all_ 1           # trace them all on one line
+$sctp0 trace cwnd_
+$sctp0 trace rto_
+$sctp0 trace errorCount_
+$sctp0 attach $trace_ch
+
+set sctp1 [new Agent/SCTP/CMT]
+$ns multihome-attach-agent $host1_core $sctp1
+$sctp1 set debugMask_ -1
+$sctp1 set debugFileIndex_ 1
+$sctp1 set mtu_ 1500
+$sctp1 set initialRwnd_ 65536 
+$sctp1 set useDelayedSacks_ 1
+$sctp1 set useCmtDelAck_ 1
+
+$ns color 0 Red
+$ns color 1 Blue
+
+$ns connect $sctp0 $sctp1
+
+set ftp0 [new Application/FTP]
+$ftp0 attach-agent $sctp0
+
+# set primary before association starts
+$sctp0 set-primary-destination $host1_if0
+
+$ns rtmodel-at 10.0 down $host0_if1 $host1_if1
+
+$ns at 0.5 "$ftp0 start"
+$ns at 75.0 "finish"
+
+$ns run
+
+
+References :
+
+[1] J. Iyengar, P. Amer, R. Stewart, "Concurrent Multipath Transfer
+Using SCTP Multihoming Over Independent End-to-End Paths", IEEE/ACM
+Transactions on Networking, 14(5), 10/06.
+
+[2] Preethi Natarajan, Nasif Ekiz, Paul D. Amer and Randall Stewart,
+"Concurrent Multipath Transfer Using SCTP Multihoming: Transmission
+Policies using Potentially-failed Destination State", Technical
+Report: #2007-338, CIS Department, University of Delaware, February
+2007.

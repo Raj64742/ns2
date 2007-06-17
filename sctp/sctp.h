@@ -1,10 +1,14 @@
 /*
- * Copyright (c) 2001-2004 by the Protocol Engineering Lab, U of Delaware
+ * Copyright (c) 2006-2007 by the Protocol Engineering Lab, U of Delaware
  * All rights reserved.
  *
+ * Protocol Engineering Lab web page : http://pel.cis.udel.edu/
+ *
+ * Paul D. Amer        <amer@@cis,udel,edu>
  * Armando L. Caro Jr. <acaro@@cis,udel,edu>
  * Janardhan Iyengar   <iyengar@@cis,udel,edu>
- * Keyur Shah          <shah@@cis,udel,edu>
+ * Preethi Natarajan   <nataraja@@cis,udel,edu>
+ * Nasif Ekiz          <nekiz@@cis,udel,edu>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,7 +37,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.h,v 1.9 2006/12/17 15:19:21 mweigle Exp $ (UD/PEL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.h,v 1.10 2007/06/17 21:44:45 tom_henderson Exp $ (UD/PEL)
  */
 
 #ifndef ns_sctp_h
@@ -175,7 +179,7 @@ struct AppData_S
 struct SctpTrace_S
 {
   SctpChunkType_E  eType;
-  u_int            uiTsn;    // (cum ack for sacks, -1 for other control chunks)
+  u_int            uiTsn;   // (cum ack for sacks, -1 for other control chunks)
   u_short          usStreamId;     // -1 for control chunks
   u_short          usStreamSeqNum; // -1 for control chunks
 };
@@ -373,15 +377,14 @@ protected:
 class HeartbeatGenTimer : public TimerHandler 
 {
 public:
-  HeartbeatGenTimer(SctpAgent *a, SctpDest_S *d) 
-    : TimerHandler(), opAgent(a) {spDest = d;}
+  HeartbeatGenTimer(SctpAgent *a) 
+    : TimerHandler(), opAgent(a) {}
 
   double      dStartTime; // timestamp of when timer started
 	
 protected:
   virtual void expire(Event *);
   SctpAgent  *opAgent;
-  SctpDest_S *spDest;     // destination this timer corresponds to
 };
 
 class HeartbeatTimeoutTimer : public TimerHandler 
@@ -447,7 +450,8 @@ enum SctpDestStatus_E
 {
   SCTP_DEST_STATUS_INACTIVE,
   SCTP_DEST_STATUS_POSSIBLY_FAILED,
-  SCTP_DEST_STATUS_ACTIVE
+  SCTP_DEST_STATUS_ACTIVE,
+  SCTP_DEST_STATUS_UNCONFIRMED
 };
 
 enum NodeType_E
@@ -475,21 +479,6 @@ struct List_S
   u_int    uiLength;
   Node_S  *spHead;
   Node_S  *spTail;
-};
-
-/* PN 01/20/2006
- * In CMT-PF, a dest in PF state, could have sent data/HBs and
- * be in one of the following sub-states.
- * These sub-states are used for correct processing after receipt
- * of hb ack/ data ack
- */
-enum CmtPFSubState_E
-{
-        NOT_PF,
-        NOTHING_SENT,
-        SENT_HB_ONLY,
-        SENT_DATA_ONLY,
-        SENT_HB_AND_DATA
 };
 
 struct SctpSendBufferNode_S;
@@ -524,7 +513,6 @@ struct SctpDest_S
   SctpDestStatus_E        eStatus;                 // active/inactive
   CwndDegradeTimer       *opCwndDegradeTimer;      // timer to degrade cwnd
   double                  dIdleSince;              // timestamp since idle
-  HeartbeatGenTimer      *opHeartbeatGenTimer;     // to trigger a heartbeat
   HeartbeatTimeoutTimer  *opHeartbeatTimeoutTimer; // heartbeat timeout timer
 
   float fLossrate;          // Set from tcl, in SetLossrate(). Allows an
@@ -567,13 +555,15 @@ struct SctpDest_S
   u_int uiBurstLength;      // tracks sending burst per SACK per dest
   Boolean_E eMarkedChunksPending;  // added global var per dest
   u_int uiRecover;                 // To enable newreno recovery per dest
-  SctpRtxLimit_E eRtxLimit; // Which destination should use RTX_ONE_PACKET_LIMIT
+  SctpRtxLimit_E eRtxLimit; // Which destination should use 
+                            // RTX_ONE_PACKET_LIMIT
                             // when calling rtxmarkedchunks()
 
   u_int uiNumTimeouts;      // track number of timeouts for this dest
 
-  CmtPFSubState_E eCmtPFSubState; // Possible CMT-PF sub-state, for correct 
-                                  // processing on receipt of hb ack/data ack.
+  Boolean_E eHBTimerIsRunning;   // CMT-PF: Track & stop HB timer when 
+                                 // destination state changes from PF->Active 
+  double dPFSince;               // CMT-PF: time when destination is marked PF
 
   /* End of CMT variables
    */
@@ -661,7 +651,7 @@ public:
   void          T1CookieTimerExpiration();
   virtual void  Timeout(SctpChunkType_E, SctpDest_S *);
   virtual void  CwndDegradeTimerExpiration(SctpDest_S *);
-  virtual void  HeartbeatGenTimerExpiration(double, SctpDest_S *);
+  virtual void  HeartbeatGenTimerExpiration(double);
   void          SackGenTimerExpiration();
   void          RouteCacheFlushTimerExpiration(SctpDest_S *);
   void          RouteCalcDelayTimerExpiration(SctpDest_S *);
@@ -712,7 +702,7 @@ protected:
    */
   void          StartT3RtxTimer(SctpDest_S *);
   void          StopT3RtxTimer(SctpDest_S *);
-  virtual void  AddToSendBuffer(SctpDataChunkHdr_S *, int, u_int, SctpDest_S *);
+  virtual void  AddToSendBuffer(SctpDataChunkHdr_S *,int, u_int, SctpDest_S *);
   void          RttUpdate(double, SctpDest_S *);
   virtual void  SendBufferDequeueUpTo(u_int);
   virtual void  AdjustCwnd(SctpDest_S *);
@@ -790,7 +780,6 @@ protected:
   /* heartbeat variables
    */
   HeartbeatGenTimer      *opHeartbeatGenTimer;      // to trigger a heartbeat
-  HeartbeatTimeoutTimer  *opHeartbeatTimeoutTimer;  // heartbeat timeout timer
 
   /* sending variables
    */
@@ -835,7 +824,6 @@ protected:
   u_int            uiChangePrimaryThresh;
   u_int            uiAssociationMaxRetrans;
   u_int            uiMaxInitRetransmits;
-  Boolean_E        eOneHeartbeatTimer;  // one heartbeat timer for all dests?
   u_int            uiHeartbeatInterval;
   u_int            uiMtu;
   u_int            uiInitialRwnd;

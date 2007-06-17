@@ -1,9 +1,11 @@
 /*
- * Copyright (c) 2001-2003 by the Protocol Engineering Lab, U of Delaware
+ * Copyright (c) 2006-2007 by the Protocol Engineering Lab, U of Delaware
  * All rights reserved.
  *
+ * Protocol Engineering Lab web page : http://pel.cis.udel.edu/
+ *
+ * Paul D. Amer        <amer@@cis,udel,edu>
  * Armando L. Caro Jr. <acaro@@cis,udel,edu>
- * Keyur Shah <shah@@cis,udel,edu>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,7 +42,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp-newreno.cc,v 1.3 2005/07/13 03:51:27 tomh Exp $ (UD/PEL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp-newreno.cc,v 1.4 2007/06/17 21:44:41 tom_henderson Exp $ (UD/PEL)";
 #endif
 
 #include "ip.h"

@@ -1,3 +1,41 @@
+release 3.7 (2007-06-15)
+
+   - merged the Concurrent Multipath Transfer with Potentially Failed(CMT-PF)
+     extension to CMT. To use CMT-PF, set useCmtPF tcl bindable variable to 1 
+     at the sender. Cwnd (in MTUs) can be set to 1 or 2 after HB-ACK is 
+     received at the sender. The variable to set cwnd is cmtPFCwnd and default
+     value is 2.
+	
+   - added new feature to confirm destination addresses before data transfer
+     begins (RFC 4460 section 5.4). After receiving INIT_ACK, the INIT sender
+     transmits HEARTBEATs to all destinations. A destination is confirmed upon
+     receipt of HB-ACK. RFC allows data transfer to any confirmed destination. 
+     However, this implementation is more conservative, since, data transfer
+     begins only when all destionations are confirmed. Destination Address(es)
+     confirmation is not implemented for receiver of the INIT.
+   
+   - bug fix. During the failure, CMT with RTX_ASAP goes into infinite loop 
+     while selecting destination for retransmission. This was fixed so that 
+     all destination addresses are considered for retransmissions irrespective
+     of the argument passed to SelectRtxDest(). 
+   
+   - Default Rtx. policy for CMT and CMT-PF is changed from RTX_TO_SAME to 
+     RTX_CWND in ns-default.tcl.
+   
+   - Tcl bindable variable oneHeartbeatTimer is removed. oneHeartbeatTimer 
+     was used to toggle the use of one HEARTBEAT timer for all destinations or
+     a timer per destination. For destination confirmation, each destination 
+     needs its own HEARTBEAT timer, so the implementation is changed to have 
+     one HeartbeatGenTimer per association and one HeartbeatTimeoutTimer per
+     destination. The semantics for tcl bindable variable heartbeatInterval 
+     didn't change.
+	  
+   - New validation tests for SCTP, CMT and CMT-PF are added.
+	
+   - Documentation for CMT and CMT-PF is updated in sctp.README file and 
+     example scripts are provided to run experiments using CMT and CMT-PF. 
+
+-------------------------------------------------------------------------------
 release 3.6 (2006-06-16)
 
    - merged the Concurrent Multipath Transfer (CMT) extension to SCTP. To
@@ -7,7 +45,7 @@ release 3.6 (2006-06-16)
      to 0 at both the sender and the receiver. These variables will
      (hopefully) get consolidated by the next release.
 
---------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 release 3.5 (2005-09-15)
 
    - fixed problem with HB pkt size being dependent on arch. 32-bit and

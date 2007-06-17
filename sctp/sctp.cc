@@ -1,10 +1,14 @@
 /*
- * Copyright (c) 2001-2004 by the Protocol Engineering Lab, U of Delaware
+ * Copyright (c) 2006-2007 by the Protocol Engineering Lab, U of Delaware
  * All rights reserved.
  *
+ * Protocol Engineering Lab web page : http://pel.cis.udel.edu/
+ *
+ * Paul D. Amer        <amer@@cis,udel,edu>
  * Armando L. Caro Jr. <acaro@@cis,udel,edu>
  * Janardhan Iyengar   <iyengar@@cis,udel,edu>
- * Keyur Shah          <shah@@cis,udel,edu>
+ * Preethi Natarajan   <nataraja@@cis,udel,edu>
+ * Nasif Ekiz          <nekiz@@cis,udel,edu>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,7 +40,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.cc,v 1.11 2006/12/17 15:20:41 mweigle Exp $ (UD/PEL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.cc,v 1.12 2007/06/17 21:44:45 tom_henderson Exp $ (UD/PEL)";
 #endif
 
 #include "ip.h"
@@ -89,8 +93,7 @@ SctpAgent::SctpAgent() : Agent(PT_SCTP)
   spOutStreams = NULL;
   opSackGenTimer = new SackGenTimer(this);
   spSctpTrace = NULL;
-  opHeartbeatGenTimer = new HeartbeatGenTimer(this, NULL);
-  opHeartbeatTimeoutTimer = new HeartbeatTimeoutTimer(this, NULL);
+  opHeartbeatGenTimer = new HeartbeatGenTimer(this);
   opT1InitTimer = new T1InitTimer(this);
   opT1CookieTimer = new T1CookieTimer(this);
   eState = SCTP_STATE_UNINITIALIZED;
@@ -106,8 +109,6 @@ SctpAgent::~SctpAgent()
   opSackGenTimer = NULL;
   delete opHeartbeatGenTimer;
   opHeartbeatGenTimer = NULL;
-  delete opHeartbeatTimeoutTimer;
-  opHeartbeatTimeoutTimer = NULL;
   delete opT1InitTimer;
   opT1InitTimer = NULL;
   delete opT1CookieTimer;
@@ -118,7 +119,7 @@ SctpAgent::~SctpAgent()
 
   for(spCurrNode = sInterfaceList.spHead;
       spCurrNode != NULL;
-      spPrevNode = spCurrNode, spCurrNode=spCurrNode->spNext, delete spPrevNode)
+      spPrevNode = spCurrNode,spCurrNode=spCurrNode->spNext, delete spPrevNode)
     {
       delete (SctpInterface_S *) spCurrNode->vpData;
       spCurrNode->vpData = NULL;
@@ -126,7 +127,7 @@ SctpAgent::~SctpAgent()
 
   for(spCurrNode = sDestList.spHead;
       spCurrNode != NULL;
-      spPrevNode = spCurrNode, spCurrNode=spCurrNode->spNext, delete spPrevNode)
+      spPrevNode = spCurrNode,spCurrNode=spCurrNode->spNext, delete spPrevNode)
     {
       spDest = (SctpDest_S *) spCurrNode->vpData;
       if(spDest->opT3RtxTimer != NULL)
@@ -138,11 +139,6 @@ SctpAgent::~SctpAgent()
 	{
 	  delete spDest->opCwndDegradeTimer;
 	  spDest->opCwndDegradeTimer = NULL;
-	}
-      if(spDest->opHeartbeatGenTimer != NULL)
-	{
-	  delete spDest->opHeartbeatGenTimer;
-	  spDest->opHeartbeatGenTimer = NULL;
 	}
       if(spDest->opHeartbeatTimeoutTimer != NULL)
 	{
@@ -180,7 +176,6 @@ void SctpAgent::delay_bind_init_all()
   delay_bind_init_one("pathMaxRetrans_");
   delay_bind_init_one("changePrimaryThresh_");
   delay_bind_init_one("maxInitRetransmits_");
-  delay_bind_init_one("oneHeartbeatTimer_");
   delay_bind_init_one("heartbeatInterval_");
   delay_bind_init_one("mtu_");
   delay_bind_init_one("initialRwnd_");
@@ -241,10 +236,6 @@ int SctpAgent::delay_bind_dispatch(const char *cpVarName,
 
   if(delay_bind(cpVarName, cpLocalName, 
 		"maxInitRetransmits_", &uiMaxInitRetransmits, opTracer)) 
-    return TCL_OK;
-
-  if(delay_bind(cpVarName, cpLocalName, 
-		"oneHeartbeatTimer_", (int *) &eOneHeartbeatTimer, opTracer)) 
     return TCL_OK;
 
   if(delay_bind(cpVarName, cpLocalName, 
@@ -343,7 +334,7 @@ int SctpAgent::delay_bind_dispatch(const char *cpVarName,
   if(delay_bind(cpVarName, cpLocalName, "rto_", &tdRto, opTracer)) 
     return TCL_OK;
 
-  if(delay_bind(cpVarName, cpLocalName, "errorCount_", &tiErrorCount, opTracer))
+  if(delay_bind(cpVarName, cpLocalName, "errorCount_", &tiErrorCount,opTracer))
     return TCL_OK;
 
   if(delay_bind(cpVarName, cpLocalName, "frCount_", &tiFrCount, opTracer))
@@ -592,8 +583,6 @@ void SctpAgent::Reset()
   DBG_PL(Reset, "uiAssociationMaxRetrans=%ld"), uiAssociationMaxRetrans DBG_PR;
   DBG_PL(Reset, "uiPathMaxRetrans=%ld"), uiPathMaxRetrans DBG_PR;
   DBG_PL(Reset, "uiChangePrimaryThresh=%d"), uiChangePrimaryThresh DBG_PR;
-  DBG_PL(Reset, "eOneHeartbeatTimer=%s"), 
-    eOneHeartbeatTimer ?  "TRUE" : "FALSE" DBG_PR;
   DBG_PL(Reset, "uiHeartbeatInterval=%ld"), uiHeartbeatInterval DBG_PR;
   DBG_PL(Reset, "uiMtu=%ld"), uiMtu DBG_PR;
   DBG_PL(Reset, "uiInitialRwnd=%ld"), uiInitialRwnd DBG_PR;
@@ -735,10 +724,9 @@ void SctpAgent::Reset()
   eForceSource = FALSE;
   iAssocErrorCount = 0;
 
-  if(eOneHeartbeatTimer == TRUE && uiHeartbeatInterval != 0)
+  if(uiHeartbeatInterval != 0)
     {
       opHeartbeatGenTimer->force_cancel();
-      opHeartbeatTimeoutTimer->force_cancel();
     }
 
   opT1InitTimer->force_cancel();
@@ -814,45 +802,30 @@ void SctpAgent::Reset()
 	{
 	  spCurrDest->opCwndDegradeTimer->force_cancel();
 	}
-
-      if(eOneHeartbeatTimer == TRUE && uiHeartbeatInterval != 0)
+      
+      spCurrDest->dIdleSince = 0;
+            
+      if(spCurrDest->opHeartbeatTimeoutTimer == NULL)
 	{
-	  spCurrDest->dIdleSince = 0;
+	  spCurrDest->opHeartbeatTimeoutTimer =
+	    new HeartbeatTimeoutTimer(this, spCurrDest);
 	}
-      else if(uiHeartbeatInterval != 0)
+      else
 	{
-	  if(spCurrDest->opHeartbeatGenTimer == NULL)
-	    {
-	      spCurrDest->opHeartbeatGenTimer =
-		new HeartbeatGenTimer(this, spCurrDest);
-	    }
-	  else
-	    {
-	      spCurrDest->opHeartbeatGenTimer->force_cancel();
-	    }
-
-	  if(spCurrDest->opHeartbeatTimeoutTimer == NULL)
-	    {
-	      spCurrDest->opHeartbeatTimeoutTimer =
-		new HeartbeatTimeoutTimer(this, spCurrDest);
-	    }
-	  else
-	    {
-	      spCurrDest->opHeartbeatTimeoutTimer->force_cancel();
-	    }
+	  spCurrDest->opHeartbeatTimeoutTimer->force_cancel();
 	}
-
+      
       spCurrDest->eCcApplied = FALSE;
       spCurrDest->spFirstOutstanding = NULL;
-
+      
       /* per destination vars for CMT
        */
       spCurrDest->uiBurstLength = 0;
       spCurrDest->eMarkedChunksPending = FALSE;
-
+      
       spCurrDest->iRcdCount = 0;      
       spCurrDest->eRouteCached = FALSE;
-
+      
       if(spCurrDest->opRouteCacheFlushTimer == NULL)
 	{
 	  spCurrDest->opRouteCacheFlushTimer =
@@ -948,7 +921,7 @@ u_int SctpAgent::ControlChunkReservation()
 
 int SctpAgent::command(int argc, const char*const* argv)
 {
-  DBG_I(command); // internal check is done to avoid printing if file is unopen!
+  DBG_I(command);// internal check is done to avoid printing if file is unopen!
 
   double dCurrTime = Scheduler::instance().clock();
   DBG_PL(command, "<time:%f> argc=%d argv[1]=%s"),
@@ -1245,7 +1218,7 @@ void SctpAgent::AddDestination(int iNsAddr, int iNsPort)
   spPrimaryDest = spNewDest;
   spNewTxDest = spPrimaryDest;
 
-  /* allocate packet with the dest addr... to be used later for setting src dest
+  /* allocate packet with the dest addr. to be used later for setting src dest
    */
   daddr() = spNewDest->iNsAddr;
   dport() = spNewDest->iNsPort;
@@ -1561,7 +1534,8 @@ int SctpAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
       /* fill in tracing fields too
        */
       spSctpTrace[uiNumChunks].eType = eType;
-      spSctpTrace[uiNumChunks].uiTsn = ((SctpDataChunkHdr_S *) ucpChunk)->uiTsn;
+      spSctpTrace[uiNumChunks].uiTsn 
+	= ((SctpDataChunkHdr_S *) ucpChunk)->uiTsn;
       spSctpTrace[uiNumChunks].usStreamId 
 	= ((SctpDataChunkHdr_S *) ucpChunk)->usStreamId;
       spSctpTrace[uiNumChunks].usStreamSeqNum 
@@ -1593,7 +1567,7 @@ int SctpAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
 	    = (SctpGapAckBlock_S *) (ucpChunk+iSize);
 
 	  spGapAckBlock->usStartOffset 
-	    = ((SctpRecvTsnBlock_S *)spCurrFrag->vpData)->uiStartTsn - uiCumAck;
+	    = ((SctpRecvTsnBlock_S *)spCurrFrag->vpData)->uiStartTsn -uiCumAck;
 
 	  spGapAckBlock->usEndOffset
 	    = ((SctpRecvTsnBlock_S *)spCurrFrag->vpData)->uiEndTsn - uiCumAck;
@@ -1608,7 +1582,7 @@ int SctpAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
 	  (spCurrDup != NULL) &&
 	    (iSize + sizeof(SctpDupTsn_S) < uiMaxDataSize); 
 	  spPrevDup = spCurrDup, spCurrDup = spCurrDup->spNext, 
-	    DeleteNode(&sDupTsnList, spPrevDup), iSize += sizeof(SctpDupTsn_S) )
+	    DeleteNode(&sDupTsnList, spPrevDup), iSize += sizeof(SctpDupTsn_S))
 	{
 	  SctpDupTsn_S *spDupTsn = (SctpDupTsn_S *) (ucpChunk+iSize);
 
@@ -1624,7 +1598,7 @@ int SctpAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
       /* fill in tracing fields too
        */
       spSctpTrace[uiNumChunks].eType = eType;
-      spSctpTrace[uiNumChunks].uiTsn = ((SctpSackChunk_S *) ucpChunk)->uiCumAck;
+      spSctpTrace[uiNumChunks].uiTsn = ((SctpSackChunk_S *)ucpChunk)->uiCumAck;
       spSctpTrace[uiNumChunks].usStreamId = (u_short) -1;
       spSctpTrace[uiNumChunks].usStreamSeqNum = (u_short) -1;
       break;
@@ -1632,7 +1606,7 @@ int SctpAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
     case SCTP_CHUNK_FORWARD_TSN:
       iSize = SCTP_CHUNK_FORWARD_TSN_LENGTH;
       ((SctpForwardTsnChunk_S *) ucpChunk)->sHdr.ucType = eType;
-      ((SctpForwardTsnChunk_S *) ucpChunk)->sHdr.ucFlags = 0; // flags not used?
+      ((SctpForwardTsnChunk_S *) ucpChunk)->sHdr.ucFlags = 0;// flags not used?
       ((SctpForwardTsnChunk_S *) ucpChunk)->sHdr.usLength = iSize;
       ((SctpForwardTsnChunk_S *) ucpChunk)->uiNewCum = uiAdvancedPeerAckPoint;
 
@@ -1720,7 +1694,7 @@ u_int SctpAgent::GetNextDataChunkSize()
   return uiChunkSize;
 }
 
-/* This function generates ONE data chunk. Since we could call GenChunk directly
+/* This function generates ONE data chunk.Since we could call GenChunk directly
  * with only one extra parameter, it may seem pointless to have this function.
  * However, it isn't! All variable adjustments that go with generating a new
  * data chunk should be isolated in one place to avoid bugs.
@@ -1924,7 +1898,7 @@ void SctpAgent::RttUpdate(double dTxTime, SctpDest_S *spDest)
 }
 
 /* Go thru the send buffer deleting all chunks which have a tsn <= the 
- * tsn parameter passed in. We assume the chunks in the rtx list are ordered by 
+ * tsn parameter passed in. We assume the chunks in the rtx list are ordered by
  * their tsn value. In addtion, for each chunk deleted:
  *   1. we add the chunk length to # newly acked bytes and partial bytes acked
  *   2. we update round trip time if appropriate
@@ -1961,7 +1935,8 @@ void SctpAgent::SendBufferDequeueUpTo(u_int uiTsn)
 	   * avoidance mode and if there was cwnd amount of data
 	   * outstanding on the destination (implementor's guide) 
 	   */
-	  if(spCurrNodeData->spDest->iCwnd >spCurrNodeData->spDest->iSsthresh &&
+	  if(spCurrNodeData->spDest->iCwnd >spCurrNodeData->spDest->iSsthresh 
+	     &&
 	     ( spCurrNodeData->spDest->iOutstandingBytes 
 	       >= spCurrNodeData->spDest->iCwnd) )
 	    {
@@ -1983,7 +1958,7 @@ void SctpAgent::SendBufferDequeueUpTo(u_int uiTsn)
 	    
       /* We update the RTT estimate if the following hold true:
        *   1. RTO pending flag is set (6.3.1.C4 measured once per round trip)
-       *   2. Timestamp is set for this chunk (ie, we were measuring this chunk)
+       *   2. Timestamp is set for this chunk(ie, we were measuring this chunk)
        *   3. This chunk has not been retransmitted
        *   4. This chunk has not been gap acked already 
        *   5. This chunk has not been advanced acked (pr-sctp: exhausted rtxs)
@@ -2053,8 +2028,8 @@ void SctpAgent::SendBufferDequeueUpTo(u_int uiTsn)
   DBG_X(SendBufferDequeueUpTo);
 }
 
-/* This function uses the iOutstandingBytes variable and assumes that it has NOT
- * been updated yet to reflect the newly received SACK. Hence, it is the 
+/* This function uses the iOutstandingBytes variable and assumes that it has 
+ * NOT been updated yet to reflect the newly received SACK. Hence, it is the 
  * previously outstanding DATA bytes.
  */
 void SctpAgent::AdjustCwnd(SctpDest_S *spDest)
@@ -2070,7 +2045,7 @@ void SctpAgent::AdjustCwnd(SctpDest_S *spDest)
        */
       if(spDest->iOutstandingBytes >= spDest->iCwnd)
 	{
-	  spDest->iCwnd += MIN(spDest->iNumNewlyAckedBytes, (int)uiMaxDataSize);
+	  spDest->iCwnd += MIN(spDest->iNumNewlyAckedBytes,(int)uiMaxDataSize);
 	  tiCwnd++; // trigger changes for trace to pick up
 	}
     }
@@ -2158,7 +2133,7 @@ u_int SctpAgent::GetHighestOutstandingTsn()
       
       if(spCurrBuffData->eMarkedForRtx == NO_RTX)  // is it oustanding?
 	{
-	  uiHighestOutstandingTsn = spCurrBuffData->spChunk->uiTsn; // found it!
+	  uiHighestOutstandingTsn = spCurrBuffData->spChunk->uiTsn;// found it!
 	  break;
 	}
     }
@@ -2320,8 +2295,9 @@ void SctpAgent::MarkChunkForRtx(SctpSendBufferNode_S *spNodeData,
   spNodeData->eMarkedForRtx = eMarkedForRtx;
   uiPeerRwnd += spChunk->sHdr.usLength; // 6.2.1.C1 
 
-  /* let's see if this chunk is on an unreliable stream. if so and the chunk has
-   * run out of retransmissions, mark it as advanced acked and unmark it for rtx
+  /* let's see if this chunk is on an unreliable stream. if so and the chunk 
+   * has run out of retransmissions, mark it as advanced acked and unmark it 
+   * for rtx
    */
   if(spStream->eMode == SCTP_STREAM_UNRELIABLE)
     {
@@ -2408,13 +2384,13 @@ void SctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
       spCurrDestNodeData->spFirstOutstanding = NULL;  // reset
     }
 
-  /* We need to set the destination address for the retransmission(s). We assume
+  /* We need to set the destination address for the retransmission(s).We assume
    * that on a given call to this function, all should all be sent to the same
    * address (should be a reasonable assumption). So, to determine the address,
    * we find the first marked chunk and determine the destination it was last 
    * sent to. 
    *
-   * Also, we temporarily count all marked chunks as not outstanding. Why? Well,
+   * Also, we temporarily count all marked chunks as not outstanding.Why? Well,
    * if we try retransmitting on the same dest as used previously, the cwnd may
    * never let us retransmit because the outstanding is counting marked chunks
    * too. At the end of this function, we'll count all marked chunks as 
@@ -2536,7 +2512,7 @@ void SctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 	      if(eControlChunkBundled == FALSE)
 		{
 		  eControlChunkBundled = TRUE;
-		  iBundledControlChunkSize =BundleControlChunks(ucpCurrOutData);
+		  iBundledControlChunkSize=BundleControlChunks(ucpCurrOutData);
 		  ucpCurrOutData += iBundledControlChunkSize;
 		  iOutDataSize += iBundledControlChunkSize;
 		}
@@ -2547,7 +2523,7 @@ void SctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 		 > (int) uiMaxPayloadSize)
 		break;  // doesn't fit in packet... jump out of the for loop
 
-	      /* If this chunk was being used to measure the RTT, stop using it.
+	      /* If this chunk was being used to measure the RTT,stop using it.
 	       */
 	      if(spCurrBuffNodeData->spDest->eRtoPending == TRUE &&
 		 spCurrBuffNodeData->dTxTimestamp > 0)
@@ -2689,8 +2665,8 @@ void SctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
     
   /* If we made it here, either our limit was only one packet worth of
    * retransmissions or we hit the end of the list and there are no more
-   * marked chunks. If we didn't hit the end, let's see if there are more marked
-   * chunks.
+   * marked chunks. If we didn't hit the end, let's see if there are more
+   * marked chunks.
    */
   eMarkedChunksPending = AnyMarkedChunks();
 
@@ -2766,7 +2742,7 @@ Boolean_E SctpAgent::IsDuplicateChunk(u_int uiTsn)
 	  return TRUE;     
 	}
 
-      /* Assuming an ordered list of tsn blocks, don't continue looking if this 
+      /* Assuming an ordered list of tsn blocks, don't continue looking if this
        * block ends with a larger tsn than the chunk we currently have.
        */
       if( ((SctpRecvTsnBlock_S *)spCurrNode->vpData)->uiEndTsn > uiTsn )
@@ -2838,7 +2814,7 @@ void SctpAgent::UpdateCumAck()
       spCurrNode != NULL; 
       spCurrNode = spCurrNode->spNext)
     {
-      if( uiCumAck+1 == ((SctpRecvTsnBlock_S *)spCurrNode->vpData)->uiStartTsn )
+      if( uiCumAck+1 == ((SctpRecvTsnBlock_S *)spCurrNode->vpData)->uiStartTsn)
 	{
 	  uiCumAck = ((SctpRecvTsnBlock_S *)spCurrNode->vpData)->uiEndTsn;
 	}
@@ -2925,7 +2901,8 @@ void SctpAgent::UpdateRecvTsnBlocks(u_int uiTsn)
 		  spNewNode = new Node_S;
 		  spNewNode->eType = NODE_TYPE_RECV_TSN_BLOCK;
 		  spNewNode->vpData = new SctpRecvTsnBlock_S;
-		  ((SctpRecvTsnBlock_S *)spNewNode->vpData)->uiStartTsn = uiTsn;
+		  ((SctpRecvTsnBlock_S *)spNewNode->vpData)->uiStartTsn 
+		    = uiTsn;
 		  ((SctpRecvTsnBlock_S *)spNewNode->vpData)->uiEndTsn = uiTsn;
 
 		  InsertNode(&sRecvTsnBlockList, 
@@ -2965,8 +2942,9 @@ void SctpAgent::UpdateRecvTsnBlocks(u_int uiTsn)
 	    }
 	} 
 
-      /* uiTsn is not in the gap between these two tsn blocks, so let's move our
-       * "low pointer" to one past the end of the current tsn block and continue
+      /* uiTsn is not in the gap between these two tsn blocks, so let's move 
+       * our "low pointer" to one past the end of the current tsn block and 
+       * continue
        */
       else 
 	{         
@@ -3163,7 +3141,8 @@ void SctpAgent::UpdateAllStreams()
 	  
 	  /* Let's see if we can deliver anything else based on the SSNs.
 	   */
-	  else if(spBufferedChunk->usStreamSeqNum==spStream->usNextStreamSeqNum)
+	  else if( spBufferedChunk->usStreamSeqNum == 
+		   spStream->usNextStreamSeqNum )
 	    {
 	      spStream->usNextStreamSeqNum++;
 	      PassToUpperLayer(spBufferedChunk);
@@ -3202,7 +3181,7 @@ void SctpAgent::ProcessInitChunk(u_char *ucpInitChunk)
   {
     for(i = spUnrelStreamPair->usStart; i <= spUnrelStreamPair->usEnd; i++)
       {
-	DBG_PL(ProcessInitChunk, "setting inStream %d to UNRELIABLE"), i DBG_PR;
+	DBG_PL(ProcessInitChunk, "setting inStream %d to UNRELIABLE"),i DBG_PR;
 	spInStreams[i].eMode = SCTP_STREAM_UNRELIABLE;
       }
   }
@@ -3222,7 +3201,7 @@ void SctpAgent::ProcessInitAckChunk(u_char *ucpInitAckChunk)
 
   SctpInitAckChunk_S *spInitAckChunk = (SctpInitAckChunk_S *) ucpInitAckChunk;
   SctpUnrelStreamPair_S *spUnrelStreamPair 
-    = (SctpUnrelStreamPair_S *) (ucpInitAckChunk + sizeof(SctpInitAckChunk_S) );
+    = (SctpUnrelStreamPair_S *)(ucpInitAckChunk + sizeof(SctpInitAckChunk_S) );
   int i = 0;
 
   opT1InitTimer->force_cancel();
@@ -3469,7 +3448,7 @@ Boolean_E SctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 		     spCurrNodeData->eAddedToPartialBytesAcked == FALSE)
 		    {
 		      DBG_PL(ProcessGapAckBlocks, 
-			     "setting eAddedToPartiallyBytesAcked=TRUE") DBG_PR;
+			     "setting eAddedToPartiallyBytesAcked=TRUE")DBG_PR;
 		      
 		      spCurrNodeData->eAddedToPartialBytesAcked = TRUE; // set
 
@@ -3544,8 +3523,8 @@ Boolean_E SctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 			spCurrNodeData->spChunk->uiTsn DBG_PR;
 
 		      spCurrNodeData->spDest->iErrorCount = 0; // clear errors
-		      tiErrorCount++;                       // ... and trace it!
-		      spCurrNodeData->spDest->eStatus = SCTP_DEST_STATUS_ACTIVE;
+		      tiErrorCount++;                      // ... and trace it!
+		      spCurrNodeData->spDest->eStatus=SCTP_DEST_STATUS_ACTIVE;
 		      if(spCurrNodeData->spDest == spPrimaryDest &&
 			 spNewTxDest != spPrimaryDest) 
 			{
@@ -3562,8 +3541,8 @@ Boolean_E SctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 	    }
 	  else if(spCurrNodeData->spChunk->uiTsn > uiEndTsn)
 	    {
-	      /* This point in the rtx buffer is already past the tsns which are
-	       * being acked by this gap ack block.  
+	      /* This point in the rtx buffer is already past the tsns which 
+	       * are being acked by this gap ack block.  
 	       */
 	      usNumGapAcksProcessed++; 
 
@@ -3577,7 +3556,7 @@ Boolean_E SctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 		  spCurrGapAck 
 		    = ((SctpGapAckBlock_S *)
 		       (ucpSackChunk + sizeof(SctpSackChunk_S)
-			+ (usNumGapAcksProcessed * sizeof(SctpGapAckBlock_S))));
+			+(usNumGapAcksProcessed * sizeof(SctpGapAckBlock_S))));
 		}
 
 	      /* If this chunk was GapAcked before, then either the
@@ -3605,12 +3584,13 @@ Boolean_E SctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 	}
 
       /* By this time, either we have run through the entire send buffer or we
-       * have run out of gap ack blocks. In the case that we have run out of gap
-       * ack blocks before we finished running through the send buffer, we need
-       * to mark the remaining chunks in the send buffer as eGapAcked=FALSE.
-       * This final marking needs to be done, because we only trust gap ack info
-       * from the last SACK. Otherwise, renegging (which we don't do) or out of
-       * order SACKs would give the sender an incorrect view of the peer's rwnd.
+       * have run out of gap ack blocks. In the case that we have run out of 
+       * gap ack blocks before we finished running through the send buffer, we
+       * need to mark the remaining chunks in the send buffer as 
+       * eGapAcked=FALSE. This final marking needs to be done, because we only
+       * trust gap ack info from the last SACK. Otherwise, renegging (which we
+       * don't do) or out of order SACKs would give the sender an incorrect 
+       * view of the peer's rwnd.
        */
       for(; spCurrNode != NULL; spCurrNode = spCurrNode->spNext)
 	{
@@ -3640,8 +3620,8 @@ Boolean_E SctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 	    }
 	}
 
-      DBG_PL(ProcessGapAckBlocks, "now incrementing missing reports...") DBG_PR;
-      DBG_PL(ProcessGapAckBlocks, "uiHighestTsnNewlyAcked=%d"), 
+      DBG_PL(ProcessGapAckBlocks,"now incrementing missing reports...") DBG_PR;
+      DBG_PL(ProcessGapAckBlocks,"uiHighestTsnNewlyAcked=%d"), 
 	     uiHighestTsnNewlyAcked DBG_PR;
 
       for(spCurrNode = sSendBuffer.spHead;
@@ -3777,8 +3757,8 @@ void SctpAgent::ProcessSackChunk(u_char *ucpSackChunk)
 	  AdjustCwnd(spCurrDestNodeData);
 	}
 
-      /* The number of outstanding bytes is reduced by how many bytes this sack 
-       * acknowledges.
+      /* The number of outstanding bytes is reduced by how many bytes this 
+       * sack acknowledges.
        */
       if(spCurrDestNodeData->iNumNewlyAckedBytes <=
 	 spCurrDestNodeData->iOutstandingBytes)
@@ -3793,7 +3773,7 @@ void SctpAgent::ProcessSackChunk(u_char *ucpSackChunk)
 	++i, spCurrDestNodeData->iNsAddr, spCurrDestNodeData->iNsPort,
 	spCurrDestNodeData, spCurrDestNodeData->iOutstandingBytes, 
 	spCurrDestNodeData->iCwnd DBG_PR;
-
+      
       if(spCurrDestNodeData->iOutstandingBytes == 0)
 	{
 	  /* All outstanding data has been acked
@@ -3888,13 +3868,20 @@ void SctpAgent::ProcessHeartbeatAckChunk(SctpHeartbeatAckChunk_S
 {
   DBG_I(ProcessHeartbeatAckChunk);
 
-  double dTime = 0;
-
   iAssocErrorCount = 0;
 
   /* trigger trace ONLY if it was previously NOT 0
    */
-  if(spHeartbeatAckChunk->spDest->iErrorCount != 0)
+  
+  /* NE - 4/11/2007
+   * Change for Confirming Destination Addresses
+   * condition (spHeartbeatAckChunk->spDest->iErrorCount != 0) is changed 
+   * with (spHeartbeatAckChunk->spDest->iErrorCount >= 0) to enable
+   * destination address confirmation when the association moves to 
+   * ESTABLISHED state. iErrorCount may be 0 for any given destinations
+   * during the confirmation.
+   */
+  if(spHeartbeatAckChunk->spDest->iErrorCount >= 0)
     {
       DBG_PL(ProcessHeartbeatAckChunk, "marking dest %p to active"),
                         spHeartbeatAckChunk->spDest DBG_PR;
@@ -3916,20 +3903,12 @@ void SctpAgent::ProcessHeartbeatAckChunk(SctpHeartbeatAckChunk_S
 
   DBG_PL(ProcessHeartbeatAckChunk, "set rto of dest=%p to %f"),
     spHeartbeatAckChunk->spDest, spHeartbeatAckChunk->spDest->dRto DBG_PR;
+  
+  spHeartbeatAckChunk->spDest->opHeartbeatTimeoutTimer->force_cancel();
 
-  if(eOneHeartbeatTimer == TRUE && uiHeartbeatInterval != 0)
-    {
-      opHeartbeatTimeoutTimer->force_cancel();
-    }
-  else if(uiHeartbeatInterval != 0)
-    {
-      spHeartbeatAckChunk->spDest->opHeartbeatTimeoutTimer->force_cancel();
-      DBG_PL(ProcessHeartbeatAckChunk, 
-	     "about to calculate heartbeat time for dest=%p"), 
-	spHeartbeatAckChunk->spDest DBG_PR;
-      dTime = CalcHeartbeatTime(spHeartbeatAckChunk->spDest->dRto);
-      spHeartbeatAckChunk->spDest->opHeartbeatGenTimer->resched(dTime);
-    }
+  /* Track HB-Timer for CMT-PF 
+   */
+  spHeartbeatAckChunk->spDest->eHBTimerIsRunning = FALSE;
 
   DBG_X(ProcessHeartbeatAckChunk);
 }
@@ -3962,6 +3941,12 @@ int SctpAgent::ProcessChunk(u_char *ucpInChunk, u_char **ucppOutData)
   SctpHeartbeatAckChunk_S *spHeartbeatChunk = NULL;
   SctpHeartbeatAckChunk_S *spHeartbeatAckChunk = NULL;
 
+
+  /* NE: 4/11/2007 - Confirming Destinations */
+  Boolean_E eThisDestWasUnconfirmed = FALSE;
+  Boolean_E eFoundUnconfirmedDest = FALSE;
+  /* End of Confirming Destinations */
+  
   switch(eState)
     {
     case SCTP_STATE_CLOSED:
@@ -3983,13 +3968,14 @@ int SctpAgent::ProcessChunk(u_char *ucpInChunk, u_char **ucppOutData)
 	  iThisOutDataSize = GenChunk(SCTP_CHUNK_COOKIE_ACK, *ucppOutData);
 	  *ucppOutData += iThisOutDataSize;
 	  eState = SCTP_STATE_ESTABLISHED;
-	  if(eOneHeartbeatTimer == TRUE && uiHeartbeatInterval != 0)
+
+	  if(uiHeartbeatInterval != 0)
 	    {
 	      dTime = CalcHeartbeatTime(spPrimaryDest->dRto);
 	      opHeartbeatGenTimer->force_cancel();
 	      opHeartbeatGenTimer->resched(dTime);
 	      opHeartbeatGenTimer->dStartTime = dCurrTime;
-
+	      
 	      for(spCurrNode = sDestList.spHead;
 		  spCurrNode != NULL;
 		  spCurrNode = spCurrNode->spNext)
@@ -3998,19 +3984,7 @@ int SctpAgent::ProcessChunk(u_char *ucpInChunk, u_char **ucppOutData)
 		  spCurrDest->dIdleSince = dCurrTime;
 		}
 	    }
-	  else if(uiHeartbeatInterval != 0)
-	    {
-	      for(spCurrNode = sDestList.spHead;
-		  spCurrNode != NULL;
-		  spCurrNode = spCurrNode->spNext)
-		{
-		  spCurrDest = (SctpDest_S *) spCurrNode->vpData;
-		  DBG_PL(Reset, "about to calculate HB time for dest=%p"), 
-		    spCurrDest DBG_PR;
-		  dTime = CalcHeartbeatTime(spCurrDest->dRto);
-		  spCurrDest->opHeartbeatGenTimer->resched(dTime);
-		}
-	    }
+	  
 	  break;
 	  
   	default:
@@ -4019,7 +3993,7 @@ int SctpAgent::ProcessChunk(u_char *ucpInChunk, u_char **ucppOutData)
 	   * no error statement here, because there are times when this could
 	   * occur due to abrupt disconnections via the "reset" command. how?
 	   * well, "reset" resets all the association state. however, there may
-	   * still be packets in transit. if and when those packets arrive, they
+	   * still be packets in transit.if and when those packets arrive, they
 	   * will be unexpected packets since the association is closed. since
 	   * this is a simulation, it shouldn't be a problem. however, if an 
 	   * application needs a more graceful shutdown, we would need to 
@@ -4048,34 +4022,35 @@ int SctpAgent::ProcessChunk(u_char *ucpInChunk, u_char **ucppOutData)
       ProcessCookieAckChunk( (SctpCookieAckChunk_S *) ucpInChunk );
       eSendNewDataChunks = TRUE;
       eState = SCTP_STATE_ESTABLISHED;
-      if(eOneHeartbeatTimer == TRUE && uiHeartbeatInterval != 0)
-	{
-	  dTime = CalcHeartbeatTime(spPrimaryDest->dRto);
-	  opHeartbeatGenTimer->force_cancel();
-	  opHeartbeatGenTimer->resched(dTime);
-	  opHeartbeatGenTimer->dStartTime = dCurrTime;
+      
+      /* NE: 4/11/2007 - Confirming Destinations 
+       * Confirming Destination Addresses for sender of INIT.
+       * In our implementation destinations are confirmed just for 
+       * sender of the INIT. Confirming of destinations is not done for
+       * receiver of the INIT.
+       *
+       * RFC 4460 - section 5.4 - Path Verification
+       * Rule 3 - all addresses not covered by rule 1 and 2 are 
+       * considered UNCONFIRMED.
+       */
+      for(spCurrNode = sDestList.spHead;
+	  spCurrNode != NULL;
+	  spCurrNode = spCurrNode->spNext)
+        {
+	  spCurrDest = (SctpDest_S *) spCurrNode->vpData;
+          spCurrDest->eStatus = SCTP_DEST_STATUS_UNCONFIRMED;
 
-	  for(spCurrNode = sDestList.spHead;
-	      spCurrNode != NULL;
-	      spCurrNode = spCurrNode->spNext)
-	    {
-	      spCurrDest = (SctpDest_S *) spCurrNode->vpData;
-	      spCurrDest->dIdleSince = dCurrTime;
-	    }
-	}
-      else if(uiHeartbeatInterval != 0)
-	{
-	  for(spCurrNode = sDestList.spHead;
-	      spCurrNode != NULL;
-	      spCurrNode = spCurrNode->spNext)
-	    {
-	      spCurrDest = (SctpDest_S *) spCurrNode->vpData;
-	      DBG_PL(Reset, "about to calculate HB time for dest=%p"), 
-		spCurrDest DBG_PR;
-	      dTime = CalcHeartbeatTime(spCurrDest->dRto);
-	      spCurrDest->opHeartbeatGenTimer->resched(dTime);
-	    }
-	}
+	  /* Send Heartbeat to confirm this dest and get RTT */
+	  SendHeartbeat(spCurrDest);
+        }
+
+      /* NE: 4/11/2007 - Confirming Destinations */
+      /* Do not send any data until all dests have been confirmed
+       * RFC allows to send data on confirmed dests though.
+       * This implementation is more conservative than the RFC
+       */ 
+      eSendNewDataChunks = FALSE;
+	  
       break;
 
     case SCTP_STATE_ESTABLISHED:
@@ -4084,7 +4059,7 @@ int SctpAgent::ProcessChunk(u_char *ucpInChunk, u_char **ucppOutData)
 	case SCTP_CHUNK_DATA:
 	  DBG_PL(ProcessChunk, "got DATA (TSN=%d)!!"), 
 	    ((SctpDataChunkHdr_S *)ucpInChunk)->uiTsn DBG_PR;
-
+	  
 	  if(eUseDelayedSacks == FALSE) // are we doing delayed sacks?
 	    {
 	      /* NO, so generate sack immediately!
@@ -4168,9 +4143,68 @@ int SctpAgent::ProcessChunk(u_char *ucpInChunk, u_char **ucppOutData)
 
 	case SCTP_CHUNK_HB_ACK:
 	  DBG_PL(ProcessChunk, "got HEARTBEAT ACK!!") DBG_PR;
+	  
+	  spHeartbeatAckChunk = (SctpHeartbeatAckChunk_S *) ucpInChunk;
+	  
+	  /* NE: 4/11/2007 - Confirming Destinations */
+	  if( spHeartbeatAckChunk->spDest->eStatus ==
+	      SCTP_DEST_STATUS_UNCONFIRMED )
+	    eThisDestWasUnconfirmed = TRUE;
+	  
 	  ProcessHeartbeatAckChunk( (SctpHeartbeatAckChunk_S *) ucpInChunk);
-	  break; // no state change
+	  
+	  /* NE: 4/11/2007 - Confirming Destinations */
+	  /* Check if all dests have been confirmed. 
+           * If yes, allow new data transmission
+           */
+	  if(eThisDestWasUnconfirmed == TRUE) 
+            {
+	      for(spCurrNode = sDestList.spHead;
+                  spCurrNode != NULL;
+                  spCurrNode = spCurrNode->spNext)
+                {
+                  spCurrDest = (SctpDest_S *) spCurrNode->vpData;
+                  if(spCurrDest->eStatus == SCTP_DEST_STATUS_UNCONFIRMED)
+		    {
+		      eFoundUnconfirmedDest = TRUE;
+		      DBG_PL(ProcessChunk, "dest=%p UNCONFIRMED"), 
+			spCurrDest DBG_PR;
+		      break;
+		    }
+		}
+	  
+		if(eFoundUnconfirmedDest == TRUE)
+		  break; /* From this case */
+		else 
+		  {
+		    /* All dests have been confirmed */
+		    eSendNewDataChunks = TRUE;	
+		    
 
+		    /* Moved code from COOKIE ACK recvd */
+      	            if(uiHeartbeatInterval != 0)
+		      {
+			dTime = CalcHeartbeatTime(spPrimaryDest->dRto);
+			opHeartbeatGenTimer->force_cancel();
+			opHeartbeatGenTimer->resched(dTime);
+			opHeartbeatGenTimer->dStartTime = dCurrTime;
+			
+			for(spCurrNode = sDestList.spHead;
+			    spCurrNode != NULL;
+			    spCurrNode = spCurrNode->spNext)
+			  {
+			    spCurrDest = (SctpDest_S *) spCurrNode->vpData;
+			    spCurrDest->dIdleSince = dCurrTime;
+			  }
+		      }
+		    
+		    DBG_PL(ProcessChunk, "All destinations confirmed!") 
+		      DBG_PR;
+                  }
+            }
+	  
+	  break; // no state change
+	  
 	case SCTP_CHUNK_INIT:
 	  DBG_PL(ProcessChunk, "unexpected chunk type (INIT) at %f"),
 	    dCurrTime DBG_PR;
@@ -4185,7 +4219,7 @@ int SctpAgent::ProcessChunk(u_char *ucpInChunk, u_char **ucppOutData)
 	    dCurrTime);
 	  break;
 
-	  /* even though the association is established, COOKIE_ECHO needs to be
+	  /* even though the association is established,COOKIE_ECHO needs to be
 	   * handled because the peer may have not received the COOKIE_ACK.
 	   *
 	   * Note: we don't follow the rfc's complex process for handling this
@@ -4455,7 +4489,7 @@ void SctpAgent::SendPacket(u_char *ucpData, int iDataSize, SctpDest_S *spDest)
 	  spNewNode = new Node_S;
 	  spNewNode->eType = NODE_TYPE_PACKET_BUFFER;
 	  spNewNode->vpData = opPacket;
-	  InsertNode(&spDest->sBufferedPackets, spDest->sBufferedPackets.spTail,
+	  InsertNode(&spDest->sBufferedPackets,spDest->sBufferedPackets.spTail,
 		     spNewNode, NULL);
 
 	  if(spDest->opRouteCalcDelayTimer->status() != TIMER_PENDING)
@@ -4506,8 +4540,8 @@ void SctpAgent::recv(Packet *opInPkt, Handler*)
   u_char *ucpOutData = new u_char[uiMaxPayloadSize];
   u_char *ucpCurrOutData = ucpOutData;
 
-  /* local variable which maintains how much data has been filled in the current
-   * outgoing packet
+  /* local variable which maintains how much data has been filled in the 
+   * current outgoing packet
    */
   int iOutDataSize = 0; 
 
@@ -4532,7 +4566,7 @@ void SctpAgent::recv(Packet *opInPkt, Handler*)
     }
   while(ucpCurrInChunk != NULL);
 
-  /* Let's see if we have any response chunks (currently only handshake related)
+  /* Let's see if we have any response chunks(currently only handshake related)
    * to transmit. 
    *
    * Note: We don't bundle these responses (yet!)
@@ -4565,7 +4599,7 @@ void SctpAgent::recv(Packet *opInPkt, Handler*)
     {
       memset(ucpOutData, 0, uiMaxPayloadSize);
       iOutDataSize = BundleControlChunks(ucpOutData);
-      iOutDataSize += GenChunk(SCTP_CHUNK_FORWARD_TSN, ucpOutData+iOutDataSize);
+      iOutDataSize += GenChunk(SCTP_CHUNK_FORWARD_TSN,ucpOutData+iOutDataSize);
       SendPacket(ucpOutData, iOutDataSize, spNewTxDest);
       DBG_PL(recv, "FORWARD TSN chunk sent") DBG_PR;
       eForwardTsnNeeded = FALSE; // reset AFTER sent (o/w breaks dependencies)
@@ -4626,7 +4660,6 @@ void SctpAgent::SendMuch()
 
   u_char *ucpOutData = new u_char[uiMaxPayloadSize];
   int iOutDataSize = 0;
-  double dTime = 0;
   double dCurrTime = Scheduler::instance().clock();
 
   /* Keep sending out packets until our cwnd is full!  The proposed
@@ -4695,16 +4728,9 @@ void SctpAgent::SendMuch()
   if(iOutDataSize > 0)  // did we send anything??
     {
       spNewTxDest->opCwndDegradeTimer->resched(spNewTxDest->dRto);
-      if(eOneHeartbeatTimer == TRUE && uiHeartbeatInterval != 0)
+      if(uiHeartbeatInterval != 0)
 	{
 	  spNewTxDest->dIdleSince = dCurrTime;
-	}
-      else if(uiHeartbeatInterval != 0)
-	{
-	  DBG_PL(SendMuch, "about to calculate heartbeat time for dest=%p"), 
-	    spNewTxDest DBG_PR;
-	  dTime = CalcHeartbeatTime(spNewTxDest->dRto);
-	  spNewTxDest->opHeartbeatGenTimer->resched(dTime);
 	}
     }
 
@@ -4753,13 +4779,13 @@ void SctpAgent::sendmsg(int iNumBytes, const char *cpFlags)
 	  uiNumUnrelStreams = spAppData->usNumUnreliable;
 	  spNewNode->eType = NODE_TYPE_APP_LAYER_BUFFER;
 	  spNewNode->vpData = spAppData;
-	  InsertNode(&sAppLayerBuffer, sAppLayerBuffer.spTail, spNewNode, NULL);
+	  InsertNode(&sAppLayerBuffer, sAppLayerBuffer.spTail, spNewNode,NULL);
 	}
       else
 	{
 	  /* This is NOT an SCTP-aware app!! We rely on TCL-bound variables.
 	   */
-	  DBG_PL (sendmsg, "non-sctp-aware app: iNumBytes=%d"),iNumBytes DBG_PR;
+	  DBG_PL (sendmsg,"non-sctp-aware app: iNumBytes=%d"),iNumBytes DBG_PR;
 	  uiNumOutStreams = 1; // non-sctp-aware apps only use 1 stream
 	  uiNumUnrelStreams = (uiNumUnrelStreams > 0) ? 1 : 0;
 
@@ -4800,7 +4826,7 @@ void SctpAgent::sendmsg(int iNumBytes, const char *cpFlags)
 	}
       else if(uiNumUnrelStreams > uiNumOutStreams)
 	{
-	  fprintf(stderr, "%s number of unreliable streams (%d) > total (%d)\n",
+	  fprintf(stderr,"%s number of unreliable streams (%d) > total (%d)\n",
 		  "SCTP ERROR:",
 		  uiNumUnrelStreams, uiNumOutStreams);
 	  DBG_PL(sendmsg, 
@@ -4970,10 +4996,9 @@ void SctpAgent::Close()
   opT1InitTimer->force_cancel();
   opT1CookieTimer->force_cancel();
   opSackGenTimer->force_cancel();
-  if(eOneHeartbeatTimer == TRUE && uiHeartbeatInterval != 0)
+  if(uiHeartbeatInterval != 0)
     {
       opHeartbeatGenTimer->force_cancel();
-      opHeartbeatTimeoutTimer->force_cancel();      
     }
 
   for(spCurrNode = sDestList.spHead;
@@ -4983,11 +5008,8 @@ void SctpAgent::Close()
       spCurrDest = (SctpDest_S *) spCurrNode->vpData;
       spCurrDest->opT3RtxTimer->force_cancel();
       spCurrDest->opCwndDegradeTimer->force_cancel();
-      if(eOneHeartbeatTimer == FALSE && uiHeartbeatInterval != 0)
-	{
-	  spCurrDest->opHeartbeatGenTimer->force_cancel();
-	  spCurrDest->opHeartbeatTimeoutTimer->force_cancel();      
-	}
+
+      spCurrDest->opHeartbeatTimeoutTimer->force_cancel();
     }
 
   ClearList(&sSendBuffer);
@@ -5018,6 +5040,8 @@ void SctpAgent::Timeout(SctpChunkType_E eChunkType, SctpDest_S *spDest)
       spDest->eRtxTimerIsRunning = FALSE;
       
       /* section 7.2.3 of rfc2960 (w/ implementor's guide)
+       * NE: 4/29/2007 - This conditioal is used for some reason but for 
+       * now we dont know why. 
        */
       if(spDest->iCwnd > 1 * (int) uiMaxDataSize)
 	{
@@ -5110,12 +5134,15 @@ void SctpAgent::Timeout(SctpChunkType_E eChunkType, SctpDest_S *spDest)
   if(eChunkType == SCTP_CHUNK_DATA)
     {
       TimeoutRtx(spDest);
-      if(spDest->eStatus == SCTP_DEST_STATUS_INACTIVE && uiHeartbeatInterval!=0)
-	SendHeartbeat(spDest);  // just marked inactive, so send HB immediately!
+      if(spDest->eStatus == SCTP_DEST_STATUS_INACTIVE && 
+	 uiHeartbeatInterval!=0)
+	SendHeartbeat(spDest);  // just marked inactive, so send HB immediately
     }
   else if(eChunkType == SCTP_CHUNK_HB)
     {
-      if(uiHeartbeatInterval != 0)
+      if( (uiHeartbeatInterval != 0) ||
+	  (spDest->eStatus == SCTP_DEST_STATUS_UNCONFIRMED))
+	
 	SendHeartbeat(spDest);
     }
 
@@ -5129,6 +5156,9 @@ void T3RtxTimer::expire(Event*)
 
 void HeartbeatTimeoutTimer::expire(Event*)
 {
+  /* Track HB-Timer for CMT-PF 
+   */
+  spDest->eHBTimerIsRunning = FALSE;
   opAgent->Timeout(SCTP_CHUNK_HB, spDest);
 }
 
@@ -5161,24 +5191,21 @@ void SctpAgent::SendHeartbeat(SctpDest_S *spDest)
   GenChunk(SCTP_CHUNK_HB, (u_char *) &sHeartbeatChunk); // doesn't fill dest
   sHeartbeatChunk.spDest = spDest;          // ...so we fill it here :-)
   SendPacket((u_char *) &sHeartbeatChunk, SCTP_CHUNK_HEARTBEAT_LENGTH, spDest);
-  if(eOneHeartbeatTimer == TRUE)
-    {
-      spDest->dIdleSince = dCurrTime;
-      opHeartbeatTimeoutTimer->resched(spDest->dRto);
-      opHeartbeatTimeoutTimer->spDest = spDest;
-    }
-  else
-    {
-      spDest->opHeartbeatTimeoutTimer->resched(spDest->dRto);
-    }
+
+  spDest->dIdleSince = dCurrTime;
+  
+  spDest->opHeartbeatTimeoutTimer->resched(spDest->dRto);
+  
+  /* Track HB-Timer for CMT-PF 
+   */
+  spDest->eHBTimerIsRunning = TRUE;
   DBG_PL(SendHeartbeat, "HEARTBEAT times out at %f"), 
     spDest->dRto+dCurrTime DBG_PR;
 
   DBG_X(SendHeartbeat);
 }
 
-void SctpAgent::HeartbeatGenTimerExpiration(double dTimerStartTime, 
-					    SctpDest_S *spDest)
+void SctpAgent::HeartbeatGenTimerExpiration(double dTimerStartTime)
 {
   DBG_I(HeartbeatGenTimerExpiration);
 
@@ -5189,55 +5216,50 @@ void SctpAgent::HeartbeatGenTimerExpiration(double dTimerStartTime,
   double dCurrTime = Scheduler::instance().clock();
   double dTime;
 
-  if(eOneHeartbeatTimer == FALSE)
-    SendHeartbeat(spDest);
-  else
+  DBG_PL(HeartbeatGenTimerExpiration, "finding the longest idle dest...") 
+    DBG_PR;
+
+  /* find the destination which has been idle the longest 
+   */
+  for(spCurrNode = spLongestIdleNode = sDestList.spHead;
+      spCurrNode != NULL;
+      spCurrNode = spCurrNode->spNext)
     {
-      DBG_PL(HeartbeatGenTimerExpiration, "finding the longest idle dest...") 
-	DBG_PR;
-
-      /* find the destination which has been idle the longest 
-       */
-      for(spCurrNode = spLongestIdleNode = sDestList.spHead;
-	  spCurrNode != NULL;
-	  spCurrNode = spCurrNode->spNext)
-	{
-	  spCurrNodeData = (SctpDest_S *) spCurrNode->vpData;
-	  spLongestIdleNodeData = (SctpDest_S *) spLongestIdleNode->vpData;
-
-	  DBG_PL(HeartbeatGenTimerExpiration, "spDest=%p idle since %f"), 
-	    spCurrNodeData, spCurrNodeData->dIdleSince DBG_PR;
-	  
-	  if(spCurrNodeData->dIdleSince < spLongestIdleNodeData->dIdleSince)
-	    spLongestIdleNode = spCurrNode;
-	}
-      
-      /* has it been idle long enough?
-       */
+      spCurrNodeData = (SctpDest_S *) spCurrNode->vpData;
       spLongestIdleNodeData = (SctpDest_S *) spLongestIdleNode->vpData;
-      DBG_PL(HeartbeatGenTimerExpiration, "longest idle dest since %f"),
-	spLongestIdleNodeData->dIdleSince DBG_PR;
-      DBG_PL(HeartbeatGenTimerExpiration, "timer start time %f"),
-	dTimerStartTime DBG_PR;
-      if(spLongestIdleNodeData->dIdleSince <= dTimerStartTime)
-	SendHeartbeat(spLongestIdleNodeData);
-      else
-	DBG_PL(HeartbeatGenTimerExpiration, 
-	       "longest idle dest not idle long enough!") DBG_PR;
-
-      /* start the timer again...
-       */
-      dTime = CalcHeartbeatTime(spLongestIdleNodeData->dRto);
-      opHeartbeatGenTimer->resched(dTime);
-      opHeartbeatGenTimer->dStartTime = dCurrTime;
+      
+      DBG_PL(HeartbeatGenTimerExpiration, "spDest=%p idle since %f"), 
+	spCurrNodeData, spCurrNodeData->dIdleSince DBG_PR;
+      
+      if(spCurrNodeData->dIdleSince < spLongestIdleNodeData->dIdleSince)
+	spLongestIdleNode = spCurrNode;
     }
-
+      
+  /* has it been idle long enough?
+   */
+  spLongestIdleNodeData = (SctpDest_S *) spLongestIdleNode->vpData;
+  DBG_PL(HeartbeatGenTimerExpiration, "longest idle dest since %f"),
+    spLongestIdleNodeData->dIdleSince DBG_PR;
+  DBG_PL(HeartbeatGenTimerExpiration, "timer start time %f"),
+    dTimerStartTime DBG_PR;
+  if(spLongestIdleNodeData->dIdleSince <= dTimerStartTime)
+    SendHeartbeat(spLongestIdleNodeData);
+  else
+    DBG_PL(HeartbeatGenTimerExpiration, 
+	       "longest idle dest not idle long enough!") DBG_PR;
+  
+  /* start the timer again...
+   */
+  dTime = CalcHeartbeatTime(spLongestIdleNodeData->dRto);
+  opHeartbeatGenTimer->resched(dTime);
+  opHeartbeatGenTimer->dStartTime = dCurrTime;
+    
   DBG_X(HeartbeatGenTimerExpiration);
 }
 
 void HeartbeatGenTimer::expire(Event*)
 {
-  opAgent->HeartbeatGenTimerExpiration(dStartTime, spDest);
+  opAgent->HeartbeatGenTimerExpiration(dStartTime);
 }
 
 void SctpAgent::SackGenTimerExpiration() // section 6.2

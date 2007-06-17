@@ -1,7 +1,10 @@
 /*
- * Copyright (c) 2001-2004 by the Protocol Engineering Lab, U of Delaware
+ * Copyright (c) 2006-2007 by the Protocol Engineering Lab, U of Delaware
  * All rights reserved.
  *
+ * Protocol Engineering Lab web page : http://pel.cis.udel.edu/
+ *
+ * Paul D. Amer        <amer@@cis,udel,edu>
  * Armando L. Caro Jr. <acaro@@cis,udel,edu>
  *
  * Armando's debugging output system. 
@@ -34,7 +37,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctpDebug.h,v 1.4 2006/06/23 14:28:40 tom_henderson Exp $ (UD/PEL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctpDebug.h,v 1.5 2007/06/17 21:44:46 tom_henderson Exp $ (UD/PEL)
  */
 
 #ifndef ns_sctpDebug_h
@@ -149,6 +152,9 @@ void sctpDebugEmptyPrintf (char const *format, ...);
  */
 #define __dbg_DumpSendBuffer                   0x80000000
 
+/* CMT-PF debugging
+ */
+#define __dbg_SelectFromPFDests                0x10000000
 
 /**************************** DEBUGGING MACROS **************************/
 

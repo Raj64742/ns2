@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.371 2007/03/29 04:54:45 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.372 2007/06/17 21:44:46 tom_henderson Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -767,7 +767,6 @@ Agent/SCTP set associationMaxRetrans_ 10;# 10 attempts
 Agent/SCTP set pathMaxRetrans_ 5        ;# 5 attempts (per destination)
 Agent/SCTP set changePrimaryThresh_ -1  ;# infinite (ie, never change primary
 Agent/SCTP set maxInitRetransmits_ 8    ;# 8 attempts
-Agent/SCTP set oneHeartbeatTimer_ 1     ;# single heartbeat timer for all dests
 Agent/SCTP set heartbeatInterval_ 30    ;# 30 secs
 Agent/SCTP set mtu_ 1500                ;# MTU of ethernet (most common)
 Agent/SCTP set initialRwnd_ 65536       ;# default inital receiver window
@@ -815,10 +814,15 @@ Agent/SCTP/MfrTimestamp set mfrCount_ 0
 Agent/SCTP/CMT set useCmtReordering_ 1  ;# Turn ON CMT Reordering algo
 Agent/SCTP/CMT set useCmtCwnd_ 1        ;# Turn ON CMT cwnd growth algo
 Agent/SCTP/CMT set useCmtDelAck_ 1      ;# Turn ON CMT delayed ack algo
-Agent/SCTP/CMT set eCmtRtxPolicy_ 1     ;# Default policy = RTX_TO_SAME
+Agent/SCTP/CMT set eCmtRtxPolicy_ 4     ;# Default policy = RTX_CWND
 ## CMT-PF variables
 Agent/SCTP/CMT set useCmtPF_ 0          ;# CMT-PF turned off
-Agent/SCTP/CMT set cmtPFCwnd_ 1	        ;# Cwnd in MTUs after HB-ACK (1 or 2)
+Agent/SCTP/CMT set cmtPFCwnd_ 2	        ;# Cwnd in MTUs after HB-ACK (1 or 2)
+## CMT-PF trace variables
+Agent/SCTP/CMT set countPFToActiveNewData_ 0 ;# count of PF->Active changes
+                                              # for new data transfer
+Agent/SCTP/CMT set countPFToActiveRtxms_ 0;   # count of PF->Active changes
+                                              # for retransmissions
 
 Agent/TCP set seqno_ 0
 Agent/TCP set t_seqno_ 0

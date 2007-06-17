@@ -1,10 +1,14 @@
 /*
- * Copyright (c) 2001-2006 by the Protocol Engineering Lab, U of Delaware
+ * Copyright (c) 2006-2007 by the Protocol Engineering Lab, U of Delaware
  * All rights reserved.
  *
- * Janardhan R. Iyengar <iyengar@@cis,udel,edu>
- * Preethi Natarajan <nataraja@@cis,udel,edu>
- * Keyur C. Shah <shah@@cis,udel,edu>
+ * Protocol Engineering Lab web page : http://pel.cis.udel.edu/
+ *
+ * Paul D. Amer        <amer@@cis,udel,edu>
+ * Armando L. Caro Jr. <acaro@@cis,udel,edu>
+ * Janardhan Iyengar   <iyengar@@cis,udel,edu>
+ * Preethi Natarajan   <nataraja@@cis,udel,edu>
+ * Nasif Ekiz          <nekiz@@cis,udel,edu>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -75,6 +79,8 @@ void SctpCMTAgent::delay_bind_init_all()
   delay_bind_init_one("eCmtRtxPolicy_");
   delay_bind_init_one("useCmtPF_");
   delay_bind_init_one("cmtPFCwnd_");
+  delay_bind_init_one("countPFToActiveNewData_");
+  delay_bind_init_one("countPFToActiveRtxms_");
   //  delay_bind_init_one("useSharedCC_");
   SctpAgent::delay_bind_init_all();
 }
@@ -101,9 +107,15 @@ int SctpCMTAgent::delay_bind_dispatch(const char *cpVarName,
   if(delay_bind(cpVarName, cpLocalName, "cmtPFCwnd_", 
 		(u_int*)&uiCmtPFCwnd, opTracer))
     return TCL_OK;
-//   if(delay_bind(cpVarName, cpLocalName, "useSharedCC_", 
-// 		(int*)&eUseSharedCC, opTracer))
-//     return TCL_OK;
+  if(delay_bind(cpVarName, cpLocalName, "countPFToActiveNewData_", 
+	&tiCountPFToActiveNewData, opTracer))
+    return TCL_OK;
+  if(delay_bind(cpVarName, cpLocalName, "countPFToActiveRtxms_", 
+	&tiCountPFToActiveRtxms, opTracer))
+    return TCL_OK;
+  //   if(delay_bind(cpVarName, cpLocalName, "useSharedCC_", 
+  // 		(int*)&eUseSharedCC, opTracer))
+  //     return TCL_OK;
   else
     return SctpAgent::delay_bind_dispatch(cpVarName, 
 					  cpLocalName, opTracer);
@@ -128,7 +140,8 @@ void SctpCMTAgent::TraceAll()
 	      "cwnd: %d pba: %d out: %d ssthresh: %d peerRwnd: %d "
 	      "rto: %-6.3f srtt: %-6.3f rttvar: %-6.3f "
 	      "assocErrors: %d pathErrors: %d dstatus: %s "
-	      "frCount: %d timeoutCount: %d rcdCount: %d\n",
+	      "frCount: %d timeoutCount: %d rcdCount: %d "
+	      "countPFToActiveNewData: %d countPFToActiveRtxms: %d\n",
 	      dCurrTime,
 	      addr(), port(), spCurrDest->iNsAddr, spCurrDest->iNsPort,
 	      spCurrDest->iCwnd, spCurrDest->iPartialBytesAcked, 
@@ -141,7 +154,9 @@ void SctpCMTAgent::TraceAll()
 	      PrintDestStatus(spCurrDest),
 	      int(tiFrCount),
 	      spCurrDest->iTimeoutCount,
-	      spCurrDest->iRcdCount);
+	      spCurrDest->iRcdCount,
+	      int(tiCountPFToActiveNewData),
+              int(tiCountPFToActiveRtxms));
       if(channel_)
 	(void)Tcl_Write(channel_, cpOutString, strlen(cpOutString));
     }
@@ -179,13 +194,13 @@ void SctpCMTAgent::TraceVar(const char* cpVar)
 	  (void)Tcl_Write(channel_, cpOutString, strlen(cpOutString));
       }
 
-//   else if(!strcmp(cpVar, "rwnd_"))
-//     {
-//       sprintf(cpOutString, "time: %-8.5f rwnd: %d peerRwnd: %d\n", 
-// 	      dCurrTime, uiMyRwnd, uiPeerRwnd);
-//       if(channel_)
-//       	(void)Tcl_Write(channel_, cpOutString, strlen(cpOutString));
-//     }
+  //   else if(!strcmp(cpVar, "rwnd_"))
+  //     {
+  //       sprintf(cpOutString, "time: %-8.5f rwnd: %d peerRwnd: %d\n", 
+  // 	      dCurrTime, uiMyRwnd, uiPeerRwnd);
+  //       if(channel_)
+  //       	(void)Tcl_Write(channel_, cpOutString, strlen(cpOutString));
+  //     }
   
   else if(!strcmp(cpVar, "rto_"))
     for(spCurrNode = sDestList.spHead;
@@ -197,7 +212,7 @@ void SctpCMTAgent::TraceVar(const char* cpVar)
 	sprintf(cpOutString,
 		"time: %-8.5f  "
 		"saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d "
-		"rto: %-6.3f srtt: %-6.3f rttvar: %-6.3f timeouts: %d\n",
+		"rto: %-6.3f srtt: %-6.3f rttvar: %-6.3f timeoutCount: %d\n",
 		dCurrTime, 
 		addr(), port(), 
 		spCurrDest->iNsAddr, spCurrDest->iNsPort,
@@ -261,6 +276,26 @@ void SctpCMTAgent::TraceVar(const char* cpVar)
 	  (void)Tcl_Write(channel_, cpOutString, strlen(cpOutString));
       }
     }
+  else if(!strcmp(cpVar, "countPFToActiveNewData_"))
+    {
+      sprintf(cpOutString,
+	      "time: %-8.5f   "
+	      "countPFToActiveNewData: %d\n",
+	      dCurrTime, 
+	      int(tiCountPFToActiveNewData));
+      if(channel_)
+	(void)Tcl_Write(channel_, cpOutString, strlen(cpOutString));
+    }
+  else if(!strcmp(cpVar, "countPFToActiveRtxms_"))
+    {
+      sprintf(cpOutString,
+	      "time: %-8.5f   "
+	      "countPFToActiveRtxms: %d\n",
+	      dCurrTime, 
+	      int(tiCountPFToActiveRtxms));
+	if(channel_)
+	  (void)Tcl_Write(channel_, cpOutString, strlen(cpOutString));
+    }
   else
     {
       sprintf(cpOutString,
@@ -275,6 +310,14 @@ void SctpCMTAgent::TraceVar(const char* cpVar)
   sprintf(cpOutString, "\n");
   if(channel_)
     (void)Tcl_Write(channel_, cpOutString, strlen(cpOutString));
+}
+
+void SctpCMTAgent::trace(TracedVar *v)
+{
+  if(eTraceAll == TRUE)
+	TraceAll();
+  else
+	TraceVar(v->name());
 }
 
 void SctpCMTAgent::OptionReset()
@@ -307,6 +350,10 @@ void SctpCMTAgent::Reset()
       spCurrDest->eFindExpectedRtxPseudoCum = TRUE;
       spCurrDest->eRtxLimit = RTX_LIMIT_ZERO;
     }
+
+  tiCountPFToActiveNewData = 0;
+  tiCountPFToActiveRtxms = 0;
+
 }
 
 /* returns the size of the chunk
@@ -532,7 +579,8 @@ int SctpCMTAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
       /* fill in tracing fields too
        */
       spSctpTrace[uiNumChunks].eType = eType;
-      spSctpTrace[uiNumChunks].uiTsn = ((SctpDataChunkHdr_S *) ucpChunk)->uiTsn;
+      spSctpTrace[uiNumChunks].uiTsn 
+	= ((SctpDataChunkHdr_S *) ucpChunk)->uiTsn;
       spSctpTrace[uiNumChunks].usStreamId 
 	= ((SctpDataChunkHdr_S *) ucpChunk)->usStreamId;
       spSctpTrace[uiNumChunks].usStreamSeqNum 
@@ -583,7 +631,7 @@ int SctpCMTAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
 	    = (SctpGapAckBlock_S *) (ucpChunk+iSize);
 
 	  spGapAckBlock->usStartOffset 
-	    = ((SctpRecvTsnBlock_S *)spCurrFrag->vpData)->uiStartTsn - uiCumAck;
+	    = ((SctpRecvTsnBlock_S *)spCurrFrag->vpData)->uiStartTsn-uiCumAck;
 
 	  spGapAckBlock->usEndOffset
 	    = ((SctpRecvTsnBlock_S *)spCurrFrag->vpData)->uiEndTsn - uiCumAck;
@@ -598,10 +646,10 @@ int SctpCMTAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
 	  (spCurrDup != NULL) &&
 	    (iSize + sizeof(SctpDupTsn_S) < uiMaxDataSize); 
 	  spPrevDup = spCurrDup, spCurrDup = spCurrDup->spNext, 
-	    DeleteNode(&sDupTsnList, spPrevDup), iSize += sizeof(SctpDupTsn_S) )
+	    DeleteNode(&sDupTsnList, spPrevDup), iSize += sizeof(SctpDupTsn_S))
 	{
 	  SctpDupTsn_S *spDupTsn = (SctpDupTsn_S *) (ucpChunk+iSize);
-
+	  
 	  spDupTsn->uiTsn = ((SctpDupTsn_S *) spCurrDup->vpData)->uiTsn;
 
 	  DBG_PL(GenChunk, "DupTsn=%d"), spDupTsn->uiTsn DBG_PR;
@@ -614,7 +662,7 @@ int SctpCMTAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
       /* fill in tracing fields too
        */
       spSctpTrace[uiNumChunks].eType = eType;
-      spSctpTrace[uiNumChunks].uiTsn = ((SctpSackChunk_S *) ucpChunk)->uiCumAck;
+      spSctpTrace[uiNumChunks].uiTsn = ((SctpSackChunk_S *)ucpChunk)->uiCumAck;
       spSctpTrace[uiNumChunks].usStreamId = (u_short) -1;
       spSctpTrace[uiNumChunks].usStreamSeqNum = (u_short) -1;
       break;
@@ -622,7 +670,7 @@ int SctpCMTAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
     case SCTP_CHUNK_FORWARD_TSN:
       iSize = SCTP_CHUNK_FORWARD_TSN_LENGTH;
       ((SctpForwardTsnChunk_S *) ucpChunk)->sHdr.ucType = eType;
-      ((SctpForwardTsnChunk_S *) ucpChunk)->sHdr.ucFlags = 0; // flags not used?
+      ((SctpForwardTsnChunk_S *) ucpChunk)->sHdr.ucFlags = 0; //flags not used?
       ((SctpForwardTsnChunk_S *) ucpChunk)->sHdr.usLength = iSize;
       ((SctpForwardTsnChunk_S *) ucpChunk)->uiNewCum = uiAdvancedPeerAckPoint;
 
@@ -741,7 +789,7 @@ void SctpCMTAgent::AddToSendBuffer(SctpDataChunkHdr_S *spChunk,
 
 
 /* Go thru the send buffer deleting all chunks which have a tsn <= the 
- * tsn parameter passed in. We assume the chunks in the rtx list are ordered by 
+ * tsn parameter passed in. We assume the chunks in the rtx list are ordered by
  * their tsn value. In addtion, for each chunk deleted:
  *   1. we add the chunk length to # newly acked bytes and partial bytes acked
  *   2. we update round trip time if appropriate
@@ -816,7 +864,8 @@ void SctpCMTAgent::SendBufferDequeueUpTo(u_int uiTsn)
 	   * avoidance mode and if there was cwnd amount of data
 	   * outstanding on the destination (implementor's guide) 
 	   */
-	  if(spCurrNodeData->spDest->iCwnd >spCurrNodeData->spDest->iSsthresh &&
+	  if(spCurrNodeData->spDest->iCwnd >spCurrNodeData->spDest->iSsthresh 
+	     &&
 	     ( spCurrNodeData->spDest->iOutstandingBytes 
 	       >= spCurrNodeData->spDest->iCwnd) )
 	    {
@@ -863,7 +912,7 @@ void SctpCMTAgent::SendBufferDequeueUpTo(u_int uiTsn)
 
       /* if there is a timer running on the chunk's destination, then stop it
        */
-      /* CMT: Added check for expectedPseudoCum. Before this change, even if the 
+      /* CMT: Added check for expectedPseudoCum.Before this change, even if the
        * timer for a dest was not running on any of the TSNs being dequeued
        * (because the pseudoCum had moved way further already), the timer
        * was being restarted due to the reset here. This caused timeouts
@@ -895,43 +944,30 @@ void SctpCMTAgent::SendBufferDequeueUpTo(u_int uiTsn)
 	 spCurrNodeData->eMarkedForRtx != TIMEOUT_RTX &&
 	 spCurrNodeData->eGapAcked == FALSE)
 	{
-	  DBG_PL(SendBufferDequeueUpTo, 
-		 "clearing error counter for %p with tsn=%lu"), 
-	    spCurrNodeData->spDest, spCurrNodeData->spChunk->uiTsn DBG_PR;
-
 	  
-	  /****** PN-TODO: Check if required *****/
-	  /* PN 01/10/2006
-	   * eMarkedForRtx gets reset after a TSN is rtx - RtxMarkedChunks.
-	   * Ambiguity in clearing errcount and setting dest status to active
-	   * if the sack is for a rtx tsn.
-	   * Wrongly clearing err count might lead to longer failure det times.
-	   * Can also lead to more rbuf blocking for CMT/CMT-PF - ?
-	   * So avoid clearing errcount for sacks of rtx tsns.
-	   * This maintains current err count on the dest. spurius failures?
-	   * Does not affect data sending rate on PF path, since data sent
-	   * based on cwnd alone. 
+	  /* If running CMT-PF, clear error counter and move destination
+	   * from PF to Active only if this chunk has been transmitted
+	   * only once. Else, ambiguity in deciding whether sack was for
+	   * original transmission or retransmission.
 	   */
-	  /* if ((spCurrNodeData->spDest->eStatus == SCTP_DEST_STATUS_POSSIBLY_FAILED)
-	     && (spCurrNodeData->iNumTtx > 1)) rtx
-	     {
-	     DBG_PL(SendBufferDequeueUpTo, 
-	     "Dest:%p, "sack for rtx"),
-	     spCurrNodeData->spDest DBG_PR;
-	     }
-	     else */ 
-	  /***********/
-	  
-	  spCurrNodeData->spDest->iErrorCount = 0; // clear error counter
-	  tiErrorCount++;                          // ... and trace it too!
-	  spCurrNodeData->spDest->eStatus = SCTP_DEST_STATUS_ACTIVE;
-	  if(spCurrNodeData->spDest == spPrimaryDest &&
-	     spNewTxDest != spPrimaryDest) 
+	  if (((eUseCmtPF == TRUE) && (spCurrNodeData->iNumTxs == 1)) ||
+	      (eUseCmtPF == FALSE))
 	    {
-	      DBG_PL(SendBufferDequeueUpTo,
-		     "primary recovered... migrating back from %p to %p"),
-		spNewTxDest, spPrimaryDest DBG_PR;
-	      spNewTxDest = spPrimaryDest; // return to primary
+	      DBG_PL(SendBufferDequeueUpTo, 
+		     "clearing error counter for %p with tsn=%lu"), 
+		spCurrNodeData->spDest, spCurrNodeData->spChunk->uiTsn DBG_PR;
+	      
+	      spCurrNodeData->spDest->iErrorCount = 0; // clear error counter
+	      tiErrorCount++;                          // ... and trace it too!
+	      spCurrNodeData->spDest->eStatus = SCTP_DEST_STATUS_ACTIVE;
+	      if(spCurrNodeData->spDest == spPrimaryDest &&
+		 spNewTxDest != spPrimaryDest) 
+		{
+		  DBG_PL(SendBufferDequeueUpTo,
+			 "primary recovered... migrating back from %p to %p"),
+		    spNewTxDest, spPrimaryDest DBG_PR;
+		  spNewTxDest = spPrimaryDest; // return to primary
+		}
 	    }
 	}
       
@@ -940,7 +976,7 @@ void SctpCMTAgent::SendBufferDequeueUpTo(u_int uiTsn)
       DeleteNode(&sSendBuffer, spDeleteNode);
       spDeleteNode = NULL;
     }
-
+  
   DBG_X(SendBufferDequeueUpTo);
 }
 
@@ -1045,7 +1081,7 @@ void SctpCMTAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
     }
 
   /****** Begin CMT Change ******/
-  /* We need to set the destination address for the retransmission(s). We assume
+  /* We need to set the destination address for the retransmission(s).We assume
    * that on a given call to this function, all should all be sent to the same
    * address (should be a reasonable assumption). So, to determine the address,
    * we find the first marked chunk and determine the destination it was last 
@@ -1054,7 +1090,7 @@ void SctpCMTAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
    * CMT change: This assumption is not reasonable for CMT. We therefore 
    * separate the rtxdest selection into a separate function.
    *
-   * Also, we temporarily count all marked chunks as not outstanding. Why? Well,
+   * Also, we temporarily count all marked chunks as not outstanding.Why? Well,
    * if we try retransmitting on the same dest as used previously, the cwnd may
    * never let us retransmit because the outstanding is counting marked chunks
    * too. At the end of this function, we'll count all marked chunks as 
@@ -1148,7 +1184,7 @@ void SctpCMTAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 	       */
 	      if(spRtxDest == NULL)
 		{
-		  /* Jump out of for loop; move spCurrBuffNode to next in queue.
+		  /* Jump out of for loop;move spCurrBuffNode to next in queue.
 		   * At this point, no dest was able to send this rtx. 
 		   * There may be other TSNs in the queue waiting for rtx, 
 		   * so we move on to process them. "while" loop is reentered,
@@ -1162,8 +1198,8 @@ void SctpCMTAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 		}
 	      else
 		{
-		  /* CMT CUC algo: If rtxdest is not the same as orig dest, set 
-		   * both eFindExpectedPseudoCumack and 
+		  /* CMT CUC algo: If rtxdest is not the same as orig dest, set
+ 		   * both eFindExpectedPseudoCumack and 
 		   * eFindExpectedRtxPseudoCumack to TRUE.
 		   */
 		  if(spCurrBuffNodeData->spDest != spRtxDest)
@@ -1197,7 +1233,8 @@ void SctpCMTAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 	      if(eControlChunkBundled == FALSE)
 		{
 		  eControlChunkBundled = TRUE;
-		  iBundledControlChunkSize =BundleControlChunks(ucpCurrOutData);
+		  iBundledControlChunkSize 
+		    = BundleControlChunks(ucpCurrOutData);
 		  ucpCurrOutData += iBundledControlChunkSize;
 		  iOutDataSize += iBundledControlChunkSize;
 		}
@@ -1208,7 +1245,7 @@ void SctpCMTAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 		 > (int) uiMaxPayloadSize)
 		break;  // doesn't fit in packet... jump out of the for loop
 
-	      /* If this chunk was being used to measure the RTT, stop using it.
+	      /* If this chunk was being used to measure the RTT,stop using it.
 	       */
 	      if(spCurrBuffNodeData->spDest->eRtoPending == TRUE &&
 		 spCurrBuffNodeData->eMeasuringRtt == TRUE)
@@ -1312,8 +1349,7 @@ void SctpCMTAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 	  DBG_PL(RtxMarkedChunks, "OutDataSize = %d"), iOutDataSize DBG_PR;
 
 	  /****** Begin CMT Change ******/
-	  /* PN - 17/03/2006
-	   * track rtx tsns
+	  /* PN: Track rtx tsns in the trace file for debug purposes. 
 	   */
 	  spTraceDest = spRtxDest;
 	  SetSource(spTraceDest); // gives us the correct source addr & port
@@ -1329,16 +1365,6 @@ void SctpCMTAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 	  sprintf(cpOutString, "\n\n");
 	  if(channel_)
 	    (void)Tcl_Write(channel_, cpOutString, strlen(cpOutString));
-
-	  /* PN-TODO: Check this code
-           * If data being sent to a PF dest, then set flag
-	   * so that Heartbeats are not sent to dest.
-	   */
-	  /* if (spRtxDest->eStatus == SCTP_DEST_STATUS_POSSIBLY_FAILED) {
-		DBG_PL(RtxMarkedChunks, 
-			"Dest: %p, set eDoNotSendHBOnPF=TRUE"), 
-			spRtxDest DBG_PR;
-	  } */
 	  /****** End CMT Change ******/
 
 	  if(spRtxDest->eRtxTimerIsRunning == FALSE)
@@ -1443,7 +1469,7 @@ void SctpCMTAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
     
   /* If we made it here, either our limit was only one packet worth of
    * retransmissions or we hit the end of the list and there are no more
-   * marked chunks. If we didn't hit the end, let's see if there are more marked
+   * marked chunks.If we didn't hit the end, let's see if there are more marked
    * chunks.
    */
   eMarkedChunksPending = AnyMarkedChunks();
@@ -1458,7 +1484,8 @@ void SctpCMTAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
  * TSN and policy.  returns NULL if no dest is found that can accomodate
  * this TSN given the policy and eLimit.
  *
- * NOTE: CMT-PF uses only RTX_SSTHRESH policy.
+ * CMT-PF: CMT-PF code implemented only for 
+ * RTX-SSTHRESH and RTX-CWND policies
  */
 SctpDest_S* SctpCMTAgent::SelectRtxDest(SctpSendBufferNode_S 
 					*spCurrBuffNodeData,
@@ -1470,7 +1497,7 @@ SctpDest_S* SctpCMTAgent::SelectRtxDest(SctpSendBufferNode_S
   SctpDest_S *spCurrDestNodeData = NULL;
   unsigned int uiHighestSsthresh = 0, uiHighestCwnd = 0;
   float fLowestLossrate = 0;
-
+  
   DBG_I(SelectRtxDest);
 
   eFoundRtxDest = FALSE;
@@ -1478,14 +1505,30 @@ SctpDest_S* SctpCMTAgent::SelectRtxDest(SctpSendBufferNode_S
   switch (eCmtRtxPolicy)
     {
     case RTX_ASAP:
-      /* CMT rtx policy - rtxasap: Try rtx to same dest, 
-       * if not possible, then to next and so on. Ties are 
-       * broken using random selection.
+      /* NE: 04/16/2007
+       * CMT rtx policy - rtxasap: Try to rtx to any destination for
+       * which the sender has cwnd space available at the time of 
+       * retransmission. If multiple destinations have available cwnd
+       * space, one is chosen randomly.
+       * Randomization of selecting a destination is not uniform in 
+       * this implementation.
+       * IMPORTANT NOTICE: This rtx. policy is used for experimental purposes
+       * ONLY and is retained for verifying previous experiments. Please use
+       * one of the suggested rtx. policies for CMT and CMT-PF experiments: 
+       * RTX_SSTHRESH or RTX_CWND.
        */
-  
+      
       spCurrDestNodeData = spCurrBuffNodeData->spDest;
-      do
+
+      DBG_PL(SelectRtxDest, "Current Dest: %p, Status: %d"), 
+	spCurrDestNodeData, spCurrDestNodeData->eStatus DBG_PR;
+
+      for(spCurrDestNode = sDestList.spHead;
+	  spCurrDestNode != NULL;
+	  spCurrDestNode = spCurrDestNode->spNext)
 	{
+	  spCurrDestNodeData = (SctpDest_S *) spCurrDestNode->vpData;
+
 	  /* Modified rtx mechanisms from SCTP. Allow ONE_PACKET_LIMIT
 	   * for dest which has suffered a loss, so that at least one dest
 	   * is allowed to retransmit one lost packet immediately. The rest
@@ -1498,38 +1541,71 @@ SctpDest_S* SctpCMTAgent::SelectRtxDest(SctpSendBufferNode_S
 	     (spCurrDestNodeData->iOutstandingBytes < 
 	      spCurrDestNodeData->iCwnd)) 
 	    {
-	      if((eFoundRtxDest == TRUE) && (Random::random()&01))
-		{
-		  /* Randomize dest if more than one found.
-		   * If random() returns 1, then retain prev dest.,
-		   * else set rtxDest to this dest.
-		   * Nothing to be done here.
-		   */
-		}
-	      else
-		{
-		  /* rtx will be sent to this destination.
-		   * Set eFoundRtxDest to TRUE, to continue with 
-		   * the procedure. 
-		   */
-		  eFoundRtxDest = TRUE;
-		  spRtxDest = spCurrDestNodeData;
+	      if (spCurrDestNodeData->eStatus == SCTP_DEST_STATUS_ACTIVE) 
+		{		  
+		  if((eFoundRtxDest == TRUE) && (Random::random()&01))
+		    {
+		      /* Randomize dest if more than one found.
+		       * If random() returns 1, then retain prev dest.,
+		       * else set rtxDest to this dest.
+		       * Nothing to be done here.
+		       */
+		    }
+		  else
+		    {
+		      /* rtx will be sent to this destination.
+		       * Set eFoundRtxDest to TRUE, to continue with 
+		       * the procedure. 
+		       */
+		      eFoundRtxDest = TRUE;
+		      spRtxDest = spCurrDestNodeData;
+		      
+		    }
 		}
 	    }
+	}
 
-	  spCurrDestNodeData = GetNextDest(spCurrDestNodeData);
-
-	  /* loop till original dest is reached again,
-	   * since the loop started from orig tx dest.
-	   */
-	} while(spCurrDestNodeData != spCurrBuffNodeData->spDest);
-
-      break; 
-   
-
-    case RTX_TO_SAME:
-      /* CMT rtx policy - rtxtosame: Rtx goes to same dest only.
+      /* No Active destinations found, set eFoundRtxDest to FALSE
+       * to return NULL 
        */
+      if (spRtxDest == NULL) 
+	eFoundRtxDest = FALSE;
+      else
+        {
+	  
+	  DBG_PL(SelectRtxDest, "Dest: %p"), spRtxDest  DBG_PR;
+	  
+      	  /* Modified rtx mechanisms from SCTP. Allow ONE_PACKET_LIMIT
+       	   * for dest which has suffered a loss, so that at least one dest
+       	   * is allowed to retransmit one lost packet immediately. The rest
+       	   * of the dests are bound by their resp. cwnds. Subsequent calls 
+       	   * triggering sending rtxs will be bound by the resp. cwnds.
+       	   */
+      	  if((eLimit == RTX_LIMIT_ONE_PACKET && 
+	      spRtxDest->eRtxLimit == RTX_LIMIT_ONE_PACKET &&
+	      spRtxDest->iNumPacketsSent < 1 ) ||
+	     (spRtxDest->iOutstandingBytes < spRtxDest->iCwnd)) 
+	    {
+	      /* rtx will be sent to rtxDest. Set eFoundRtxDest
+	       * to TRUE, to continue with the rtx procedure.
+	       */
+	      eFoundRtxDest = TRUE;
+	      DBG_PL(SelectRtxDest, "SelectedRtxDest: %p"), spRtxDest DBG_PR;
+	    }
+        }
+      
+      break; 
+      
+    case RTX_TO_SAME:
+      /* NE: 4/29/2007
+       * CMT rtx policy - rtxtosame: Rtx goes to same dest only(until the 
+       * destination is deemed INACTIVE due to failure).
+       * IMPORTANT NOTICE: This rtx. policy is used for experimental purposes
+       * ONLY and is retained for verifying previous experiments. Please use
+       * one of the suggested rtx. policies for CMT and CMT-PF experiments: 
+       * RTX_SSTHRESH or RTX_CWND. 
+       */
+
       DBG_PL(SelectRtxDest, "Rtx policy: RTX-SAME") DBG_PR;
 
       spRtxDest = spCurrBuffNodeData->spDest;
@@ -1541,33 +1617,64 @@ SctpDest_S* SctpCMTAgent::SelectRtxDest(SctpSendBufferNode_S
 	{
 	  spRtxDest = GetNextDest(spRtxDest);
 	}
-     
+      
       DBG_PL(SelectRtxDest, 
-	     "spRtxDest %p: iCwnd=%d iOutstandingBytes=%d iNumPacketsSent=%d"), 
+	     "spRtxDest %p: iCwnd=%d iOutstandingBytes=%d iNumPacketsSent=%d"),
 	spRtxDest, spRtxDest->iCwnd, spRtxDest->iOutstandingBytes, 
 	spRtxDest->iNumPacketsSent DBG_PR;
-
-      if((eLimit == RTX_LIMIT_ONE_PACKET && 
-	  spRtxDest->eRtxLimit == RTX_LIMIT_ONE_PACKET &&
-	  spRtxDest->iNumPacketsSent < 1 ) ||
-	 (spRtxDest->iOutstandingBytes < spRtxDest->iCwnd)) 
-	{
-	  /* rtx will be sent to same dest as tx. Set eFoundRtxDest
-	   * to TRUE, to continue with the rtx procedure.
-	   */
-	  eFoundRtxDest = TRUE;
-	  DBG_PL(SelectRtxDest, "Rtx will be sent to dest %p"), 
-	    spRtxDest DBG_PR;
-	}
-      else 
-	{
-	  DBG_PL(SelectRtxDest, "Unable to find rtx destination") DBG_PR;
+      
+      /* No Active destinations found, set eFoundRtxDest to FALSE
+       * to return NULL 
+       */
+      if (spRtxDest == NULL) 
+	eFoundRtxDest = FALSE;
+      else
+        {
+	  if((eLimit == RTX_LIMIT_ONE_PACKET && 
+	      spRtxDest->eRtxLimit == RTX_LIMIT_ONE_PACKET &&
+	      spRtxDest->iNumPacketsSent < 1 ) ||
+	     (spRtxDest->iOutstandingBytes < spRtxDest->iCwnd)) 
+	    {
+	      /* rtx will be sent to same dest as tx. Set eFoundRtxDest
+	       * to TRUE, to continue with the rtx procedure.
+	       */
+	      eFoundRtxDest = TRUE;
+	      DBG_PL(SelectRtxDest, "SelectedRtxDest: %p"), spRtxDest DBG_PR;
+	    }
+	  else 
+	    {
+	      DBG_PL(SelectRtxDest, "Unable to find rtx destination") DBG_PR;
+	    }
 	}
       break; // end of rtxtosame dest selection
 
     case RTX_SSTHRESH:
+      /* NE: 4/29/2007
+       * CMT rtx. policy - RTX_SSTHRESH: rtx. is sent to the destination for 
+       * which the sender has the largest ssthresh. A tie is broken by random
+       * selection. 
+       */
+
       uiHighestSsthresh = 0;
-      
+
+      /* CMT-PF: If all destinations are marked PF, select one from them
+       * for retransmissions
+       */
+      if (eUseCmtPF == TRUE)
+	{
+	  spRtxDest = SelectFromPFDests();
+	  if (spRtxDest != NULL)
+	    {
+	      /* spRtxDest was PF and changed to Active by SelectFromPFDests()
+	       */
+	      tiCountPFToActiveRtxms++ ; //trace will pick it up
+	      
+	      eFoundRtxDest = TRUE;
+	      
+	      break; // break for RTX_SSTHRESH case.
+	    }
+	}
+
       for(spCurrDestNode = sDestList.spHead;
 	  spCurrDestNode != NULL;
 	  spCurrDestNode = spCurrDestNode->spNext)
@@ -1577,10 +1684,10 @@ SctpDest_S* SctpCMTAgent::SelectRtxDest(SctpSendBufferNode_S
 	  DBG_PL(SelectRtxDest, "Dest: %p, Status: %d"), 
 	    spCurrDestNodeData, spCurrDestNodeData->eStatus DBG_PR;
 
-	  /* If dest is INACTIVE or PF, then do not use it.
+	  /* Do not retransmit to an INACTIVE or PF destination. 
 	   */
-	  if ((spCurrDestNodeData->eStatus == SCTP_DEST_STATUS_INACTIVE) ||
-	      (spCurrDestNodeData->eStatus == SCTP_DEST_STATUS_POSSIBLY_FAILED))
+	  if((spCurrDestNodeData->eStatus == SCTP_DEST_STATUS_INACTIVE) ||
+	     (spCurrDestNodeData->eStatus == SCTP_DEST_STATUS_POSSIBLY_FAILED))
 	    continue;
 
 	  DBG_PL(SelectRtxDest, "Dest: %p, Ssthresh: %d, Out: %d"), 
@@ -1598,6 +1705,7 @@ SctpDest_S* SctpCMTAgent::SelectRtxDest(SctpSendBufferNode_S
 		spRtxDest = spCurrDestNodeData;
 	    }
 	}
+
       /* if no active dest found, then return null
        */
       if (spRtxDest == NULL) 
@@ -1627,6 +1735,16 @@ SctpDest_S* SctpCMTAgent::SelectRtxDest(SctpSendBufferNode_S
 
 
     case RTX_LOSSRATE:
+      /* NE: 4/24/2007
+       * CMT rtx. policy - RTX_LOSSRATE: rtx. is sent to the destination with
+       * the lowest loss rate path. If multiple destinations have the same
+       * loss rate, one is selected randomly.
+       * IMPORTANT NOTICE: This rtx. policy is used for experimental purposes
+       * ONLY and is retained for verifying previous experiments. Please use
+       * one of the suggested rtx. policies for CMT and CMT-PF experiments: 
+       * RTX_SSTHRESH or RTX_CWND.
+       */
+	 
       fLowestLossrate = 10;
 
       for(spCurrDestNode = sDestList.spHead;
@@ -1652,36 +1770,79 @@ SctpDest_S* SctpCMTAgent::SelectRtxDest(SctpSendBufferNode_S
 	    }
 	}
 
-      /* Modified rtx mechanisms from SCTP. Allow ONE_PACKET_LIMIT
-       * for dest which has suffered a loss, so that at least one dest
-       * is allowed to retransmit one lost packet immediately. The rest
-       * of the dests are bound by their resp. cwnds. Subsequent calls 
-       * triggering sending rtxs will be bound by the resp. cwnds.
+      /* if no active dest found, then return null
        */
-      if((eLimit == RTX_LIMIT_ONE_PACKET && 
-	  spRtxDest->eRtxLimit == RTX_LIMIT_ONE_PACKET &&
-	  spRtxDest->iNumPacketsSent < 1 ) ||
-	 (spRtxDest->iOutstandingBytes < spRtxDest->iCwnd)) 
+      if (spRtxDest == NULL) 
+	eFoundRtxDest = FALSE;
+      else
 	{
-	  /* rtx will be sent to rtxDest. Set eFoundRtxDest
-	   * to TRUE, to continue with the rtx procedure.
+	  /* Modified rtx mechanisms from SCTP. Allow ONE_PACKET_LIMIT
+	   * for dest which has suffered a loss, so that at least one dest
+	   * is allowed to retransmit one lost packet immediately. The rest
+	   * of the dests are bound by their resp. cwnds. Subsequent calls 
+	   * triggering sending rtxs will be bound by the resp. cwnds.
 	   */
-	  eFoundRtxDest = TRUE;
+	  if((eLimit == RTX_LIMIT_ONE_PACKET && 
+	      spRtxDest->eRtxLimit == RTX_LIMIT_ONE_PACKET &&
+	      spRtxDest->iNumPacketsSent < 1 ) ||
+	     (spRtxDest->iOutstandingBytes < spRtxDest->iCwnd)) 
+	    {
+	      /* rtx will be sent to rtxDest. Set eFoundRtxDest
+	       * to TRUE, to continue with the rtx procedure.
+	       */
+	      eFoundRtxDest = TRUE;
+	      DBG_PL(SelectRtxDest, "SelectedRtxDest: %p"), spRtxDest DBG_PR;
+	    }
 	}
+
       break;
 
     case RTX_CWND:
+      /* NE: 4/29/2007
+       * CMT rtx. policy - RTX_CWND: rtx. is sent to the destination for which
+       * the sender has the largest cwnd. A tie is broken by random selection.
+       */
+
       uiHighestCwnd = 0;
 
+      /* CMT-PF: If all destinations are marked PF, select one from them
+       * for retransmissions
+       */
+      if (eUseCmtPF == TRUE)	
+	{
+	  spRtxDest = SelectFromPFDests();
+	  if (spRtxDest != NULL)
+	    {
+	      /* spRtxDest was PF and changed to Active by SelectFromPFDests()
+	       */
+	      tiCountPFToActiveRtxms++ ; //trace will pick it up
+	      
+	      eFoundRtxDest = TRUE;
+	      
+	      break; // break for RTX_CWND case.
+	    }
+	  
+	} /* if (eUseCmtPF == TRUE) */
+      
       for(spCurrDestNode = sDestList.spHead;
 	  spCurrDestNode != NULL;
 	  spCurrDestNode = spCurrDestNode->spNext)
 	{
 	  spCurrDestNodeData = (SctpDest_S *) spCurrDestNode->vpData;
-
-	  if (spCurrDestNodeData->eStatus == SCTP_DEST_STATUS_INACTIVE)
+	  
+	  DBG_PL(SelectRtxDest, "Dest: %p, Status: %d"), 
+	    spCurrDestNodeData, spCurrDestNodeData->eStatus DBG_PR;
+	  
+	  /* Do not retransmit to an INACTIVE or PF destination. 
+	   */
+	  if((spCurrDestNodeData->eStatus == SCTP_DEST_STATUS_INACTIVE) ||
+	     (spCurrDestNodeData->eStatus == SCTP_DEST_STATUS_POSSIBLY_FAILED))
 	    continue;
 
+	  DBG_PL(SelectRtxDest, "Dest: %p, Cwnd: %d, Out: %d"), 
+	    spCurrDestNodeData, spCurrDestNodeData->iCwnd,
+	    spCurrDestNodeData->iOutstandingBytes DBG_PR;
+	  
 	  if ((int)uiHighestCwnd < spCurrDestNodeData->iCwnd)
 	    {
 	      uiHighestCwnd = spCurrDestNodeData->iCwnd;
@@ -1695,24 +1856,36 @@ SctpDest_S* SctpCMTAgent::SelectRtxDest(SctpSendBufferNode_S
 	    }
 	}
       
-      /* Modified rtx mechanisms from SCTP. Allow ONE_PACKET_LIMIT
-       * for dest which has suffered a loss, so that at least one dest
-       * is allowed to retransmit one lost packet immediately. The rest
-       * of the dests are bound by their resp. cwnds. Subsequent calls 
-       * triggering sending rtxs will be bound by the resp. cwnds.
+      /* No Active destinations found, set eFoundRtxDest to FALSE
+       * to return NULL 
        */
-      if((eLimit == RTX_LIMIT_ONE_PACKET && 
-	  spRtxDest->eRtxLimit == RTX_LIMIT_ONE_PACKET &&
-	  spRtxDest->iNumPacketsSent < 1 ) ||
-	 (spRtxDest->iOutstandingBytes < spRtxDest->iCwnd)) 
-	{
-	  /* rtx will be sent to rtxDest. Set eFoundRtxDest
-	   * to TRUE, to continue with the rtx procedure.
-	   */
-	  eFoundRtxDest = TRUE;
-	}
+      if (spRtxDest == NULL) 
+	eFoundRtxDest = FALSE;
+      else
+        {
+	  
+	  DBG_PL(SelectRtxDest, "Dest: %p"), spRtxDest  DBG_PR;
+	  
+      	  /* Modified rtx mechanisms from SCTP. Allow ONE_PACKET_LIMIT
+       	   * for dest which has suffered a loss, so that at least one dest
+       	   * is allowed to retransmit one lost packet immediately. The rest
+       	   * of the dests are bound by their resp. cwnds. Subsequent calls 
+       	   * triggering sending rtxs will be bound by the resp. cwnds.
+       	   */
+      	  if((eLimit == RTX_LIMIT_ONE_PACKET && 
+	      spRtxDest->eRtxLimit == RTX_LIMIT_ONE_PACKET &&
+	      spRtxDest->iNumPacketsSent < 1 ) ||
+	     (spRtxDest->iOutstandingBytes < spRtxDest->iCwnd)) 
+	    {
+	      /* rtx will be sent to rtxDest. Set eFoundRtxDest
+	       * to TRUE, to continue with the rtx procedure.
+	       */
+	      eFoundRtxDest = TRUE;
+	      DBG_PL(SelectRtxDest, "SelectedRtxDest: %p"), spRtxDest DBG_PR;
+	    }
+        }
       break;
-
+      
     }
   
   if(eFoundRtxDest == FALSE)
@@ -1775,7 +1948,7 @@ Boolean_E SctpCMTAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 	   * which matter in the fast rtx process. uiHighestTsnInSackForDest 
 	   * is used for HTNA also.
 	   */
-	  spCurrDestNodeData->uiHighestTsnInSackForDest = spSackChunk->uiCumAck;
+	  spCurrDestNodeData->uiHighestTsnInSackForDest =spSackChunk->uiCumAck;
 	  /****** End CMT Change ******/
 	}
 
@@ -1846,7 +2019,7 @@ Boolean_E SctpCMTAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 
 	  DBG_PL(ProcessGapAckBlocks, "<-- rtx list chunk end") DBG_PR;
 	  
-	  DBG_PL(ProcessGapAckBlocks,"GapAckBlock StartOffset=%d EndOffset=%d"),
+	  DBG_PL(ProcessGapAckBlocks, "GapAckBlock StartOffset=%d EndOffset=%d"),
 	    spCurrGapAck->usStartOffset, spCurrGapAck->usEndOffset DBG_PR;
 
 	  uiStartTsn = spSackChunk->uiCumAck + spCurrGapAck->usStartOffset;
@@ -1907,11 +2080,9 @@ Boolean_E SctpCMTAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 
 		  /****** Begin CMT Change ******/
 		  /* CMT-PF: if the gapacked chunk was new data sent to a
-		   * PF dest, then, this gapack clearly acknowledges this
-		   * new data PF dest should be marked active.  If the
-		   * gapacked chunk was not new data, then ambiguity in
-		   * setting PF to active or not (whether sack for rtx or
-		   * a orig tx.
+		   * PF dest, then, mark destination to ACTIVE; else, 
+		   * ambiguity in deciding whether gap-ack was for the
+		   * original transmission or retransmission.
 		   */
 		   if ((spCurrNodeData->spDest->eStatus == 
 			SCTP_DEST_STATUS_POSSIBLY_FAILED) &&
@@ -1924,7 +2095,7 @@ Boolean_E SctpCMTAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 		       DBG_PL(ProcessGapAckBlocks, 
 			      "Dest:%p, New data gapacked. Mark from PF to Active"),
 			 spCurrNodeData->spDest DBG_PR;
-		   }
+		     }
 
 		  /* CMT CUC algo: If newly acked TSN passes
 		   * pseudo-cumack, we have a new pseudo-cumack!
@@ -2004,7 +2175,7 @@ Boolean_E SctpCMTAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 		  /****** End CMT Change ******/
 		    {
 		      DBG_PL(ProcessGapAckBlocks, 
-			     "setting eAddedToPartiallyBytesAcked=TRUE") DBG_PR;
+			     "setting eAddedToPartiallyBytesAcked=TRUE")DBG_PR;
 		      
 		      spCurrNodeData->eAddedToPartialBytesAcked = TRUE; // set
 
@@ -2080,8 +2251,8 @@ Boolean_E SctpCMTAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 			spCurrNodeData->spChunk->uiTsn DBG_PR;
 
 		      spCurrNodeData->spDest->iErrorCount = 0; // clear errors
-		      tiErrorCount++;                       // ... and trace it!
-		      spCurrNodeData->spDest->eStatus = SCTP_DEST_STATUS_ACTIVE;
+		      tiErrorCount++;                      // ... and trace it!
+		      spCurrNodeData->spDest->eStatus =SCTP_DEST_STATUS_ACTIVE;
 		      if(spCurrNodeData->spDest == spPrimaryDest &&
 			 spNewTxDest != spPrimaryDest) 
 			{
@@ -2098,8 +2269,8 @@ Boolean_E SctpCMTAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 	    }
 	  else if(spCurrNodeData->spChunk->uiTsn > uiEndTsn)
 	    {
-	      /* This point in the rtx buffer is already past the tsns which are
-	       * being acked by this gap ack block.  
+	      /* This point in the rtx buffer is already past the tsns which 
+	       * are being acked by this gap ack block.  
 	       */
 	      usNumGapAcksProcessed++; 
 
@@ -2113,7 +2284,7 @@ Boolean_E SctpCMTAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 		  spCurrGapAck 
 		    = ((SctpGapAckBlock_S *)
 		       (ucpSackChunk + sizeof(SctpSackChunk_S)
-			+ (usNumGapAcksProcessed * sizeof(SctpGapAckBlock_S))));
+			+(usNumGapAcksProcessed * sizeof(SctpGapAckBlock_S))));
 		}
 
 	      /* If this chunk was GapAcked before, then either the
@@ -2141,12 +2312,13 @@ Boolean_E SctpCMTAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 	}
 
       /* By this time, either we have run through the entire send buffer or we
-       * have run out of gap ack blocks. In the case that we have run out of gap
+       * have run out of gap ack blocks.In the case that we have run out of gap
        * ack blocks before we finished running through the send buffer, we need
        * to mark the remaining chunks in the send buffer as eGapAcked=FALSE.
-       * This final marking needs to be done, because we only trust gap ack info
+       * This final marking needs to be done,because we only trust gap ack info
        * from the last SACK. Otherwise, renegging (which we don't do) or out of
-       * order SACKs would give the sender an incorrect view of the peer's rwnd.
+       * order SACKs would give the sender an incorrect view of the peer's 
+       * rwnd.
        */
       for(; spCurrNode != NULL; spCurrNode = spCurrNode->spNext)
 	{
@@ -2176,9 +2348,9 @@ Boolean_E SctpCMTAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 	    }
 	}
 
-      DBG_PL(ProcessGapAckBlocks, "now incrementing missing reports...") DBG_PR;
+      DBG_PL(ProcessGapAckBlocks,"now incrementing missing reports...") DBG_PR;
       DBG_PL(ProcessGapAckBlocks, "uiHighestTsnNewlyAcked=%d"), 
-	     uiHighestTsnNewlyAcked DBG_PR;
+	uiHighestTsnNewlyAcked DBG_PR;
 
       /****** Begin CMT Change ******/
       /* CMT DAC algo: The SACK chunk flags are unused in RFC2960. We
@@ -2238,7 +2410,8 @@ Boolean_E SctpCMTAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 	       * and how it can be implemented.
 	       */
 	      if (((eUseCmtReordering == FALSE) &&
-		   (spCurrNodeData->spChunk->uiTsn < uiHighestTsnNewlyAcked)) ||
+		   (spCurrNodeData->spChunk->uiTsn < uiHighestTsnNewlyAcked)) 
+		  ||
 		  // ((eUseCmtReordering == FALSE) && (eNewCumAck == TRUE) && 
 		  // (uiHighestTsnNewlyAcked <= uiRecover) &&
 		  // (spCurrNodeData->spChunk->uiTsn < uiHighestTsnSacked)) ||
@@ -2305,9 +2478,9 @@ Boolean_E SctpCMTAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 void SctpCMTAgent::ProcessSackChunk(u_char *ucpSackChunk)
 {
   DBG_I(ProcessSackChunk);
-
+  
   SctpSackChunk_S *spSackChunk = (SctpSackChunk_S *) ucpSackChunk;
-
+  
   DBG_PL(ProcessSackChunk, "cum=%d arwnd=%d #gapacks=%d #duptsns=%d"),
     spSackChunk->uiCumAck, spSackChunk->uiArwnd, 
     spSackChunk->usNumGapAckBlocks, spSackChunk->usNumDupTsns 
@@ -2393,7 +2566,7 @@ void SctpCMTAgent::ProcessSackChunk(u_char *ucpSackChunk)
    * } 
    */
   /* JRI-TODO: Move change to SCTP code. This problem can be caused by 
-   * reordered SACKs too. The SCTP code handles calculation of outstanding bytes
+   * reordered SACKs too.The SCTP code handles calculation of outstanding bytes
    * when SACK is reordered, so this check should be removed there too.
    */
   eFastRtxNeeded = ProcessGapAckBlocks(ucpSackChunk, eNewCumAck);
@@ -2446,7 +2619,7 @@ void SctpCMTAgent::ProcessSackChunk(u_char *ucpSackChunk)
 	}
       /****** End CMT Change ******/
 
-      /* The number of outstanding bytes is reduced by how many bytes this sack 
+      /* The number of outstanding bytes is reduced by how many bytes this sack
        * acknowledges.
        */
       if(spCurrDestNodeData->iNumNewlyAckedBytes <=
@@ -2514,12 +2687,6 @@ void SctpCMTAgent::ProcessSackChunk(u_char *ucpSackChunk)
   AdvancePeerAckPoint();
 
   /****** Begin CMT Change ******/
-  /* PN-TODO: Check if peerRwnd tracking works fine. If so, remove this
-   * tracking code.
-   */
-  /* PN 03/16/06
-   * track last uiArwnd
-   */
   uiArwnd = spSackChunk->uiArwnd;
   /****** End CMT Change ******/
 
@@ -2575,7 +2742,10 @@ int SctpCMTAgent::ProcessChunk(u_char *ucpInChunk, u_char **ucppOutData)
   Boolean_E eFoundNonPFDest =  FALSE;
   Boolean_E eCmtPFCwndChange = FALSE;
   u_int uiTotalOutstanding = 0;
+  Boolean_E eThisDestWasInactive = FALSE; /* For triggering data tx in CMT */
   /****** End CMT Change ******/
+  Boolean_E eThisDestWasUnconfirmed = FALSE;
+  Boolean_E eFoundUnconfirmedDest = FALSE;
 
   switch(eState)
     {
@@ -2598,7 +2768,8 @@ int SctpCMTAgent::ProcessChunk(u_char *ucpInChunk, u_char **ucppOutData)
 	  iThisOutDataSize = GenChunk(SCTP_CHUNK_COOKIE_ACK, *ucppOutData);
 	  *ucppOutData += iThisOutDataSize;
 	  eState = SCTP_STATE_ESTABLISHED;
-	  if(eOneHeartbeatTimer == TRUE && uiHeartbeatInterval != 0)
+
+	  if(uiHeartbeatInterval != 0)
 	    {
 	      dTime = CalcHeartbeatTime(spPrimaryDest->dRto);
 	      opHeartbeatGenTimer->force_cancel();
@@ -2613,19 +2784,7 @@ int SctpCMTAgent::ProcessChunk(u_char *ucpInChunk, u_char **ucppOutData)
 		  spCurrDest->dIdleSince = dCurrTime;
 		}
 	    }
-	  else if(uiHeartbeatInterval != 0)
-	    {
-	      for(spCurrNode = sDestList.spHead;
-		  spCurrNode != NULL;
-		  spCurrNode = spCurrNode->spNext)
-		{
-		  spCurrDest = (SctpDest_S *) spCurrNode->vpData;
-		  DBG_PL(Reset, "about to calculate HB time for dest=%p"), 
-		    spCurrDest DBG_PR;
-		  dTime = CalcHeartbeatTime(spCurrDest->dRto);
-		  spCurrDest->opHeartbeatGenTimer->resched(dTime);
-		}
-	    }
+
 	  break;
 	  
   	default:
@@ -2634,7 +2793,7 @@ int SctpCMTAgent::ProcessChunk(u_char *ucpInChunk, u_char **ucppOutData)
 	   * no error statement here, because there are times when this could
 	   * occur due to abrupt disconnections via the "reset" command. how?
 	   * well, "reset" resets all the association state. however, there may
-	   * still be packets in transit. if and when those packets arrive, they
+	   * still be packets in transit. if and when those packets arrive,they
 	   * will be unexpected packets since the association is closed. since
 	   * this is a simulation, it shouldn't be a problem. however, if an 
 	   * application needs a more graceful shutdown, we would need to 
@@ -2663,43 +2822,26 @@ int SctpCMTAgent::ProcessChunk(u_char *ucpInChunk, u_char **ucppOutData)
       ProcessCookieAckChunk( (SctpCookieAckChunk_S *) ucpInChunk );
       eSendNewDataChunks = TRUE;
       eState = SCTP_STATE_ESTABLISHED;
-      if(eOneHeartbeatTimer == TRUE && uiHeartbeatInterval != 0)
-	{
-	  dTime = CalcHeartbeatTime(spPrimaryDest->dRto);
-	  opHeartbeatGenTimer->force_cancel();
-	  opHeartbeatGenTimer->resched(dTime);
-	  opHeartbeatGenTimer->dStartTime = dCurrTime;
 
-	  for(spCurrNode = sDestList.spHead;
-	      spCurrNode != NULL;
-	      spCurrNode = spCurrNode->spNext)
-	    {
-	      spCurrDest = (SctpDest_S *) spCurrNode->vpData;
-	      spCurrDest->dIdleSince = dCurrTime;
-	    }
-	}
-      else if(uiHeartbeatInterval != 0)
+      /* PN: Confirming Destinations 
+       * RFC allows to send data to a confirmed destination.
+       * However, this implementation is more conservative than
+       * the RFC, since, data is sent to any destionation only if
+       * all destinations have been confirmed. 
+       */ 
+      for(spCurrNode = sDestList.spHead;
+	  spCurrNode != NULL;
+	  spCurrNode = spCurrNode->spNext)
 	{
-	  for(spCurrNode = sDestList.spHead;
-	      spCurrNode != NULL;
-	      spCurrNode = spCurrNode->spNext)
-	    {
-	      spCurrDest = (SctpDest_S *) spCurrNode->vpData;
-	      
-	      /****** Begin CMT Change ******/
-	      /* Schedule only for non PF destinations. If PF destination,
-	       * HBs are scheduled according to T3 timer.
-	       */
-              if (spCurrDest->eStatus != SCTP_DEST_STATUS_POSSIBLY_FAILED)
-		{
-	      	  DBG_PL(Reset, "about to calculate HB time for dest=%p"), 
-			spCurrDest DBG_PR;
-	      	  dTime = CalcHeartbeatTime(spCurrDest->dRto);
-	      	  spCurrDest->opHeartbeatGenTimer->resched(dTime);
-		}
-	      /****** End CMT Change ******/
-	    }
+	  spCurrDest = (SctpDest_S *) spCurrNode->vpData;
+	  spCurrDest->eStatus = SCTP_DEST_STATUS_UNCONFIRMED;
+	  
+	   /* Send Heartbeat to confirm this dest and get RTT */
+	  SendHeartbeat(spCurrDest);
 	}
+      
+      eSendNewDataChunks = FALSE;
+      
       break;
 
     case SCTP_STATE_ESTABLISHED:
@@ -2810,8 +2952,8 @@ int SctpCMTAgent::ProcessChunk(u_char *ucpInChunk, u_char **ucppOutData)
 	  /****** Begin CMT Change ******/
 
 	  spHeartbeatAckChunk = (SctpHeartbeatAckChunk_S *) ucpInChunk;
-	  /* Is HB-ack for a PF path? If yes, then mark path to ACTIVE and
-	   *  set cwnd (see further below for flag usage).
+
+	  /* CMT-PF: Is HB-ACK on a PF path?
 	   */
 	  if (spHeartbeatAckChunk->spDest->eStatus ==
 	      SCTP_DEST_STATUS_POSSIBLY_FAILED)
@@ -2822,15 +2964,14 @@ int SctpCMTAgent::ProcessChunk(u_char *ucpInChunk, u_char **ucppOutData)
 		PrintDestStatus(spHeartbeatAckChunk->spDest) DBG_PR;
 	    }
 	  
-	  /* If CMT-PF, then find if atleast one non-PF dest exists.  If
-	   * so, then we have a regular SCTP HB timer running already. If
-	   * not, we'll have to start SCTP's HB timer for this assoc. (See
-	   * comment below for more.)
+	  if (spHeartbeatAckChunk->spDest->eStatus ==
+	      SCTP_DEST_STATUS_INACTIVE)
+	    eThisDestWasInactive = TRUE;
+
+ 	  /* CMT-PF: Are there any non-PF destinations? Need this info
+	   * for HB timer processing further below.
 	   */
-	  if(eOneHeartbeatTimer == TRUE && uiHeartbeatInterval != 0 
-	     && eUseCmtPF == TRUE)
-            {
-              for(spCurrNode = sDestList.spHead;
+          for(spCurrNode = sDestList.spHead;
                   spCurrNode != NULL;
                   spCurrNode = spCurrNode->spNext)
                 {
@@ -2840,70 +2981,102 @@ int SctpCMTAgent::ProcessChunk(u_char *ucpInChunk, u_char **ucppOutData)
 		      eFoundNonPFDest = TRUE;
 		      DBG_PL(ProcessChunk, "Found non PF dest=%p"), 
 			spCurrDest DBG_PR;
-		      break;
+		      /* break; */
 		    }
-                }
-            }
+               	}
+
+
+          /* PN: Is this destination unconfirmed?
+	   */
+	  if (spHeartbeatAckChunk->spDest->eStatus ==
+	      SCTP_DEST_STATUS_UNCONFIRMED)
+		eThisDestWasUnconfirmed = TRUE;
 	  
 	  ProcessHeartbeatAckChunk( (SctpHeartbeatAckChunk_S *) ucpInChunk);
 
-	  /* If CMT-PF is used, and all dest were in PF (before HB-ack
-	   * arrived), then there were no regular HBs (as against PF's T3
-	   * hearbeats) scheduled for the assoc.  Now, when a destination
-	   * has become active, schedule regular HB for the association
-	   * (because no HB timer will otherwise be running to track idle
-	   * state at the sender).
-	   */
-	  if(eOneHeartbeatTimer == TRUE && uiHeartbeatInterval != 0 
-			&& eUseCmtPF == TRUE && eFoundNonPFDest == FALSE)
+	  /* PN: If this destination was unconfirmed and all other
+	   * destinations have been confirmed, then allow data
+	   * transmission on the association
+           */
+	  if (eThisDestWasUnconfirmed == TRUE) {
+          	for(spCurrNode = sDestList.spHead;
+                  spCurrNode != NULL;
+                  spCurrNode = spCurrNode->spNext)
+             	{
+                  spCurrDest = (SctpDest_S *) spCurrNode->vpData;
+		  if (spCurrDest->eStatus == SCTP_DEST_STATUS_UNCONFIRMED)
+		    {
+		      eFoundUnconfirmedDest = TRUE;
+		      DBG_PL(ProcessChunk, "dest=%p UNCONFIRMED"), 
+			spCurrDest DBG_PR;
+		      break;
+		    }
+		}
+	  	
+		if (eFoundUnconfirmedDest == TRUE)
+			break; /* From case HB_ACK chunk */
+		else {
+			
+		   /* All destinations have been confirmed.
+		    * Start new data transfer
+		    */
+		   eSendNewDataChunks = TRUE;	
 
-	    {
-	      DBG_PL(ProcessChunk, "Restarting assoc RFC2960 HB Gen.") DBG_PR;
-              dTime = CalcHeartbeatTime( ((SctpHeartbeatAckChunk_S *)
-					  ucpInChunk)->spDest->dRto);
-              opHeartbeatGenTimer->resched(dTime);
-              opHeartbeatGenTimer->dStartTime = dCurrTime;
-	    }
+		   /* Process HeartbeatTimers for the association. 
+		    * This code was originally in the COOKIE ACK case above  
+		    */ 
+      		   if(uiHeartbeatInterval != 0)
+		     {
+		       dTime = CalcHeartbeatTime(spPrimaryDest->dRto);
+		       opHeartbeatGenTimer->force_cancel();
+		       opHeartbeatGenTimer->resched(dTime);
+		       opHeartbeatGenTimer->dStartTime = dCurrTime;
+
+		       for(spCurrNode = sDestList.spHead;
+			   spCurrNode != NULL;
+			   spCurrNode = spCurrNode->spNext)
+			 {
+			   spCurrDest = (SctpDest_S *) spCurrNode->vpData;
+			   spCurrDest->dIdleSince = dCurrTime;
+			 }
+		     } 
+
+		  break; /* From case HB_ACK */
+		  
+		} /* End else eFoundUnconfirmedDest == TRUE */
+		
+	  } /* End of if (eThisDestWasUnconfirmed == TRUE) */
 	  
-	  /* Set cwnd to 1 or 2 if HB-ack was received for a PF path.
+	  /* CMT-PF: Set cwnd to uiCmtPFCwnd MTUs if HB-ack was received from a
+	   * destination marked PF
 	   */
-	  if (eCmtPFCwndChange == TRUE)
+	  if ((eCmtPFCwndChange == TRUE) || (eThisDestWasInactive == TRUE))
 	    {
-	      spHeartbeatAckChunk->spDest->iCwnd = uiCmtPFCwnd*uiMaxDataSize;
-	      DBG_PL(ProcessChunk, "dest=%p, CMTPFCwnd=%ld"), 
-		spHeartbeatAckChunk->spDest, 
-		spHeartbeatAckChunk->spDest->iCwnd DBG_PR;
-	      tiCwnd++; // for trace
+	      if (eCmtPFCwndChange == TRUE)
+		{
+		  
+		  spHeartbeatAckChunk->spDest->iCwnd 
+		    = uiCmtPFCwnd*uiMaxDataSize;
+		  DBG_PL(ProcessChunk, "dest=%p, CMTPFCwnd=%ld"), 
+		    spHeartbeatAckChunk->spDest, 
+		    spHeartbeatAckChunk->spDest->iCwnd DBG_PR;
+		  //tiCwnd++; // for trace
 	      
-	      /* Since path has newly become ACTIVE, first rtx lost
-	       * TPDUs if any exist.
+		  spHeartbeatAckChunk->spDest->dPFSince = 0; //unset
+		}
+
+	      /* CMT: Since all paths were INACTIVE and one of them has
+	       * become ACTIVE now. First send retransmissions to the
+	       * ACTIVE destination. 
+	       *
+	       * CMT-PF: Since a PF destination has become ACTIVE, first 
+	       * send retransmissions to the ACTIVE destination. 
 	       */
+
 	      TimeoutRtx(spHeartbeatAckChunk->spDest);
 	      
-	      
-	      /* Note : Sending new data in CMT-PF. 
-	       *
-	       * Since the path turned back to ACTIVE now, can we send
-	       * new data on the path if cwnd and rwnd allows ? Yes.
-	       * 
-	       * Also if all rtxms have been sacked, and no new data is
-	       * sent, the following deadlock happens in CMT-PF.  Consider
-	       * the case when all paths are PF and out = 0 on all dests,
-	       * i.e., all inflight were sacked, but at that point no new
-	       * data could be sent since all dests were PF.  Then
-	       * TimeoutRtx does not txmit anything. New data will be
-	       * txmited when sacks arrive but since nothing is
-	       * outstanding, no sack will arrive -> deadlock.  If nothing
-	       * was rxmited and out = 0 on all dests, then should trigger
-	       * SendMuch.
-	       *
-	       * Ideally, should be able to send new data even if there
-	       * are marked chunks.  But is it OK to send new data when
-	       * there are marked chunks pending?  Lets be conservative
-	       * and see how CMT-PF does. Send new data only when no
-	       * marked chunks are pending.
+	      /* CMT, CMT-PF: If no marked chunks, send new data 
 	       */
-	      
 	      if (AnyMarkedChunks() == FALSE) 
 		{
 		  /* All marked chunks are in flight or have been sacked.
@@ -2920,10 +3093,8 @@ int SctpCMTAgent::ProcessChunk(u_char *ucpInChunk, u_char **ucppOutData)
 		   * rtxms and sender keeps timing out on that rtxms.
 		   * Deadlock !)
 		   *
-		   * So update peerRwnd based on the last arwnd from recv.
-		   */
-		  /* PN-TODO: Remove code tracking peerRwnd if peerRwnd is
-		   * being tracked correctly now.
+		   * So update peerRwnd based on the last advertised
+		   * receiver window. 
 		   */
 		  uiTotalOutstanding = TotalOutstanding();
 		  if(uiTotalOutstanding <= uiArwnd)
@@ -2931,17 +3102,15 @@ int SctpCMTAgent::ProcessChunk(u_char *ucpInChunk, u_char **ucppOutData)
 		  else
 		    uiPeerRwnd = 0;
 		  
-		  tiRwnd++; // trigger changes to be traced
-		  DBG_PL(ProcessChunk, "uiPeerRwnd=%d, uiArwnd=%d"), uiPeerRwnd,
+		  DBG_PL(ProcessChunk,"uiPeerRwnd=%d, uiArwnd=%d"), uiPeerRwnd,
 		    uiArwnd DBG_PR;
 		  
 		  /* Set flag for SendMuch to send new data. 
 		   */
 		  eSendNewDataChunks = TRUE;
 		} 
-	    }
-	  /****** End CMT Change ******/
-	  
+	     }
+	  	  
 	  break; // no state change
 
 	case SCTP_CHUNK_INIT:
@@ -2958,7 +3127,7 @@ int SctpCMTAgent::ProcessChunk(u_char *ucpInChunk, u_char **ucppOutData)
 	    dCurrTime);
 	  break;
 
-	  /* even though the association is established, COOKIE_ECHO needs to be
+	  /* even though the association is established,COOKIE_ECHO needs to be
 	   * handled because the peer may have not received the COOKIE_ACK.
 	   *
 	   * Note: we don't follow the rfc's complex process for handling this
@@ -3145,8 +3314,8 @@ void SctpCMTAgent::MarkChunkForRtx(SctpSendBufferNode_S *spNodeData,
   spNodeData->eMarkedForRtx = eMarkedForRtx;
   uiPeerRwnd += spChunk->sHdr.usLength; // 6.2.1.C1 
 
-  /* let's see if this chunk is on an unreliable stream. if so and the chunk has
-   * run out of retransmissions, mark it as advanced acked and unmark it for rtx
+  /* let's see if this chunk is on an unreliable stream.if so and the chunk has
+   * run out of retransmissions,mark it as advanced acked and unmark it for rtx
    */
   if(spStream->eMode == SCTP_STREAM_UNRELIABLE)
     {
@@ -3198,8 +3367,8 @@ void SctpCMTAgent::recv(Packet *opInPkt, Handler*)
   u_char *ucpOutData = new u_char[uiMaxPayloadSize];
   u_char *ucpCurrOutData = ucpOutData;
 
-  /* local variable which maintains how much data has been filled in the current
-   * outgoing packet
+  /* local variable which maintains how much data has been filled in the 
+   * current outgoing packet
    */
   int iOutDataSize = 0; 
 
@@ -3224,7 +3393,7 @@ void SctpCMTAgent::recv(Packet *opInPkt, Handler*)
     }
   while(ucpCurrInChunk != NULL);
 
-  /* Let's see if we have any response chunks (currently only handshake related)
+  /* Let's see if we have any response chunks(currently only handshake related)
    * to transmit. 
    *
    * Note: We don't bundle these responses (yet!)
@@ -3257,7 +3426,7 @@ void SctpCMTAgent::recv(Packet *opInPkt, Handler*)
     {
       memset(ucpOutData, 0, uiMaxPayloadSize);
       iOutDataSize = BundleControlChunks(ucpOutData);
-      iOutDataSize += GenChunk(SCTP_CHUNK_FORWARD_TSN, ucpOutData+iOutDataSize);
+      iOutDataSize += GenChunk(SCTP_CHUNK_FORWARD_TSN,ucpOutData+iOutDataSize);
       SendPacket(ucpOutData, iOutDataSize, spNewTxDest);
       DBG_PL(recv, "FORWARD TSN chunk sent") DBG_PR;
       eForwardTsnNeeded = FALSE; // reset AFTER sent (o/w breaks dependencies)
@@ -3300,7 +3469,6 @@ void SctpCMTAgent::SendMuch()
 
   u_char *ucpOutData = new u_char[uiMaxPayloadSize];
   int iOutDataSize = 0;
-  double dTime = 0;
   double dCurrTime = Scheduler::instance().clock();
 
   /****** Begin CMT Change ******/
@@ -3308,7 +3476,7 @@ void SctpCMTAgent::SendMuch()
   static Node_S *spNodeLastSentTo = NULL;
   Node_S *spLoopStartNode = NULL;
   SctpDest_S *spSavedTxDest = NULL;
-
+  SctpDest_S *spTempDest = NULL;
 
   /* spNewDest is a var used throughout the program to maintain vars for
    * dest to which new transmissions are sent, such as cwnd. Since we
@@ -3318,6 +3486,22 @@ void SctpCMTAgent::SendMuch()
    */
   spSavedTxDest = spNewTxDest;
 
+  /* CMT-PF: If all destinations are marked PF, select one from them for
+   * data transmission 
+   */
+  if (eUseCmtPF == TRUE)
+    {
+      spTempDest = SelectFromPFDests();
+      if (spTempDest != NULL)
+     	{
+	  /* spTempDest was PF and changed to Active by SelectFromPFDests()
+	   */
+
+	   tiCountPFToActiveNewData++; // trace will pick up
+
+	}
+    }
+  
   /* RR Scheduling: Start sending to the dest next to the one last sent to.
    */
   if (spNodeLastSentTo != NULL) 
@@ -3426,7 +3610,7 @@ void SctpCMTAgent::SendMuch()
 	      
               memset(ucpOutData, 0, uiMaxPayloadSize); // reset
               iOutDataSize = BundleControlChunks(ucpOutData);
-              iOutDataSize += GenMultipleDataChunks(ucpOutData+iOutDataSize, 0);
+              iOutDataSize += GenMultipleDataChunks(ucpOutData+iOutDataSize,0);
               SendPacket(ucpOutData, iOutDataSize, spNewTxDest);
               DBG_PL(SendMuch, "DATA chunk(s) sent") DBG_PR;
             }
@@ -3449,19 +3633,12 @@ void SctpCMTAgent::SendMuch()
       if(iOutDataSize > 0)  // did we send anything??
         {
           spNewTxDest->opCwndDegradeTimer->resched(spNewTxDest->dRto);
-	  if(eOneHeartbeatTimer == TRUE && uiHeartbeatInterval != 0)
+	  if(uiHeartbeatInterval != 0)
             {
               spNewTxDest->dIdleSince = dCurrTime;
             }
-          else if(uiHeartbeatInterval != 0)
-            {
-              DBG_PL(SendMuch,"about to calculate heartbeat time for dest=%p"), 
-                spNewTxDest DBG_PR;
-              dTime = CalcHeartbeatTime(spNewTxDest->dRto);
-              spNewTxDest->opHeartbeatGenTimer->resched(dTime);
-            }
 
-	 /****** Begin CMT Change ******/
+	  /****** Begin CMT Change ******/
           /* RR Scheduling: Maintain last dest data was sent to
            */
           spNodeLastSentTo = spCurrNode;
@@ -3519,22 +3696,36 @@ void SctpCMTAgent::Timeout(SctpChunkType_E eChunkType, SctpDest_S *spDest)
   double dCurrTime = Scheduler::instance().clock();
 
   DBG_PL(Timeout, "dCurrTime=%f"), dCurrTime DBG_PR;
-
+  
   if(eChunkType == SCTP_CHUNK_DATA)
     {
       spDest->eRtxTimerIsRunning = FALSE;
       
       /* section 7.2.3 of rfc2960 (w/ implementor's guide v.02)
        */
-      if(spDest->iCwnd > 1 * (int) uiMaxDataSize)
-	{
-	  spDest->iSsthresh 
-	    = MAX(spDest->iCwnd/2, iInitialCwnd * (int)uiMaxDataSize);
-	  spDest->iCwnd = 1*uiMaxDataSize;
-
-	  spDest->iPartialBytesAcked = 0; // reset
-	  tiCwnd++; // trigger changes for trace to pick up
-	}
+      
+      /* Why is there a conditional change to ssthresh below??
+       * No information reg. the same in either  RFC or implementors guide.
+       * During failure or high loss rates that result in back-to-back 
+       * timeouts, ssthresh is not reduced after the first
+       * timeout. Hence, CMT's RTX_SSTHRESH is at a disadvantage. 
+       * NASIF FIX THIS: Confirm if this should be here. if not, remove
+       * comment below. This might have to be fixed in sctp.cc's Timeout() as 
+       * well.
+       */
+      /* Begin Change:
+       *if(spDest->iCwnd > 1 * (int) uiMaxDataSize)
+       * {
+       *
+       */
+      spDest->iSsthresh 
+	= MAX(spDest->iCwnd/2, iInitialCwnd * (int)uiMaxDataSize);
+      spDest->iCwnd = 1*uiMaxDataSize;
+      
+      spDest->iPartialBytesAcked = 0; // reset
+      tiCwnd++; // trigger changes for trace to pick up
+      
+       /* } End Change */
 
       spDest->opCwndDegradeTimer->force_cancel();
 
@@ -3572,10 +3763,10 @@ void SctpCMTAgent::Timeout(SctpChunkType_E eChunkType, SctpDest_S *spDest)
       sprintf(cpOutString,
 	      "time: %-8.5f  "
 	      "saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d "
-	      "DataTimeout, numTimeouts: %d peerRwnd: %d rto: %-6.3f \n",
+	      "DataTimeout, peerRwnd: %d rto: %-6.3f errCnt: %d \n",
 	      dCurrTime,
 	      addr(), port(), spTraceDest->iNsAddr, spTraceDest->iNsPort,
-	      spTraceDest->uiNumTimeouts, uiPeerRwnd, spTraceDest->dRto);
+	      uiPeerRwnd, spTraceDest->dRto, spTraceDest->iErrorCount);
       if(channel_)
     	  (void)Tcl_Write(channel_, cpOutString, strlen(cpOutString));
 
@@ -3593,7 +3784,7 @@ void SctpCMTAgent::Timeout(SctpChunkType_E eChunkType, SctpDest_S *spDest)
   DBG_PL(Timeout, "now spDest->dRto=%f"), spDest->dRto DBG_PR;
 
   spDest->iTimeoutCount++;
-  spDest->iErrorCount++; // @@@ window probe timeouts should not be counted
+  spDest->iErrorCount++; // @@@ window probe timeouts sould not be counted
   DBG_PL(Timeout, "now spDest->iErrorCount=%d"), spDest->iErrorCount DBG_PR;
 
   /*** Begin CMT change ***/
@@ -3603,24 +3794,22 @@ void SctpCMTAgent::Timeout(SctpChunkType_E eChunkType, SctpDest_S *spDest)
       iAssocErrorCount++;
       DBG_PL(Timeout, "now iAssocErrorCount=%d"), iAssocErrorCount DBG_PR;
 
-      /* if ( (spDest->iErrorCount == 1) && (eUseCmtPF is TRUE)) then
-       * set spDest status = POSS FAIL
-       */
       if ((spDest->iErrorCount == 1) && (eUseCmtPF == TRUE))
-      {
-        spDest->eStatus = SCTP_DEST_STATUS_POSSIBLY_FAILED;
-        DBG_PL(Timeout, "Dest=%p Marked PF"), spDest DBG_PR;
-
-        if(eOneHeartbeatTimer == FALSE && uiHeartbeatInterval != 0)
-          {
-             spDest->opHeartbeatGenTimer->force_cancel();
-             spDest->opHeartbeatTimeoutTimer->force_cancel();
-             DBG_PL(Timeout, "Dest=%p Cancelled Heartbeat Timer"),
-                                spDest DBG_PR;
-          } 
-      }
+	{
+	  spDest->eStatus = SCTP_DEST_STATUS_POSSIBLY_FAILED;
+	  spDest->dPFSince = dCurrTime;
+	  DBG_PL(Timeout, "Dest=%p Marked PF at time: %-8.5f"), spDest,
+	    spDest->dPFSince DBG_PR;
+	  
+	  if(uiHeartbeatInterval != 0)
+	    {
+	      spDest->opHeartbeatTimeoutTimer->force_cancel();
+	      DBG_PL(Timeout, "Dest=%p Cancelled Heartbeat Timer"),
+		spDest DBG_PR;
+	    } 
+	}
       /*** End CMT change ***/
-
+      
       // Path.Max.Retrans exceeded?
       if(spDest->iErrorCount > (int) uiPathMaxRetrans) 
 	{
@@ -3660,8 +3849,6 @@ void SctpCMTAgent::Timeout(SctpChunkType_E eChunkType, SctpDest_S *spDest)
     {
       TimeoutRtx(spDest);
 
-      /* if status is PF, TimeoutRtx couldnt have sent data on PF dest,
-       */	
       DBG_PL(Timeout, "Dest: %p, out: %d"), spDest, spDest->iOutstandingBytes
 		DBG_PR; 
       if(spDest->eStatus == SCTP_DEST_STATUS_POSSIBLY_FAILED) 
@@ -3669,15 +3856,15 @@ void SctpCMTAgent::Timeout(SctpChunkType_E eChunkType, SctpDest_S *spDest)
   	SendHeartbeat(spDest);
       } 
 	
-      if(spDest->eStatus == SCTP_DEST_STATUS_INACTIVE && uiHeartbeatInterval!=0)
-	SendHeartbeat(spDest);  // just marked inactive, so send HB immediately!
+      if(spDest->eStatus == SCTP_DEST_STATUS_INACTIVE && 
+	 uiHeartbeatInterval!=0)
+	SendHeartbeat(spDest); // just marked inactive, so send HB immediately!
     }
   else if(eChunkType == SCTP_CHUNK_HB)
     {
-     /* send heartbeat after RTO on PF path
-      */
-      if((eOneHeartbeatTimer == FALSE && uiHeartbeatInterval != 0) ||
-		(spDest->eStatus == SCTP_DEST_STATUS_POSSIBLY_FAILED))
+      if((uiHeartbeatInterval != 0) ||
+	 (spDest->eStatus == SCTP_DEST_STATUS_POSSIBLY_FAILED) ||
+	 (spDest->eStatus == SCTP_DEST_STATUS_UNCONFIRMED))
 	SendHeartbeat(spDest);
     }
   /*** End CMT change ***/
@@ -3710,7 +3897,7 @@ u_int SctpCMTAgent::GetHighestOutstandingTsn(SctpDest_S *spOutstandingOnDest)
       if( (spCurrBuffData->spDest == spOutstandingOnDest)&&
 	  (spCurrBuffData->eMarkedForRtx == NO_RTX))  // is it oustanding?
         {
-          uiHighestOutstandingTsn = spCurrBuffData->spChunk->uiTsn; // found it!
+          uiHighestOutstandingTsn = spCurrBuffData->spChunk->uiTsn; //found it!
           break;
         }
       /****** End CMT Change ******/
@@ -3723,8 +3910,7 @@ u_int SctpCMTAgent::GetHighestOutstandingTsn(SctpDest_S *spOutstandingOnDest)
   return uiHighestOutstandingTsn;
 }
 
-void SctpCMTAgent::HeartbeatGenTimerExpiration(double dTimerStartTime,
-					       SctpDest_S *spDest)
+void SctpCMTAgent::HeartbeatGenTimerExpiration(double dTimerStartTime)
 {
   DBG_I(HeartbeatGenTimerExpiration);
 
@@ -3736,60 +3922,51 @@ void SctpCMTAgent::HeartbeatGenTimerExpiration(double dTimerStartTime,
   double dTime;
 
   DBG_PL(HeartbeatGenTimerExpiration, "Time: %-8.5f"), dCurrTime DBG_PR;
+  
+  DBG_PL(HeartbeatGenTimerExpiration, "finding the longest idle dest...") 
+    DBG_PR;
 
-  if(eOneHeartbeatTimer == FALSE)
+  /* find the destination which has been idle the longest 
+   */
+  for(spCurrNode = spLongestIdleNode = sDestList.spHead;
+      spCurrNode != NULL;
+      spCurrNode = spCurrNode->spNext)
     {
-      /****** Begin CMT Change ******/
-      /* If destination is PF, then T3 timer expiration function will send
-       * out HB. Send HB here only if dest is NOT PF.
-       */
-      if (spDest->eStatus == SCTP_DEST_STATUS_POSSIBLY_FAILED)
-	DBG_PL(HeartbeatGenTimerExpiration, "dest=%p is in PF state"),
-	  spDest DBG_PR;
-      else
-	SendHeartbeat(spDest);
-      /****** End CMT Change ******/
-    }
-  else
-    {
-      DBG_PL(HeartbeatGenTimerExpiration, "finding the longest idle dest...") 
-	DBG_PR;
-
-      /* find the destination which has been idle the longest 
-       */
-      for(spCurrNode = spLongestIdleNode = sDestList.spHead;
-	  spCurrNode != NULL;
-	  spCurrNode = spCurrNode->spNext)
-	{
-	  spCurrNodeData = (SctpDest_S *) spCurrNode->vpData;
-	  spLongestIdleNodeData = (SctpDest_S *) spLongestIdleNode->vpData;
-
-	  DBG_PL(HeartbeatGenTimerExpiration, "spDest=%p idle since %f"), 
-	    spCurrNodeData, spCurrNodeData->dIdleSince DBG_PR;
-	  
-	  if(spCurrNodeData->dIdleSince < spLongestIdleNodeData->dIdleSince)
-	    spLongestIdleNode = spCurrNode;
-	}
-
-      /* has it been idle long enough?
-       */
+      spCurrNodeData = (SctpDest_S *) spCurrNode->vpData;
       spLongestIdleNodeData = (SctpDest_S *) spLongestIdleNode->vpData;
-      DBG_PL(HeartbeatGenTimerExpiration, "longest idle dest since %f"),
-	spLongestIdleNodeData->dIdleSince DBG_PR;
-      DBG_PL(HeartbeatGenTimerExpiration, "timer start time %f"),
-	dTimerStartTime DBG_PR;
-      if(spLongestIdleNodeData->dIdleSince <= dTimerStartTime)
-	SendHeartbeat(spLongestIdleNodeData);
-      else
-	DBG_PL(HeartbeatGenTimerExpiration, 
-	       "longest idle dest not idle long enough!") DBG_PR;
-
-      /* start the timer again...
-       */
-      dTime = CalcHeartbeatTime(spLongestIdleNodeData->dRto);
-      opHeartbeatGenTimer->resched(dTime);
-      opHeartbeatGenTimer->dStartTime = dCurrTime;
+      
+      DBG_PL(HeartbeatGenTimerExpiration, "spDest=%p idle since %f"), 
+	spCurrNodeData, spCurrNodeData->dIdleSince DBG_PR;
+	  
+      if(spCurrNodeData->dIdleSince < spLongestIdleNodeData->dIdleSince)
+	spLongestIdleNode = spCurrNode;
     }
+  
+  /* has it been idle long enough?
+   */
+  spLongestIdleNodeData = (SctpDest_S *) spLongestIdleNode->vpData;
+  DBG_PL(HeartbeatGenTimerExpiration, "longest idle dest since %f"),
+    spLongestIdleNodeData->dIdleSince DBG_PR;
+  DBG_PL(HeartbeatGenTimerExpiration, "timer start time %f"),
+    dTimerStartTime DBG_PR;
+  
+  /****** Begin CMT Change ******/
+  /* For PF destinations, Timeout() (T3 timer expiration) function
+   * sends out HBs. Snd HB here only if destination is not PF.
+   */
+  if(spLongestIdleNodeData->dIdleSince <= dTimerStartTime && 
+     spLongestIdleNodeData->eStatus != SCTP_DEST_STATUS_POSSIBLY_FAILED )
+    SendHeartbeat(spLongestIdleNodeData);
+  else
+    DBG_PL(HeartbeatGenTimerExpiration, 
+	   "longest idle dest not idle long enough!") DBG_PR;
+  /****** End CMT Change ******/
+  
+  /* start the timer again...
+   */
+  dTime = CalcHeartbeatTime(spLongestIdleNodeData->dRto);
+  opHeartbeatGenTimer->resched(dTime);
+  opHeartbeatGenTimer->dStartTime = dCurrTime;
 
   DBG_X(HeartbeatGenTimerExpiration);
 }
@@ -3841,11 +4018,120 @@ char* SctpCMTAgent::PrintDestStatus(SctpDest_S* spDest)
       return "INACTIVE";
     case SCTP_DEST_STATUS_POSSIBLY_FAILED:
       return "PF";
+    case SCTP_DEST_STATUS_UNCONFIRMED:
+      return "UNCONFIRMED";
     default:
       return "UNKNOWN";
     }
 }
 
+/* New CMT-PF method:
+ *
+ * If all destinations are marked PF, send data to one of
+ * the destinations so that CMT-PF does not perform worse than
+ * CMT.  
+ *
+ * Algorithm to select the PF destination:
+ *   Select the dest with the least error count.
+ *   If tie in errorcount values, then all destinations
+ *   have "Possibly failed" to the same degree. So, select dest
+ *   that was most recently active (marked PF most recently). 
+ *
+ * Implementation: 
+ * If atleast 1 non-PF dest exists, return NULL
+ * else, 
+ *	- select a dest based on the above algo.
+ * 	- set cwnd on the selected PF dest to 1 MTU
+ * 	- stop the HB timer if it is running. - hb goes to blackhole !
+ *	  hb loss cannot be detected. But, if hb-ack comes back,
+ *	  errorcount for the destination is cleared. Situation is
+ *	  similar to an ACTIVE dest recving hb. 
+ * 	- set eRtxTimerIsRunning to false -- when data is sent, 
+ * 	  T3RTX timer be started by RtxMarkedChunks or GenOneDataChunk.
+ *	- change dest status to ACTIVE. This dest status is just for
+ *	  easier implementation and does not change anything in the
+ *	  CMT-PF details. This implementation uses the following rule:
+ *		If a dest is PF, only HBs are sent
+ *		If a dest is ACTIVE, data is sent
+ *	- Schedule HeartbeatGenTimer 
+ *
+ * Note: This implementation can be considered _aggressive_,
+ * since, on the selected PF dest, a HB could've been sent and
+ * before HB-ACK arrives, 1MTU of data will be sent.  
+ * MAYBE, this aggressiveness can be
+ * avoided with a better implementation - do not send HB on
+ * a destination with the least error count? 
+ */
+
+
+SctpDest_S*  SctpCMTAgent::SelectFromPFDests()
+{
+  
+  int iLeastErrorCount = (int) uiPathMaxRetrans; 
+  double dMostRecentPFSince = 0; 
+  Node_S *spCurrDestNode = NULL;
+  SctpDest_S* spCurrDestNodeData = NULL;
+  SctpDest_S* spSelectedDest = NULL;
+  
+  for(spCurrDestNode = sDestList.spHead;
+      spCurrDestNode != NULL;
+      spCurrDestNode = spCurrDestNode->spNext)
+    { 
+      spCurrDestNodeData = (SctpDest_S *) spCurrDestNode->vpData;
+      
+      if (spCurrDestNodeData->eStatus == SCTP_DEST_STATUS_POSSIBLY_FAILED)
+	{
+	  if (spCurrDestNodeData->iErrorCount < iLeastErrorCount) 
+	    {
+	      spSelectedDest = spCurrDestNodeData;
+	      iLeastErrorCount = spCurrDestNodeData->iErrorCount;
+	      dMostRecentPFSince = spCurrDestNodeData->dPFSince;
+	    }
+	  else if (spCurrDestNodeData->iErrorCount == iLeastErrorCount)
+	    {
+	      if (spCurrDestNodeData->dPFSince > dMostRecentPFSince)
+		{
+		  spSelectedDest = spCurrDestNodeData;
+		  iLeastErrorCount = spCurrDestNodeData->iErrorCount;
+		  dMostRecentPFSince = spCurrDestNodeData->dPFSince;
+		}
+	      else if (spCurrDestNodeData->dPFSince == dMostRecentPFSince)
+		{
+		  if (Random::random()&01)
+		    spSelectedDest = spCurrDestNodeData;
+		}
+	    } 
+	  
+	} 
+      else 
+	{
+	  /* Found a non-PF dest, return NULL 
+	   */
+	  return NULL;
+	  
+	}
+      
+    } 
+
+  /* A PF destination was selected to be marked Active
+   */
+  if (spSelectedDest->eRtxTimerIsRunning == TRUE)
+    StopT3RtxTimer(spSelectedDest);
+  
+  spSelectedDest->opHeartbeatTimeoutTimer->force_cancel();
+  spSelectedDest->eHBTimerIsRunning = FALSE;
+  
+  spSelectedDest->iCwnd = 1*uiMaxDataSize;
+  
+  spSelectedDest->eStatus = SCTP_DEST_STATUS_ACTIVE;
+  spSelectedDest->dPFSince = 0;
+  
+  //  DBG_PL(SelectFromPFDests, "Dest: %p changed from PF to Active"),
+  // spSelectedDest  DBG_PR;
+  
+  return spSelectedDest;
+
+}
 
 /* New CMT function. Currently not used. */
 void SctpCMTAgent::SetSharedCCParams(SctpDest_S *spCurrInfo)

@@ -1,10 +1,13 @@
 /*
- * Copyright (c) 2001-2006 by the Protocol Engineering Lab, U of Delaware
+ * Copyright (c) 2006-2007 by the Protocol Engineering Lab, U of Delaware
  * All rights reserved.
  *
+ * Protocol Engineering Lab web page : http://pel.cis.udel.edu/
+ *
+ * Paul D. Amer         <amer@@cis,udel,edu>
  * Janardhan R. Iyengar <iyengar@@cis,udel,edu>
- * Preethi Natarajan <nataraja@@cis,udel,edu>
- * Keyur Shah <shah@@cis,udel,edu>
+ * Preethi Natarajan    <nataraja@@cis,udel,edu>
+ * Nasif Ekiz           <nekiz@@cis,udel,edu>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -76,12 +79,13 @@ protected:
    */
   void OptionReset();
   void Reset();
-  
+
   /* tracing functions
    */
   void TraceAll();
   void TraceVar(const char*);
-
+  void trace(TracedVar*);
+  
   /* sending functions
    */
   void      AddToSendBuffer(SctpDataChunkHdr_S *, int, u_int, SctpDest_S *);
@@ -100,13 +104,17 @@ protected:
   void        ProcessSackChunk(u_char *);
   int         ProcessChunk(u_char *, u_char **);
   u_int       GetHighestOutstandingTsn(SctpDest_S *);
-  void        HeartbeatGenTimerExpiration(double, SctpDest_S*);
+  void        HeartbeatGenTimerExpiration(double);
 
   /* new CMT functions
    */
   SctpDest_S* SelectRtxDest(SctpSendBufferNode_S*, SctpRtxLimit_E);
   void        SetSharedCCParams(SctpDest_S*);
   char*       PrintDestStatus(SctpDest_S*);
+
+  /* new CMT-PF function
+   */
+  SctpDest_S* SelectFromPFDests();
 
 
   /******* Variables *******/
@@ -125,9 +133,6 @@ protected:
   CmtRtxPolicy_E eCmtRtxPolicy;
 
   /* CMT-PF: Use the possibly failed state in RTX_SSTHRESH policy?
-   * If using CMT-PF, always set eOneHeartbeatTimer to false.
-   * Using one HB timer for the whole association will not work since
-   * each PF dest needs its own HB timer.
    */
   Boolean_E eUseCmtPF;  
 
@@ -138,6 +143,13 @@ protected:
   /* CMT-PF: Track last adv rwnd
    */
   u_int uiArwnd;
+
+  /* CMT-PF: Trace variables 
+   */
+  TracedInt tiCountPFToActiveNewData; // Count of PF->Active state changes 
+                                      // for new data (in SendMuch)
+  TracedInt tiCountPFToActiveRtxms;   // Count of PF->Active state changes
+                                      // for retransmissions (in SelectRtxDest)
 };
 
 #endif
