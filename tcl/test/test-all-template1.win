@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1.win,v 1.2 2000/10/03 03:43:56 xuanc Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1.win,v 1.3 2007/06/17 21:52:06 tom_henderson Exp $
 #
 # The initial version of this script was written and contributed 
 # by Matt Mathis (mathis@psc.edu).
@@ -110,21 +110,21 @@ for t in $tests; do
 	fi
     fi
     if [ -f $datafile ]; then
-	if [ ! -f $directory/$t.Z ]; then
+	if [ ! -f $directory/$t.gz ]; then
 	    echo saving output for future validation
 	    success="unknown"
-	    cp $datafile $datafile.bk; compress $datafile  
+	    cp $datafile $datafile.bk; gzip $datafile  
 	    cp $datafile.bk $datafile
-	    mv $datafile.Z $directory/$t.Z
+	    mv $datafile.gz $directory/$t.gz
 	else
-	    gzip -dc $directory/$t.Z | perl -ne 'print $_;' | cmp -s - $datafile
+	    gzip -dc $directory/$t.gz | perl -ne 'print $_;' | cmp -s - $datafile
 	    if [ $? = 0 ]; then
 		echo Test output agrees with reference output
 	    else
 		echo Test output differs from reference output
 		success="false"
 		cp $datafile $directory/$t.test
-		gzip -dc $directory/$t.Z > $directory/$t
+		gzip -dc $directory/$t.gz > $directory/$t
 		echo "Diagnose with: diff $directory/$t.test $directory/$t"
 		echo "Or see URL \"http://www.isi.edu/nsnam/ns/ns-problems.html\"."
 
