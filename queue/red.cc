@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-     "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.83 2006/12/17 15:21:59 mweigle Exp $ (LBL)";
+     "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.84 2007/07/02 04:47:54 sallyfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -445,7 +445,10 @@ REDQueue::calculate_p_new(double v_ave, double th_max, int gentle, double v_a,
 	} else {
 		// p ranges from 0 to max_p as the average queue
 		// size ranges from th_min to th_max 
+                // p continues to range linearly above max_p as
+                // the average queue size ranges above th_max.
 		p = v_a * v_ave + v_b;
+                // p = (v_ave - th_min) / (th_max - th_min)
 		p *= max_p;
 	}
 	if (p > 1.0)
