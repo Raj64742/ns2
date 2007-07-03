@@ -53,7 +53,7 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.44 2005/12/03 04:30:25 sallyfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.45 2007/07/03 02:11:34 sallyfloyd Exp $ (LBL)
  */
 
 #ifndef ns_red_h
@@ -88,6 +88,9 @@ struct edp {
 				/* when p > mark_p, drop chosen packets */
         int use_mark_p;		/* use mark_p only for deciding when to drop, */
 				/*   if queue is not full */
+				/* Set use_mark_p true and set mark_p to 2.0 */
+				/*   to always mark instead of drop */
+				/*   when queue is not full */
 	double q_w;		/* queue weight given to cur q size sample */
 	int adaptive;		/* 0 for default RED */
 				/* 1 for adaptive RED, adapting max_p */
