@@ -309,7 +309,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX CPP EGREP CPP_NAMESPACE V_TCL_LIBRARY_FILES V_TCLSH V_LIBRARY_TCL V_TKDOSNAMES V_LIBRARY_TK V_TCL2CPP PERL build_nse V_INCLUDES V_LIBS V_DEFINES V_STATIC V_TAR_TARGET V_LIB_TCLCL V_LIB_OTCL V_LIB_TCL V_LIB_TK V_ALL V_CCOPT V_TAR_EXTRA V_LIB V_DEFINE V_SIGRET V_SHELL V_TARCMD V_INCLUDE V_OBJ V_BROKEN_OBJ V_OBJ_CRYPT V_RANLIB V_AR V_STLOBJ V_NS_TCL_LIB_STL V_LSSCRIPT INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX CPP EGREP CPP_NAMESPACE V_TCL_LIBRARY_FILES V_TCLSH V_LIBRARY_TCL V_TKDOSNAMES V_LIBRARY_TK V_TCL2CPP V_INCLUDE_X11 V_LIB_X11 PERL build_nse V_INCLUDES V_LIBS V_DEFINES V_STATIC V_TAR_TARGET V_LIB_TCLCL V_LIB_OTCL V_LIB_TCL V_LIB_TK V_ALL V_CCOPT V_TAR_EXTRA V_LIB V_DEFINE V_SIGRET V_SHELL V_TARCMD V_INCLUDE V_OBJ V_BROKEN_OBJ V_OBJ_CRYPT V_RANLIB V_AR V_STLOBJ V_NS_TCL_LIB_STL V_LSSCRIPT INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -5835,6 +5835,274 @@ powerpc-apple-darwin*)
 esac
 
 
+xlibdirs="\
+	/usr/openwin/lib \
+	/usr/X11R6/lib \
+	/usr/lib/X11R6 \
+	/usr/X11R5/lib \
+	/usr/lib/X11R5 \
+	/usr/X11R4/lib \
+	/usr/lib/X11R4 \
+	/usr/local/lib \
+	/usr/X386/lib \
+	/usr/X11/lib \
+	/usr/unsupported/lib \
+	/import/X11R4/usr/lib"
+
+xincdirs="\
+	/usr/openwin/include \
+	/usr/X11R6/include \
+	/usr/include/X11R6 \
+	/usr/X11R5/include \
+	/usr/include/X11R5 \
+	/usr/X11R4/include \
+	/usr/include/X11R4 \
+	/usr/local/include \
+	/usr/X386/include \
+	/usr/X11/include \
+	/usr/lpp/X11/include \
+	/usr/unsupported/include \
+	/import/X11R4/include"
+
+
+echo "checking for X11 header files"
+if test "$x_includes" = NONE ; then
+	cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <X11/Intrinsic.h>
+_ACEOF
+if { (eval echo "$as_me:$LINENO: \"$ac_cpp conftest.$ac_ext\"") >&5
+  (eval $ac_cpp conftest.$ac_ext) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } >/dev/null; then
+  if test -s conftest.err; then
+    ac_cpp_err=$ac_c_preproc_warn_flag
+    ac_cpp_err=$ac_cpp_err$ac_c_werror_flag
+  else
+    ac_cpp_err=
+  fi
+else
+  ac_cpp_err=yes
+fi
+if test -z "$ac_cpp_err"; then
+  x_includes=""
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+  x_includes=NONE
+fi
+rm -f conftest.err conftest.$ac_ext
+	if test "$x_includes" = NONE ; then
+	        for i in $xincdirs ; do
+			if test -r $i/X11/Intrinsic.h; then
+				x_includes=$i
+				break
+			fi
+	        done
+		if test "$x_includes" = NONE ; then
+			echo "can't find X includes"
+	       		exit 1
+		fi
+	fi
+fi
+if test -n "$x_includes" ; then
+	V_INCLUDE_X11=-I$x_includes
+
+fi
+
+echo "checking for X11 library archive"
+if test "$x_libraries" = NONE ; then
+	echo "$as_me:$LINENO: checking for XOpenDisplay in -lX11" >&5
+echo $ECHO_N "checking for XOpenDisplay in -lX11... $ECHO_C" >&6
+if test "${ac_cv_lib_X11_XOpenDisplay+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lX11  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char XOpenDisplay ();
+int
+main ()
+{
+XOpenDisplay ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_X11_XOpenDisplay=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_lib_X11_XOpenDisplay=no
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_X11_XOpenDisplay" >&5
+echo "${ECHO_T}$ac_cv_lib_X11_XOpenDisplay" >&6
+if test $ac_cv_lib_X11_XOpenDisplay = yes; then
+  x_libraries=""
+else
+  x_libraries=NONE
+fi
+
+	if test "$x_libraries" = NONE ; then
+		for i in $xlibdirs ; do
+			if test -r $i/libX11.a -o -r $i/libX11.so -o -r $i/libX11.dll.a; then
+				x_libraries=$i
+				break
+			fi
+       		done
+		if test "$x_libraries" = NONE ; then
+			echo "can't find X library"
+			exit 1
+		fi
+	fi
+fi
+
+V_LIB_X11=-lX11
+
+if test -n "$V_SHM" ; then
+	if test -z "$x_libraries" ; then
+		echo "$as_me:$LINENO: checking for XShmAttach in -lXext" >&5
+echo $ECHO_N "checking for XShmAttach in -lXext... $ECHO_C" >&6
+if test "${ac_cv_lib_Xext_XShmAttach+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lXext -lX11 $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char XShmAttach ();
+int
+main ()
+{
+XShmAttach ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_Xext_XShmAttach=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_lib_Xext_XShmAttach=no
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_Xext_XShmAttach" >&5
+echo "${ECHO_T}$ac_cv_lib_Xext_XShmAttach" >&6
+if test $ac_cv_lib_Xext_XShmAttach = yes; then
+  V_Xext="-lXext"
+else
+  V_Xext=NONE
+fi
+
+	else
+		echo "checking for libXext.a"
+		if test -f $x_libraries/libXext.a -o -f $x_libraries/libXext.so; then
+			V_Xext="-lXext"
+		else
+			echo "warning: compiling without -lXext"
+		fi
+	fi
+	if test "$V_Xext" = NONE ; then
+		echo "warning: compiling without -lXext"
+	else
+		V_LIB_X11="$V_Xext $V_LIB_X11"
+	fi
+fi
+
+if test -n "$x_libraries" ; then
+	V_LIB_X11="-L$x_libraries $V_LIB_X11"
+	if test $solaris ; then
+		V_LIB_X11="-R$x_libraries $V_LIB_X11"
+	fi
+fi
+
+
+
 
 # Check whether --with-tcldebug or --without-tcldebug was given.
 if test "${with_tcldebug+set}" = set; then
@@ -9918,6 +10186,8 @@ s,@V_LIBRARY_TCL@,$V_LIBRARY_TCL,;t t
 s,@V_TKDOSNAMES@,$V_TKDOSNAMES,;t t
 s,@V_LIBRARY_TK@,$V_LIBRARY_TK,;t t
 s,@V_TCL2CPP@,$V_TCL2CPP,;t t
+s,@V_INCLUDE_X11@,$V_INCLUDE_X11,;t t
+s,@V_LIB_X11@,$V_LIB_X11,;t t
 s,@PERL@,$PERL,;t t
 s,@build_nse@,$build_nse,;t t
 s,@V_INCLUDES@,$V_INCLUDES,;t t
