@@ -19,7 +19,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/validate,v 1.146 2007/08/08 04:19:46 tom_henderson Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/validate,v 1.147 2007/08/15 05:51:59 tom_henderson Exp $
 
 try () {
         for excluding in $cygwin_exclude; do
@@ -127,7 +127,7 @@ then
         if $any_failed
         then
 	    echo "some non-portable tests also failed:"
-	    echo "    $portable_failed_list"
+	    echo "    $failed_list"
         fi
 	echo "to re-run a specific test, cd tcl/test; ./test-all-TEST-NAME"
 	exit 1
