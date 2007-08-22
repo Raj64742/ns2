@@ -4370,7 +4370,7 @@ if test "${with_tcl_ver+set}" = set; then
   withval="$with_tcl_ver"
   TCL_VERS=$withval
 else
-  TCL_VERS=8.4.14
+  TCL_VERS=8.4.15
 fi;
 
 
@@ -4836,7 +4836,7 @@ if test "${with_tk_ver+set}" = set; then
   withval="$with_tk_ver"
   TK_VERS=$withval
 else
-  TK_VERS=8.4.14
+  TK_VERS=8.4.15
 fi;
 
 
