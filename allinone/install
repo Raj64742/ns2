@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.31 2007/03/10 23:40:05 tom_henderson Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.32 2007/08/24 04:25:41 tom_henderson Exp $
 
 die() {
 	echo "$@"  1>&2
@@ -201,11 +201,11 @@ cygwin_tests() {
 
 
 # Package VERSIONs. Change these when releasing new packages
-TCLVER=8.4.14
-TKVER=8.4.14
+TCLVER=8.4.15
+TKVER=8.4.15
 OTCLVER=1.13
 TCLCLVER=1.19
-NSVER=2.31
+NSVER=2.32
 NAMVER=1.13
 XGRAPHVER=12.1
 ZLIBVER=1.2.3
@@ -416,7 +416,7 @@ fi
 
 blame='Tcl is not part of the ns project.  Please see www.Scriptics.com
 to see if they have a fix for your platform.'
-./configure --enable-gcc --disable-shared --prefix=$CUR_PATH || die "tcl8.3.2 configuration failed! Exiting ..."
+./configure --enable-gcc --disable-shared --prefix=$CUR_PATH || die "tcl$TCLVER configuration failed! Exiting ..."
 if make 
 then 
 	echo "tcl$TCLVER make succeeded."
@@ -444,7 +444,7 @@ fi
 
 blame='Tk is not part of the ns project.  Please see www.Scriptics.com
 to see if they have a fix for your platform.'
-./configure --enable-gcc --disable-shared --prefix=$CUR_PATH || die "tk8.3.2 configuration failed! Exiting ..."
+./configure --enable-gcc --disable-shared --prefix=$CUR_PATH || die "tk$TKVER configuration failed! Exiting ..."
 if make 
 then
 	echo "tk$TKVER build succeeded."
@@ -576,8 +576,8 @@ then
 elif  [ "${test_darwin}" = "true" ]; then
     # XXX workaround for OS X nam Tcl/Tk problems
     echo "Nam make failed! Trying to relink..."
-    echo "g++ -o nam tkcompat.o tkUnixInit.o xwd.o netview.o netmodel.o edge.o packet.o node.o main.o trace.o queue.o drop.o animation.o agent.o feature.o route.o transform.o paint.o state.o monitor.o anetmodel.o random.o rng.o view.o graphview.o netgraph.o tracehook.o lan.o psview.o group.o editview.o tag.o address.o animator.o wnetmodel.o nam_stream.o enetmodel.o testview.o parser.o trafficsource.o lossmodel.o queuehandle.o gen/version.o gen/nam_tcl.o  ../tcl8.4.14/unix/libtcl8.4.a ../tk8.4.14/unix/libtk8.4.a ../tcl8.4.14/unix/libtclstub8.4.a -L../tclcl-1.19 -ltclcl -L../otcl -lotcl -L/usr/lib -lz -L/usr/X11R6/lib -lXext -lX11 -lm -L. -lcorefoundation"
-    g++ -o nam tkcompat.o tkUnixInit.o xwd.o netview.o netmodel.o edge.o packet.o node.o main.o trace.o queue.o drop.o animation.o agent.o feature.o route.o transform.o paint.o state.o monitor.o anetmodel.o random.o rng.o view.o graphview.o netgraph.o tracehook.o lan.o psview.o group.o editview.o tag.o address.o animator.o wnetmodel.o nam_stream.o enetmodel.o testview.o parser.o trafficsource.o lossmodel.o queuehandle.o gen/version.o gen/nam_tcl.o  ../tcl8.4.14/unix/libtcl8.4.a ../tk8.4.14/unix/libtk8.4.a ../tcl8.4.14/unix/libtclstub8.4.a -L../tclcl-1.19 -ltclcl -L../otcl -lotcl -L/usr/lib -lz -L/usr/X11R6/lib -lXext -lX11 -lm -L. -lcorefoundation
+    echo "g++ -o nam tkcompat.o tkUnixInit.o xwd.o netview.o netmodel.o edge.o packet.o node.o main.o trace.o queue.o drop.o animation.o agent.o feature.o route.o transform.o paint.o state.o monitor.o anetmodel.o random.o rng.o view.o graphview.o netgraph.o tracehook.o lan.o psview.o group.o editview.o tag.o address.o animator.o wnetmodel.o nam_stream.o enetmodel.o testview.o parser.o trafficsource.o lossmodel.o queuehandle.o gen/version.o gen/nam_tcl.o  ../tcl8.4.15/unix/libtcl8.4.a ../tk8.4.15/unix/libtk8.4.a ../tcl8.4.15/unix/libtclstub8.4.a -L../tclcl-1.19 -ltclcl -L../otcl -lotcl -L/usr/lib -lz -L/usr/X11R6/lib -lXext -lX11 -lm -L. -lcorefoundation"
+    g++ -o nam tkcompat.o tkUnixInit.o xwd.o netview.o netmodel.o edge.o packet.o node.o main.o trace.o queue.o drop.o animation.o agent.o feature.o route.o transform.o paint.o state.o monitor.o anetmodel.o random.o rng.o view.o graphview.o netgraph.o tracehook.o lan.o psview.o group.o editview.o tag.o address.o animator.o wnetmodel.o nam_stream.o enetmodel.o testview.o parser.o trafficsource.o lossmodel.o queuehandle.o gen/version.o gen/nam_tcl.o  ../tcl8.4.15/unix/libtcl8.4.a ../tk8.4.15/unix/libtk8.4.a ../tcl8.4.15/unix/libtclstub8.4.a -L../tclcl-1.19 -ltclcl -L../otcl -lotcl -L/usr/lib -lz -L/usr/X11R6/lib -lXext -lX11 -lm -L. -lcorefoundation
     if [ -e nam ]; then
         echo "Nam relinking succeeded; nam has been installed successfully."
     else
