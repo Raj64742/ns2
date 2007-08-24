@@ -386,10 +386,9 @@ $(NSE): $(OBJ) common/tclAppInit.o $(OBJ_EMULATE_CC) $(OBJ_EMULATE_C)
 		common/tclAppInit.o $(OBJ) \
 		$(OBJ_EMULATE_CC) $(OBJ_EMULATE_C)  $(LIB) 
 
-$(NSTK): $(OBJ) common/tkAppInit.o $(OBJ_EMULATE_CC) $(OBJ_EMULATE_C)
+$(NSTK): $(OBJ) common/tkAppInit.o 
 	$(LINK) $(LDFLAGS) $(LDOUT)$@ \
-		common/tkAppInit.o $(OBJ) \
-		$(OBJ_EMULATE_CC) $(OBJ_EMULATE_C)  $(LIB) 
+		common/tkAppInit.o $(OBJ) $(LIB)
 
 ns.dyn: $(OBJ) common/tclAppInit.o
 	$(LINK) $(LDFLAGS) -o $@ \
