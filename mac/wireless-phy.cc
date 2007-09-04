@@ -32,7 +32,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.cc,v 1.27 2007/01/30 05:00:50 tom_henderson Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.cc,v 1.28 2007/09/04 04:32:18 tom_henderson Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma Haldar.
  * wireless-phy.cc
@@ -55,8 +55,6 @@
 #include <sys/param.h>  /* for MIN/MAX */
 
 #include "diffusion/diff_header.h"
-
-#define MAX(a,b) (((a)<(b))?(b):(a))
 
 void Sleep_Timer::expire(Event *) {
 	a_->UpdateSleepEnergy();

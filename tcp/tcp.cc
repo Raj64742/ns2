@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.174 2007/03/29 04:56:46 sallyfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.175 2007/09/04 04:32:19 tom_henderson Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -67,19 +67,16 @@ public:
 
 TcpAgent::TcpAgent() 
 	: Agent(PT_TCP), 
-	  t_seqno_(0), t_rtt_(0), t_srtt_(0), t_rttvar_(0), 
-	  t_backoff_(0), ts_peer_(0), ts_echo_(0),
-	  tss(NULL), tss_size_(100), 
+	  t_seqno_(0), dupacks_(0), curseq_(0), highest_ack_(0), 
+          cwnd_(0), ssthresh_(0), maxseq_(0), count_(0), 
+          rtt_active_(0), rtt_seq_(-1), rtt_ts_(0.0), 
+          lastreset_(0.0), closed_(0), t_rtt_(0), t_srtt_(0), t_rttvar_(0), 
+	  t_backoff_(0), ts_peer_(0), ts_echo_(0), tss(NULL), tss_size_(100), 
 	  rtx_timer_(this), delsnd_timer_(this), burstsnd_timer_(this), 
-	  dupacks_(0), curseq_(0), highest_ack_(0), cwnd_(0), ssthresh_(0), 
-	  maxseq_(0), count_(0), rtt_active_(0), rtt_seq_(-1), rtt_ts_(0.0), 
-	  lastreset_(0.0), closed_(0), use_rtt_(0),
-	  first_decrease_(1), fcnt_(0), 
-	  nrexmit_(0), restart_bugfix_(1), cong_action_(0), 
-	  ecn_burst_(0), ecn_backoff_(0), ect_(0), 
-	  qs_requested_(0), qs_approved_(0),
+	  first_decrease_(1), fcnt_(0), nrexmit_(0), restart_bugfix_(1), 
+          cong_action_(0), ecn_burst_(0), ecn_backoff_(0), ect_(0), 
+          use_rtt_(0), qs_requested_(0), qs_approved_(0),
 	  qs_window_(0), qs_cwnd_(0), frto_(0)
-	
 {
 #ifdef TCP_DELAY_BIND_ALL
         // defined since Dec 1999.
