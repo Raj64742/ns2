@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.372 2007/06/17 21:44:46 tom_henderson Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.373 2007/09/16 20:29:41 sallyfloyd Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -1060,6 +1060,10 @@ Agent/TFRC set fsize_ 1460 ;	# Default size for large TCP packets.
 Agent/TFRC set headersize_ 32 ; # Size for packet headers.
 # End of VoIP mode.
 # Variants in the TFRC algorithms:
+# Agent/TFRC set standard_ 0 ;	# Added on 4/19/2007
+				# Set to 1 for RFC 3448 algorithms.
+				# Set to 2 for RFC 4342 algorithms.
+				# Set to 3 for RFC 3448bis algorithms.
 Agent/TFRC set rate_init_option_ 2 ;	# Added on 10/20/2004
 				# Set to 1 for backward compatibility. 
 				# Set to 2 for RFC 3390 initial rates
@@ -1149,6 +1153,7 @@ if [TclObject is-class Agent/TCP/FullTcp] {
 	Agent/TCP/FullTcp set nopredict_ false; # disable header prediction code?
         Agent/TCP/FullTcp set ecn_syn_ false; # Make SYN/ACK packet ECN-Capable?
         Agent/TCP/FullTcp set ecn_syn_wait_ false; # Wait after marked SYN/ACK? 
+        Agent/TCP/FullTcp set debug_ false;  # Added Sept. 16, 2007.
 
 	Agent/TCP/FullTcp/Newreno set recov_maxburst_ 2; # max burst dur recov
 

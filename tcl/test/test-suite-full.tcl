@@ -58,11 +58,14 @@ Agent/TCP set windowInit_ 1
 # The default is being changed to 2.
 Agent/TCP set singledup_ 0
 # The default is being changed to 1
-source topologies.tcl
-catch "cd $dir"
-
 Agent/TCP set minrto_ 0
 # The default is being changed to minrto_ 1
+
+# To turn on debugging messages:
+# Agent/TCP/FullTcp set debug_ true;
+
+source topologies.tcl
+catch "cd $dir"
 
 Trace set show_tcphdr_ 1 ; # needed to plot ack numbers for tracing 
 

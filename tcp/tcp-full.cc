@@ -108,7 +108,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.123 2006/06/30 23:18:01 sallyfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.124 2007/09/16 20:30:44 sallyfloyd Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -196,6 +196,7 @@ FullTcpAgent::delay_bind_init_all()
         delay_bind_init_one("nopredict_");
         delay_bind_init_one("ecn_syn_");
         delay_bind_init_one("ecn_syn_wait_");
+        delay_bind_init_one("debug_");
         delay_bind_init_one("spa_thresh_");
 
 	TcpAgent::delay_bind_init_all();
@@ -226,6 +227,7 @@ FullTcpAgent::delay_bind_dispatch(const char *varName, const char *localName, Tc
         if (delay_bind_bool(varName, localName, "nopredict_", &nopredict_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "ecn_syn_", &ecn_syn_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "ecn_syn_wait_", &ecn_syn_wait_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "debug_", &debug_, tracer)) return TCL_OK;
 
         return TcpAgent::delay_bind_dispatch(varName, localName, tracer);
 }
@@ -373,9 +375,9 @@ FullTcpAgent::advance_bytes(int nb)
 		break;
 
 	default:
-	    fprintf(stderr,
-	    "%f: FullTcpAgent::advance(%s): cannot advance while in state %s\n",
-		 now(), name(), statestr(state_));
+            if (debug_) 
+	            fprintf(stderr, "%f: FullTcpAgent::advance(%s): cannot advance while in state %s\n",
+		         now(), name(), statestr(state_));
 
 	}
 
@@ -486,14 +488,16 @@ FullTcpAgent::usrclosed()
 	case TCPS_FIN_WAIT_2:
 	case TCPS_CLOSING:
 		/* usr asked for a close more than once [?] */
-		fprintf(stderr,
-		  "%f FullTcpAgent(%s): app close in bad state %s\n",
-		  now(), name(), statestr(state_));
+                if (debug_)
+		         fprintf(stderr,
+		           "%f FullTcpAgent(%s): app close in bad state %s\n",
+		           now(), name(), statestr(state_));
 		break;
 	default:
-		fprintf(stderr,
-		  "%f FullTcpAgent(%s): app close in unknown state %s\n",
-		  now(), name(), statestr(state_));
+                if (debug_)
+		        fprintf(stderr,
+		        "%f FullTcpAgent(%s): app close in unknown state %s\n",
+		        now(), name(), statestr(state_));
 	}
 
 	return;
@@ -1521,9 +1525,11 @@ FullTcpAgent::recv(Packet *pkt, Handler*)
 	 */
 
 	if (state_ == TCPS_CLOSED) {
-		fprintf(stderr, "%f: FullTcp(%s): recv'd pkt in CLOSED state: ",
-			now(), name());
-		prpkt(pkt);
+                if (debug_) {
+		        fprintf(stderr, "%f: FullTcp(%s): recv'd pkt in CLOSED state: ",
+			    now(), name());
+		        prpkt(pkt);
+                }
 		goto drop;
 	}
 
@@ -1656,18 +1662,21 @@ FullTcpAgent::recv(Packet *pkt, Handler*)
 	case TCPS_LISTEN:	/* awaiting peer's SYN */
 
 		if (tiflags & TH_ACK) {
-		    	fprintf(stderr,
+                        if (debug_) {
+		    	        fprintf(stderr,
 		    		"%f: FullTcpAgent(%s): warning: recv'd ACK while in LISTEN: ",
-				now(), name());
-			prpkt(pkt);
+				    now(), name());
+			        prpkt(pkt);
+                        }
 			// don't want ACKs in LISTEN
 			goto dropwithreset;
 		}
 		if ((tiflags & TH_SYN) == 0) {
-		    	fprintf(stderr,
-		    		"%f: FullTcpAgent(%s): warning: recv'd NON-SYN while in LISTEN\n",
+                        if (debug_) {
+		    	        fprintf(stderr, "%f: FullTcpAgent(%s): warning: recv'd NON-SYN while in LISTEN\n",
 				now(), name());
-			prpkt(pkt);
+			        prpkt(pkt);
+                        }
 			// any non-SYN is discarded
 			goto drop;
 		}
@@ -1717,18 +1726,20 @@ FullTcpAgent::recv(Packet *pkt, Handler*)
 		if ((tiflags & TH_ACK) &&
 			((ackno <= iss_) || (ackno > maxseq_))) {
 			// not an ACK for our SYN, discard
-			fprintf(stderr,
-			    "%f: FullTcpAgent::recv(%s): bad ACK for our SYN: ",
+                        if (debug_) {
+			       fprintf(stderr, "%f: FullTcpAgent::recv(%s): bad ACK for our SYN: ",
 			        now(), name());
-			prpkt(pkt);
+			        prpkt(pkt);
+                        }
 			goto dropwithreset;
 		}
 
 		if ((tiflags & TH_SYN) == 0) {
-			fprintf(stderr,
-			    "%f: FullTcpAgent::recv(%s): no SYN for our SYN: ",
+                        if (debug_) {
+			        fprintf(stderr, "%f: FullTcpAgent::recv(%s): no SYN for our SYN: ",
 			        now(), name());
-			prpkt(pkt);
+			        prpkt(pkt);
+                        }
 			goto drop;
 		}
 
@@ -1963,10 +1974,11 @@ trimthenstep6:
 	}
 
 	if (tiflags & TH_SYN) {
-		fprintf(stderr,
-		    "%f: FullTcpAgent::recv(%s) received unexpected SYN (state:%d): ",
+                if (debug_) {
+		        fprintf(stderr, "%f: FullTcpAgent::recv(%s) received unexpected SYN (state:%d): ",
 		        now(), name(), state_);
-		prpkt(pkt);
+		        prpkt(pkt);
+                }
 		goto dropwithreset;
 	}
 
@@ -1980,9 +1992,11 @@ trimthenstep6:
 		 * -M. Weigle 07/24/01
 		 */
 		if (state_ != TCPS_SYN_RECEIVED) {
-			fprintf(stderr, "%f: FullTcpAgent::recv(%s) got packet lacking ACK (state:%d): ",
+                        if (debug_) {
+			        fprintf(stderr, "%f: FullTcpAgent::recv(%s) got packet lacking ACK (state:%d): ",
 				now(), name(), state_);
-			prpkt(pkt);
+			        prpkt(pkt);
+                        }
 		}
 		goto drop;
 	}
@@ -1995,10 +2009,11 @@ trimthenstep6:
 	case TCPS_SYN_RECEIVED:	/* want ACK for our SYN+ACK */
 		if (ackno < highest_ack_ || ackno > maxseq_) {
 			// not in useful range
-		    	fprintf(stderr,
-		    		"%f: FullTcpAgent(%s): ack(%d) not in range while in SYN_RECEIVED: ",
+                        if (debug_) {
+		    	        fprintf(stderr, "%f: FullTcpAgent(%s): ack(%d) not in range while in SYN_RECEIVED: ",
 			 	now(), name(), ackno);
-			prpkt(pkt);
+			        prpkt(pkt);
+                        }
 			goto dropwithreset;
 		}
                 /*
@@ -2148,10 +2163,11 @@ process_ACK:
 
 		if (ackno > maxseq_) {
 			// ack more than we sent(!?)
-			fprintf(stderr,
-			    "%f: FullTcpAgent::recv(%s) too-big ACK (maxseq:%d): ",
+                        if (debug_) {
+			        fprintf(stderr, "%f: FullTcpAgent::recv(%s) too-big ACK (maxseq:%d): ",
 				now(), name(), int(maxseq_));
-			prpkt(pkt);
+			        prpkt(pkt);
+                        }
 			goto dropafterack;
 		}
 
@@ -2278,10 +2294,11 @@ process_ACK:
 				goto drop;
 			} else {
 				// should be a FIN we've seen
-                                fprintf(stderr,
-                                "%f: FullTcpAgent(%s)::received non-ACK (state:%d): ",
+                                if (debug_) {
+                                        fprintf(stderr, "%f: FullTcpAgent(%s)::received non-ACK (state:%d): ",
                                         now(), name(), state_);
-				prpkt(pkt);
+				        prpkt(pkt);
+                                }
                         }
 			break;
 
@@ -2517,9 +2534,10 @@ FullTcpAgent::timeout_action()
 	recover_ = maxseq_;
 
 	if (cwnd_ < 1.0) {
-	    fprintf(stderr,
-	    "%f: FullTcpAgent(%s):: resetting cwnd from %f to 1\n",
-		 now(), name(), double(cwnd_));
+                if (debug_) {
+	            fprintf(stderr, "%f: FullTcpAgent(%s):: resetting cwnd from %f to 1\n",
+		    now(), name(), double(cwnd_));
+                }
 		cwnd_ = 1.0;
 	}
 
@@ -2560,8 +2578,10 @@ FullTcpAgent::timeout(int tno)
 	 */
 	if (state_ == TCPS_LISTEN) {
 	 	// shouldn't be getting timeouts here
-		fprintf(stderr, "%f: FullTcpAgent(%s): unexpected timeout %d in state %s\n",
+                if (debug_) {
+		        fprintf(stderr, "%f: FullTcpAgent(%s): unexpected timeout %d in state %s\n",
 			now(), name(), tno, statestr(state_));
+                }
 		return;
 	}
 
