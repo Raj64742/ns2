@@ -14,6 +14,8 @@
 #  full-asymmetric - Full-TCP and delay only on the data path
 #*************************************************************************
 
+# Agent/TCP/FullTcp set debug_ true;
+
 source misc.tcl
 
 TestSuite instproc finish testname {

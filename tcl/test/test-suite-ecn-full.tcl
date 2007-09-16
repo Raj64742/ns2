@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-full.tcl,v 1.21 2006/01/24 23:00:06 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-full.tcl,v 1.22 2007/09/16 21:28:17 sallyfloyd Exp $
 #
 # To run all tests: test-all-ecn-full
 
@@ -73,10 +73,13 @@ Agent/TCP set singledup_ 0
 Agent/TCP set minrto_ 0
 Agent/TCP set syn_ false
 Agent/TCP set delay_growth_ false
+
 catch "cd $dir"
 set scale 0.00001
 set wrap [expr 90 * 1000 + 40]
 Agent/TCP/FullTcp set segsize_ 960
+
+# Agent/TCP/FullTcp set debug_ true;
 
 set flowfile fairflow.tr; # file where flow data is written
 set flowgraphfile fairflow.xgr; # file given to graph tool 
@@ -460,10 +463,14 @@ Test/ecn_bursty_reno_full instproc run {} {
 # Multiple dup acks following ECN
 Class Test/ecn_burstyEcn_reno_full -superclass TestSuite
 Test/ecn_burstyEcn_reno_full instproc init {} {
+        global quiet
         $self instvar net_ test_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
+	if {$quiet == "false"} {
+                Agent/TCP/FullTcp set debug_ true
+        }
         set test_	ecn_burstyEcn_reno_full
 	Test/ecn_burstyEcn_reno_full instproc run {} [Test/ecn_bursty_reno_full info instbody run ]   
         $self next pktTraceFile

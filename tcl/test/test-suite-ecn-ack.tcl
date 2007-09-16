@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.26 2006/07/23 20:46:02 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.27 2007/09/16 21:28:17 sallyfloyd Exp $
 #
 # To run all tests: test-all-ecn-ack
 set dir [pwd]
@@ -41,6 +41,8 @@ remove-all-packet-headers       ; # removes all except common
 add-packet-header Flags IP TCP RTP ; # hdrs reqd for validation test
  
 # FOR UPDATING GLOBAL DEFAULTS:
+
+# Agent/TCP/FullTcp set debug_ true;
 
 set flowfile fairflow.tr; # file where flow data is written
 set flowgraphfile fairflow.xgr; # file given to graph tool 

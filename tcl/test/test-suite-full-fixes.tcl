@@ -56,6 +56,8 @@ Agent/TCP set singledup_ 1
 
 Trace set show_tcphdr_ 1 ; # needed to plot ack numbers for tracing 
 
+# Agent/TCP/FullTcp set debug_ true;
+
 TestSuite instproc finish testname {
 	$self instvar ns_
 	$ns_ halt

@@ -674,7 +674,11 @@ Test/simul-close instproc init topo {
 	$self next
 }
 Test/simul-close instproc run {} {
+        global quiet
 	$self instvar ns_ node_ testName_ topo_
+        if {$quiet == "false"} {
+                Agent/TCP/FullTcp set debug_ true;
+        }
 
 	set stopt 9.0	
 
