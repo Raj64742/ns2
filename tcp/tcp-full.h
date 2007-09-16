@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.57 2006/05/30 20:30:30 pradkin Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.58 2007/09/16 20:31:35 sallyfloyd Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -163,6 +163,7 @@ protected:
 	int ecn_syn_wait_;  // Wait if SYN/ACK packet is ECN-marked?
 	int dsack_;	    // do DSACK as well as SACK?
 	double delack_interval_;
+        int debug_;                     // Turn on/off debug output
 
 	int headersize();   // a tcp header w/opts
 	int outflags();     // state-specific tcp header flags
