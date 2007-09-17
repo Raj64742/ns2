@@ -99,6 +99,7 @@ TfrcAgent::TfrcAgent() : Agent(PT_TFRC), send_timer_(this),
 	bind("scmult_", &scmult_);
 	bind_bool("oldCode_", &oldCode_);
 	bind("rate_init_", &rate_init_);
+//	bind("standard_", &standard_);
 	bind("rate_init_option_", &rate_init_option_);
 	bind_bool("slow_increase_", &slow_increase_); 
 	bind_bool("voip_", &voip_);

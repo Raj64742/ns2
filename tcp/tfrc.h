@@ -229,6 +229,9 @@ protected:
         // End of parameters:
 
 	/* Variants in the TFRC algorithms.  */
+//	int standard_;		// 1 for RFC 3448 algorithms.
+                                // 2 for RFC 4342 algorithms.
+                                // 3 for RFC 3448bis algorithms.
         int rate_init_option_;  /* 1 for using static rate_init_ */
                                 /* 2 for using RFC 3390 */
 	int slow_increase_;	// To use slow increases in the rate during
