@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-     "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.86 2007/09/18 21:04:30 sallyfloyd Exp $ (LBL)";
+     "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.87 2007/09/19 04:34:23 sallyfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -691,8 +691,8 @@ void REDQueue::enque(Packet* pkt)
 
 	if (qavg >= edp_.th_min && qlen > 1) {
 		if (!edp_.use_mark_p && 
-			(!edp_.gentle && qavg >= edp_.th_max) ||
-			(edp_.gentle && qavg >= 2 * edp_.th_max)) {
+			((!edp_.gentle && qavg >= edp_.th_max) ||
+			(edp_.gentle && qavg >= 2 * edp_.th_max))) {
 			droptype = DTYPE_FORCED;
 		} else if (edv_.old == 0) {
 			/* 
