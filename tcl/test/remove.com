@@ -24,11 +24,14 @@ pushback diffserv tcp-init-win-full ecn ecn-full simple-full \
 red-pd tcpReset LimTransmit pi adaptive-red gk rem vq sack-full \
 testReno-full testReno-bayfull source-routing snoop diffusion3 broken \
 tcpHighspeed smac quiescent example examples quickstart tcpOptions t \
-tagged-trace misc message jobs webtraf sctp xcp smac-multihop
+tagged-trace misc message jobs webtraf sctp xcp smac-multihop \
+rng wpan packmime delaybox oddBehaviors
 do
 	echo test-output-$i
 	rm -f test-output-$i/*.test
-	rm -f test-output-$i/*[a-z,A-R,T-Y,0-9]
+	rm -f test-output-$i/*[a-y,A-R,T-Z,0-9]
 done
+# Don't remove *.gz, CVS.
+
 
 
