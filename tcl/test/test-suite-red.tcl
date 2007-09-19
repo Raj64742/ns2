@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.62 2006/12/21 20:01:41 tom_henderson Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.63 2007/09/19 04:59:09 sallyfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -871,7 +871,8 @@ Test/gentleEcn1 instproc init {} {
     set net_ net3 
     set test_ gentleEcn1
     Queue/RED set gentle_ true
-    Queue/RED set mark_p_ 0.5
+    Queue/RED set mark_p_ 0.1
+    Queue/RED set use_mark_p_ true
     Test/gentleEcn1 instproc run {} [Test/ungentle info instbody run ]
     $self next
 }
@@ -951,12 +952,15 @@ Test/q_weight_auto instproc init {} {
 #     $self next
 # }
 
+##
+## Packets are marked instead of dropped if the average queue is
+## less than maxthresh.
+##
 Class Test/congested -superclass TestSuite
 Test/congested instproc init {} {
     $self instvar net_ test_
     set net_ net3 
     set test_ congested
-    Queue/RED set mark_p_ 0.1
     Queue/RED set use_mark_p_ false
     $self next
 }
@@ -994,14 +998,80 @@ Test/congested instproc run {} {
     $ns_ run
 }
 
+##
+## Packets are marked instead of dropped if the buffer is not full
+##
 Class Test/congested_mark_p -superclass TestSuite
 Test/congested_mark_p instproc init {} {
     $self instvar net_ test_
     set net_ net3 
     set test_ congested_mark_p
-    Queue/RED set mark_p_ 1.0
+    Queue/RED set mark_p_ 2.0
     Queue/RED set use_mark_p_ true
     Test/congested_mark_p instproc run {} [Test/congested info instbody run ]
+    $self next
+}
+
+##
+## Packets are marked instead of dropped if the drop probability
+## is less than one.
+##
+Class Test/congested1_mark_p -superclass TestSuite
+Test/congested1_mark_p instproc init {} {
+    $self instvar net_ test_
+    set net_ net3 
+    set test_ congested1_mark_p
+    Queue/RED set mark_p_ 1.0
+    Queue/RED set use_mark_p_ true
+    $self next
+}
+Test/congested1_mark_p instproc run {} {
+    $self instvar ns_ node_ testName_ net_
+    Agent/TCP set packetSize_ 1500
+    Agent/TCP set window_ 1000
+    Agent/TCP set ecn_ 1
+    Queue/RED set bytes_ true
+    Queue/RED set gentle_ true
+    Queue/RED set setbit_ true
+    $self setTopo
+    # The default is being changed to true.
+
+    set stoptime 5.0
+    set slink [$ns_ link $node_(r1) $node_(r2)]; # link to collect stats on
+    set fmon [$ns_ makeflowmon Fid]
+   #$ns_ attach-fmon $slink $fmon
+    $ns_ attach-fmon $slink $fmon 1
+    
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 0]
+    set ftp1 [$tcp1 attach-app FTP]
+    set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(s4) 0]
+    set ftp2 [$tcp2 attach-app FTP]
+
+    $self enable_tracequeue $ns_
+    $ns_ at 0.0 "$ftp1 start"
+    $ns_ at 0.2 "$ftp2 start"
+    $ns_ at $stoptime "$self printall $fmon"
+
+    $self tcpDump $tcp1 5.0
+
+    # trace only the bottleneck link
+    #$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    $ns_ at $stoptime "$self cleanupAll $testName_"
+
+    $ns_ run
+}
+
+##
+## Packets are marked instead of dropped if the buffer is not full.
+##
+Class Test/congested2_mark_p -superclass TestSuite
+Test/congested2_mark_p instproc init {} {
+    $self instvar net_ test_
+    set net_ net3 
+    set test_ congested2_mark_p
+    Queue/RED set mark_p_ 2.0
+    Queue/RED set use_mark_p_ true
+    Test/congested2_mark_p instproc run {} [Test/congested1_mark_p info instbody run ]
     $self next
 }
 TestSuite runTest
