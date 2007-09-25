@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-testReno.tcl,v 1.18 2006/01/24 23:00:08 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-testReno.tcl,v 1.19 2007/09/25 03:42:58 sallyfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-testReno.tcl
@@ -172,59 +172,74 @@ TestSuite instproc setup {tcptype window list} {
 
 Class Test/Tahoe_TCP -superclass TestSuite
 Test/Tahoe_TCP instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	Tahoe_TCP
+ 	set guide_	"Tahoe TCP, two dropped packets."
 	$self next
 }
 Test/Tahoe_TCP instproc run {} {
+    $self instvar guide_
+    puts "Guide: $guide_"
     $self setup Tahoe {5} {15 18}
 }
 
 Class Test/Tahoe_TCP_without_Fast_Retransmit -superclass TestSuite
 Test/Tahoe_TCP_without_Fast_Retransmit instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	Tahoe_TCP_without_Fast_Retransmit
+ 	set guide_	"Tahoe TCP without Fast Retransmit, two dropped packets."
 	Agent/TCP set noFastRetrans_ true
 	$self next
 }
 Test/Tahoe_TCP_without_Fast_Retransmit instproc run {} {
+    $self instvar guide_
+    puts "Guide: $guide_"
     $self setup Tahoe {5} {15 18}
 }
 
 Class Test/Reno_TCP -superclass TestSuite
 Test/Reno_TCP instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	Reno_TCP
+ 	set guide_	"Reno TCP, two dropped packets."
 	$self next
 }
 Test/Reno_TCP instproc run {} {
+    $self instvar guide_
+    puts "Guide: $guide_"
     $self setup Reno {5} {15 18}
 }
 
 Class Test/NewReno_TCP -superclass TestSuite
 Test/NewReno_TCP instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	NewReno_TCP
+ 	set guide_	"NewReno TCP, two dropped packets."
 	Agent/TCP set noFastRetrans_ false
 	$self next
 }
 Test/NewReno_TCP instproc run {} {
+    $self instvar guide_
+    puts "Guide: $guide_"
     $self setup Newreno {5} {15 18}
 }
 
 Class Test/Sack_TCP -superclass TestSuite
 Test/Sack_TCP instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	Sack_TCP
+ 	set guide_	"Sack TCP, two dropped packets."
 	Agent/TCP set noFastRetrans_ false
 	$self next
 }
 Test/Sack_TCP instproc run {} {
+    $self instvar guide_
+    puts "Guide: $guide_"
     $self setup Sack1 {5} {15 18}
 }
 
@@ -234,62 +249,77 @@ Test/Sack_TCP instproc run {} {
 
 Class Test/Tahoe_TCP2 -superclass TestSuite
 Test/Tahoe_TCP2 instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	Tahoe_TCP2
+ 	set guide_	"Tahoe TCP, one dropped packet."
 	$self next
 }
 Test/Tahoe_TCP2 instproc run {} {
+        $self instvar guide_
+        puts "Guide: $guide_"
         #$self setup1 Tahoe {17}
 	$self setup Tahoe {8} {17}
 }
 
 Class Test/Tahoe_TCP2_without_Fast_Retransmit -superclass TestSuite
 Test/Tahoe_TCP2_without_Fast_Retransmit instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	Tahoe_TCP2_without_Fast_Retransmit
+ 	set guide_	"Tahoe TCP without Fast Retransmit, one dropped packet."
 	Agent/TCP set noFastRetrans_ true
 	$self next
 }
 Test/Tahoe_TCP2_without_Fast_Retransmit instproc run {} {
+        $self instvar guide_
+        puts "Guide: $guide_"
         #$self setup1 Tahoe {17}
 	$self setup Tahoe {8} {17}
 }
 
 Class Test/Reno_TCP2 -superclass TestSuite
 Test/Reno_TCP2 instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	Reno_TCP2
+ 	set guide_	"Reno TCP, one dropped packet."
 	$self next
 }
 Test/Reno_TCP2 instproc run {} {
-    $self setup Reno {8} {17}
+        $self instvar guide_
+        puts "Guide: $guide_"
+        $self setup Reno {8} {17}
 }
 
 Class Test/NewReno_TCP2 -superclass TestSuite
 Test/NewReno_TCP2 instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	NewReno_TCP2
+ 	set guide_	"NewReno TCP, one dropped packet."
 	Agent/TCP set noFastRetrans_ false
 	$self next
 }
 Test/NewReno_TCP2 instproc run {} {
-    $self setup Newreno {8} {17}
+        $self instvar guide_
+        puts "Guide: $guide_"
+        $self setup Newreno {8} {17}
 }
 
 Class Test/Sack_TCP2 -superclass TestSuite
 Test/Sack_TCP2 instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	Sack_TCP2
+ 	set guide_	"Sack TCP, one dropped packet."
 	Agent/TCP set noFastRetrans_ false
 	$self next
 }
 Test/Sack_TCP2 instproc run {} {
-    $self setup Sack1 {8} {17}
+        $self instvar guide_
+        puts "Guide: $guide_"
+        $self setup Sack1 {8} {17}
 }
 
 TestSuite runTest
