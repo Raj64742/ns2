@@ -1,5 +1,5 @@
 (Validation can take 1-30 hours to run.)
-Tue Oct  3 11:15:58 PDT 2006
+Mon Sep 24 22:31:10 PDT 2007
 *** ./test-all-simple
 Tests: tahoe1 tahoe1Bytes tahoe1RED tahoe1REDbytes tahoe2 tahoe3 tahoe3RED tahoe4 no_bug bug reno1 reno renoA reno2 reno3 reno4 reno4a reno5 reno5_nobug telnet delayed phase phase1 phase2 timers manyflows stats statsECN stats1 stats1Bytes stats1a stats1aBytes statsHeaders stats2 stats3 stats4 statsTFRC
 Running test tahoe1:
@@ -341,10 +341,10 @@ aggregate per-link total_marks 0
 aggregate per-link total_packets 265
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 12:20:12 PDT 2006
-Tue Oct  3 12:20:14 PDT 2006
+Mon Sep 24 22:32:48 PDT 2007
+Mon Sep 24 22:32:51 PDT 2007
 *** ./test-all-tcp
-Tests: ecn timers timersA timersAfix timersA1 timersA2 timersA3 timers1 timers2 timers3 timers4 timers5 stats1 quiescent_100ms quiescentB quiescentB_qoption underutilized_100ms underutilized_100ms_control underutilized_100ms_control_Q underutilized_100ms_Q underutilized_100ms_control_Reno underutilized_100ms_control_Newreno underutilized_100ms_control_Sack quiescent_100ms_fine quiescent_100ms_coarse quiescent_1ms_fine quiescent_1ms_coarse quiescent_500ms_fine quiescent_500ms_coarse dialup dialup1
+Tests: ecn timers timersA timersAfix timersA1 timersA2 timersA3 timers1 timers2 timers3 timers4 timers5 timers_backoffs stats1 quiescent_100ms quiescentB quiescentB_qoption underutilized_100ms underutilized_100ms_control underutilized_100ms_control_Q underutilized_100ms_Q underutilized_100ms_control_Reno underutilized_100ms_control_Newreno underutilized_100ms_control_Sack quiescent_100ms_fine quiescent_100ms_coarse quiescent_1ms_fine quiescent_1ms_coarse quiescent_500ms_fine quiescent_500ms_coarse dialup dialup1
 Running test ecn:
 ../../ns test-suite-tcp.tcl ecn QUIET
 Guide: One connection with ECN, and one without ECN.
@@ -392,6 +392,10 @@ Test output agrees with reference output
 Running test timers5:
 ../../ns test-suite-tcp.tcl timers5 QUIET
 Guide: With timers4, shows that estimated RTT updated only once per RTT.
+Test output agrees with reference output
+Running test timers_backoffs:
+../../ns test-suite-tcp.tcl timers_backoffs QUIET
+Guide: TCP's retransmit timer, max RTO of 60 seconds.
 Test output agrees with reference output
 Running test stats1:
 ../../ns test-suite-tcp.tcl stats1 QUIET
@@ -488,48 +492,60 @@ Guide: Tahoe TCP after a quiescent period, coarse-grained timer, tcpTick_ 0.5.
 Test output agrees with reference output
 Running test dialup:
 ../../ns test-suite-tcp.tcl dialup QUIET
+Guide: 1500-byte packets on a 9.6 Kbps link
 Test output agrees with reference output
 Running test dialup1:
 ../../ns test-suite-tcp.tcl dialup1 QUIET
+Guide: 1500-byte packets on a 9.6 Kbps link, rfc2988_ false
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 12:22:22 PDT 2006
-Tue Oct  3 12:22:24 PDT 2006
+Mon Sep 24 22:34:44 PDT 2007
+Mon Sep 24 22:34:46 PDT 2007
 *** ./test-all-testReno
 Tests: Tahoe_TCP Tahoe_TCP_without_Fast_Retransmit Reno_TCP NewReno_TCP Sack_TCP Tahoe_TCP2 Tahoe_TCP2_without_Fast_Retransmit Reno_TCP2 NewReno_TCP2 Sack_TCP2
 Running test Tahoe_TCP:
 ../../ns test-suite-testReno.tcl Tahoe_TCP QUIET
+Guide: Tahoe TCP, two dropped packets.
 Test output agrees with reference output
 Running test Tahoe_TCP_without_Fast_Retransmit:
 ../../ns test-suite-testReno.tcl Tahoe_TCP_without_Fast_Retransmit QUIET
+Guide: Tahoe TCP without Fast Retransmit, two dropped packets.
 Test output agrees with reference output
 Running test Reno_TCP:
 ../../ns test-suite-testReno.tcl Reno_TCP QUIET
+Guide: Reno TCP, two dropped packets.
 Test output agrees with reference output
 Running test NewReno_TCP:
 ../../ns test-suite-testReno.tcl NewReno_TCP QUIET
+Guide: NewReno TCP, two dropped packets.
 Test output agrees with reference output
 Running test Sack_TCP:
 ../../ns test-suite-testReno.tcl Sack_TCP QUIET
+Guide: Sack TCP, two dropped packets.
 Test output agrees with reference output
 Running test Tahoe_TCP2:
 ../../ns test-suite-testReno.tcl Tahoe_TCP2 QUIET
+Guide: Tahoe TCP, one dropped packet.
 Test output agrees with reference output
 Running test Tahoe_TCP2_without_Fast_Retransmit:
 ../../ns test-suite-testReno.tcl Tahoe_TCP2_without_Fast_Retransmit QUIET
+Guide: Tahoe TCP without Fast Retransmit, one dropped packet.
 Test output agrees with reference output
 Running test Reno_TCP2:
 ../../ns test-suite-testReno.tcl Reno_TCP2 QUIET
+Guide: Reno TCP, one dropped packet.
 Test output agrees with reference output
 Running test NewReno_TCP2:
 ../../ns test-suite-testReno.tcl NewReno_TCP2 QUIET
+Guide: NewReno TCP, one dropped packet.
 Test output agrees with reference output
 Running test Sack_TCP2:
 ../../ns test-suite-testReno.tcl Sack_TCP2 QUIET
+Guide: Sack TCP, one dropped packet.
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 12:22:47 PDT 2006
-Tue Oct  3 12:22:49 PDT 2006
+Mon Sep 24 22:56:59 PDT 2007
+Mon Sep 24 22:57:01 PDT 2007
 *** ./test-all-newreno
 Tests: reno reno_noLT newreno newreno_noLT newreno_B newreno_B_noLT reno1 newreno1 newreno1_BF newreno1_A newreno1_A_noLT newreno1_A_BF newreno1_A_BF_LC newreno1_B0 newreno1_B newreno1_B_BF newreno1_B_BF_LC newreno1_B_noLT newreno1A_A newreno1A_A_BF newreno1A_A_BF_LC newreno1A_A_noLT reno2 reno2_noLT reno2_bugfix reno2_bugfix_noLT newreno2_A newreno2_A_noLT newreno2_A_bugfix newreno2_A_bugfix_LC newreno2_B newreno2_B_noLT newreno2_B_bugfix newreno2_B_bugfix_LC newreno5 sack5 newreno5_LC newreno5_noLT newreno5_noLT_LC newreno5_noBF newreno5_noLT_noBF reno5 reno5_noBF reno5_noLT_noBF reno5a reno5a_noLT_noBF newreno6 newreno_rto_loss newreno_rto_loss_ack newreno_rto_loss_ts newreno_rto_loss_tsh newreno_rto_dup newreno_rto_dup_ack newreno_rto_loss_ackf newreno_rto_dup_ts newreno_rto_dup_tsh impatient1 slow1 impatient2 slow2 impatient3 slow3 impatient4 slow4
 Running test reno:
@@ -789,10 +805,10 @@ Running test slow4:
 Guide: NewReno, Slow-but-Steady.  Impatient is better.
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 12:26:02 PDT 2006
-Tue Oct  3 12:26:04 PDT 2006
+Mon Sep 24 22:59:59 PDT 2007
+Mon Sep 24 23:00:01 PDT 2007
 *** ./test-all-sack
-Tests: sack1 sack1z sack1a sack1aa sack1b sack1c sack3 sack5 sack5a sackB2 sackB4 sackB4a FalsePipe FalsePipe1 sack_dupacks sack_dupacks1
+Tests: sack1 sack1z sack1a sack1aa sack1b sack1c sack3 sack5 sack5a sackB2 sackB4 sackB4a FalsePipe FalsePipe1 sack_dupacks sack_finiteflow sack_dupacks1
 Running test sack1:
 ../../ns test-suite-sack.tcl sack1 QUIET
 Guide: SACK TCP, single packet drop
@@ -853,13 +869,17 @@ Running test sack_dupacks:
 ../../ns test-suite-sack.tcl sack_dupacks QUIET
 Guide: SACK TCP, Fast Recovery with standard numdupacks
 Test output agrees with reference output
+Running test sack_finiteflow:
+../../ns test-suite-sack.tcl sack_finiteflow QUIET
+Guide: SACK TCP, Fast Recovery with last packets in a finite flow
+Test output agrees with reference output
 Running test sack_dupacks1:
 ../../ns test-suite-sack.tcl sack_dupacks1 QUIET
 Guide: SACK TCP, Fast Recovery with modified numdupacks
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 12:27:03 PDT 2006
-Tue Oct  3 12:27:06 PDT 2006
+Mon Sep 24 23:00:50 PDT 2007
+Mon Sep 24 23:00:52 PDT 2007
 *** ./test-all-tcpOptions
 Tests: onedrop_tahoe onedrop_numdup4_tahoe onedrop_tahoe_full onedrop_numdup4_tahoe_full onedrop_reno onedrop_numdup4_reno onedrop_reno_full onedrop_numdup4_reno_full onedrop_newreno onedrop_numdup4_newreno onedrop_newreno_full onedrop_numdup4_newreno_full onedrop_sack onedrop_numdup4_sack onedrop_sack_full onedrop_numdup4_sack_full maxburst_tahoe maxburst_tahoe1 maxburst_reno maxburst_reno1 maxburst_newreno maxburst_newreno1 maxburst_sack maxburst_sack1 timeouts_tahoe timeouts_tahoe1 timeouts_tahoe2 timeouts_tahoe3 timeouts_reno timeouts_reno_noexitFR timeouts_reno1 timeouts_reno2 timeouts_reno3 timeouts_newreno timeouts_newreno_noexitFR timeouts_newreno1 timeouts_newreno2 timeouts_newreno3 timeouts_sack timeouts_sack1 timeouts_sack2 timeouts_sack3 timeoutsA_tahoe timeoutsA_tahoe1
 Running test onedrop_tahoe:
@@ -1039,8 +1059,8 @@ Running test timeoutsA_tahoe1:
 Guide: Tahoe, timeoutsA, worse without bugfix
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 12:29:13 PDT 2006
-Tue Oct  3 12:29:15 PDT 2006
+Mon Sep 24 23:02:37 PDT 2007
+Mon Sep 24 23:02:39 PDT 2007
 *** ./test-all-tcpReset
 Tests: reset resetDelAck resetDelAck1 reset1 resetDelAck2 resetDelAck3 resetNewreno resetSack1 resetReno
 Running test reset:
@@ -1080,8 +1100,8 @@ Running test resetReno:
 Guide: Reno TCP, resetting a TCP connection.
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 12:29:39 PDT 2006
-Tue Oct  3 12:29:41 PDT 2006
+Mon Sep 24 23:02:58 PDT 2007
+Mon Sep 24 23:03:00 PDT 2007
 *** ./test-all-simple-full
 Tests: tahoe1 tahoe2 tahoe3 tahoe4 no_bug bug reno1 reno renoA reno2 reno3 reno4 reno4a reno5 reno5_nobug telnet delayed phase phase1 phase2 timers manyflows stats stats1
 Running test tahoe1:
@@ -1188,8 +1208,8 @@ aggregate per-link total_drops 0
 aggregate per-link total_packets 16
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 12:31:00 PDT 2006
-Tue Oct  3 12:31:02 PDT 2006
+Mon Sep 24 23:04:01 PDT 2007
+Mon Sep 24 23:04:03 PDT 2007
 *** ./test-all-full
 Tests: full close twoway twoway1 twowayrandom delack iw=4 droppedsyn droppedfirstseg droppedsecondseg simul-open simul-close droppednearfin droppedlastseg droppedretransmit droppednearretransmit droppedfastrexmit ecn1 ecn2 droppedfin smallpkts telnet telnet2 SSR SSR2 tsopt winlimited
 Running test full:
@@ -1228,7 +1248,6 @@ Running test simul-open:
 Test output agrees with reference output
 Running test simul-close:
 ../../ns test-suite-full.tcl simul-close QUIET
- [0:0.0>3.0] (hlen:40, dlen:0, seq:0, ack:-1, flags:0xa (<PSH,SYN>), salen:0, reason:0x0)
 Test output agrees with reference output
 Running test droppednearfin:
 ../../ns test-suite-full.tcl droppednearfin QUIET
@@ -1276,8 +1295,8 @@ Running test winlimited:
 ../../ns test-suite-full.tcl winlimited QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 12:32:07 PDT 2006
-Tue Oct  3 12:32:09 PDT 2006
+Mon Sep 24 23:04:59 PDT 2007
+Mon Sep 24 23:05:01 PDT 2007
 *** ./test-all-testReno-full
 Tests: Tahoe_FullTCP Reno_FullTCP Reno_BayFullTCP NewReno_FullTCP Tahoe_FullTCP2 Reno_FullTCP2 Reno_BayFullTCP2 NewReno_FullTCP2
 Running test Tahoe_FullTCP:
@@ -1305,8 +1324,8 @@ Running test NewReno_FullTCP2:
 ../../ns test-suite-testReno-full.tcl NewReno_FullTCP2 QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 12:32:29 PDT 2006
-Tue Oct  3 12:32:31 PDT 2006
+Mon Sep 24 23:05:20 PDT 2007
+Mon Sep 24 23:05:22 PDT 2007
 *** ./test-all-testReno-bayfull
 Tests: Reno_FullTCP Reno_FullTCP2
 Running test Reno_FullTCP:
@@ -1316,8 +1335,8 @@ Running test Reno_FullTCP2:
 ../../ns test-suite-testReno-bayfull.tcl Reno_FullTCP2 QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 12:32:37 PDT 2006
-Tue Oct  3 12:32:39 PDT 2006
+Mon Sep 24 23:05:26 PDT 2007
+Mon Sep 24 23:05:28 PDT 2007
 *** ./test-all-sack-full
 Tests: sack1 sack1z sack1a sack1aa sack1b sack1c sack3 sack5 sack5a sackB2 sackB4 sackB4a
 Running test sack1:
@@ -1357,8 +1376,8 @@ Running test sackB4a:
 ../../ns test-suite-sack-full.tcl sackB4a QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 12:33:25 PDT 2006
-Tue Oct  3 12:33:27 PDT 2006
+Mon Sep 24 23:06:07 PDT 2007
+Mon Sep 24 23:06:09 PDT 2007
 *** ./test-all-tcp-init-win
 Tests: tahoe1 tahoe2 tahoe3 tahoe4 reno1 reno2 reno3 reno4 newreno1 newreno2 newreno3 newreno4 sack1 sack2 sack3 sack4 slowLink slowLink1 slowLink2 droppedSYN droppedSYN1 droppedPKT droppedPKT1 droppedPKT2 droppedPKT3
 Running test tahoe1:
@@ -1462,235 +1481,309 @@ Running test droppedPKT3:
 Guide: Sack TCP, dropped initial data packet.
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 12:34:47 PDT 2006
-Tue Oct  3 12:34:49 PDT 2006
+Mon Sep 24 23:07:09 PDT 2007
+Mon Sep 24 23:07:11 PDT 2007
 *** ./test-all-tcpVariants
 Tests: onedrop_tahoe onedrop_SA_tahoe onedrop_tahoe_full onedrop_reno onedrop_SA_reno onedrop_reno_full onedrop_newreno onedrop_SA_newreno onedrop_newreno_full onedrop_sack onedrop_SA_sack onedrop_sack_full onedrop_fack onedrop_sackRH twodrops_tahoe twodrops_SA_tahoe twodrops_tahoe_full twodrops_reno twodrops_SA_reno twodrops_reno_full twodrops_newreno twodrops_SA_newreno twodrops_newreno_full twodrops_sack twodrops_SA_sack twodrops_sack_full twodrops_fack twodrops_sackRH threedrops_tahoe threedrops_SA_tahoe threedrops_tahoe_full threedrops_reno threedrops_SA_reno threedrops_reno_full threedrops_newreno threedrops_SA_newreno threedrops_newreno_full threedrops_sack threedrops_SA_sack threedrops_sack_full threedrops_fack threedrops_sackRH fourdrops_tahoe fourdrops_SA_tahoe fourdrops_tahoe_full fourdrops_reno fourdrops_SA_reno fourdrops_reno_full fourdrops_newreno fourdrops_SA_newreno fourdrops_newreno_full fourdrops_sack fourdrops_SA_sack fourdrops_sack_full fourdrops_fack fourdrops_sackRH multiple_tahoe multiple_SA_tahoe multiple_reno multiple_SA_reno multiple_newreno multiple_SA_newreno multiple_sack multiple_SA_sack multiple_partial_ack_sack multiple2_tahoe multiple2_SA_tahoe multiple2_reno multiple2_SA_reno multiple2_newreno multiple2_SA_newreno multiple2_sack multiple2_SA_sack multiple2_partial_ack_sack
 Running test onedrop_tahoe:
 ../../ns test-suite-tcpVariants.tcl onedrop_tahoe QUIET
+Guide: Tahoe TCP, one drop.
 Test output agrees with reference output
 Running test onedrop_SA_tahoe:
 ../../ns test-suite-tcpVariants.tcl onedrop_SA_tahoe QUIET
+Guide: Tahoe TCP with Limited Transmit, one drop.
 Test output agrees with reference output
 Running test onedrop_tahoe_full:
 ../../ns test-suite-tcpVariants.tcl onedrop_tahoe_full QUIET
+Guide: Tahoe, Full TCP, one drop.
 Test output agrees with reference output
 Running test onedrop_reno:
 ../../ns test-suite-tcpVariants.tcl onedrop_reno QUIET
+Guide: Reno TCP, one drop.
 Test output agrees with reference output
 Running test onedrop_SA_reno:
 ../../ns test-suite-tcpVariants.tcl onedrop_SA_reno QUIET
+Guide: Reno TCP with Limited Transmit, one drop.
 Test output agrees with reference output
 Running test onedrop_reno_full:
 ../../ns test-suite-tcpVariants.tcl onedrop_reno_full QUIET
+Guide: Reno, Full TCP, one drop.
 Test output agrees with reference output
 Running test onedrop_newreno:
 ../../ns test-suite-tcpVariants.tcl onedrop_newreno QUIET
+Guide: NewReno TCP, one drop.
 Test output agrees with reference output
 Running test onedrop_SA_newreno:
 ../../ns test-suite-tcpVariants.tcl onedrop_SA_newreno QUIET
+Guide: NewReno TCP with Limited Transmit, one drop.
 Test output agrees with reference output
 Running test onedrop_newreno_full:
 ../../ns test-suite-tcpVariants.tcl onedrop_newreno_full QUIET
+Guide: NewReno TCP, one drop.
 Test output agrees with reference output
 Running test onedrop_sack:
 ../../ns test-suite-tcpVariants.tcl onedrop_sack QUIET
+Guide: Sack TCP, one drop.
 Test output agrees with reference output
 Running test onedrop_SA_sack:
 ../../ns test-suite-tcpVariants.tcl onedrop_SA_sack QUIET
+Guide: Sack TCP with Limited Transmit, one drop.
 Test output agrees with reference output
 Running test onedrop_sack_full:
 ../../ns test-suite-tcpVariants.tcl onedrop_sack_full QUIET
+Guide: Sack, Full TCP, one drop.
 Test output agrees with reference output
 Running test onedrop_fack:
 ../../ns test-suite-tcpVariants.tcl onedrop_fack QUIET
+Guide: Fack TCP, one drop.
 Test output agrees with reference output
 Running test onedrop_sackRH:
 ../../ns test-suite-tcpVariants.tcl onedrop_sackRH QUIET
+Guide: Sack TCP with Rate Halving, one drop.
 Test output agrees with reference output
 Running test twodrops_tahoe:
 ../../ns test-suite-tcpVariants.tcl twodrops_tahoe QUIET
+Guide: Tahoe TCP, two drops.
 Test output agrees with reference output
 Running test twodrops_SA_tahoe:
 ../../ns test-suite-tcpVariants.tcl twodrops_SA_tahoe QUIET
+Guide: Tahoe TCP with Fast Retransmit, two drops.
 Test output agrees with reference output
 Running test twodrops_tahoe_full:
 ../../ns test-suite-tcpVariants.tcl twodrops_tahoe_full QUIET
+Guide: Tahoe Full TCP, two drops.
 Test output agrees with reference output
 Running test twodrops_reno:
 ../../ns test-suite-tcpVariants.tcl twodrops_reno QUIET
+Guide: Reno TCP, two drops.
 Test output agrees with reference output
 Running test twodrops_SA_reno:
 ../../ns test-suite-tcpVariants.tcl twodrops_SA_reno QUIET
+Guide: Reno TCP with Limited Transmit, two drops.
 Test output agrees with reference output
 Running test twodrops_reno_full:
 ../../ns test-suite-tcpVariants.tcl twodrops_reno_full QUIET
+Guide: Reno, Full TCP, two drops.
 Test output agrees with reference output
 Running test twodrops_newreno:
 ../../ns test-suite-tcpVariants.tcl twodrops_newreno QUIET
+Guide: NewReno TCP, two drops.
 Test output agrees with reference output
 Running test twodrops_SA_newreno:
 ../../ns test-suite-tcpVariants.tcl twodrops_SA_newreno QUIET
+Guide: NewReno TCP with Limited Transmit, two drops.
 Test output agrees with reference output
 Running test twodrops_newreno_full:
 ../../ns test-suite-tcpVariants.tcl twodrops_newreno_full QUIET
+Guide: NewReno, Full TCP, two drops.
 Test output agrees with reference output
 Running test twodrops_sack:
 ../../ns test-suite-tcpVariants.tcl twodrops_sack QUIET
+Guide: Sack TCP, two drops.
 Test output agrees with reference output
 Running test twodrops_SA_sack:
 ../../ns test-suite-tcpVariants.tcl twodrops_SA_sack QUIET
+Guide: Sack TCP with Limited Transmit, two drops.
 Test output agrees with reference output
 Running test twodrops_sack_full:
 ../../ns test-suite-tcpVariants.tcl twodrops_sack_full QUIET
+Guide: Sack, Full TCP, two drops.
 Test output agrees with reference output
 Running test twodrops_fack:
 ../../ns test-suite-tcpVariants.tcl twodrops_fack QUIET
+Guide: Fack TCP, two drops.
 Test output agrees with reference output
 Running test twodrops_sackRH:
 ../../ns test-suite-tcpVariants.tcl twodrops_sackRH QUIET
+Guide: Sack TCP with Rate Halving, two drops.
 Test output agrees with reference output
 Running test threedrops_tahoe:
 ../../ns test-suite-tcpVariants.tcl threedrops_tahoe QUIET
+Guide: Tahoe TCP, three drops.
 Test output agrees with reference output
 Running test threedrops_SA_tahoe:
 ../../ns test-suite-tcpVariants.tcl threedrops_SA_tahoe QUIET
+Guide: Tahoe TCP with Limited Transmit, three drops.
 Test output agrees with reference output
 Running test threedrops_tahoe_full:
 ../../ns test-suite-tcpVariants.tcl threedrops_tahoe_full QUIET
+Guide: Tahoe, Full TCP, three drops.
 Test output agrees with reference output
 Running test threedrops_reno:
 ../../ns test-suite-tcpVariants.tcl threedrops_reno QUIET
+Guide: Reno TCP, three drops.
 Test output agrees with reference output
 Running test threedrops_SA_reno:
 ../../ns test-suite-tcpVariants.tcl threedrops_SA_reno QUIET
+Guide: Reno TCP with Limited Transmit, three drops.
 Test output agrees with reference output
 Running test threedrops_reno_full:
 ../../ns test-suite-tcpVariants.tcl threedrops_reno_full QUIET
+Guide: Reno, Full TCP, three drops.
 Test output agrees with reference output
 Running test threedrops_newreno:
 ../../ns test-suite-tcpVariants.tcl threedrops_newreno QUIET
+Guide: NewReno TCP, three drops.
 Test output agrees with reference output
 Running test threedrops_SA_newreno:
 ../../ns test-suite-tcpVariants.tcl threedrops_SA_newreno QUIET
+Guide: NewReno TCP with Limited Transmit, three drops.
 Test output agrees with reference output
 Running test threedrops_newreno_full:
 ../../ns test-suite-tcpVariants.tcl threedrops_newreno_full QUIET
+Guide: NewReno, Full TCP, three drops.
 Test output agrees with reference output
 Running test threedrops_sack:
 ../../ns test-suite-tcpVariants.tcl threedrops_sack QUIET
+Guide: Sack TCP, three drops.
 Test output agrees with reference output
 Running test threedrops_SA_sack:
 ../../ns test-suite-tcpVariants.tcl threedrops_SA_sack QUIET
+Guide: Sack TCP with Limited Transmit, three drops.
 Test output agrees with reference output
 Running test threedrops_sack_full:
 ../../ns test-suite-tcpVariants.tcl threedrops_sack_full QUIET
+Guide: Sack, Full TCP, three drops.
 Test output agrees with reference output
 Running test threedrops_fack:
 ../../ns test-suite-tcpVariants.tcl threedrops_fack QUIET
+Guide: Fack TCP, three drops.
 Test output agrees with reference output
 Running test threedrops_sackRH:
 ../../ns test-suite-tcpVariants.tcl threedrops_sackRH QUIET
+Guide: Sack TCP with Rate Halving, three drops.
 Test output agrees with reference output
 Running test fourdrops_tahoe:
 ../../ns test-suite-tcpVariants.tcl fourdrops_tahoe QUIET
+Guide: Tahoe TCP, four drops.
 Test output agrees with reference output
 Running test fourdrops_SA_tahoe:
 ../../ns test-suite-tcpVariants.tcl fourdrops_SA_tahoe QUIET
+Guide: Tahoe TCP with Limited Transmit, four drops.
 Test output agrees with reference output
 Running test fourdrops_tahoe_full:
 ../../ns test-suite-tcpVariants.tcl fourdrops_tahoe_full QUIET
+Guide: Tahoe, Full TCP, four drops.
 Test output agrees with reference output
 Running test fourdrops_reno:
 ../../ns test-suite-tcpVariants.tcl fourdrops_reno QUIET
+Guide: Reno TCP, four drops.
 Test output agrees with reference output
 Running test fourdrops_SA_reno:
 ../../ns test-suite-tcpVariants.tcl fourdrops_SA_reno QUIET
+Guide: Reno TCP with Limited Transmit, four drops.
 Test output agrees with reference output
 Running test fourdrops_reno_full:
 ../../ns test-suite-tcpVariants.tcl fourdrops_reno_full QUIET
+Guide: Reno, Full TCP, four drops.
 Test output agrees with reference output
 Running test fourdrops_newreno:
 ../../ns test-suite-tcpVariants.tcl fourdrops_newreno QUIET
+Guide: NewReno TCP, four drops.
 Test output agrees with reference output
 Running test fourdrops_SA_newreno:
 ../../ns test-suite-tcpVariants.tcl fourdrops_SA_newreno QUIET
+Guide: NewReno TCP with Limited Transmit, four drops.
 Test output agrees with reference output
 Running test fourdrops_newreno_full:
 ../../ns test-suite-tcpVariants.tcl fourdrops_newreno_full QUIET
+Guide: NewReno, Full TCP, four drops.
 Test output agrees with reference output
 Running test fourdrops_sack:
 ../../ns test-suite-tcpVariants.tcl fourdrops_sack QUIET
+Guide: Sack TCP, four drops.
 Test output agrees with reference output
 Running test fourdrops_SA_sack:
 ../../ns test-suite-tcpVariants.tcl fourdrops_SA_sack QUIET
+Guide: Sack TCP with Limited Transmit, four drops.
 Test output agrees with reference output
 Running test fourdrops_sack_full:
 ../../ns test-suite-tcpVariants.tcl fourdrops_sack_full QUIET
+Guide: Sack, Full TCP, four drops.
 Test output agrees with reference output
 Running test fourdrops_fack:
 ../../ns test-suite-tcpVariants.tcl fourdrops_fack QUIET
+Guide: Fack TCP, four drops.
 Test output agrees with reference output
 Running test fourdrops_sackRH:
 ../../ns test-suite-tcpVariants.tcl fourdrops_sackRH QUIET
+Guide: Sack TCP with Rate Halving, four drops.
 Test output agrees with reference output
 Running test multiple_tahoe:
 ../../ns test-suite-tcpVariants.tcl multiple_tahoe QUIET
+Guide: Tahoe TCP, eight drops.
 Test output agrees with reference output
 Running test multiple_SA_tahoe:
 ../../ns test-suite-tcpVariants.tcl multiple_SA_tahoe QUIET
+Guide: Tahoe TCP with Limited Transmit, eight drops.
 Test output agrees with reference output
 Running test multiple_reno:
 ../../ns test-suite-tcpVariants.tcl multiple_reno QUIET
+Guide: Reno TCP, eight drops.
 Test output agrees with reference output
 Running test multiple_SA_reno:
 ../../ns test-suite-tcpVariants.tcl multiple_SA_reno QUIET
+Guide: Reno TCP with Limited Transmit, eight drops.
 Test output agrees with reference output
 Running test multiple_newreno:
 ../../ns test-suite-tcpVariants.tcl multiple_newreno QUIET
+Guide: NewReno TCP, eight drops.
 Test output agrees with reference output
 Running test multiple_SA_newreno:
 ../../ns test-suite-tcpVariants.tcl multiple_SA_newreno QUIET
+Guide: NewReno TCP with Limited Transmit, eight drops.
 Test output agrees with reference output
 Running test multiple_sack:
 ../../ns test-suite-tcpVariants.tcl multiple_sack QUIET
+Guide: Sack TCP, eight drops.
 Test output agrees with reference output
 Running test multiple_SA_sack:
 ../../ns test-suite-tcpVariants.tcl multiple_SA_sack QUIET
+Guide: Sack TCP with Limited Transmit, eight drops.
 Test output agrees with reference output
 Running test multiple_partial_ack_sack:
 ../../ns test-suite-tcpVariants.tcl multiple_partial_ack_sack QUIET
+Guide: Sack TCP with an ensured response to a partial ack, eight drops.
 Test output agrees with reference output
 Running test multiple2_tahoe:
 ../../ns test-suite-tcpVariants.tcl multiple2_tahoe QUIET
+Guide: Tahoe TCP, five drops.
 Test output agrees with reference output
 Running test multiple2_SA_tahoe:
 ../../ns test-suite-tcpVariants.tcl multiple2_SA_tahoe QUIET
+Guide: Tahoe TCP with Limited Transmit, five drops.
 Test output agrees with reference output
 Running test multiple2_reno:
 ../../ns test-suite-tcpVariants.tcl multiple2_reno QUIET
+Guide: Reno TCP, five drops.
 Test output agrees with reference output
 Running test multiple2_SA_reno:
 ../../ns test-suite-tcpVariants.tcl multiple2_SA_reno QUIET
+Guide: Reno TCP with Limited Transmit, five drops.
 Test output agrees with reference output
 Running test multiple2_newreno:
 ../../ns test-suite-tcpVariants.tcl multiple2_newreno QUIET
+Guide: NewReno TCP, five drops.
 Test output agrees with reference output
 Running test multiple2_SA_newreno:
 ../../ns test-suite-tcpVariants.tcl multiple2_SA_newreno QUIET
+Guide: NewReno TCP with Limited Transmit, five drops.
 Test output agrees with reference output
 Running test multiple2_sack:
 ../../ns test-suite-tcpVariants.tcl multiple2_sack QUIET
+Guide: Sack TCP, five drops.
 Test output agrees with reference output
 Running test multiple2_SA_sack:
 ../../ns test-suite-tcpVariants.tcl multiple2_SA_sack QUIET
+Guide: Sack TCP with Limited Transmit, five drops.
 Test output agrees with reference output
 Running test multiple2_partial_ack_sack:
 ../../ns test-suite-tcpVariants.tcl multiple2_partial_ack_sack QUIET
+Guide: Sack TCP with an ensured response to a partial ack, five drops.
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 12:39:41 PDT 2006
-Tue Oct  3 12:39:43 PDT 2006
+Mon Sep 24 23:10:34 PDT 2007
+Mon Sep 24 23:10:36 PDT 2007
 *** ./test-all-LimTransmit
 Tests: onedrop_sack onedrop_SA_sack onedrop_ECN_sack nodrop_sack
 Running test onedrop_sack:
@@ -1710,8 +1803,8 @@ Running test nodrop_sack:
 Guide: Sack TCP with no packet drops, for comparison.
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 12:39:53 PDT 2006
-Tue Oct  3 12:39:55 PDT 2006
+Mon Sep 24 23:10:45 PDT 2007
+Mon Sep 24 23:10:47 PDT 2007
 *** ./test-all-aimd
 Tests: tcp tcpA tcpA_precise tcpB ssthresh ssthreshA ssthresh_second ssthresh_secondA tcp_tahoe tcpA_tahoe tcpA_precise_tahoe tcp_reno tcpA_reno tcpA_precise_reno tcp_newreno tcpA_newreno tcpA_precise_newreno binomial1 binomial2
 Running test tcp:
@@ -1792,8 +1885,8 @@ Running test binomial2:
 Guide: TCP with SQRT
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 12:43:36 PDT 2006
-Tue Oct  3 12:43:38 PDT 2006
+Mon Sep 24 23:13:44 PDT 2007
+Mon Sep 24 23:13:46 PDT 2007
 *** ./test-all-greis
 Tests: example1 example1a example1b example2 example3 example4 ping pingOneWay
 Running test example1:
@@ -1831,8 +1924,8 @@ ping reply from node 2 to 0 with seqno 2: forward 202.9 ms, reverse 71.7 ms.
 ping reply from node 0 to 2 with seqno 2: forward 112.9 ms, reverse 192.4 ms.
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 12:43:58 PDT 2006
-Tue Oct  3 12:44:00 PDT 2006
+Mon Sep 24 23:14:05 PDT 2007
+Mon Sep 24 23:14:07 PDT 2007
 *** ./test-all-rfc793edu
 Tests: rtt-jacobson rtt-rfc793 seqno-nofastrtx seqno-fastrtx rto-karn rto-nokarn jacobson88-noss jacobson88-ss
 Running test rtt-jacobson:
@@ -1868,8 +1961,8 @@ Running test jacobson88-ss:
 Guide: With Slow-Start.
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 12:44:27 PDT 2006
-Tue Oct  3 12:44:29 PDT 2006
+Mon Sep 24 23:14:29 PDT 2007
+Mon Sep 24 23:14:31 PDT 2007
 *** ./test-all-rfc2581
 Tests: immediateAck noImmediateAck immediateAckReno noImmediateAckReno immediateAckNewReno noImmediateAckNewReno immediateAckSack noImmediateAckSack
 Running test immediateAck:
@@ -1905,8 +1998,8 @@ Running test noImmediateAckSack:
 Guide: Sack, no immediate ACK after an out-of-order packet.
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 12:44:51 PDT 2006
-Tue Oct  3 12:44:53 PDT 2006
+Mon Sep 24 23:14:49 PDT 2007
+Mon Sep 24 23:14:51 PDT 2007
 *** ./test-all-rbp
 Tests: reno_slow_start_restart reno_no_slow_start_restart vegas_slow_start_restart vegas_no_slow_start_restart reno_pacing vegas_pacing_rate vegas_pacing_cwnd
 Running test reno_slow_start_restart:
@@ -1931,10 +2024,10 @@ Running test vegas_pacing_cwnd:
 ../../ns test-suite-rbp.tcl vegas_pacing_cwnd QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 12:45:12 PDT 2006
-Tue Oct  3 12:45:14 PDT 2006
+Mon Sep 24 23:15:04 PDT 2007
+Mon Sep 24 23:15:06 PDT 2007
 *** ./test-all-sctp
-Tests: sctp-2packetsTimeout sctp-AMR-Exceeded sctp-Rel1-Loss2 sctp-burstAfterFastRtxRecovery sctp-burstAfterFastRtxRecovery-2 sctp-cwndFreeze sctp-cwndFreeze-multistream sctp-hugeRwnd sctp-initRtx sctp-multihome1-2 sctp-multihome2-1 sctp-multihome2-2AMR-Exceeded sctp-multihome2-2Failover sctp-multihome2-2Failover0 sctp-multihome2-2Failover1 sctp-multihome2-2Rtx1 sctp-multihome2-2Rtx3 sctp-multihome2-2Timeout sctp-multihome2-2TimeoutRta0 sctp-multihome2-2TimeoutRta2 sctp-multihome2-R-2 sctp-multihome3-3Timeout sctp-multipleDropsSameWnd-1 sctp-multipleDropsSameWnd-1-delayed sctp-multipleDropsSameWnd-2 sctp-multipleDropsSameWnd-3 sctp-multipleDropsTwoWnds-1-delayed sctp-multipleRtx sctp-multipleRtx-early sctp-newReno sctp-noEarlyHBs sctp-smallRwnd sctp-zeroRtx sctp-zeroRtx-burstLoss sctp-hbAfterRto-2packetsTimeout sctp-hbAfterRto-multihome2-2Timeout sctp-multipleFastRtx-2packetsTimeout sctp-multipleFastRtx-multihome2-2Timeout sctp-mfrHbAfterRto-Rta2-2FRsTimeout sctp-timestamp-multihome2-2Rtx3 sctp-timestamp-multihome2-2Timeout sctp-cmt-2paths-64K sctp-cmt-2paths-64K-withloss sctp-cmt-3paths-64K
+Tests: sctp-2packetsTimeout sctp-AMR-Exceeded sctp-Rel1-Loss2 sctp-burstAfterFastRtxRecovery sctp-burstAfterFastRtxRecovery-2 sctp-cwndFreeze sctp-cwndFreeze-multistream sctp-hugeRwnd sctp-initRtx sctp-multihome1-2 sctp-multihome2-1 sctp-multihome2-2AMR-Exceeded sctp-multihome2-2Failover sctp-multihome2-2Failover0 sctp-multihome2-2Failover1 sctp-multihome2-2Rtx1 sctp-multihome2-2Rtx3 sctp-multihome2-2Timeout sctp-multihome2-2TimeoutRta0 sctp-multihome2-2TimeoutRta2 sctp-multihome2-R-2 sctp-multihome3-3Timeout sctp-multipleDropsSameWnd-1 sctp-multipleDropsSameWnd-1-delayed sctp-multipleDropsSameWnd-2 sctp-multipleDropsSameWnd-3 sctp-multipleDropsTwoWnds-1-delayed sctp-multipleRtx sctp-multipleRtx-early sctp-newReno sctp-noEarlyHBs sctp-smallRwnd sctp-zeroRtx sctp-zeroRtx-burstLoss sctp-hbAfterRto-2packetsTimeout sctp-hbAfterRto-multihome2-2Timeout sctp-multipleFastRtx-2packetsTimeout sctp-multipleFastRtx-multihome2-2Timeout sctp-mfrHbAfterRto-Rta2-2FRsTimeout sctp-timestamp-multihome2-2Rtx3 sctp-timestamp-multihome2-2Timeout sctp-packet-loss-dest-conf sctp-cmt-2paths-64K sctp-cmt-2paths-64K-withloss sctp-cmt-3paths-64K sctp-cmt-2paths-1path-fails sctp-cmt-3paths-1path-fails sctp-cmt-packet-loss-dest-conf sctp-cmt-Rtx-ssthresh sctp-cmt-Rtx-cwnd sctp-cmt-Timeout-pmr sctp-cmt-multihome2-2Timeout sctp-cmt-pf-2paths-1path-fails sctp-cmt-pf-3paths-1path-fails sctp-cmt-pf-packet-loss-dest-conf sctp-cmt-pf-Rtx-ssthresh sctp-cmt-pf-Rtx-cwnd sctp-cmt-pf-Timeout-pmr
 Running test sctp-2packetsTimeout:
 ../../ns test-suite-sctp.tcl sctp-2packetsTimeout QUIET
 Test output agrees with reference output
@@ -2058,6 +2151,9 @@ Test output agrees with reference output
 Running test sctp-timestamp-multihome2-2Timeout:
 ../../ns test-suite-sctp.tcl sctp-timestamp-multihome2-2Timeout QUIET
 Test output agrees with reference output
+Running test sctp-packet-loss-dest-conf:
+../../ns test-suite-sctp.tcl sctp-packet-loss-dest-conf QUIET
+Test output agrees with reference output
 Running test sctp-cmt-2paths-64K:
 ../../ns test-suite-sctp.tcl sctp-cmt-2paths-64K QUIET
 Test output agrees with reference output
@@ -2067,9 +2163,48 @@ Test output agrees with reference output
 Running test sctp-cmt-3paths-64K:
 ../../ns test-suite-sctp.tcl sctp-cmt-3paths-64K QUIET
 Test output agrees with reference output
+Running test sctp-cmt-2paths-1path-fails:
+../../ns test-suite-sctp.tcl sctp-cmt-2paths-1path-fails QUIET
+Test output agrees with reference output
+Running test sctp-cmt-3paths-1path-fails:
+../../ns test-suite-sctp.tcl sctp-cmt-3paths-1path-fails QUIET
+Test output agrees with reference output
+Running test sctp-cmt-packet-loss-dest-conf:
+../../ns test-suite-sctp.tcl sctp-cmt-packet-loss-dest-conf QUIET
+Test output agrees with reference output
+Running test sctp-cmt-Rtx-ssthresh:
+../../ns test-suite-sctp.tcl sctp-cmt-Rtx-ssthresh QUIET
+Test output agrees with reference output
+Running test sctp-cmt-Rtx-cwnd:
+../../ns test-suite-sctp.tcl sctp-cmt-Rtx-cwnd QUIET
+Test output agrees with reference output
+Running test sctp-cmt-Timeout-pmr:
+../../ns test-suite-sctp.tcl sctp-cmt-Timeout-pmr QUIET
+Test output agrees with reference output
+Running test sctp-cmt-multihome2-2Timeout:
+../../ns test-suite-sctp.tcl sctp-cmt-multihome2-2Timeout QUIET
+Test output agrees with reference output
+Running test sctp-cmt-pf-2paths-1path-fails:
+../../ns test-suite-sctp.tcl sctp-cmt-pf-2paths-1path-fails QUIET
+Test output agrees with reference output
+Running test sctp-cmt-pf-3paths-1path-fails:
+../../ns test-suite-sctp.tcl sctp-cmt-pf-3paths-1path-fails QUIET
+Test output agrees with reference output
+Running test sctp-cmt-pf-packet-loss-dest-conf:
+../../ns test-suite-sctp.tcl sctp-cmt-pf-packet-loss-dest-conf QUIET
+Test output agrees with reference output
+Running test sctp-cmt-pf-Rtx-ssthresh:
+../../ns test-suite-sctp.tcl sctp-cmt-pf-Rtx-ssthresh QUIET
+Test output agrees with reference output
+Running test sctp-cmt-pf-Rtx-cwnd:
+../../ns test-suite-sctp.tcl sctp-cmt-pf-Rtx-cwnd QUIET
+Test output agrees with reference output
+Running test sctp-cmt-pf-Timeout-pmr:
+../../ns test-suite-sctp.tcl sctp-cmt-pf-Timeout-pmr QUIET
+Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 12:47:01 PDT 2006
-Tue Oct  3 12:47:03 PDT 2006
+Mon Sep 24 23:17:41 PDT 2007
+Mon Sep 24 23:17:43 PDT 2007
 *** ./test-all-tcpHighspeed
 Tests: tcp tcpHighspeed tcp1 tcp1A tcpHighspeed1 tcpHighspeed1A tcpHighspeed2 tcpHighspeed3 tcpHighspeed4 tcpHighspeed5
 Running test tcp:
@@ -2113,8 +2248,8 @@ Running test tcpHighspeed5:
 Guide: Highspeed TCP, parameters set aggressively.
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 13:00:37 PDT 2006
-Tue Oct  3 13:00:39 PDT 2006
+Mon Sep 24 23:27:42 PDT 2007
+Mon Sep 24 23:27:44 PDT 2007
 *** ./test-all-frto
 Tests: immediateAck immediateAckReno immediateAckNewReno noImmediateAckNewReno noImmediateAckSack delaySpikesSack dropsNDelaySpikes spikeNDupAck
 Running test immediateAck:
@@ -2142,13 +2277,17 @@ Running test spikeNDupAck:
 ../../ns test-suite-frto.tcl spikeNDupAck QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 13:01:00 PDT 2006
-Tue Oct  3 13:01:02 PDT 2006
+Mon Sep 24 23:28:04 PDT 2007
+Mon Sep 24 23:28:06 PDT 2007
 *** ./test-all-friendly
-Tests: slowStartDiscount slowStartDiscountCA smooth smoothCA slowStart slowStartCA slowStartEWMA slowStartFixed ecn slowStartTcp impulseDiscount impulseDiscountCA impulse impulseCA impulseMultReportDiscount impulseMultReportDiscountCA impulseMultReport impulseMultReportCA impulseTcp two-friendly two-friendlyCA OnlyTcp randomized randomizedCA randomized1 randomized1CA slow twoDrops manyDrops HighLoss HighLossShort HighLossImprecise HighLossMinRTO HighLossConservative HighLossTCP TFRC_FTP TFRC_CBR printLosses printLossesShort goodTFRC droppedTFRC delayedTFRC delayedTFRC1 delayedTFRC2 goodTCP droppedTCP delayedTCP delayedTCP2 initRate initRateLarge initRateLarger initRateRFC3390 tfrcOnly voip voipHeader voipNoHeader voipEcn noVoip idleTfrc idleTcp idleTfrc1 idleTcp1
+Tests: slowStartDiscount slowStartDiscount1 slowStartDiscountCA smooth smoothCA slowStart slowStartCA slowStartEWMA slowStartFixed ecn slowStartTcp impulseDiscount impulseDiscountCA impulse impulseCA impulseMultReport impulseMultReportDiscount impulseMultReportDiscountCA impulseMultReportCA impulseTcp two-friendly two-friendlyCA OnlyTcp randomized randomizedCA randomized1 randomized1CA slow twoDrops manyDrops HighLoss HighLossShort HighLossImprecise HighLossMinRTO HighLossConservative HighLossTCP TFRC_FTP TFRC_CBR printLosses printLossesShort printLossesShort3 goodTFRC droppedTFRC delayedTFRC delayedTFRC1 delayedTFRC2 goodTCP droppedTCP delayedTCP delayedTCP2 initRate initRateLarge initRateLarger initRateRFC3390 tfrcOnly tfrcOnlyHighLoss tfrcOnlyHighLoss1 voip voipHeader voipNoHeader voipEcn noVoip idleTfrc idleTcp idleTfrc1 idleTcp1 shortIdleTcp idleTfrc1
 Running test slowStartDiscount:
 ../../ns test-suite-friendly.tcl slowStartDiscount QUIET
 Guide: TFRC with discount_ true, for discounting older loss intervals.
+Test output agrees with reference output
+Running test slowStartDiscount1:
+../../ns test-suite-friendly.tcl slowStartDiscount1 QUIET
+Guide: TFRC with minDiscountRatio_ set to 0.25, for stronger discounting.
 Test output agrees with reference output
 Running test slowStartDiscountCA:
 ../../ns test-suite-friendly.tcl slowStartDiscountCA QUIET
@@ -2202,6 +2341,10 @@ Running test impulseCA:
 ../../ns test-suite-friendly.tcl impulseCA QUIET
 Guide: TFRC with ca_ true, for Sqrt(RTT) based congestion avoidance mode.
 Test output agrees with reference output
+Running test impulseMultReport:
+../../ns test-suite-friendly.tcl impulseMultReport QUIET
+Guide: TFRC with feedback four times per RTT, discount_ and ca_ false.
+Test output agrees with reference output
 Running test impulseMultReportDiscount:
 ../../ns test-suite-friendly.tcl impulseMultReportDiscount QUIET
 Guide: TFRC with feedback four times per round-trip time, discount_ true, ca_ false.
@@ -2209,10 +2352,6 @@ Test output agrees with reference output
 Running test impulseMultReportDiscountCA:
 ../../ns test-suite-friendly.tcl impulseMultReportDiscountCA QUIET
 Guide: TFRC with feedback four times per RTT, discount_ and ca_ true.
-Test output agrees with reference output
-Running test impulseMultReport:
-../../ns test-suite-friendly.tcl impulseMultReport QUIET
-Guide: TFRC with feedback four times per RTT, discount_ and ca_ false.
 Test output agrees with reference output
 Running test impulseMultReportCA:
 ../../ns test-suite-friendly.tcl impulseMultReportCA QUIET
@@ -2334,120 +2473,319 @@ time: 2.96033 sample 0:   106 loss_rate: 0.00909
 Test output agrees with reference output
 Running test printLossesShort:
 ../../ns test-suite-friendly.tcl printLossesShort QUIET
-Guide: A TFRC flow with ShortIntervals_, loss intervals from the TFRC receiver.
-1.499044: sample 0:     0 1:   256 2:     0 3:     0 4:     0
-1.499044: losses 0:     1 1:     0 2:     0 3: 262144 4:     0
-1.499044: count? 0:     0 1:     0 2:     0 3:     0 4:     0
-time: 1.62564 loss_rate: 0.00391 
-time: 1.62564 sample 0:    30 loss_rate: 0.00391 
-1.625636: sample 0:    30 1:   256 2:     0 3:     0 4:     0
-1.625636: losses 0:     1 1:     0 2:     0 3: 262144 4:     0
-1.625636: count? 0:     0 1:     0 2:     0 3:     0 4:     0
-time: 1.75223 loss_rate: 0.00391 
-time: 1.75223 sample 0:    46 loss_rate: 0.00391 
-1.752228: sample 0:    46 1:   256 2:     0 3:     0 4:     0
-1.752228: losses 0:     1 1:     0 2:     0 3: 262144 4:     0
-1.752228: count? 0:     0 1:     0 2:     0 3:     0 4:     0
-time: 1.76874 loss_rate: 0.00658 
-time: 1.76874 sample 0:     1 loss_rate: 0.00658 
-1.768740: sample 0:     1 1:    48 2:   256 3:     0 4:     0
-1.768740: losses 0:     1 1:     2 2:     0 3:     0 4: 262144
-1.768740: count? 0:     0 1:     0 2:     0 3:     0 4:     0
-time: 1.89533 loss_rate: 0.00658 
-time: 1.89533 sample 0:    16 loss_rate: 0.00658 
-1.895332: sample 0:    16 1:    48 2:   256 3:     0 4:     0
-1.895332: losses 0:     1 1:     2 2:     0 3:     0 4: 262144
-1.895332: count? 0:     0 1:     0 2:     0 3:     0 4:     0
-time: 2.02192 loss_rate: 0.00658 
-time: 2.02192 sample 0:    30 loss_rate: 0.00658 
-2.021924: sample 0:    30 1:    48 2:   256 3:     0 4:     0
-2.021924: losses 0:     1 1:     2 2:     0 3:     0 4: 262144
-2.021924: count? 0:     0 1:     0 2:     0 3:     0 4:     0
-time: 2.14852 loss_rate: 0.00658 
-time: 2.14852 sample 0:    41 loss_rate: 0.00658 
-2.148516: sample 0:    41 1:    48 2:   256 3:     0 4:     0
-2.148516: losses 0:     1 1:     2 2:     0 3:     0 4: 262144
-2.148516: count? 0:     0 1:     0 2:     0 3:     0 4:     0
-time: 2.18704 loss_rate: 0.00860 
-time: 2.18704 sample 0:     1 loss_rate: 0.00860 
-2.187044: sample 0:     1 1:    45 2:    48 3:   256 4:     0
-2.187044: losses 0:     1 1:     2 2:     2 3:     0 4:     0
-2.187044: count? 0:     0 1:     0 2:     0 3:     0 4:     0
-time: 2.32150 loss_rate: 0.00860 
-time: 2.32150 sample 0:    24 loss_rate: 0.00860 
-2.321497: sample 0:    24 1:    45 2:    48 3:   256 4:     0
-2.321497: losses 0:     1 1:     2 2:     2 3:     0 4:     0
-2.321497: count? 0:     0 1:     0 2:     0 3:     0 4:     0
-time: 2.45996 loss_rate: 0.00860 
-time: 2.45996 sample 0:    38 loss_rate: 0.00860 
-2.459957: sample 0:    38 1:    45 2:    48 3:   256 4:     0
-2.459957: losses 0:     1 1:     2 2:     2 3:     0 4:     0
-2.459957: count? 0:     0 1:     0 2:     0 3:     0 4:     0
-time: 2.59205 loss_rate: 0.00860 
-time: 2.59205 sample 0:    55 loss_rate: 0.00860 
-2.592053: sample 0:    55 1:    45 2:    48 3:   256 4:     0
-2.592053: losses 0:     1 1:     2 2:     2 3:     0 4:     0
-2.592053: count? 0:     0 1:     0 2:     0 3:     0 4:     0
-time: 2.72415 loss_rate: 0.00860 
-time: 2.72415 sample 0:    70 loss_rate: 0.00860 
-2.724149: sample 0:    70 1:    45 2:    48 3:   256 4:     0
-2.724149: losses 0:     1 1:     2 2:     2 3:     0 4:     0
-2.724149: count? 0:     0 1:     0 2:     0 3:     0 4:     0
-time: 2.80121 loss_rate: 0.00939 
-time: 2.80121 sample 0:     1 loss_rate: 0.00939 
-2.801205: sample 0:     1 1:    77 2:    45 3:    48 4:   256
-2.801205: losses 0:     1 1:     2 2:     2 3:     2 4:     0
-2.801205: count? 0:     0 1:     0 2:     0 3:     0 4:     0
-time: 2.92780 loss_rate: 0.00939 
-time: 2.92780 sample 0:    12 loss_rate: 0.00939 
-2.927797: sample 0:    12 1:    77 2:    45 3:    48 4:   256
-2.927797: losses 0:     1 1:     2 2:     2 3:     2 4:     0
-2.927797: count? 0:     0 1:     0 2:     0 3:     0 4:     0
-time: 3.05439 loss_rate: 0.00939 
-time: 3.05439 sample 0:    22 loss_rate: 0.00939 
-3.054389: sample 0:    22 1:    77 2:    45 3:    48 4:   256
-3.054389: losses 0:     1 1:     2 2:     2 3:     2 4:     0
-3.054389: count? 0:     0 1:     0 2:     0 3:     0 4:     0
-time: 3.18098 loss_rate: 0.00939 
-time: 3.18098 sample 0:    30 loss_rate: 0.00939 
-3.180981: sample 0:    30 1:    77 2:    45 3:    48 4:   256
-3.180981: losses 0:     1 1:     2 2:     2 3:     2 4:     0
-3.180981: count? 0:     0 1:     0 2:     0 3:     0 4:     0
-time: 3.30757 loss_rate: 0.00939 
-time: 3.30757 sample 0:    39 loss_rate: 0.00939 
-3.307573: sample 0:    39 1:    77 2:    45 3:    48 4:   256
-3.307573: losses 0:     1 1:     2 2:     2 3:     2 4:     0
-3.307573: count? 0:     0 1:     0 2:     0 3:     0 4:     0
-time: 3.32409 loss_rate: 0.01157 
-time: 3.32409 sample 0:     1 loss_rate: 0.01157 
-3.324085: sample 0:     1 1:    40 2:    77 3:    45 4:    48
-3.324085: losses 0:     1 1:     2 2:     2 3:     2 4:     2
-3.324085: count? 0:     0 1:     0 2:     0 3:     0 4:     0
-time: 3.46169 loss_rate: 0.01157 
-time: 3.46169 sample 0:    14 loss_rate: 0.01157 
-3.461685: sample 0:    14 1:    40 2:    77 3:    45 4:    48
-3.461685: losses 0:     1 1:     2 2:     2 3:     2 4:     2
-3.461685: count? 0:     0 1:     0 2:     0 3:     0 4:     0
-time: 3.55525 loss_rate: 0.01436 
-time: 3.55525 sample 0:     1 loss_rate: 0.01436 
-3.555253: sample 0:     1 1:    22 2:    40 3:    77 4:    45
-3.555253: losses 0:     1 1:     2 2:     2 3:     2 4:     2
-3.555253: count? 0:     0 1:     0 2:     0 3:     0 4:     0
-time: 3.69836 loss_rate: 0.01436 
-time: 3.69836 sample 0:    14 loss_rate: 0.01436 
-3.698357: sample 0:    14 1:    22 2:    40 3:    77 4:    45
-3.698357: losses 0:     1 1:     2 2:     2 3:     2 4:     2
-3.698357: count? 0:     0 1:     0 2:     0 3:     0 4:     0
-time: 3.84512 loss_rate: 0.01436 
-time: 3.84512 sample 0:    26 loss_rate: 0.01436 
-3.845124: sample 0:    26 1:    22 2:    40 3:    77 4:    45
-3.845124: losses 0:     1 1:     2 2:     2 3:     2 4:     2
-3.845124: count? 0:     0 1:     0 2:     0 3:     0 4:     0
-time: 3.98272 loss_rate: 0.01436 
-time: 3.98272 sample 0:    38 loss_rate: 0.01436 
-3.982724: sample 0:    38 1:    22 2:    40 3:    77 4:    45
-3.982724: losses 0:     1 1:     2 2:     2 3:     2 4:     2
-3.982724: count? 0:     0 1:     0 2:     0 3:     0 4:     0
+Guide: A TFRC-SP flow with ShortIntervals_, loss intervals from the TFRC receiver.
+1.185952: sample 0:     0 1:     3 2:     0 3:     0 4:     0
+1.185952: losses 0:     1 1:     0 2:     0 3: 262144 4:     0
+1.185952: count? 0:     0 1:     0 2:     0 3:     0 4:     0
+1.185952: rtts 0:     0 1:     0 2:     0 3:     0 4:     0
+time: 1.27354 loss_rate: 0.12230 
+time: 1.27354 sample 0:    11 loss_rate: 0.12230 
+1.273536: sample 0:    11 1:     3 2:     0 3:     0 4:     0
+1.273536: losses 0:     2 1:     0 2:     0 3: 262144 4:     0
+1.273536: count? 0:     0 1:     0 2:     0 3:     0 4:     0
+1.273536: rtts 0:     5 1:     0 2:     0 3:     0 4:     0
+time: 1.28538 loss_rate: 0.27419 
+time: 1.28538 sample 0:     1 loss_rate: 0.27419 
+1.285382: sample 0:     1 1:    12 2:     3 3:     0 4:     0
+1.285382: losses 0:     1 1:     3 2:     0 3:     0 4: 262144
+1.285382: count? 0:     0 1:     1 2:     0 3:     0 4:     0
+1.285382: rtts 0:     4 1:     2 2:     0 3:     0 4:     0
+time: 1.41150 loss_rate: 0.26415 
+time: 1.41150 sample 0:     4 loss_rate: 0.26415 
+1.411499: sample 0:     4 1:    12 2:     3 3:     0 4:     0
+1.411499: losses 0:     2 1:     3 2:     0 3:     0 4: 262144
+1.411499: count? 0:     0 1:     1 2:     0 3:     0 4:     0
+1.411499: rtts 0:     5 1:     2 2:     0 3:     0 4:     0
+time: 1.43100 loss_rate: 0.38356 
+time: 1.43100 sample 0:     2 loss_rate: 0.38356 
+1.430998: sample 0:     2 1:     6 2:    12 3:     3 4:     0
+1.430998: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+1.430998: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+1.430998: rtts 0:     3 1:     2 2:     2 3:     0 4:     0
+time: 1.58394 loss_rate: 0.33333 
+time: 1.58394 sample 0:     4 loss_rate: 0.33333 
+1.583939: sample 0:     4 1:     6 2:    12 3:     3 4:     0
+1.583939: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+1.583939: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+1.583939: rtts 0:     4 1:     2 2:     2 3:     0 4:     0
+time: 1.77545 loss_rate: 0.30469 
+time: 1.77545 sample 0:     5 loss_rate: 0.30469 
+1.775453: sample 0:     5 1:     6 2:    12 3:     3 4:     0
+1.775453: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+1.775453: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+1.775453: rtts 0:     5 1:     2 2:     2 3:     0 4:     0
+time: 1.91126 loss_rate: 0.27297 
+time: 1.91126 sample 0:     6 loss_rate: 0.27297 
+1.911257: sample 0:     6 1:     6 2:    12 3:     3 4:     0
+1.911257: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+1.911257: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+1.911257: rtts 0:     6 1:     2 2:     2 3:     0 4:     0
+time: 2.05911 loss_rate: 0.21574 
+time: 2.05911 sample 0:     8 loss_rate: 0.21574 
+2.059112: sample 0:     8 1:     6 2:    12 3:     3 4:     0
+2.059112: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+2.059112: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+2.059112: rtts 0:     8 1:     2 2:     2 3:     0 4:     0
+time: 2.19244 loss_rate: 0.15873 
+time: 2.19244 sample 0:    11 loss_rate: 0.15873 
+2.192444: sample 0:    11 1:     6 2:    12 3:     3 4:     0
+2.192444: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+2.192444: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+2.192444: rtts 0:     9 1:     2 2:     2 3:     0 4:     0
+time: 2.33775 loss_rate: 0.11765 
+time: 2.33775 sample 0:    16 loss_rate: 0.11765 
+2.337745: sample 0:    16 1:     6 2:    12 3:     3 4:     0
+2.337745: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+2.337745: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+2.337745: rtts 0:    10 1:     2 2:     2 3:     0 4:     0
+time: 2.47288 loss_rate: 0.08977 
+time: 2.47288 sample 0:    22 loss_rate: 0.08977 
+2.472877: sample 0:    22 1:     6 2:    12 3:     3 4:     0
+2.472877: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+2.472877: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+2.472877: rtts 0:    12 1:     2 2:     2 3:     0 4:     0
+time: 2.59137 loss_rate: 0.07032 
+time: 2.59137 sample 0:    29 loss_rate: 0.07032 
+2.591367: sample 0:    29 1:     6 2:    12 3:     3 4:     0
+2.591367: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+2.591367: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+2.591367: rtts 0:    13 1:     2 2:     2 3:     0 4:     0
+time: 2.71656 loss_rate: 0.05501 
+time: 2.71656 sample 0:    38 loss_rate: 0.05501 
+2.716557: sample 0:    38 1:     6 2:    12 3:     3 4:     0
+2.716557: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+2.716557: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+2.716557: rtts 0:    14 1:     2 2:     2 3:     0 4:     0
+time: 2.84282 loss_rate: 0.04429 
+time: 2.84282 sample 0:    48 loss_rate: 0.04429 
+2.842817: sample 0:    48 1:     6 2:    12 3:     3 4:     0
+2.842817: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+2.842817: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+2.842817: rtts 0:    16 1:     2 2:     2 3:     0 4:     0
+time: 2.95633 loss_rate: 0.03647 
+time: 2.95633 sample 0:    59 loss_rate: 0.03647 
+2.956330: sample 0:    59 1:     6 2:    12 3:     3 4:     0
+2.956330: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+2.956330: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+2.956330: rtts 0:    17 1:     2 2:     2 3:     0 4:     0
+time: 3.06543 loss_rate: 0.03100 
+time: 3.06543 sample 0:    70 loss_rate: 0.03100 
+3.065428: sample 0:    70 1:     6 2:    12 3:     3 4:     0
+3.065428: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+3.065428: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+3.065428: rtts 0:    19 1:     2 2:     2 3:     0 4:     0
+time: 3.17030 loss_rate: 0.02728 
+time: 3.17030 sample 0:    80 loss_rate: 0.02728 
+3.170295: sample 0:    80 1:     6 2:    12 3:     3 4:     0
+3.170295: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+3.170295: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+3.170295: rtts 0:    20 1:     2 2:     2 3:     0 4:     0
+time: 3.27960 loss_rate: 0.02410 
+time: 3.27960 sample 0:    91 loss_rate: 0.02410 
+3.279597: sample 0:    91 1:     6 2:    12 3:     3 4:     0
+3.279597: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+3.279597: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+3.279597: rtts 0:    22 1:     2 2:     2 3:     0 4:     0
+time: 3.38413 loss_rate: 0.02158 
+time: 3.38413 sample 0:   102 loss_rate: 0.02158 
+3.384134: sample 0:   102 1:     6 2:    12 3:     3 4:     0
+3.384134: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+3.384134: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+3.384134: rtts 0:    23 1:     2 2:     2 3:     0 4:     0
+time: 3.48413 loss_rate: 0.01971 
+time: 3.48413 sample 0:   112 loss_rate: 0.01971 
+3.484134: sample 0:   112 1:     6 2:    12 3:     3 4:     0
+3.484134: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+3.484134: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+3.484134: rtts 0:    25 1:     2 2:     2 3:     0 4:     0
+time: 3.58624 loss_rate: 0.01814 
+time: 3.58624 sample 0:   122 loss_rate: 0.01814 
+3.586243: sample 0:   122 1:     6 2:    12 3:     3 4:     0
+3.586243: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+3.586243: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+3.586243: rtts 0:    26 1:     2 2:     2 3:     0 4:     0
+time: 3.68418 loss_rate: 0.01680 
+time: 3.68418 sample 0:   132 loss_rate: 0.01680 
+3.684184: sample 0:   132 1:     6 2:    12 3:     3 4:     0
+3.684184: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+3.684184: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+3.684184: rtts 0:    28 1:     2 2:     2 3:     0 4:     0
+time: 3.77754 loss_rate: 0.01575 
+time: 3.77754 sample 0:   141 loss_rate: 0.01575 
+3.777542: sample 0:   141 1:     6 2:    12 3:     3 4:     0
+3.777542: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+3.777542: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+3.777542: rtts 0:    30 1:     2 2:     2 3:     0 4:     0
+time: 3.86690 loss_rate: 0.01482 
+time: 3.86690 sample 0:   150 loss_rate: 0.01482 
+3.866900: sample 0:   150 1:     6 2:    12 3:     3 4:     0
+3.866900: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+3.866900: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+3.866900: rtts 0:    31 1:     2 2:     2 3:     0 4:     0
+time: 3.95951 loss_rate: 0.01400 
+time: 3.95951 sample 0:   159 loss_rate: 0.01400 
+3.959512: sample 0:   159 1:     6 2:    12 3:     3 4:     0
+3.959512: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+3.959512: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+3.959512: rtts 0:    33 1:     2 2:     2 3:     0 4:     0
+Test output agrees with reference output
+Running test printLossesShort3:
+../../ns test-suite-friendly.tcl printLossesShort3 QUIET
+Guide: A TFRC-SP flow with ShortIntervals_ 3, loss intervals from the TFRC receiver.
+1.185952: sample 0:     0 1:     3 2:     0 3:     0 4:     0
+1.185952: losses 0:     1 1:     0 2:     0 3: 262144 4:     0
+1.185952: count? 0:     0 1:     0 2:     0 3:     0 4:     0
+1.185952: rtts 0:     0 1:     0 2:     0 3:     0 4:     0
+time: 1.27354 loss_rate: 0.12230 
+time: 1.27354 sample 0:    11 loss_rate: 0.12230 
+1.273536: sample 0:    11 1:     3 2:     0 3:     0 4:     0
+1.273536: losses 0:     2 1:     0 2:     0 3: 262144 4:     0
+1.273536: count? 0:     0 1:     0 2:     0 3:     0 4:     0
+1.273536: rtts 0:     5 1:     0 2:     0 3:     0 4:     0
+time: 1.28538 loss_rate: 0.20238 
+time: 1.28538 sample 0:     1 loss_rate: 0.20238 
+1.285382: sample 0:     1 1:    12 2:     3 3:     0 4:     0
+1.285382: losses 0:     1 1:     3 2:     0 3:     0 4: 262144
+1.285382: count? 0:     0 1:     1 2:     0 3:     0 4:     0
+1.285382: rtts 0:     4 1:     2 2:     0 3:     0 4:     0
+time: 1.41150 loss_rate: 0.20238 
+time: 1.41150 sample 0:     4 loss_rate: 0.20238 
+1.411499: sample 0:     4 1:    12 2:     3 3:     0 4:     0
+1.411499: losses 0:     2 1:     3 2:     0 3:     0 4: 262144
+1.411499: count? 0:     0 1:     1 2:     0 3:     0 4:     0
+1.411499: rtts 0:     5 1:     2 2:     0 3:     0 4:     0
+time: 1.43100 loss_rate: 0.26415 
+time: 1.43100 sample 0:     2 loss_rate: 0.26415 
+1.430998: sample 0:     2 1:     6 2:    12 3:     3 4:     0
+1.430998: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+1.430998: count? 0:     1 1:     1 2:     1 3:     0 4:     0
+1.430998: rtts 0:     3 1:     2 2:     2 3:     0 4:     0
+time: 1.58394 loss_rate: 0.24224 
+time: 1.58394 sample 0:     5 loss_rate: 0.24224 
+1.583939: sample 0:     5 1:     6 2:    12 3:     3 4:     0
+1.583939: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+1.583939: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+1.583939: rtts 0:     4 1:     2 2:     2 3:     0 4:     0
+time: 1.75426 loss_rate: 0.21311 
+time: 1.75426 sample 0:     7 loss_rate: 0.21311 
+1.754260: sample 0:     7 1:     6 2:    12 3:     3 4:     0
+1.754260: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+1.754260: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+1.754260: rtts 0:     5 1:     2 2:     2 3:     0 4:     0
+time: 1.91123 loss_rate: 0.15608 
+time: 1.91123 sample 0:    11 loss_rate: 0.15608 
+1.911235: sample 0:    11 1:     6 2:    12 3:     3 4:     0
+1.911235: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+1.911235: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+1.911235: rtts 0:     6 1:     2 2:     2 3:     0 4:     0
+time: 2.04567 loss_rate: 0.10917 
+time: 2.04567 sample 0:    16 loss_rate: 0.10917 
+2.045675: sample 0:    16 1:     6 2:    12 3:     3 4:     0
+2.045675: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+2.045675: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+2.045675: rtts 0:     8 1:     2 2:     2 3:     0 4:     0
+time: 2.19240 loss_rate: 0.08170 
+time: 2.19240 sample 0:    23 loss_rate: 0.08170 
+2.192400: sample 0:    23 1:     6 2:    12 3:     3 4:     0
+2.192400: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+2.192400: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+2.192400: rtts 0:     9 1:     2 2:     2 3:     0 4:     0
+time: 2.32257 loss_rate: 0.06345 
+time: 2.32257 sample 0:    31 loss_rate: 0.06345 
+2.322573: sample 0:    31 1:     6 2:    12 3:     3 4:     0
+2.322573: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+2.322573: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+2.322573: rtts 0:    10 1:     2 2:     2 3:     0 4:     0
+time: 2.44810 loss_rate: 0.05071 
+time: 2.44810 sample 0:    40 loss_rate: 0.05071 
+2.448101: sample 0:    40 1:     6 2:    12 3:     3 4:     0
+2.448101: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+2.448101: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+2.448101: rtts 0:    12 1:     2 2:     2 3:     0 4:     0
+time: 2.56788 loss_rate: 0.04146 
+time: 2.56788 sample 0:    50 loss_rate: 0.04146 
+2.567883: sample 0:    50 1:     6 2:    12 3:     3 4:     0
+2.567883: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+2.567883: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+2.567883: rtts 0:    13 1:     2 2:     2 3:     0 4:     0
+time: 2.68140 loss_rate: 0.03453 
+time: 2.68140 sample 0:    61 loss_rate: 0.03453 
+2.681402: sample 0:    61 1:     6 2:    12 3:     3 4:     0
+2.681402: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+2.681402: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+2.681402: rtts 0:    14 1:     2 2:     2 3:     0 4:     0
+time: 2.80077 loss_rate: 0.02921 
+time: 2.80077 sample 0:    73 loss_rate: 0.02921 
+2.800766: sample 0:    73 1:     6 2:    12 3:     3 4:     0
+2.800766: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+2.800766: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+2.800766: rtts 0:    16 1:     2 2:     2 3:     0 4:     0
+time: 2.91526 loss_rate: 0.02559 
+time: 2.91526 sample 0:    84 loss_rate: 0.02559 
+2.915263: sample 0:    84 1:     6 2:    12 3:     3 4:     0
+2.915263: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+2.915263: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+2.915263: rtts 0:    17 1:     2 2:     2 3:     0 4:     0
+time: 3.02601 loss_rate: 0.02277 
+time: 3.02601 sample 0:    95 loss_rate: 0.02277 
+3.026010: sample 0:    95 1:     6 2:    12 3:     3 4:     0
+3.026010: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+3.026010: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+3.026010: rtts 0:    19 1:     2 2:     2 3:     0 4:     0
+time: 3.13258 loss_rate: 0.02051 
+time: 3.13258 sample 0:   106 loss_rate: 0.02051 
+3.132581: sample 0:   106 1:     6 2:    12 3:     3 4:     0
+3.132581: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+3.132581: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+3.132581: rtts 0:    20 1:     2 2:     2 3:     0 4:     0
+time: 3.23452 loss_rate: 0.01881 
+time: 3.23452 sample 0:   116 loss_rate: 0.01881 
+3.234524: sample 0:   116 1:     6 2:    12 3:     3 4:     0
+3.234524: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+3.234524: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+3.234524: rtts 0:    22 1:     2 2:     2 3:     0 4:     0
+time: 3.34090 loss_rate: 0.01724 
+time: 3.34090 sample 0:   127 loss_rate: 0.01724 
+3.340900: sample 0:   127 1:     6 2:    12 3:     3 4:     0
+3.340900: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+3.340900: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+3.340900: rtts 0:    23 1:     2 2:     2 3:     0 4:     0
+time: 3.44230 loss_rate: 0.01603 
+time: 3.44230 sample 0:   137 loss_rate: 0.01603 
+3.442297: sample 0:   137 1:     6 2:    12 3:     3 4:     0
+3.442297: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+3.442297: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+3.442297: rtts 0:    25 1:     2 2:     2 3:     0 4:     0
+time: 3.54077 loss_rate: 0.01497 
+time: 3.54077 sample 0:   147 loss_rate: 0.01497 
+3.540766: sample 0:   147 1:     6 2:    12 3:     3 4:     0
+3.540766: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+3.540766: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+3.540766: rtts 0:    26 1:     2 2:     2 3:     0 4:     0
+time: 3.64688 loss_rate: 0.01404 
+time: 3.64688 sample 0:   157 loss_rate: 0.01404 
+3.646876: sample 0:   157 1:     6 2:    12 3:     3 4:     0
+3.646876: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+3.646876: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+3.646876: rtts 0:    28 1:     2 2:     2 3:     0 4:     0
+time: 3.74199 loss_rate: 0.01323 
+time: 3.74199 sample 0:   167 loss_rate: 0.01323 
+3.741994: sample 0:   167 1:     6 2:    12 3:     3 4:     0
+3.741994: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+3.741994: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+3.741994: rtts 0:    30 1:     2 2:     2 3:     0 4:     0
+time: 3.83299 loss_rate: 0.01257 
+time: 3.83299 sample 0:   176 loss_rate: 0.01257 
+3.832987: sample 0:   176 1:     6 2:    12 3:     3 4:     0
+3.832987: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+3.832987: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+3.832987: rtts 0:    31 1:     2 2:     2 3:     0 4:     0
+time: 3.92670 loss_rate: 0.01197 
+time: 3.92670 sample 0:   185 loss_rate: 0.01197 
+3.926705: sample 0:   185 1:     6 2:    12 3:     3 4:     0
+3.926705: losses 0:     1 1:     5 2:     3 3:     0 4:     0
+3.926705: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+3.926705: rtts 0:    33 1:     2 2:     2 3:     0 4:     0
 Test output agrees with reference output
 Running test goodTFRC:
 ../../ns test-suite-friendly.tcl goodTFRC QUIET
@@ -2511,6 +2849,18 @@ Guide: One VoIP TFRC flow.
 fid: 0 drops 0 marks 0
 fid: 0 packets 1809 _bytes 274968
 Test output agrees with reference output
+Running test tfrcOnlyHighLoss:
+../../ns test-suite-friendly.tcl tfrcOnlyHighLoss QUIET
+Guide: One VoIP TFRC flow, high loss.
+fid: 0 drops 233 marks 0
+fid: 0 packets 877 _bytes 133304
+Test output agrees with reference output
+Running test tfrcOnlyHighLoss1:
+../../ns test-suite-friendly.tcl tfrcOnlyHighLoss1 QUIET
+Guide: One VoIP TFRC flow, high loss, old measurement of loss event rate.
+fid: 0 drops 233 marks 0
+fid: 0 packets 877 _bytes 133304
+Test output agrees with reference output
 Running test voip:
 ../../ns test-suite-friendly.tcl voip QUIET
 Guide: One VoIP TFRC flow and one TCP flow, different packet sizes.
@@ -2530,7 +2880,7 @@ Test output agrees with reference output
 Running test voipNoHeader:
 ../../ns test-suite-friendly.tcl voipNoHeader QUIET
 Guide: One VoIP TFRC flow without headers, and one TCP flow.
-fid: 0 drops 46 marks 0
+fid: 0 drops 44 marks 0
 fid: 0 packets 883 _bytes 105960
 fid: 1 drops 9 marks 0
 fid: 1 packets 255 _bytes 381040
@@ -2538,10 +2888,10 @@ Test output agrees with reference output
 Running test voipEcn:
 ../../ns test-suite-friendly.tcl voipEcn QUIET
 Guide: One ECN VoIP TFRC flow and one TCP flow, different packet sizes.
-fid: 0 drops 25 marks 22
-fid: 0 packets 859 _bytes 103080
-fid: 1 drops 5 marks 4
-fid: 1 packets 260 _bytes 388540
+fid: 0 drops 21 marks 14
+fid: 0 packets 626 _bytes 75120
+fid: 1 drops 6 marks 4
+fid: 1 packets 280 _bytes 418540
 Test output agrees with reference output
 Running test noVoip:
 ../../ns test-suite-friendly.tcl noVoip QUIET
@@ -2567,30 +2917,17 @@ Running test idleTcp1:
 ../../ns test-suite-friendly.tcl idleTcp1 QUIET
 Guide: TCP with only one idle period during slow-start.
 Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 13:40:07 PDT 2006
-Tue Oct  3 13:40:09 PDT 2006
-*** ./test-all-srm
-Tests: srm-chain srm-star srm-adapt-rep srm-adapt-req
-Running test srm-chain:
-../../ns test-suite-srm.tcl srm-chain QUIET
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+Running test shortIdleTcp:
+../../ns test-suite-friendly.tcl shortIdleTcp QUIET
+Guide: TCP with two short idle periods during slow-start.
 Test output agrees with reference output
-Running test srm-star:
-../../ns test-suite-srm.tcl srm-star QUIET
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-Test output agrees with reference output
-Running test srm-adapt-rep:
-../../ns test-suite-srm.tcl srm-adapt-rep QUIET
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-Test output agrees with reference output
-Running test srm-adapt-req:
-../../ns test-suite-srm.tcl srm-adapt-req QUIET
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+Running test idleTfrc1:
+../../ns test-suite-friendly.tcl idleTfrc1 QUIET
+Guide: TFRC with only one idle period during slow-start.
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 13:40:22 PDT 2006
-Tue Oct  3 13:40:24 PDT 2006
+Mon Sep 24 23:43:05 PDT 2007
+Mon Sep 24 23:43:07 PDT 2007
 *** ./test-all-realaudio
 Tests: realaudio
 Running test realaudio:
@@ -2598,8 +2935,8 @@ Running test realaudio:
 NS EXITING...
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 13:40:26 PDT 2006
-Tue Oct  3 13:40:28 PDT 2006
+Mon Sep 24 23:43:09 PDT 2007
+Mon Sep 24 23:43:11 PDT 2007
 *** ./test-all-ecn
 Tests: ecn ecn_nodrop_tahoe ecn_twoecn_tahoe ecn_drop_tahoe ecn_drop1_tahoe ecn_drop2_tahoe ecn_noecn_tahoe ecn_bursty_tahoe ecn_burstyEcn_tahoe ecn_noBugfix_tahoe ecn_timeout_tahoe ecn_timeout2_tahoe ecn_timeout3_tahoe ecn_smallwin_tahoe ecn_smallwinEcn_tahoe ecn_smallwin1Ecn_tahoe ecn_smallwin2Ecn_tahoe ecn_smallwin3Ecn_tahoe ecn_secondpkt_tahoe ecn_secondpktEcn_tahoe ecn_nodrop_tahoe_delack ecn_twoecn_tahoe_delack ecn_drop_tahoe_delack ecn_drop1_tahoe_delack ecn_smallwinEcn_tahoe_delack ecn_nodrop_reno ecn_twoecn_reno ecn_drop_reno ecn_drop1_reno ecn_noecn_reno ecn_bursty_reno ecn_burstyEcn_reno ecn_noBugfix_reno ecn_timeout_reno ecn_timeout1_reno ecn_smallwin_reno ecn_smallwinEcn_reno ecn_smallwin1Ecn_reno ecn_secondpkt_reno ecn_secondpktEcn_reno ecn_nodrop_reno_delack ecn_twoecn_reno_delack ecn_drop_reno_delack ecn_drop1_reno_delack ecn_smallwinEcn_reno_delack ecn_nodrop_sack ecn_twoecn_sack ecn_drop_sack ecn_drop1_sack ecn_noecn_sack ecn_bursty_sack ecn_burstyEcn_sack ecn_burstyEcn1_sack ecn_noBugfix_sack ecn_timeout_sack ecn_timeout1_sack ecn_fourdrops_sack ecn_smallwin_sack ecn_smallwinEcn_sack ecn_smallwin1Ecn_sack ecn_secondpkt_sack ecn_secondpktEcn_sack ecn_nodrop_sack_delack ecn_twoecn_sack_delack ecn_drop_sack_delack ecn_drop1_sack_delack ecn_smallwinEcn_sack_delack ecn_nodrop_newreno ecn_twoecn_newreno ecn_drop_newreno ecn_drop1_newreno ecn_noecn_newreno ecn_bursty_newreno ecn_burstyEcn_newreno ecn_timeout_newreno ecn_timeout1_newreno ecn_smallwin_newreno ecn_smallwinEcn_newreno ecn_secondpkt_newreno ecn_secondpktEcn_newreno ecn_nodrop_newreno_delack ecn_twoecn_newreno_delack ecn_drop_newreno_delack ecn_drop1_newreno_delack ecn_smallwinEcn_newreno_delack ecn1
 Running test ecn:
@@ -2944,8 +3281,8 @@ Running test ecn1:
 Guide: Two TCPs, one with ECN and one without.
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 22:28:52 PDT 2006
-Tue Oct  3 22:28:54 PDT 2006
+Mon Sep 24 23:49:31 PDT 2007
+Mon Sep 24 23:49:34 PDT 2007
 *** ./test-all-ecn-ack
 Tests: ecn_ack ecn_ack_fulltcp synack synack_fulltcp synack0 synack0A synack1 synack1_fulltcp synack2 synack2_fulltcp synack2a_fulltcp
 Running test ecn_ack:
@@ -2991,8 +3328,8 @@ Running test synack2a_fulltcp:
 Guide: SYN/ACK packet marked, FullTCP, wait.
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 22:29:29 PDT 2006
-Tue Oct  3 22:29:31 PDT 2006
+Mon Sep 24 23:50:04 PDT 2007
+Mon Sep 24 23:50:06 PDT 2007
 *** ./test-all-ecn-full
 Tests: ecn_nodrop_reno_full ecn_twoecn_reno_full ecn_drop_reno_full ecn_drop1_reno_full ecn_noecn_reno_full ecn_bursty_reno_full ecn_burstyEcn_reno_full ecn_noBugfix_reno_full ecn_timeout_reno_full ecn_timeout1_reno_full ecn_smallwin_reno_full ecn_smallwinEcn_reno_full ecn_secondpkt_reno_full ecn_secondpktEcn_reno_full
 Running test ecn_nodrop_reno_full:
@@ -3038,10 +3375,10 @@ Running test ecn_secondpktEcn_reno_full:
 ../../ns test-suite-ecn-full.tcl ecn_secondpktEcn_reno_full QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 22:30:38 PDT 2006
-Tue Oct  3 22:30:40 PDT 2006
+Mon Sep 24 23:51:07 PDT 2007
+Mon Sep 24 23:51:09 PDT 2007
 *** ./test-all-quickstart
-Tests: no_quickstart quickstart quickstart1 quickstart2 quickstart3 quickstart4 quickstart4full high_request bad_router changing_rtt changing_rtt1 no_acks_back pkt_drops many_requests many_requests3 stats stats1 rate_request rate_request1 rate_request3 rate_request4 routers1 routers2 routers3
+Tests: no_quickstart quickstart quickstart1 quickstart2 quickstart3 quickstart4 quickstart4full high_request bad_router changing_rtt changing_rtt1 no_acks_back pkt_drops many_requests many_requests3 stats stats1 rate_request rate_request1 rate_request3 rate_request4 routers1 routers2 routers3 routers4 routers5 routers6 small-request
 Running test no_quickstart:
 ../../ns test-suite-quickstart.tcl no_quickstart QUIET
 Guide: Two TCPs, no quickstart.
@@ -3111,7 +3448,8 @@ fid: 1 per-link qs_pkts 19
 fid: 1 per-link qs_bytes 19760
 fid: 1 per-link qs_drops 0
 QS request (before encoding): 20 KBps
-Quick Start approved, rate: 20480 Bps, window 19 rtt: 1.01 pktsize: 1040
+Quick Start request, rate: 20480 Bps, encoded rate: 2
+Quick Start request, window 19 rtt: 1.01 pktsize: 1040
 Test output agrees with reference output
 Running test stats1:
 ../../ns test-suite-quickstart.tcl stats1 QUIET
@@ -3123,7 +3461,8 @@ fid: 1 per-link qs_pkts 19
 fid: 1 per-link qs_bytes 19760
 fid: 1 per-link qs_drops 2
 QS request (before encoding): 20 KBps
-Quick Start approved, rate: 20480 Bps, window 19 rtt: 1.01 pktsize: 1040
+Quick Start request, rate: 20480 Bps, encoded rate: 2
+Quick Start request, window 19 rtt: 1.01 pktsize: 1040
 Test output agrees with reference output
 Running test rate_request:
 ../../ns test-suite-quickstart.tcl rate_request QUIET
@@ -3153,9 +3492,25 @@ Running test routers3:
 ../../ns test-suite-quickstart.tcl routers3 QUIET
 Guide: Quick-Start, log-scale for rate encoding
 Test output agrees with reference output
+Running test routers4:
+../../ns test-suite-quickstart.tcl routers4 QUIET
+Guide: Quick-Start, request for full link bandwidth.
+Test output agrees with reference output
+Running test routers5:
+../../ns test-suite-quickstart.tcl routers5 QUIET
+Guide: Quick-Start, two requests, total for full link bandwidth.
+Test output agrees with reference output
+Running test routers6:
+../../ns test-suite-quickstart.tcl routers6 QUIET
+Guide: Quick-Start, three requests, total for more than link bandwidth.
+Test output agrees with reference output
+Running test small-request:
+../../ns test-suite-quickstart.tcl small-request QUIET
+Guide: Quick-Start, a very small request.
+Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 22:31:39 PDT 2006
-Tue Oct  3 22:31:41 PDT 2006
+Mon Sep 24 23:52:22 PDT 2007
+Mon Sep 24 23:52:24 PDT 2007
 *** ./test-all-diffusion3
 Tests: simple-ping 2pp-5n-1s-1r 2pp-10n-4s-1r 2pp-10n-1s-4r push-5n-1s-1r push-10n-1s-4r push-10n-4s-1r 1pp-5n-1s-1r 1pp-10n-4s-1r 1pp-10n-1s-4r gear-2pp-5n-1s-1r gear-2pp-10n-4s-1r gear-push-10n-1s-4r
 Running test simple-ping:
@@ -3250,8 +3605,8 @@ channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
 highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 22:32:24 PDT 2006
-Tue Oct  3 22:32:26 PDT 2006
+Mon Sep 24 23:53:10 PDT 2007
+Mon Sep 24 23:53:12 PDT 2007
 *** ./test-all-smac
 Tests: brdcast1 brdcast1_sync brdcast2 brdcast2_sync unicast1 unicast1_sync unicast2 unicast2_sync unicast3 unicast3_sync unicast4 unicast4_sync unicast5 unicast5_sync unicast6 unicast6_sync unicast7 unicast7_sync unicast8 unicast8_sync unicast9 unicast9_sync unicast10 unicast10_sync unicast11 unicast11_sync unicast12 unicast12_sync
 Running test brdcast1:
@@ -3875,96 +4230,8 @@ node: 1 ..............data sent Uni............
 node: 2 ..............data sent Uni............
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 22:33:21 PDT 2006
-Tue Oct  3 22:33:23 PDT 2006
-*** ./test-all-smac-multihop
-Tests: smac-multihop
-Running test smac-multihop:
-../../ns test-suite-smac-multihop.tcl smac-multihop QUIET
-Valid tests: smac-multihop
-Loading connection pattern...
-Starting Simulation...
-
-NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
-
-NS EXITING...
-num_nodes is set 10
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-node: 8 ..............data sent Uni............
-node: 9 ..............data sent Uni............
-node: 8 ..............data sent Uni............
-node: 7 ..............data sent Uni............
-node: 8 ..............data sent Uni............
-node: 7 ..............data sent Uni............
-node: 6 ..............data sent Uni............
-node: 6 ..............data sent Uni............
-node: 7 ..............data sent Uni............
-node: 5 ..............data sent Uni............
-node: 5 ..............data sent Uni............
-node: 6 ..............data sent Uni............
-node: 4 ..............data sent Uni............
-node: 5 ..............data sent Uni............
-node: 3 ..............data sent Uni............
-node: 4 ..............data sent Uni............
-node: 3 ..............data sent Uni............
-node: 2 ..............data sent Uni............
-node: 3 ..............data sent Uni............
-node: 2 ..............data sent Uni............
-node: 1 ..............data sent Uni............
-node: 2 ..............data sent Uni............
-node: 0 ..............data sent Uni............
-node: 1 ..............data sent Uni............
-node: 0 ..............data sent Uni............
-node: 1 ..............data sent Uni............
-node: 2 ..............data sent Uni............
-node: 3 ..............data sent Uni............
-node: 4 ..............data sent Uni............
-node: 5 ..............data sent Uni............
-node: 6 ..............data sent Uni............
-node: 7 ..............data sent Uni............
-node: 8 ..............data sent Uni............
-node: 0 ..............data sent Uni............
-node: 1 ..............data sent Uni............
-node: 2 ..............data sent Uni............
-node: 3 ..............data sent Uni............
-node: 4 ..............data sent Uni............
-node: 5 ..............data sent Uni............
-node: 5 ..............data sent Uni............
-node: 6 ..............data sent Uni............
-node: 7 ..............data sent Uni............
-node: 8 ..............data sent Uni............
-node: 0 ..............data sent Uni............
-node: 1 ..............data sent Uni............
-node: 2 ..............data sent Uni............
-node: 3 ..............data sent Uni............
-node: 4 ..............data sent Uni............
-node: 5 ..............data sent Uni............
-node: 6 ..............data sent Uni............
-node: 7 ..............data sent Uni............
-node: 8 ..............data sent Uni............
-node: 0 ..............data sent Uni............
-node: 1 ..............data sent Uni............
-node: 2 ..............data sent Uni............
-node: 3 ..............data sent Uni............
-node: 4 ..............data sent Uni............
-node: 5 ..............data sent Uni............
-node: 6 ..............data sent Uni............
-node: 7 ..............data sent Uni............
-node: 8 ..............data sent Uni............
-node: 0 ..............data sent Uni............
-node: 1 ..............data sent Uni............
-node: 2 ..............data sent Uni............
-node: 3 ..............data sent Uni............
-node: 4 ..............data sent Uni............
-node: 5 ..............data sent Uni............
-node: 6 ..............data sent Uni............
-node: 7 ..............data sent Uni............
-node: 8 ..............data sent Uni............
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 22:33:27 PDT 2006
-Tue Oct  3 22:33:29 PDT 2006
+Mon Sep 24 23:54:07 PDT 2007
+Mon Sep 24 23:54:09 PDT 2007
 *** ./test-all-manual-routing
 Tests: one_client
 Running test one_client:
@@ -3980,33 +4247,8 @@ total clients started: 1
 total clients finished: 1
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 22:33:32 PDT 2006
-Tue Oct  3 22:33:34 PDT 2006
-*** ./test-all-hier-routing
-Tests: hier-simple hier-cmcast hier-session
-Running test hier-simple:
-../../ns test-suite-hier-routing.tcl hier-simple QUIET
-Test output agrees with reference output
-Running test hier-cmcast:
-../../ns test-suite-hier-routing.tcl hier-cmcast QUIET
-Test output agrees with reference output
-Running test hier-session:
-../../ns test-suite-hier-routing.tcl hier-session QUIET
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 22:33:46 PDT 2006
-Tue Oct  3 22:33:48 PDT 2006
-*** ./test-all-algo-routing
-Tests: Algo1 Algo2
-Running test Algo1:
-../../ns test-suite-algo-routing.tcl Algo1 QUIET
-Test output agrees with reference output
-Running test Algo2:
-../../ns test-suite-algo-routing.tcl Algo2 QUIET
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 22:33:53 PDT 2006
-Tue Oct  3 22:33:55 PDT 2006
+Mon Sep 24 23:54:13 PDT 2007
+Mon Sep 24 23:54:15 PDT 2007
 *** ./test-all-lan
 Tests: lan-routing-flat lan-routing-flat-qlimit congested lan-routing-hier lan-broadcast lan-abstract lan-mactrace
 Running test lan-routing-flat:
@@ -4031,167 +4273,103 @@ Running test lan-mactrace:
 ../../ns test-suite-lan.tcl lan-mactrace QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 22:34:24 PDT 2006
-Tue Oct  3 22:34:26 PDT 2006
-*** ./test-all-mcast
-Tests: DM1 DM2 DM3 DM4 CtrMcast1 CtrMcast2 ST1
-Running test DM1:
-../../ns test-suite-mcast.tcl DM1 QUIET
-Test output agrees with reference output
-Running test DM2:
-../../ns test-suite-mcast.tcl DM2 QUIET
-Test output agrees with reference output
-Running test DM3:
-../../ns test-suite-mcast.tcl DM3 QUIET
-Test output agrees with reference output
-Running test DM4:
-../../ns test-suite-mcast.tcl DM4 QUIET
-Test output agrees with reference output
-Running test CtrMcast1:
-../../ns test-suite-mcast.tcl CtrMcast1 QUIET
-Test output agrees with reference output
-Running test CtrMcast2:
-../../ns test-suite-mcast.tcl CtrMcast2 QUIET
-Test output agrees with reference output
-Running test ST1:
-../../ns test-suite-mcast.tcl ST1 QUIET
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 22:34:44 PDT 2006
-Tue Oct  3 22:34:46 PDT 2006
-*** ./test-all-vc
-Tests: VC1 VC2 VC3
-Running test VC1:
-../../ns test-suite-vc.tcl VC1 QUIET
-Test output agrees with reference output
-Running test VC2:
-../../ns test-suite-vc.tcl VC2 QUIET
-Test output agrees with reference output
-Running test VC3:
-../../ns test-suite-vc.tcl VC3 QUIET
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 22:34:52 PDT 2006
-Tue Oct  3 22:34:54 PDT 2006
-*** ./test-all-session
-Tests: Session1 Session2 Session3 Session4
-Running test Session1:
-../../ns test-suite-session.tcl Session1 QUIET
-Test output agrees with reference output
-Running test Session2:
-../../ns test-suite-session.tcl Session2 QUIET
-Test output agrees with reference output
-Running test Session3:
-../../ns test-suite-session.tcl Session3 QUIET
-Test output agrees with reference output
-Running test Session4:
-../../ns test-suite-session.tcl Session4 QUIET
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 22:35:01 PDT 2006
-Tue Oct  3 22:35:03 PDT 2006
-*** ./test-all-mixmode
-Tests: Mixmode1 Mixmode2 Mixmode3 Mixmode4 Mixmode5 Mixmode6 Mixmode7 Mixmode8 Mixmode9 Mixmode10
-Running test Mixmode1:
-../../ns test-suite-mixmode.tcl Mixmode1 QUIET
-Test output agrees with reference output
-Running test Mixmode2:
-../../ns test-suite-mixmode.tcl Mixmode2 QUIET
-Test output agrees with reference output
-Running test Mixmode3:
-../../ns test-suite-mixmode.tcl Mixmode3 QUIET
-Test output agrees with reference output
-Running test Mixmode4:
-../../ns test-suite-mixmode.tcl Mixmode4 QUIET
-Test output agrees with reference output
-Running test Mixmode5:
-../../ns test-suite-mixmode.tcl Mixmode5 QUIET
-Test output agrees with reference output
-Running test Mixmode6:
-../../ns test-suite-mixmode.tcl Mixmode6 QUIET
-Test output agrees with reference output
-Running test Mixmode7:
-../../ns test-suite-mixmode.tcl Mixmode7 QUIET
-Test output agrees with reference output
-Running test Mixmode8:
-../../ns test-suite-mixmode.tcl Mixmode8 QUIET
-Test output agrees with reference output
-Running test Mixmode9:
-../../ns test-suite-mixmode.tcl Mixmode9 QUIET
-Test output agrees with reference output
-Running test Mixmode10:
-../../ns test-suite-mixmode.tcl Mixmode10 QUIET
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 22:35:22 PDT 2006
-Tue Oct  3 22:35:24 PDT 2006
+Mon Sep 24 23:54:45 PDT 2007
+Mon Sep 24 23:54:47 PDT 2007
 *** ./test-all-red
-Tests: red1 ecn red2 red_twoway red_twowaybytes flows_unforced flows_forced flows_combined ungentle gentle gentleEcn gentleEcn1 ungentleBadParams gentleBadParams q_weight q_weight_auto congested congested_mark_p
+Tests: red1 ecn red2 red_twoway red_twowaybytes flows_unforced flows_forced flows_combined ungentle gentle gentleEcn gentleEcn1 ungentleBadParams gentleBadParams q_weight q_weight_auto congested congested_mark_p congested1_mark_p congested2_mark_p
 Running test red1:
 ../../ns test-suite-red.tcl red1 QUIET
+Guide: RED, without ECN.
 Test output agrees with reference output
 Running test ecn:
 ../../ns test-suite-red.tcl ecn QUIET
+Guide: RED with ECN.
 Test output agrees with reference output
 Running test red2:
 ../../ns test-suite-red.tcl red2 QUIET
+Guide: RED, without ECN, with different parameters.
 Test output agrees with reference output
 Running test red_twoway:
 ../../ns test-suite-red.tcl red_twoway QUIET
+Guide: RED, two-way traffic, queue measured in packets.
 Test output agrees with reference output
 Running test red_twowaybytes:
 ../../ns test-suite-red.tcl red_twowaybytes QUIET
+Guide: RED, two-way traffic, queue measured in bytes.
 Test output agrees with reference output
 Running test flows_unforced:
 ../../ns test-suite-red.tcl flows_unforced QUIET
+Guide: RED, sending rate vs. packet drop rate, unforced packet drops.
 Test output agrees with reference output
 Running test flows_forced:
 ../../ns test-suite-red.tcl flows_forced QUIET
+Guide: RED, sending rate vs. packet drop rate, forced packet drops.
 Test output agrees with reference output
 Running test flows_combined:
 ../../ns test-suite-red.tcl flows_combined QUIET
+Guide: RED, sending rate vs. packet drop rate, all packet drops.
 Test output agrees with reference output
 Running test ungentle:
 ../../ns test-suite-red.tcl ungentle QUIET
+Guide: RED, not gentle.
 total_drops 405 total_packets 7597
 Test output agrees with reference output
 Running test gentle:
 ../../ns test-suite-red.tcl gentle QUIET
+Guide: RED, gentle.
 total_drops 353 total_packets 7783
 Test output agrees with reference output
 Running test gentleEcn:
 ../../ns test-suite-red.tcl gentleEcn QUIET
-total_drops 187 total_packets 7690
+Guide: RED, gentle, with ECN.
+total_drops 142 total_packets 7530
 Test output agrees with reference output
 Running test gentleEcn1:
 ../../ns test-suite-red.tcl gentleEcn1 QUIET
-total_drops 142 total_packets 7530
+Guide: RED, gentle, with ECN, with mark_p_ set to 0.1.
+total_drops 187 total_packets 7690
 Test output agrees with reference output
 Running test ungentleBadParams:
 ../../ns test-suite-red.tcl ungentleBadParams QUIET
+Guide: RED, not gentle, bad RED parameters.
 total_drops 854 total_packets 6556
 Test output agrees with reference output
 Running test gentleBadParams:
 ../../ns test-suite-red.tcl gentleBadParams QUIET
+Guide: RED, gentle, bad RED parameters.
 total_drops 430 total_packets 7251
 Test output agrees with reference output
 Running test q_weight:
 ../../ns test-suite-red.tcl q_weight QUIET
+Guide: RED, q_weight set to 0.002.
 Test output agrees with reference output
 Running test q_weight_auto:
 ../../ns test-suite-red.tcl q_weight_auto QUIET
+Guide: RED, q_weight and maxthresh_ set automatically.
 Test output agrees with reference output
 Running test congested:
 ../../ns test-suite-red.tcl congested QUIET
+Guide: RED, not gentle, ECN.
 total_drops 36 total_packets 569
 Test output agrees with reference output
 Running test congested_mark_p:
 ../../ns test-suite-red.tcl congested_mark_p QUIET
+Guide: RED, not gentle, ECN.  Packets not dropped unless buffer full.
 total_drops 0 total_packets 610
 Test output agrees with reference output
+Running test congested1_mark_p:
+../../ns test-suite-red.tcl congested1_mark_p QUIET
+Guide: RED, gentle, ECN.  Packets sometimes dropped instead of marked.
+total_drops 103 total_packets 413
+Test output agrees with reference output
+Running test congested2_mark_p:
+../../ns test-suite-red.tcl congested2_mark_p QUIET
+Guide: RED, gentle, ECN.  Packets not dropped unless buffer full.
+total_drops 33 total_packets 614
+Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 22:40:22 PDT 2006
-Tue Oct  3 22:40:24 PDT 2006
+Mon Sep 24 23:59:38 PDT 2007
+Mon Sep 24 23:59:40 PDT 2007
 *** ./test-all-adaptive-red
 Tests: red1 red1Adapt red1ECN red1AdaptECN red1AdaptFeng fastlink fastlinkAutowq fastlinkAutothresh fastlinkAdapt fastlinkAllAdapt fastlinkAllAdaptECN fastlinkAllAdapt1 longlink longlinkAdapt longlinkAdapt1 red2 red2Adapt red2A-Adapt red2-AdaptFeng red3 red3Adapt red4Adapt transient transient1 transient2 notcautious cautious cautious2 cautious3
 Running test red1:
@@ -4282,8 +4460,8 @@ Running test cautious3:
 ../../ns test-suite-adaptive-red.tcl cautious3 QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 22:54:52 PDT 2006
-Tue Oct  3 22:54:54 PDT 2006
+Tue Sep 25 00:10:19 PDT 2007
+Tue Sep 25 00:10:21 PDT 2007
 *** ./test-all-red-pd
 Tests: simple unresponsive frp complete cbrs cbrs-noidle
 Running test simple:
@@ -4307,8 +4485,8 @@ Running test cbrs-noidle:
 link utilization 1.000
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 22:56:40 PDT 2006
-Tue Oct  3 22:56:42 PDT 2006
+Tue Sep 25 00:11:42 PDT 2007
+Tue Sep 25 00:11:44 PDT 2007
 *** ./test-all-rio
 Tests: strict proportional gentle notGentle tagging
 Running test strict:
@@ -4327,8 +4505,8 @@ Running test tagging:
 ../../ns test-suite-rio.tcl tagging QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 22:57:57 PDT 2006
-Tue Oct  3 22:57:59 PDT 2006
+Tue Sep 25 00:12:39 PDT 2007
+Tue Sep 25 00:12:41 PDT 2007
 *** ./test-all-vq
 Tests: vq1 ecn vq2 vq_twoway vq_twowaybytes
 Running test vq1:
@@ -4347,8 +4525,8 @@ Running test vq_twowaybytes:
 ../../ns test-suite-vq.tcl vq_twowaybytes QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 22:58:45 PDT 2006
-Tue Oct  3 22:58:47 PDT 2006
+Tue Sep 25 00:13:10 PDT 2007
+Tue Sep 25 00:13:12 PDT 2007
 *** ./test-all-rem
 Tests: rem1 ecn rem2 rem_twoway rem_twowayecn
 Running test rem1:
@@ -4367,8 +4545,8 @@ Running test rem_twowayecn:
 ../../ns test-suite-rem.tcl rem_twowayecn QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 22:59:35 PDT 2006
-Tue Oct  3 22:59:37 PDT 2006
+Tue Sep 25 00:13:49 PDT 2007
+Tue Sep 25 00:13:51 PDT 2007
 *** ./test-all-gk
 Tests: gk1 gk2 gk_twoway
 Running test gk1:
@@ -4381,8 +4559,8 @@ Running test gk_twoway:
 ../../ns test-suite-gk.tcl gk_twoway QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 22:59:56 PDT 2006
-Tue Oct  3 22:59:58 PDT 2006
+Tue Sep 25 00:14:06 PDT 2007
+Tue Sep 25 00:14:08 PDT 2007
 *** ./test-all-pi
 Tests: pi1 ecn pi2 pi_twoway pi_twowaybytes
 Running test pi1:
@@ -4401,8 +4579,8 @@ Running test pi_twowaybytes:
 ../../ns test-suite-pi.tcl pi_twowaybytes QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 23:00:51 PDT 2006
-Tue Oct  3 23:00:53 PDT 2006
+Tue Sep 25 00:14:42 PDT 2007
+Tue Sep 25 00:14:44 PDT 2007
 *** ./test-all-cbq
 Tests: WRR PRR AO TL FORMAL FORMAL_TCP MAX1 MAX2 EXTRA1 EXTRA2 MIN1 MIN3 MIN4 MIN6 TwoAO TwoAO2 TwoAO3 TwoTL TwoF TwoDynamic TwoDynamic1 TwoDynamic1WRR TwoWRR
 Running test WRR:
@@ -4475,8 +4653,8 @@ Running test TwoWRR:
 ../../ns test-suite-cbq.tcl TwoWRR QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 23:02:27 PDT 2006
-Tue Oct  3 23:02:29 PDT 2006
+Tue Sep 25 00:15:49 PDT 2007
+Tue Sep 25 00:15:51 PDT 2007
 *** ./test-all-schedule
 Tests: fifo-droptail fifo-red sfq fq fq_small_queue drr
 Running test fifo-droptail:
@@ -4498,8 +4676,8 @@ Running test drr:
 ../../ns test-suite-schedule.tcl drr QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 23:02:56 PDT 2006
-Tue Oct  3 23:02:58 PDT 2006
+Tue Sep 25 00:16:13 PDT 2007
+Tue Sep 25 00:16:15 PDT 2007
 *** ./test-all-rr
 Tests: srr
 Running test srr:
@@ -4507,8 +4685,8 @@ Running test srr:
 processing output ...
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 23:03:00 PDT 2006
-Tue Oct  3 23:03:02 PDT 2006
+Tue Sep 25 00:16:17 PDT 2007
+Tue Sep 25 00:16:20 PDT 2007
 *** ./test-all-monitor
 Tests: tcp tcp-monitor
 Running test tcp:
@@ -4518,8 +4696,8 @@ Running test tcp-monitor:
 ../../ns test-suite-monitor.tcl tcp-monitor QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 23:03:06 PDT 2006
-Tue Oct  3 23:03:08 PDT 2006
+Tue Sep 25 00:16:24 PDT 2007
+Tue Sep 25 00:16:26 PDT 2007
 *** ./test-all-jobs
 Tests: jobs-rate jobs-lossdel
 Running test jobs-rate:
@@ -4655,8 +4833,8 @@ Configured ARC, with:
 	Class 4: 	Not concerned
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 23:03:23 PDT 2006
-Tue Oct  3 23:03:25 PDT 2006
+Tue Sep 25 00:16:41 PDT 2007
+Tue Sep 25 00:16:43 PDT 2007
 *** ./test-all-intserv
 Tests: MS HB ACTP ACTO Param
 Running test MS:
@@ -4675,8 +4853,8 @@ Running test Param:
 ../../ns test-suite-intserv.tcl Param QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 23:09:51 PDT 2006
-Tue Oct  3 23:09:53 PDT 2006
+Tue Sep 25 00:22:44 PDT 2007
+Tue Sep 25 00:22:46 PDT 2007
 *** ./test-all-diffserv
 Tests: tb tsw2cm tsw3cm srtcm trtcm
 Running test tb:
@@ -4695,8 +4873,920 @@ Running test trtcm:
 ../../ns test-suite-diffserv.tcl trtcm QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 23:10:19 PDT 2006
-Tue Oct  3 23:10:21 PDT 2006
+Tue Sep 25 00:23:14 PDT 2007
+Tue Sep 25 00:23:16 PDT 2007
+*** ./test-all-webtraf
+Tests: 1s-1p 1s-2p 3s-2p fcfs stf
+Running test 1s-1p:
+../../ns test-suite-webtraf.tcl 1s-1p QUIET
+Test output agrees with reference output
+Running test 1s-2p:
+../../ns test-suite-webtraf.tcl 1s-2p QUIET
+Test output agrees with reference output
+Running test 3s-2p:
+../../ns test-suite-webtraf.tcl 3s-2p QUIET
+Test output agrees with reference output
+Running test fcfs:
+../../ns test-suite-webtraf.tcl fcfs QUIET
+Test output agrees with reference output
+Running test stf:
+../../ns test-suite-webtraf.tcl stf QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:23:28 PDT 2007
+Tue Sep 25 00:23:30 PDT 2007
+*** ./test-all-mip
+Tests: mip-adv-one mip-adv-zero mip-adv-multi
+Running test mip-adv-one:
+../../ns test-suite-mip.tcl mip-adv-one QUIET
+Test output agrees with reference output
+Running test mip-adv-zero:
+../../ns test-suite-mip.tcl mip-adv-zero QUIET
+Test output agrees with reference output
+Running test mip-adv-multi:
+../../ns test-suite-mip.tcl mip-adv-multi QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:23:56 PDT 2007
+Tue Sep 25 00:23:58 PDT 2007
+*** ./test-all-links
+Tests: links changeDelay changeDelay1 changeDelay2 links1 changeBandwidth dropPacket delayPacket delayPacket1 delaySpike delaySpike1 delaySpikes delaySpikes1 channelAllocDelay channelAllocDelay1 change_queue queue_shrink
+Running test links:
+../../ns test-suite-links.tcl links QUIET
+Test output agrees with reference output
+Running test changeDelay:
+../../ns test-suite-links.tcl changeDelay QUIET
+Test output agrees with reference output
+Running test changeDelay1:
+../../ns test-suite-links.tcl changeDelay1 QUIET
+Test output agrees with reference output
+Running test changeDelay2:
+../../ns test-suite-links.tcl changeDelay2 QUIET
+Test output agrees with reference output
+Running test links1:
+../../ns test-suite-links.tcl links1 QUIET
+Test output agrees with reference output
+Running test changeBandwidth:
+../../ns test-suite-links.tcl changeBandwidth QUIET
+Test output agrees with reference output
+Running test dropPacket:
+../../ns test-suite-links.tcl dropPacket QUIET
+Test output agrees with reference output
+Running test delayPacket:
+../../ns test-suite-links.tcl delayPacket QUIET
+Test output agrees with reference output
+Running test delayPacket1:
+../../ns test-suite-links.tcl delayPacket1 QUIET
+Test output agrees with reference output
+Running test delaySpike:
+../../ns test-suite-links.tcl delaySpike QUIET
+Test output agrees with reference output
+Running test delaySpike1:
+../../ns test-suite-links.tcl delaySpike1 QUIET
+Test output agrees with reference output
+Running test delaySpikes:
+../../ns test-suite-links.tcl delaySpikes QUIET
+Test output agrees with reference output
+Running test delaySpikes1:
+../../ns test-suite-links.tcl delaySpikes1 QUIET
+Test output agrees with reference output
+Running test channelAllocDelay:
+../../ns test-suite-links.tcl channelAllocDelay QUIET
+Test output agrees with reference output
+Running test channelAllocDelay1:
+../../ns test-suite-links.tcl channelAllocDelay1 QUIET
+Test output agrees with reference output
+Running test change_queue:
+../../ns test-suite-links.tcl change_queue QUIET
+Test output agrees with reference output
+Running test queue_shrink:
+../../ns test-suite-links.tcl queue_shrink QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:24:46 PDT 2007
+Tue Sep 25 00:24:48 PDT 2007
+*** ./test-all-linkstate
+Tests: eqp
+Running test eqp:
+../../ns test-suite-linkstate.tcl eqp QUIET
+v 0.84999999999999998 link-down 2 4
+v 1.1000000000000001 link-up 2 4
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:24:51 PDT 2007
+Tue Sep 25 00:24:53 PDT 2007
+*** ./test-all-mpls
+Tests: simple control-driven data-driven reroute
+Running test simple:
+../../ns test-suite-mpls.tcl simple QUIET
+Test output agrees with reference output
+Running test control-driven:
+../../ns test-suite-mpls.tcl control-driven QUIET
+Test output agrees with reference output
+Running test data-driven:
+../../ns test-suite-mpls.tcl data-driven QUIET
+Test output agrees with reference output
+Running test reroute:
+../../ns test-suite-mpls.tcl reroute QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:25:13 PDT 2007
+Tue Sep 25 00:25:15 PDT 2007
+*** ./test-all-oddBehaviors
+Tests: onedrop_reno onedrop_sack
+Running test onedrop_reno:
+../../ns test-suite-oddBehaviors.tcl onedrop_reno QUIET
+Guide: Reno, inflated congestion window after Fast Retransmit.
+Test output agrees with reference output
+Running test onedrop_sack:
+../../ns test-suite-oddBehaviors.tcl onedrop_sack QUIET
+Guide: Sack, no inflated congestion window after Fast Retransmit.
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:25:20 PDT 2007
+Tue Sep 25 00:25:22 PDT 2007
+*** ./test-all-wireless-shadowing
+Tests: dsdv dsr
+Running test dsdv:
+../../ns test-suite-wireless-shadowing.tcl dsdv QUIET
+Loading connection pattern...
+Loading scenario file...
+Load complete...
+Starting Simulation...
+NS EXITING...
+finishing..
+num_nodes is set 50
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0
+Test output agrees with reference output
+Running test dsr:
+../../ns test-suite-wireless-shadowing.tcl dsr QUIET
+num_nodes is set 50
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:26:18 PDT 2007
+Tue Sep 25 00:26:20 PDT 2007
+*** ./test-all-wireless-lan-aodv
+Tests: aodv
+Running test aodv:
+../../ns test-suite-wireless-lan-aodv.tcl aodv QUIET
+Loading connection pattern...
+Loading scenario file...
+Load complete...
+Starting Simulation...
+NS EXITING...
+finish..
+num_nodes is set 50
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:27:53 PDT 2007
+Tue Sep 25 00:27:55 PDT 2007
+*** ./test-all-wireless-gridkeeper
+Tests: dsdv
+Running test dsdv:
+../../ns test-suite-wireless-gridkeeper.tcl dsdv QUIET
+Loading connection pattern...
+Loading scenario file...
+Load complete...
+Starting Simulation...
+NS EXITING...
+finishing..
+num_nodes is set 50
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:30:59 PDT 2007
+Tue Sep 25 00:31:01 PDT 2007
+*** ./test-all-wireless-diffusion
+Tests: diff-rate-default diff-rate-other diff-prob omnimcast flooding
+Running test diff-rate-default:
+../../ns test-suite-wireless-diffusion.tcl diff-rate-default QUIET
+Seeding Random number generator with 1
+
+Loading topology file...
+Load complete...
+*** NOTE: no node-on-off file specified.
+Loading traffic file...
+Load complete...
+NS EXITING ...
+num_nodes is set 30
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Network parition !! Exiting... at time 18.095945
+Test output agrees with reference output
+Running test diff-rate-other:
+../../ns test-suite-wireless-diffusion.tcl diff-rate-other QUIET
+Seeding Random number generator with 1
+
+Loading topology file...
+Load complete...
+Loading node on-off file...
+Load complete...
+Loading traffic file...
+Load complete...
+NS EXITING ...
+num_nodes is set 30
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Network parition !! Exiting... at time 10.761029
+Test output agrees with reference output
+Running test diff-prob:
+../../ns test-suite-wireless-diffusion.tcl diff-prob QUIET
+Seeding Random number generator with 1
+
+Loading topology file...
+Load complete...
+*** NOTE: no node-on-off file specified.
+Loading traffic file...
+Load complete...
+NS EXITING ...
+num_nodes is set 30
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Test output agrees with reference output
+Running test omnimcast:
+../../ns test-suite-wireless-diffusion.tcl omnimcast QUIET
+Seeding Random number generator with 1
+
+Loading topology file...
+Load complete...
+*** NOTE: no node-on-off file specified.
+Loading traffic file...
+Load complete...
+NS EXITING ...
+num_nodes is set 30
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Network parition !! Exiting... at time 9.326060
+Network parition !! Exiting... at time 9.326060
+Test output agrees with reference output
+Running test flooding:
+../../ns test-suite-wireless-diffusion.tcl flooding QUIET
+Seeding Random number generator with 1
+
+Loading topology file...
+Load complete...
+*** NOTE: no node-on-off file specified.
+Loading traffic file...
+Load complete...
+NS EXITING ...
+num_nodes is set 30
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Network parition !! Exiting... at time 6.895848
+Network parition !! Exiting... at time 6.895848
+Network parition !! Exiting... at time 6.895848
+Network parition !! Exiting... at time 6.895848
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:31:53 PDT 2007
+Tue Sep 25 00:31:55 PDT 2007
+*** ./test-all-wireless-lan-newnode
+Tests: dsdv dsr dsdv-wired-cum-wireless dsdv-wireless-mip
+Running test dsdv:
+../../ns test-suite-wireless-lan-newnode.tcl dsdv QUIET
+Loading connection pattern...
+Loading scenario file...
+Load complete...
+Starting Simulation...
+NS EXITING...
+finishing..
+num_nodes is set 50
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Test output agrees with reference output
+Running test dsr:
+../../ns test-suite-wireless-lan-newnode.tcl dsr QUIET
+Loading connection pattern...
+Loading scenario file...
+Load complete...
+Starting Simulation...
+NS EXITING...
+finishing..
+num_nodes is set 50
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Test output agrees with reference output
+Running test dsdv-wired-cum-wireless:
+../../ns test-suite-wireless-lan-newnode.tcl dsdv-wired-cum-wireless QUIET
+Loading connection pattern...
+Loading scenario file...
+Load complete...
+Starting Simulation...
+NS EXITING...
+finishing..
+num_nodes is set 5
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Test output agrees with reference output
+Running test dsdv-wireless-mip:
+../../ns test-suite-wireless-lan-newnode.tcl dsdv-wireless-mip QUIET
+Loading connection pattern...
+Starting Simulation...
+finishing..
+num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:36:46 PDT 2007
+Tue Sep 25 00:36:48 PDT 2007
+*** ./test-all-WLtutorial
+Tests: wireless1 wireless2 wireless3
+Running test wireless1:
+../../ns test-suite-WLtutorial.tcl wireless1 QUIET
+Loading connection pattern...
+Loading scenario file...
+Starting Simulation...
+NS EXITING...
+num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Test output agrees with reference output
+Running test wireless2:
+../../ns test-suite-WLtutorial.tcl wireless2 QUIET
+Starting Simulation...
+NS EXITING...
+num_nodes is set 4
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Test output agrees with reference output
+Running test wireless3:
+../../ns test-suite-WLtutorial.tcl wireless3 QUIET
+Starting Simulation...
+NS EXITING...
+num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:37:47 PDT 2007
+Tue Sep 25 00:37:49 PDT 2007
+*** ./test-all-source-routing
+Tests: source_rtg
+Running test source_rtg:
+../../ns test-suite-source-routing.tcl source_rtg QUIET
+Starting Simulation...
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:37:53 PDT 2007
+Tue Sep 25 00:37:55 PDT 2007
+*** ./test-all-misc
+Tests: stats64
+Running test stats64:
+../../ns test-suite-misc.tcl stats64 QUIET
+This test is checking for problems with int64 counters.
+Byte departures in different data formats:
+Qmon set bdepartures_, or bdep: 2982684040
+ns-add64 bdep 0:                2982684040
+ns-int64todbl bdep:             2982684040.0
+ns-int64todbl bdep + 0:         2982684040.0
+These will give the wrong answer:
+bdep + 0:                       2982684040
+bdep * 1:                       2982684040
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:38:51 PDT 2007
+Tue Sep 25 00:38:53 PDT 2007
+*** ./test-all-tagged-trace
+Tests: simple wireless Format-simple
+Running test simple:
+../../ns test-suite-tagged-trace.tcl simple QUIET
+Starting Simulation...
+Test output agrees with reference output
+Running test wireless:
+../../ns test-suite-tagged-trace.tcl wireless QUIET
+Starting Simulation...
+num_nodes is set 4
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Test output agrees with reference output
+Running test Format-simple:
+../../ns test-suite-tagged-trace.tcl Format-simple QUIET
+Starting Simulation...
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:39:13 PDT 2007
+Tue Sep 25 00:39:15 PDT 2007
+*** ./test-all-message
+Tests: wired
+Running test wired:
+../../ns test-suite-message.tcl wired QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:39:19 PDT 2007
+Tue Sep 25 00:39:21 PDT 2007
+*** ./test-all-rng
+Tests: rngtest
+Running test rngtest:
+../../ns test-suite-rng.tcl rngtest QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:39:31 PDT 2007
+Tue Sep 25 00:39:33 PDT 2007
+*** ./test-all-xcp
+Tests: simple-xcp simple-full-xcp
+Running test simple-xcp:
+../../ns test-suite-xcp.tcl simple-xcp QUIET
+Test output agrees with reference output
+Running test simple-full-xcp:
+../../ns test-suite-xcp.tcl simple-full-xcp QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:40:06 PDT 2007
+Tue Sep 25 00:40:08 PDT 2007
+*** ./test-all-wpan
+Tests: wpan
+Running test wpan:
+../../ns test-suite-wpan.tcl wpan QUIET
+num_nodes is set 21
+--- startPANCoord [0] ---
+[0.000000](node 0) performing active channel scan
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 32.2
+--- startDevice [1] ---
+[0.300000](node 1) performing active channel scan ...
+[0.420800](node 0) begin to transmit beacons
+[0.421568](node 0) successfully started a new PAN (beacon enabled) [channel:11] [PAN_ID:0]
+[1.087840](node 1) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:0] ... 
+--- startDevice [9] ---
+[1.300000](node 9) performing active channel scan ...
+[1.586368](node 1) association successful (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:0]
+[1.586368](node 1) begin to synchronize with the coordinator
+--- startDevice [13] ---
+[1.700000](node 13) performing active channel scan ...
+[2.088800](node 9) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:0] ... 
+--- startDevice [19] ---
+[2.300000](node 19) performing active channel scan ...
+[2.488800](node 13) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:0] ... 
+[2.587648](node 9) association successful (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:0]
+[2.587648](node 9) begin to synchronize with the coordinator
+[3.089760](node 19) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:0] ... 
+--- startDevice [2] ---
+[3.300000](node 2) performing active channel scan ...
+<!>[3.477024](node 13) association failed -> NO_DATA (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:0]
+--- startDevice [7] ---
+[3.500000](node 7) performing active channel scan ...
+[3.587648](node 19) association successful (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:0]
+[3.587648](node 19) begin to synchronize with the coordinator
+--- startDevice [11] ---
+[3.600000](node 11) performing active channel scan ...
+--- startDevice [16] ---
+[3.800000](node 16) performing active channel scan ...
+[4.089440](node 2) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:1] ... 
+[4.290400](node 7) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:9] ... 
+--- startDevice [3] ---
+[4.300000](node 3) performing active channel scan ...
+[4.389440](node 11) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:9] ... 
+--- startDevice [13] ---
+[4.477024](node 13) performing active channel scan ...
+--- startDevice [6] ---
+[4.500000](node 6) performing active channel scan ...
+[4.588608](node 2) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:1]
+[4.588608](node 2) begin to transmit beacons
+[4.589376](node 2) beacon transmission successful [channel:11] [PAN_ID:0]
+[4.589760](node 16) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:19] ... 
+[4.789248](node 7) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:9]
+[4.789248](node 7) begin to transmit beacons
+[4.790016](node 7) beacon transmission successful [channel:11] [PAN_ID:0]
+--- startDevice [12] ---
+[4.800000](node 12) performing active channel scan ...
+<!>[5.088480](node 3) no coordinator found for association.
+[5.089088](node 16) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:19]
+[5.089088](node 16) begin to transmit beacons
+[5.089856](node 16) beacon transmission successful [channel:11] [PAN_ID:0]
+--- startDevice [17] ---
+[5.100000](node 17) performing active channel scan ...
+[5.268064](node 13) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:0] ... 
+<!>[5.290080](node 6) no coordinator found for association.
+<!>[5.376544](node 11) association failed -> NO_DATA (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:9]
+<!>[5.589440](node 12) no coordinator found for association.
+--- startDevice [20] ---
+[5.600000](node 20) performing active channel scan ...
+[5.765888](node 13) association successful (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:0]
+[5.765888](node 13) begin to synchronize with the coordinator
+--- startDevice [5] ---
+[5.800000](node 5) performing active channel scan ...
+[5.887520](node 17) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:16] ... 
+--- startDevice [10] ---
+[6.000000](node 10) performing active channel scan ...
+--- startDevice [3] ---
+[6.088480](node 3) performing active channel scan ...
+--- startDevice [6] ---
+[6.290080](node 6) performing active channel scan ...
+--- startDevice [14] ---
+[6.300000](node 14) performing active channel scan ...
+--- startDevice [11] ---
+[6.376544](node 11) performing active channel scan ...
+[6.386176](node 17) association successful (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:16]
+[6.386176](node 17) begin to synchronize with the coordinator
+[6.387200](node 20) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:19] ... 
+--- startDevice [12] ---
+[6.589440](node 12) performing active channel scan ...
+[6.590720](node 5) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:1] ... 
+[6.791360](node 10) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:9] ... 
+--- startDevice [18] ---
+[6.800000](node 18) performing active channel scan ...
+[6.880800](node 3) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:2] ... 
+<!>[6.888672](node 20) association failed -> NO_DATA (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:19]
+--- startDevice [4] ---
+[7.000000](node 4) performing active channel scan ...
+[7.080160](node 6) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:7] ... 
+[7.087808](node 5) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:1]
+[7.089120](node 14) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:13] ... 
+<!>[7.168224](node 11) no coordinator found for association.
+[7.290688](node 10) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:9]
+--- startDevice [8] ---
+[7.300000](node 8) performing active channel scan ...
+<!>[7.378240](node 12) no coordinator found for association.
+[7.385856](node 3) association successful (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:2]
+[7.385856](node 3) begin to synchronize with the coordinator
+[7.579136](node 6) association successful (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:7]
+[7.579136](node 6) begin to synchronize with the coordinator
+[7.587008](node 14) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:13]
+[7.591680](node 18) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:16] ... 
+--- startDevice [15] ---
+[7.700000](node 15) performing active channel scan ...
+[7.789440](node 4) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:2] ... 
+--- startDevice [20] ---
+[7.888672](node 20) performing active channel scan ...
+[8.089120](node 8) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:10] ... 
+[8.089536](node 18) association successful (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:16]
+[8.089536](node 18) begin to synchronize with the coordinator
+--- startDevice [11] ---
+[8.168224](node 11) performing active channel scan ...
+[8.287296](node 4) association successful (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:2]
+[8.287296](node 4) begin to synchronize with the coordinator
+--- startDevice [12] ---
+[8.378240](node 12) performing active channel scan ...
+[8.488480](node 15) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:14] ... 
+[8.586176](node 8) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:10]
+[8.680352](node 20) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:19] ... 
+[8.957664](node 11) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:9] ... 
+[8.986816](node 15) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:14]
+[9.167680](node 12) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:10] ... 
+[9.178688](node 20) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:19]
+[9.454848](node 11) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:9]
+[9.454848](node 11) begin to transmit beacons
+[9.455616](node 11) beacon transmission successful [channel:11] [PAN_ID:0]
+[9.665376](node 12) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:10]
+[10.319616](node 7) beacon transmission successful [channel:11] [PAN_ID:0]
+[10.364736](node 2) beacon transmission successful [channel:11] [PAN_ID:0]
+[10.373696](node 16) beacon transmission stopped [channel:11] [PAN_ID:0]
+[10.374848](node 0) beacon transmission stopped [channel:11] [PAN_ID:0]
+[15.033408](node 3) synchronization loss
+[15.033408](node 4) synchronization loss
+[16.515072](node 4) coordinator relocation failed --> try to reassociate ...
+--- startDevice [4] ---
+[16.515072](node 4) performing active channel scan ...
+[16.516544](node 3) coordinator relocation failed --> try to reassociate ...
+--- startDevice [3] ---
+[16.516544](node 3) performing active channel scan ...
+[17.301632](node 4) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:5] ... 
+[17.305664](node 3) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:20] ... 
+[17.799008](node 4) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:5]
+[17.803360](node 3) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:20]
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:40:14 PDT 2007
+Tue Sep 25 00:40:16 PDT 2007
+*** ./test-all-energy
+Tests: brdcast0 dsdv dsr aodv
+Running test brdcast0:
+../../ns test-suite-energy.tcl brdcast0 QUIET
+Seeding Random number generator with 1
+
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+NS EXITING...!!!
+num_nodes is set 2
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Test output agrees with reference output
+Running test dsdv:
+../../ns test-suite-energy.tcl dsdv QUIET
+Loading connection pattern...
+Loading scenario file...
+Load complete...
+NS EXITING...
+num_nodes is set 5
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Test output agrees with reference output
+Running test dsr:
+../../ns test-suite-energy.tcl dsr QUIET
+Loading connection pattern...
+Loading scenario file...
+Load complete...
+NS EXITING...
+num_nodes is set 5
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Test output agrees with reference output
+Running test aodv:
+../../ns test-suite-energy.tcl aodv QUIET
+Loading connection pattern...
+Loading scenario file...
+Load complete...
+NS EXITING...
+num_nodes is set 5
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:40:27 PDT 2007
+Tue Sep 25 00:40:29 PDT 2007
+*** ./test-all-snoop
+Tests: simple
+Running test simple:
+../../ns test-suite-snoop.tcl simple QUIET
+Starting Simulation...
+finishing..
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:40:31 PDT 2007
+Tue Sep 25 00:40:33 PDT 2007
+*** ./test-all-packmime
+Tests: 1node-http_1_0 1node-http_1_1 2node-http_1_1
+Running test 1node-http_1_0:
+../../ns test-suite-packmime.tcl 1node-http_1_0 QUIET
+Test output agrees with reference output
+Running test 1node-http_1_1:
+../../ns test-suite-packmime.tcl 1node-http_1_1 QUIET
+Test output agrees with reference output
+Running test 2node-http_1_1:
+../../ns test-suite-packmime.tcl 2node-http_1_1 QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:40:59 PDT 2007
+Tue Sep 25 00:41:01 PDT 2007
+*** ./test-all-delaybox
+Tests: oneway oneway-asymmetric full full-asymmetric
+Running test oneway:
+../../ns test-suite-delaybox.tcl oneway QUIET
+Test output agrees with reference output
+Running test oneway-asymmetric:
+../../ns test-suite-delaybox.tcl oneway-asymmetric QUIET
+Test output agrees with reference output
+Running test full:
+../../ns test-suite-delaybox.tcl full QUIET
+Test output agrees with reference output
+Running test full-asymmetric:
+../../ns test-suite-delaybox.tcl full-asymmetric QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:41:10 PDT 2007
+Tue Sep 25 00:41:12 PDT 2007
+*** ./test-all-srm
+Tests: srm-chain srm-star srm-adapt-rep srm-adapt-req
+Running test srm-chain:
+../../ns test-suite-srm.tcl srm-chain QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+Test output agrees with reference output
+Running test srm-star:
+../../ns test-suite-srm.tcl srm-star QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+Test output agrees with reference output
+Running test srm-adapt-rep:
+../../ns test-suite-srm.tcl srm-adapt-rep QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+Test output agrees with reference output
+Running test srm-adapt-req:
+../../ns test-suite-srm.tcl srm-adapt-req QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:41:26 PDT 2007
+Tue Sep 25 00:41:28 PDT 2007
+*** ./test-all-smac-multihop
+Tests: smac-multihop
+Running test smac-multihop:
+../../ns test-suite-smac-multihop.tcl smac-multihop QUIET
+Valid tests: smac-multihop
+Loading connection pattern...
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+NS EXITING...
+num_nodes is set 10
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+node: 8 ..............data sent Uni............
+node: 9 ..............data sent Uni............
+node: 8 ..............data sent Uni............
+node: 7 ..............data sent Uni............
+node: 8 ..............data sent Uni............
+node: 7 ..............data sent Uni............
+node: 6 ..............data sent Uni............
+node: 6 ..............data sent Uni............
+node: 7 ..............data sent Uni............
+node: 5 ..............data sent Uni............
+node: 5 ..............data sent Uni............
+node: 6 ..............data sent Uni............
+node: 4 ..............data sent Uni............
+node: 5 ..............data sent Uni............
+node: 3 ..............data sent Uni............
+node: 4 ..............data sent Uni............
+node: 3 ..............data sent Uni............
+node: 2 ..............data sent Uni............
+node: 3 ..............data sent Uni............
+node: 2 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+node: 2 ..............data sent Uni............
+node: 0 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+node: 0 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+node: 2 ..............data sent Uni............
+node: 3 ..............data sent Uni............
+node: 4 ..............data sent Uni............
+node: 5 ..............data sent Uni............
+node: 6 ..............data sent Uni............
+node: 7 ..............data sent Uni............
+node: 8 ..............data sent Uni............
+node: 0 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+node: 2 ..............data sent Uni............
+node: 3 ..............data sent Uni............
+node: 4 ..............data sent Uni............
+node: 5 ..............data sent Uni............
+node: 5 ..............data sent Uni............
+node: 6 ..............data sent Uni............
+node: 7 ..............data sent Uni............
+node: 8 ..............data sent Uni............
+node: 0 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+node: 2 ..............data sent Uni............
+node: 3 ..............data sent Uni............
+node: 4 ..............data sent Uni............
+node: 5 ..............data sent Uni............
+node: 6 ..............data sent Uni............
+node: 7 ..............data sent Uni............
+node: 8 ..............data sent Uni............
+node: 0 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+node: 2 ..............data sent Uni............
+node: 3 ..............data sent Uni............
+node: 4 ..............data sent Uni............
+node: 5 ..............data sent Uni............
+node: 6 ..............data sent Uni............
+node: 7 ..............data sent Uni............
+node: 8 ..............data sent Uni............
+node: 0 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+node: 2 ..............data sent Uni............
+node: 3 ..............data sent Uni............
+node: 4 ..............data sent Uni............
+node: 5 ..............data sent Uni............
+node: 6 ..............data sent Uni............
+node: 7 ..............data sent Uni............
+node: 8 ..............data sent Uni............
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:41:32 PDT 2007
+Tue Sep 25 00:41:34 PDT 2007
+*** ./test-all-hier-routing
+Tests: hier-simple hier-cmcast hier-session
+Running test hier-simple:
+../../ns test-suite-hier-routing.tcl hier-simple QUIET
+Test output agrees with reference output
+Running test hier-cmcast:
+../../ns test-suite-hier-routing.tcl hier-cmcast QUIET
+Test output agrees with reference output
+Running test hier-session:
+../../ns test-suite-hier-routing.tcl hier-session QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:41:47 PDT 2007
+Tue Sep 25 00:41:49 PDT 2007
+*** ./test-all-algo-routing
+Tests: Algo1 Algo2
+Running test Algo1:
+../../ns test-suite-algo-routing.tcl Algo1 QUIET
+Test output agrees with reference output
+Running test Algo2:
+../../ns test-suite-algo-routing.tcl Algo2 QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:41:54 PDT 2007
+Tue Sep 25 00:41:56 PDT 2007
+*** ./test-all-mcast
+Tests: DM1 DM2 DM3 DM4 CtrMcast1 CtrMcast2 ST1
+Running test DM1:
+../../ns test-suite-mcast.tcl DM1 QUIET
+Test output agrees with reference output
+Running test DM2:
+../../ns test-suite-mcast.tcl DM2 QUIET
+Test output agrees with reference output
+Running test DM3:
+../../ns test-suite-mcast.tcl DM3 QUIET
+Test output agrees with reference output
+Running test DM4:
+../../ns test-suite-mcast.tcl DM4 QUIET
+Test output agrees with reference output
+Running test CtrMcast1:
+../../ns test-suite-mcast.tcl CtrMcast1 QUIET
+Test output agrees with reference output
+Running test CtrMcast2:
+../../ns test-suite-mcast.tcl CtrMcast2 QUIET
+Test output agrees with reference output
+Running test ST1:
+../../ns test-suite-mcast.tcl ST1 QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:42:16 PDT 2007
+Tue Sep 25 00:42:18 PDT 2007
+*** ./test-all-vc
+Tests: VC1 VC2 VC3
+Running test VC1:
+../../ns test-suite-vc.tcl VC1 QUIET
+Test output agrees with reference output
+Running test VC2:
+../../ns test-suite-vc.tcl VC2 QUIET
+Test output agrees with reference output
+Running test VC3:
+../../ns test-suite-vc.tcl VC3 QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:42:25 PDT 2007
+Tue Sep 25 00:42:27 PDT 2007
+*** ./test-all-session
+Tests: Session1 Session2 Session3 Session4
+Running test Session1:
+../../ns test-suite-session.tcl Session1 QUIET
+Test output agrees with reference output
+Running test Session2:
+../../ns test-suite-session.tcl Session2 QUIET
+Test output agrees with reference output
+Running test Session3:
+../../ns test-suite-session.tcl Session3 QUIET
+Test output agrees with reference output
+Running test Session4:
+../../ns test-suite-session.tcl Session4 QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:42:34 PDT 2007
+Tue Sep 25 00:42:36 PDT 2007
+*** ./test-all-mixmode
+Tests: Mixmode1 Mixmode2 Mixmode3 Mixmode4 Mixmode5 Mixmode6 Mixmode7 Mixmode8 Mixmode9 Mixmode10
+Running test Mixmode1:
+../../ns test-suite-mixmode.tcl Mixmode1 QUIET
+Test output agrees with reference output
+Running test Mixmode2:
+../../ns test-suite-mixmode.tcl Mixmode2 QUIET
+Test output agrees with reference output
+Running test Mixmode3:
+../../ns test-suite-mixmode.tcl Mixmode3 QUIET
+Test output agrees with reference output
+Running test Mixmode4:
+../../ns test-suite-mixmode.tcl Mixmode4 QUIET
+Test output agrees with reference output
+Running test Mixmode5:
+../../ns test-suite-mixmode.tcl Mixmode5 QUIET
+Test output agrees with reference output
+Running test Mixmode6:
+../../ns test-suite-mixmode.tcl Mixmode6 QUIET
+Test output agrees with reference output
+Running test Mixmode7:
+../../ns test-suite-mixmode.tcl Mixmode7 QUIET
+Test output agrees with reference output
+Running test Mixmode8:
+../../ns test-suite-mixmode.tcl Mixmode8 QUIET
+Test output agrees with reference output
+Running test Mixmode9:
+../../ns test-suite-mixmode.tcl Mixmode9 QUIET
+Test output agrees with reference output
+Running test Mixmode10:
+../../ns test-suite-mixmode.tcl Mixmode10 QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:42:55 PDT 2007
+Tue Sep 25 00:42:57 PDT 2007
+*** ./test-all-simultaneous
+Tests: List Calendar Heap Splay Map
+Running test List:
+../../ns test-suite-simultaneous.tcl List QUIET
+Test output agrees with reference output
+Running test Calendar:
+../../ns test-suite-simultaneous.tcl Calendar QUIET
+Test output agrees with reference output
+Running test Heap:
+../../ns test-suite-simultaneous.tcl Heap QUIET
+Test output agrees with reference output
+Running test Splay:
+../../ns test-suite-simultaneous.tcl Splay QUIET
+Test output agrees with reference output
+Running test Map:
+../../ns test-suite-simultaneous.tcl Map QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+Tue Sep 25 00:43:03 PDT 2007
+Tue Sep 25 00:43:05 PDT 2007
 *** ./test-all-webcache
 Tests: SimpleTcp TcpApp-2node http1 http1f http2 http2f http3 http3f http4 http4f PagePool cache0-inv cache0f-inv cache0-push cache0f-push cache0-ttl cache0f-ttl cache0-ottl cache0f-ottl TLC1 TLC1f Liveness Mcast-PB Mcast-PBP Mcast-PBU Mcast-PBU-MP ttl-PB ottl-PB Mcast-PBtr Mcast-PBPtr Mcast-PBUtr ttl-PBtr ottl-PBtr mmcast-PB mmcast-PBU mttl-PB mottl-PB
 Running test SimpleTcp:
@@ -4811,8 +5901,8 @@ Running test mottl-PB:
 ../../ns test-suite-webcache.tcl mottl-PB QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 23:13:17 PDT 2006
-Tue Oct  3 23:13:19 PDT 2006
+Tue Sep 25 00:45:36 PDT 2007
+Tue Sep 25 00:45:38 PDT 2007
 *** ./test-all-mcache
 Tests: media1 media2 media3 media3a media4 media5
 Running test media1:
@@ -4834,204 +5924,16 @@ Running test media5:
 ../../ns test-suite-mcache.tcl media5 QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 23:13:38 PDT 2006
-Tue Oct  3 23:13:40 PDT 2006
-*** ./test-all-webtraf
-Tests: 1s-1p 1s-2p 3s-2p fcfs stf
-Running test 1s-1p:
-../../ns test-suite-webtraf.tcl 1s-1p QUIET
-Test output agrees with reference output
-Running test 1s-2p:
-../../ns test-suite-webtraf.tcl 1s-2p QUIET
-Test output agrees with reference output
-Running test 3s-2p:
-../../ns test-suite-webtraf.tcl 3s-2p QUIET
-Test output agrees with reference output
-Running test fcfs:
-../../ns test-suite-webtraf.tcl fcfs QUIET
-Test output agrees with reference output
-Running test stf:
-../../ns test-suite-webtraf.tcl stf QUIET
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 23:13:52 PDT 2006
-Tue Oct  3 23:13:54 PDT 2006
-*** ./test-all-simultaneous
-Tests: List Calendar Heap Splay Map
-Running test List:
-../../ns test-suite-simultaneous.tcl List QUIET
-Test output agrees with reference output
-Running test Calendar:
-../../ns test-suite-simultaneous.tcl Calendar QUIET
-Test output agrees with reference output
-Running test Heap:
-../../ns test-suite-simultaneous.tcl Heap QUIET
-Test output agrees with reference output
-Running test Splay:
-../../ns test-suite-simultaneous.tcl Splay QUIET
-Test output agrees with reference output
-Running test Map:
-../../ns test-suite-simultaneous.tcl Map QUIET
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 23:14:00 PDT 2006
-Tue Oct  3 23:14:02 PDT 2006
-*** ./test-all-mip
-Tests: mip-adv-one mip-adv-zero mip-adv-multi
-Running test mip-adv-one:
-../../ns test-suite-mip.tcl mip-adv-one QUIET
-Test output agrees with reference output
-Running test mip-adv-zero:
-../../ns test-suite-mip.tcl mip-adv-zero QUIET
-Test output agrees with reference output
-Running test mip-adv-multi:
-../../ns test-suite-mip.tcl mip-adv-multi QUIET
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 23:14:28 PDT 2006
-Tue Oct  3 23:14:30 PDT 2006
-*** ./test-all-links
-Tests: links changeDelay changeDelay1 changeDelay2 links1 changeBandwidth dropPacket delayPacket delayPacket1 delaySpike delaySpike1 delaySpikes delaySpikes1 channelAllocDelay channelAllocDelay1 change_queue queue_shrink
-Running test links:
-../../ns test-suite-links.tcl links QUIET
-Test output agrees with reference output
-Running test changeDelay:
-../../ns test-suite-links.tcl changeDelay QUIET
-Test output agrees with reference output
-Running test changeDelay1:
-../../ns test-suite-links.tcl changeDelay1 QUIET
-Test output agrees with reference output
-Running test changeDelay2:
-../../ns test-suite-links.tcl changeDelay2 QUIET
-Test output agrees with reference output
-Running test links1:
-../../ns test-suite-links.tcl links1 QUIET
-Test output agrees with reference output
-Running test changeBandwidth:
-../../ns test-suite-links.tcl changeBandwidth QUIET
-Test output agrees with reference output
-Running test dropPacket:
-../../ns test-suite-links.tcl dropPacket QUIET
-Test output agrees with reference output
-Running test delayPacket:
-../../ns test-suite-links.tcl delayPacket QUIET
-Test output agrees with reference output
-Running test delayPacket1:
-../../ns test-suite-links.tcl delayPacket1 QUIET
-Test output agrees with reference output
-Running test delaySpike:
-../../ns test-suite-links.tcl delaySpike QUIET
-Test output agrees with reference output
-Running test delaySpike1:
-../../ns test-suite-links.tcl delaySpike1 QUIET
-Test output agrees with reference output
-Running test delaySpikes:
-../../ns test-suite-links.tcl delaySpikes QUIET
-Test output agrees with reference output
-Running test delaySpikes1:
-../../ns test-suite-links.tcl delaySpikes1 QUIET
-Test output agrees with reference output
-Running test channelAllocDelay:
-../../ns test-suite-links.tcl channelAllocDelay QUIET
-Test output agrees with reference output
-Running test channelAllocDelay1:
-../../ns test-suite-links.tcl channelAllocDelay1 QUIET
-Test output agrees with reference output
-Running test change_queue:
-../../ns test-suite-links.tcl change_queue QUIET
-Test output agrees with reference output
-Running test queue_shrink:
-../../ns test-suite-links.tcl queue_shrink QUIET
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 23:15:19 PDT 2006
-Tue Oct  3 23:15:21 PDT 2006
+Tue Sep 25 00:45:58 PDT 2007
+Tue Sep 25 00:46:00 PDT 2007
 *** ./test-all-plm
 Tests: PLM
 Running test PLM:
 ../../ns test-suite-plm.tcl PLM QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 23:16:14 PDT 2006
-Tue Oct  3 23:16:16 PDT 2006
-*** ./test-all-linkstate
-Tests: eqp
-Running test eqp:
-../../ns test-suite-linkstate.tcl eqp QUIET
-v 0.84999999999999998 link-down 2 4
-v 1.1000000000000001 link-up 2 4
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 23:16:19 PDT 2006
-Tue Oct  3 23:16:21 PDT 2006
-*** ./test-all-mpls
-Tests: simple control-driven data-driven reroute
-Running test simple:
-../../ns test-suite-mpls.tcl simple QUIET
-Test output agrees with reference output
-Running test control-driven:
-../../ns test-suite-mpls.tcl control-driven QUIET
-Test output agrees with reference output
-Running test data-driven:
-../../ns test-suite-mpls.tcl data-driven QUIET
-Test output agrees with reference output
-Running test reroute:
-../../ns test-suite-mpls.tcl reroute QUIET
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 23:16:42 PDT 2006
-Tue Oct  3 23:16:44 PDT 2006
-*** ./test-all-oddBehaviors
-Tests: onedrop_reno onedrop_sack
-Running test onedrop_reno:
-../../ns test-suite-oddBehaviors.tcl onedrop_reno QUIET
-Guide: Reno, inflated congestion window after Fast Retransmit.
-Test output agrees with reference output
-Running test onedrop_sack:
-../../ns test-suite-oddBehaviors.tcl onedrop_sack QUIET
-Guide: Sack, no inflated congestion window after Fast Retransmit.
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 23:16:49 PDT 2006
-Tue Oct  3 23:16:51 PDT 2006
-*** ./test-all-wireless-shadowing
-Tests: dsdv dsr
-Running test dsdv:
-../../ns test-suite-wireless-shadowing.tcl dsdv QUIET
-Loading connection pattern...
-Loading scenario file...
-Load complete...
-Starting Simulation...
-NS EXITING...
-finishing..
-num_nodes is set 50
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0
-Test output agrees with reference output
-Running test dsr:
-../../ns test-suite-wireless-shadowing.tcl dsr QUIET
-num_nodes is set 50
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 23:17:47 PDT 2006
-Tue Oct  3 23:17:49 PDT 2006
-*** ./test-all-wireless-lan-aodv
-Tests: aodv
-Running test aodv:
-../../ns test-suite-wireless-lan-aodv.tcl aodv QUIET
-Loading connection pattern...
-Loading scenario file...
-Load complete...
-Starting Simulation...
-NS EXITING...
-finish..
-num_nodes is set 50
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 23:19:25 PDT 2006
-Tue Oct  3 23:19:27 PDT 2006
+Tue Sep 25 00:46:53 PDT 2007
+Tue Sep 25 00:46:55 PDT 2007
 *** ./test-all-wireless-tdma
 Tests: dsdv dsr
 Running test dsdv:
@@ -5059,159 +5961,8 @@ channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
 highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 23:21:47 PDT 2006
-Tue Oct  3 23:21:49 PDT 2006
-*** ./test-all-wireless-gridkeeper
-Tests: dsdv
-Running test dsdv:
-../../ns test-suite-wireless-gridkeeper.tcl dsdv QUIET
-Loading connection pattern...
-Loading scenario file...
-Load complete...
-Starting Simulation...
-NS EXITING...
-finishing..
-num_nodes is set 50
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 23:25:01 PDT 2006
-Tue Oct  3 23:25:03 PDT 2006
-*** ./test-all-wireless-diffusion
-Tests: diff-rate-default diff-rate-other diff-prob omnimcast flooding
-Running test diff-rate-default:
-../../ns test-suite-wireless-diffusion.tcl diff-rate-default QUIET
-Seeding Random number generator with 1
-
-Loading topology file...
-Load complete...
-*** NOTE: no node-on-off file specified.
-Loading traffic file...
-Load complete...
-NS EXITING ...
-num_nodes is set 30
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Network parition !! Exiting... at time 18.095945
-Test output agrees with reference output
-Running test diff-rate-other:
-../../ns test-suite-wireless-diffusion.tcl diff-rate-other QUIET
-Seeding Random number generator with 1
-
-Loading topology file...
-Load complete...
-Loading node on-off file...
-Load complete...
-Loading traffic file...
-Load complete...
-NS EXITING ...
-num_nodes is set 30
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Network parition !! Exiting... at time 10.761029
-Test output agrees with reference output
-Running test diff-prob:
-../../ns test-suite-wireless-diffusion.tcl diff-prob QUIET
-Seeding Random number generator with 1
-
-Loading topology file...
-Load complete...
-*** NOTE: no node-on-off file specified.
-Loading traffic file...
-Load complete...
-NS EXITING ...
-num_nodes is set 30
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-Running test omnimcast:
-../../ns test-suite-wireless-diffusion.tcl omnimcast QUIET
-Seeding Random number generator with 1
-
-Loading topology file...
-Load complete...
-*** NOTE: no node-on-off file specified.
-Loading traffic file...
-Load complete...
-NS EXITING ...
-num_nodes is set 30
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Network parition !! Exiting... at time 9.326060
-Network parition !! Exiting... at time 9.326060
-Test output agrees with reference output
-Running test flooding:
-../../ns test-suite-wireless-diffusion.tcl flooding QUIET
-Seeding Random number generator with 1
-
-Loading topology file...
-Load complete...
-*** NOTE: no node-on-off file specified.
-Loading traffic file...
-Load complete...
-NS EXITING ...
-num_nodes is set 30
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Network parition !! Exiting... at time 6.895848
-Network parition !! Exiting... at time 6.895848
-Network parition !! Exiting... at time 6.895848
-Network parition !! Exiting... at time 6.895848
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 23:25:51 PDT 2006
-Tue Oct  3 23:25:53 PDT 2006
-*** ./test-all-wireless-lan-newnode
-Tests: dsdv dsr dsdv-wired-cum-wireless dsdv-wireless-mip
-Running test dsdv:
-../../ns test-suite-wireless-lan-newnode.tcl dsdv QUIET
-Loading connection pattern...
-Loading scenario file...
-Load complete...
-Starting Simulation...
-NS EXITING...
-finishing..
-num_nodes is set 50
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-Running test dsr:
-../../ns test-suite-wireless-lan-newnode.tcl dsr QUIET
-Loading connection pattern...
-Loading scenario file...
-Load complete...
-Starting Simulation...
-NS EXITING...
-finishing..
-num_nodes is set 50
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-Running test dsdv-wired-cum-wireless:
-../../ns test-suite-wireless-lan-newnode.tcl dsdv-wired-cum-wireless QUIET
-Loading connection pattern...
-Loading scenario file...
-Load complete...
-Starting Simulation...
-NS EXITING...
-finishing..
-num_nodes is set 5
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-Running test dsdv-wireless-mip:
-../../ns test-suite-wireless-lan-newnode.tcl dsdv-wireless-mip QUIET
-Loading connection pattern...
-Starting Simulation...
-finishing..
-num_nodes is set 3
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 23:30:30 PDT 2006
-Tue Oct  3 23:30:32 PDT 2006
+Tue Sep 25 00:49:08 PDT 2007
+Tue Sep 25 00:49:10 PDT 2007
 *** ./test-all-satellite
 Tests: repeater mixed wired aloha aloha.collisions mixed.legacy
 Running test repeater:
@@ -5233,356 +5984,10 @@ Running test mixed.legacy:
 ../../ns test-suite-satellite.tcl mixed.legacy QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
-Tue Oct  3 23:31:01 PDT 2006
-Tue Oct  3 23:31:03 PDT 2006
-*** ./test-all-WLtutorial
-Tests: wireless1 wireless2 wireless3
-Running test wireless1:
-../../ns test-suite-WLtutorial.tcl wireless1 QUIET
-Loading connection pattern...
-Loading scenario file...
-Starting Simulation...
-NS EXITING...
-num_nodes is set 3
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-Running test wireless2:
-../../ns test-suite-WLtutorial.tcl wireless2 QUIET
-Starting Simulation...
-NS EXITING...
-num_nodes is set 4
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-Running test wireless3:
-../../ns test-suite-WLtutorial.tcl wireless3 QUIET
-Starting Simulation...
-NS EXITING...
-num_nodes is set 3
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 23:32:00 PDT 2006
-Tue Oct  3 23:32:02 PDT 2006
-*** ./test-all-source-routing
-Tests: source_rtg
-Running test source_rtg:
-../../ns test-suite-source-routing.tcl source_rtg QUIET
-Starting Simulation...
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 23:32:05 PDT 2006
-Tue Oct  3 23:32:07 PDT 2006
-*** ./test-all-misc
-Tests: stats64
-Running test stats64:
-../../ns test-suite-misc.tcl stats64 QUIET
-This test is checking for problems with int64 counters.
-Byte departures in different data formats:
-Qmon set bdepartures_, or bdep: 2982684040
-ns-add64 bdep 0:                2982684040
-ns-int64todbl bdep:             2982684040.0
-ns-int64todbl bdep + 0:         2982684040.0
-These will give the wrong answer:
-bdep + 0:                       2982684040
-bdep * 1:                       2982684040
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 23:32:58 PDT 2006
-Tue Oct  3 23:33:00 PDT 2006
-*** ./test-all-tagged-trace
-Tests: simple wireless Format-simple
-Running test simple:
-../../ns test-suite-tagged-trace.tcl simple QUIET
-Starting Simulation...
-Test output agrees with reference output
-Running test wireless:
-../../ns test-suite-tagged-trace.tcl wireless QUIET
-Starting Simulation...
-num_nodes is set 4
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-Running test Format-simple:
-../../ns test-suite-tagged-trace.tcl Format-simple QUIET
-Starting Simulation...
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 23:33:19 PDT 2006
-Tue Oct  3 23:33:21 PDT 2006
-*** ./test-all-message
-Tests: wired
-Running test wired:
-../../ns test-suite-message.tcl wired QUIET
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 23:33:25 PDT 2006
-Tue Oct  3 23:33:27 PDT 2006
-*** ./test-all-rng
-Tests: rngtest
-Running test rngtest:
-../../ns test-suite-rng.tcl rngtest QUIET
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 23:33:37 PDT 2006
-Tue Oct  3 23:33:39 PDT 2006
-*** ./test-all-xcp
-Tests: simple-xcp simple-full-xcp
-Running test simple-xcp:
-../../ns test-suite-xcp.tcl simple-xcp QUIET
-Test output agrees with reference output
-Running test simple-full-xcp:
-../../ns test-suite-xcp.tcl simple-full-xcp QUIET
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 23:34:08 PDT 2006
-Tue Oct  3 23:34:10 PDT 2006
-*** ./test-all-wpan
-Tests: wpan
-Running test wpan:
-../../ns test-suite-wpan.tcl wpan QUIET
-num_nodes is set 21
---- startPANCoord [0] ---
-[0.000000](node 0) performing active channel scan
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 32.2
---- startDevice [1] ---
-[0.300000](node 1) performing active channel scan ...
-[0.420800](node 0) begin to transmit beacons
-[0.421568](node 0) successfully started a new PAN (beacon enabled) [channel:11] [PAN_ID:0]
-[1.087840](node 1) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:0] ... 
---- startDevice [9] ---
-[1.300000](node 9) performing active channel scan ...
-[1.586368](node 1) association successful (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:0]
-[1.586368](node 1) begin to synchronize with the coordinator
---- startDevice [13] ---
-[1.700000](node 13) performing active channel scan ...
-[2.088800](node 9) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:0] ... 
---- startDevice [19] ---
-[2.300000](node 19) performing active channel scan ...
-[2.488800](node 13) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:0] ... 
-[2.587648](node 9) association successful (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:0]
-[2.587648](node 9) begin to synchronize with the coordinator
-[3.089760](node 19) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:0] ... 
---- startDevice [2] ---
-[3.300000](node 2) performing active channel scan ...
-<!>[3.477024](node 13) association failed -> NO_DATA (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:0]
---- startDevice [7] ---
-[3.500000](node 7) performing active channel scan ...
-[3.587648](node 19) association successful (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:0]
-[3.587648](node 19) begin to synchronize with the coordinator
---- startDevice [11] ---
-[3.600000](node 11) performing active channel scan ...
---- startDevice [16] ---
-[3.800000](node 16) performing active channel scan ...
-[4.089440](node 2) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:1] ... 
-[4.290400](node 7) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:9] ... 
---- startDevice [3] ---
-[4.300000](node 3) performing active channel scan ...
-[4.389440](node 11) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:9] ... 
---- startDevice [13] ---
-[4.477024](node 13) performing active channel scan ...
---- startDevice [6] ---
-[4.500000](node 6) performing active channel scan ...
-[4.588608](node 2) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:1]
-[4.588608](node 2) begin to transmit beacons
-[4.589376](node 2) beacon transmission successful [channel:11] [PAN_ID:0]
-[4.589760](node 16) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:19] ... 
-[4.789248](node 7) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:9]
-[4.789248](node 7) begin to transmit beacons
-[4.790016](node 7) beacon transmission successful [channel:11] [PAN_ID:0]
---- startDevice [12] ---
-[4.800000](node 12) performing active channel scan ...
-<!>[5.088480](node 3) no coordinator found for association.
-[5.089088](node 16) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:19]
-[5.089088](node 16) begin to transmit beacons
-[5.089856](node 16) beacon transmission successful [channel:11] [PAN_ID:0]
---- startDevice [17] ---
-[5.100000](node 17) performing active channel scan ...
-[5.268064](node 13) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:0] ... 
-<!>[5.290080](node 6) no coordinator found for association.
-<!>[5.376544](node 11) association failed -> NO_DATA (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:9]
-<!>[5.589760](node 12) no coordinator found for association.
---- startDevice [20] ---
-[5.600000](node 20) performing active channel scan ...
---- startDevice [5] ---
-[5.800000](node 5) performing active channel scan ...
-[5.837248](node 13) association successful (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:0]
-[5.837248](node 13) begin to synchronize with the coordinator
-[5.889760](node 17) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:16] ... 
---- startDevice [10] ---
-[6.000000](node 10) performing active channel scan ...
---- startDevice [3] ---
-[6.088480](node 3) performing active channel scan ...
---- startDevice [6] ---
-[6.290080](node 6) performing active channel scan ...
---- startDevice [14] ---
-[6.300000](node 14) performing active channel scan ...
---- startDevice [11] ---
-[6.376544](node 11) performing active channel scan ...
-[6.388160](node 20) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:19] ... 
-[6.389056](node 17) association successful (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:16]
-[6.389056](node 17) begin to synchronize with the coordinator
---- startDevice [12] ---
-[6.589760](node 12) performing active channel scan ...
-[6.589760](node 5) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:1] ... 
-[6.791040](node 10) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:9] ... 
---- startDevice [18] ---
-[6.800000](node 18) performing active channel scan ...
-[6.876960](node 3) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:2] ... 
-[6.887488](node 20) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:19]
---- startDevice [4] ---
-[7.000000](node 4) performing active channel scan ...
-[7.080160](node 6) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:7] ... 
-[7.088480](node 14) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:13] ... 
-[7.088768](node 5) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:1]
-[7.165984](node 11) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:13] ... 
-[7.289728](node 10) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:9]
---- startDevice [8] ---
-[7.300000](node 8) performing active channel scan ...
-[7.374336](node 3) association successful (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:2]
-[7.374336](node 3) begin to synchronize with the coordinator
-<!>[7.381120](node 12) no coordinator found for association.
-[7.578176](node 6) association successful (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:7]
-[7.578176](node 6) begin to synchronize with the coordinator
-[7.586368](node 14) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:13]
-[7.590720](node 18) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:16] ... 
---- startDevice [15] ---
-[7.700000](node 15) performing active channel scan ...
-[7.789120](node 4) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:2] ... 
-[8.089216](node 18) association successful (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:16]
-[8.089216](node 18) begin to synchronize with the coordinator
-[8.089760](node 8) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:10] ... 
-<!>[8.209504](node 11) association failed -> NO_DATA (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:13]
-[8.287936](node 4) association successful (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:2]
-[8.287936](node 4) begin to synchronize with the coordinator
---- startDevice [12] ---
-[8.381120](node 12) performing active channel scan ...
-[8.489120](node 15) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:14] ... 
-[8.587776](node 8) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:10]
-[8.987776](node 15) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:14]
-[9.169920](node 12) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:10] ... 
---- startDevice [11] ---
-[9.209504](node 11) performing active channel scan ...
-[9.667936](node 12) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:10]
-<!>[10.000224](node 11) no coordinator found for association.
-[10.319616](node 7) beacon transmission successful [channel:11] [PAN_ID:0]
-[10.364736](node 2) beacon transmission successful [channel:11] [PAN_ID:0]
-[10.373696](node 16) beacon transmission stopped [channel:11] [PAN_ID:0]
-[10.374848](node 0) beacon transmission stopped [channel:11] [PAN_ID:0]
---- startDevice [11] ---
-[11.000224](node 11) performing active channel scan ...
-[11.789664](node 11) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:9] ... 
-[12.292672](node 11) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:9]
-[12.292672](node 11) begin to transmit beacons
-[12.293440](node 11) beacon transmission successful [channel:11] [PAN_ID:0]
-[15.033408](node 4) synchronization loss
-[15.033408](node 3) synchronization loss
-[16.517184](node 3) coordinator relocation failed --> try to reassociate ...
---- startDevice [3] ---
-[16.517184](node 3) performing active channel scan ...
-[16.517952](node 4) coordinator relocation failed --> try to reassociate ...
---- startDevice [4] ---
-[16.517952](node 4) performing active channel scan ...
-[17.305984](node 3) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:20] ... 
-[17.306752](node 4) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:5] ... 
-[17.802720](node 3) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:20]
-[17.805088](node 4) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:5]
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 23:34:15 PDT 2006
-Tue Oct  3 23:34:17 PDT 2006
-*** ./test-all-energy
-Tests: brdcast0 dsdv dsr aodv
-Running test brdcast0:
-../../ns test-suite-energy.tcl brdcast0 QUIET
-Seeding Random number generator with 1
-
-
-NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
-
-NS EXITING...!!!
-num_nodes is set 2
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-Running test dsdv:
-../../ns test-suite-energy.tcl dsdv QUIET
-Loading connection pattern...
-Loading scenario file...
-Load complete...
-NS EXITING...
-num_nodes is set 5
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-Running test dsr:
-../../ns test-suite-energy.tcl dsr QUIET
-Loading connection pattern...
-Loading scenario file...
-Load complete...
-NS EXITING...
-num_nodes is set 5
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-Running test aodv:
-../../ns test-suite-energy.tcl aodv QUIET
-Loading connection pattern...
-Loading scenario file...
-Load complete...
-NS EXITING...
-num_nodes is set 5
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 23:34:27 PDT 2006
-Tue Oct  3 23:34:29 PDT 2006
-*** ./test-all-snoop
-Tests: simple
-Running test simple:
-../../ns test-suite-snoop.tcl simple QUIET
-Starting Simulation...
-finishing..
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 23:34:31 PDT 2006
-Tue Oct  3 23:34:33 PDT 2006
-*** ./test-all-packmime
-Tests: 1node-http_1_0 1node-http_1_1 2node-http_1_1
-Running test 1node-http_1_0:
-../../ns test-suite-packmime.tcl 1node-http_1_0 QUIET
-Test output agrees with reference output
-Running test 1node-http_1_1:
-../../ns test-suite-packmime.tcl 1node-http_1_1 QUIET
-Test output agrees with reference output
-Running test 2node-http_1_1:
-../../ns test-suite-packmime.tcl 2node-http_1_1 QUIET
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 23:34:57 PDT 2006
-Tue Oct  3 23:34:59 PDT 2006
-*** ./test-all-delaybox
-Tests: oneway oneway-asymmetric full full-asymmetric
-Running test oneway:
-../../ns test-suite-delaybox.tcl oneway QUIET
-Test output agrees with reference output
-Running test oneway-asymmetric:
-../../ns test-suite-delaybox.tcl oneway-asymmetric QUIET
-Test output agrees with reference output
-Running test full:
-../../ns test-suite-delaybox.tcl full QUIET
-Test output agrees with reference output
-Running test full-asymmetric:
-../../ns test-suite-delaybox.tcl full-asymmetric QUIET
-Test output agrees with reference output
-All test output agrees with reference output.
-Tue Oct  3 23:35:08 PDT 2006
+Tue Sep 25 00:49:38 PDT 2007
 These messages are NOT errors and can be ignored:
     warning: using backward compatibility mode
     This test is not implemented in backward compatibility mode
+
 
 validate overall report: all tests passed
