@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.31 2006/10/22 15:24:49 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.32 2007/09/25 04:29:56 sallyfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -245,20 +245,24 @@ TestSuite instproc setup {tcptype list} {
 
 Class Test/onedrop_tahoe -superclass TestSuite
 Test/onedrop_tahoe instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	onedrop_tahoe
+	set guide_	"Tahoe TCP, one drop."
 	$self next pktTraceFile
 }
 Test/onedrop_tahoe instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup Tahoe {14}
 }
 
 Class Test/onedrop_SA_tahoe -superclass TestSuite
 Test/onedrop_SA_tahoe instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	onedrop_SA_tahoe
+	set guide_	"Tahoe TCP with Limited Transmit, one drop."
 	Agent/TCP set singledup_ 1
 	Test/onedrop_SA_tahoe instproc run {} [Test/onedrop_tahoe info instbody run ]
 	$self next pktTraceFile
@@ -266,31 +270,38 @@ Test/onedrop_SA_tahoe instproc init {} {
 
 Class Test/onedrop_tahoe_full -superclass TestSuite
 Test/onedrop_tahoe_full instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	onedrop_tahoe_full
+	set guide_	"Tahoe, Full TCP, one drop."
 	$self next pktTraceFile
 }
 Test/onedrop_tahoe_full instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup FullTcpTahoe {16}
 }
 
 Class Test/onedrop_reno -superclass TestSuite
 Test/onedrop_reno instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	onedrop_reno
+	set guide_	"Reno TCP, one drop."
 	$self next pktTraceFile
 }
 Test/onedrop_reno instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup Reno {14}
 }
 
 Class Test/onedrop_SA_reno -superclass TestSuite
 Test/onedrop_SA_reno instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	onedrop_SA_reno
+	set guide_	"Reno TCP with Limited Transmit, one drop."
 	Agent/TCP set singledup_ 1
 	Test/onedrop_SA_reno instproc run {} [Test/onedrop_reno info instbody run ]
 	$self next pktTraceFile
@@ -299,31 +310,38 @@ Test/onedrop_SA_reno instproc init {} {
 Class Test/onedrop_reno_full -superclass TestSuite
 Test/onedrop_reno_full instproc init {} {
 
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	onedrop_reno_full
+	set guide_	"Reno, Full TCP, one drop."
 	$self next pktTraceFile
 }
 Test/onedrop_reno_full instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup FullTcp {16}
 }
 
 Class Test/onedrop_newreno -superclass TestSuite
 Test/onedrop_newreno instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	onedrop_newreno
+	set guide_	"NewReno TCP, one drop."
 	$self next pktTraceFile
 }
 Test/onedrop_newreno instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup Newreno {14}
 }
 
 Class Test/onedrop_SA_newreno -superclass TestSuite
 Test/onedrop_SA_newreno instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	onedrop_SA_newreno
+	set guide_	"NewReno TCP with Limited Transmit, one drop."
 	Agent/TCP set singledup_ 1
 	Test/onedrop_SA_newreno instproc run {} [Test/onedrop_newreno info instbody run ]
 	$self next pktTraceFile
@@ -331,31 +349,38 @@ Test/onedrop_SA_newreno instproc init {} {
 
 Class Test/onedrop_newreno_full -superclass TestSuite
 Test/onedrop_newreno_full instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	onedrop_newreno_full
+	set guide_	"NewReno TCP, one drop."
 	$self next pktTraceFile
 }
 Test/onedrop_newreno_full instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup FullTcpNewreno {16}
 }
 
 Class Test/onedrop_sack -superclass TestSuite
 Test/onedrop_sack instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	onedrop_sack
+	set guide_	"Sack TCP, one drop."
 	$self next pktTraceFile
 }
 Test/onedrop_sack instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup Sack1 {14}
 }
 
 Class Test/onedrop_SA_sack -superclass TestSuite
 Test/onedrop_SA_sack instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	onedrop_SA_sack
+	set guide_	"Sack TCP with Limited Transmit, one drop."
 	Agent/TCP set singledup_ 1
 	Test/onedrop_SA_sack instproc run {} [Test/onedrop_sack info instbody run ]
 	$self next pktTraceFile
@@ -363,34 +388,43 @@ Test/onedrop_SA_sack instproc init {} {
 
 Class Test/onedrop_sack_full -superclass TestSuite
 Test/onedrop_sack_full instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	onedrop_sack_full
+	set guide_	"Sack, Full TCP, one drop."
 	$self next pktTraceFile
 }
 Test/onedrop_sack_full instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup FullTcpSack1 {16}
 }
 
 Class Test/onedrop_fack -superclass TestSuite
 Test/onedrop_fack instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	onedrop_fack
+	set guide_	"Fack TCP, one drop."
 	$self next pktTraceFile
 }
 Test/onedrop_fack instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup Fack {14}
 }
 
 Class Test/onedrop_sackRH -superclass TestSuite
 Test/onedrop_sackRH instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	onedrop_sackRH
+	set guide_	"Sack TCP with Rate Halving, one drop."
 	$self next pktTraceFile
 }
 Test/onedrop_sackRH instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup SackRH {14}
 }
 
@@ -400,20 +434,24 @@ Test/onedrop_sackRH instproc run {} {
 
 Class Test/twodrops_tahoe -superclass TestSuite
 Test/twodrops_tahoe instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	twodrops_tahoe
+	set guide_	"Tahoe TCP, two drops."
 	$self next pktTraceFile
 }
 Test/twodrops_tahoe instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup Tahoe {14 28}
 }
 
 Class Test/twodrops_SA_tahoe -superclass TestSuite
 Test/twodrops_SA_tahoe instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	twodrops_SA_tahoe
+	set guide_	"Tahoe TCP with Fast Retransmit, two drops."
 	Agent/TCP set singledup_ 1
 	Test/twodrops_SA_tahoe instproc run {} [Test/twodrops_tahoe info instbody run ]
 	$self next pktTraceFile
@@ -421,31 +459,38 @@ Test/twodrops_SA_tahoe instproc init {} {
 
 Class Test/twodrops_tahoe_full -superclass TestSuite
 Test/twodrops_tahoe_full instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	twodrops_tahoe_full
+	set guide_	"Tahoe Full TCP, two drops."
 	$self next pktTraceFile
 }
 Test/twodrops_tahoe_full instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup FullTcpTahoe {16 30}
 }
 
 Class Test/twodrops_reno -superclass TestSuite
 Test/twodrops_reno instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	twodrops_reno
+	set guide_	"Reno TCP, two drops."
 	$self next pktTraceFile
 }
 Test/twodrops_reno instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup Reno {14 28}
 }
 
 Class Test/twodrops_SA_reno -superclass TestSuite
 Test/twodrops_SA_reno instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	twodrops_SA_reno
+	set guide_	"Reno TCP with Limited Transmit, two drops."
 	Agent/TCP set singledup_ 1
 	Test/twodrops_SA_reno instproc run {} [Test/twodrops_reno info instbody run ]
 	$self next pktTraceFile
@@ -453,31 +498,38 @@ Test/twodrops_SA_reno instproc init {} {
 
 Class Test/twodrops_reno_full -superclass TestSuite
 Test/twodrops_reno_full instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	twodrops_reno_full
+	set guide_	"Reno, Full TCP, two drops."
 	$self next pktTraceFile
 }
 Test/twodrops_reno_full instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup FullTcp {16 30}
 }
 
 Class Test/twodrops_newreno -superclass TestSuite
 Test/twodrops_newreno instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	twodrops_newreno
+	set guide_	"NewReno TCP, two drops."
 	$self next pktTraceFile
 }
 Test/twodrops_newreno instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup Newreno {14 28}
 }
 
 Class Test/twodrops_SA_newreno -superclass TestSuite
 Test/twodrops_SA_newreno instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	twodrops_SA_newreno
+	set guide_	"NewReno TCP with Limited Transmit, two drops."
 	Agent/TCP set singledup_ 1
 	Test/twodrops_SA_newreno instproc run {} [Test/twodrops_newreno info instbody run ]
 	$self next pktTraceFile
@@ -485,31 +537,38 @@ Test/twodrops_SA_newreno instproc init {} {
 
 Class Test/twodrops_newreno_full -superclass TestSuite
 Test/twodrops_newreno_full instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	twodrops_newreno_full
+	set guide_	"NewReno, Full TCP, two drops."
 	$self next pktTraceFile
 }
 Test/twodrops_newreno_full instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup FullTcpNewreno {16 30}
 }
 
 Class Test/twodrops_sack -superclass TestSuite
 Test/twodrops_sack instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	twodrops_sack
+	set guide_	"Sack TCP, two drops."
 	$self next pktTraceFile
 }
 Test/twodrops_sack instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup Sack1 {14 28}
 }
 
 Class Test/twodrops_SA_sack -superclass TestSuite
 Test/twodrops_SA_sack instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	twodrops_SA_sack
+	set guide_	"Sack TCP with Limited Transmit, two drops."
 	Agent/TCP set singledup_ 1
 	Test/twodrops_SA_sack instproc run {} [Test/twodrops_sack info instbody run ]
 	$self next pktTraceFile
@@ -517,34 +576,43 @@ Test/twodrops_SA_sack instproc init {} {
 
 Class Test/twodrops_sack_full -superclass TestSuite
 Test/twodrops_sack_full instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	twodrops_sack_full
+	set guide_	"Sack, Full TCP, two drops."
 	$self next pktTraceFile
 }
 Test/twodrops_sack_full instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup FullTcpSack1 {16 30}
 }
 
 Class Test/twodrops_fack -superclass TestSuite
 Test/twodrops_fack instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	twodrops_fack
+	set guide_	"Fack TCP, two drops."
 	$self next pktTraceFile
 }
 Test/twodrops_fack instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup Fack {14 28}
 }
 
 Class Test/twodrops_sackRH -superclass TestSuite
 Test/twodrops_sackRH instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	twodrops_sackRH
+	set guide_	"Sack TCP with Rate Halving, two drops."
 	$self next pktTraceFile
 }
 Test/twodrops_sackRH instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup SackRH {14 28}
 }
 
@@ -554,20 +622,24 @@ Test/twodrops_sackRH instproc run {} {
 
 Class Test/threedrops_tahoe -superclass TestSuite
 Test/threedrops_tahoe instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	threedrops_tahoe
+	set guide_	"Tahoe TCP, three drops."
 	$self next pktTraceFile
 }
 Test/threedrops_tahoe instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup Tahoe {14 26 28}
 }
 
 Class Test/threedrops_SA_tahoe -superclass TestSuite
 Test/threedrops_SA_tahoe instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	threedrops_SA_tahoe
+	set guide_	"Tahoe TCP with Limited Transmit, three drops."
 	Agent/TCP set singledup_ 1
 	Test/threedrops_SA_tahoe instproc run {} [Test/threedrops_tahoe info instbody run ]
 	$self next pktTraceFile
@@ -575,31 +647,38 @@ Test/threedrops_SA_tahoe instproc init {} {
 
 Class Test/threedrops_tahoe_full -superclass TestSuite
 Test/threedrops_tahoe_full instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	threedrops_tahoe_full
+	set guide_	"Tahoe, Full TCP, three drops."
 	$self next pktTraceFile
 }
 Test/threedrops_tahoe_full instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup FullTcpTahoe {16 28 30}
 }
 
 Class Test/threedrops_reno -superclass TestSuite
 Test/threedrops_reno instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	threedrops_reno
+	set guide_	"Reno TCP, three drops."
 	$self next pktTraceFile
 }
 Test/threedrops_reno instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup Reno {14 26 28}
 }
 
 Class Test/threedrops_SA_reno -superclass TestSuite
 Test/threedrops_SA_reno instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	threedrops_SA_reno
+	set guide_	"Reno TCP with Limited Transmit, three drops."
 	Agent/TCP set singledup_ 1
 	Test/threedrops_SA_reno instproc run {} [Test/threedrops_reno info instbody run ]
 	$self next pktTraceFile
@@ -607,31 +686,38 @@ Test/threedrops_SA_reno instproc init {} {
 
 Class Test/threedrops_reno_full -superclass TestSuite
 Test/threedrops_reno_full instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	threedrops_reno_full
+	set guide_	"Reno, Full TCP, three drops."
 	$self next pktTraceFile
 }
 Test/threedrops_reno_full instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup FullTcp {16 28 30}
 }
 
 Class Test/threedrops_newreno -superclass TestSuite
 Test/threedrops_newreno instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	threedrops_newreno
+	set guide_	"NewReno TCP, three drops."
 	$self next pktTraceFile
 }
 Test/threedrops_newreno instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup Newreno {14 26 28}
 }
 
 Class Test/threedrops_SA_newreno -superclass TestSuite
 Test/threedrops_SA_newreno instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	threedrops_SA_newreno
+	set guide_	"NewReno TCP with Limited Transmit, three drops."
 	Agent/TCP set singledup_ 1
 	Test/threedrops_SA_newreno instproc run {} [Test/threedrops_newreno info instbody run ]
 	$self next pktTraceFile
@@ -639,31 +725,38 @@ Test/threedrops_SA_newreno instproc init {} {
 
 Class Test/threedrops_newreno_full -superclass TestSuite
 Test/threedrops_newreno_full instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	threedrops_newreno_full
+	set guide_	"NewReno, Full TCP, three drops."
 	$self next pktTraceFile
 }
 Test/threedrops_newreno_full instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup FullTcpNewreno {16 28 30}
 }
 
 Class Test/threedrops_sack -superclass TestSuite
 Test/threedrops_sack instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	threedrops_sack
+	set guide_	"Sack TCP, three drops."
 	$self next pktTraceFile
 }
 Test/threedrops_sack instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup Sack1 {14 26 28}
 }
 
 Class Test/threedrops_SA_sack -superclass TestSuite
 Test/threedrops_SA_sack instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	threedrops_SA_sack
+	set guide_	"Sack TCP with Limited Transmit, three drops."
 	Agent/TCP set singledup_ 1
 	Test/threedrops_SA_sack instproc run {} [Test/threedrops_sack info instbody run ]
 	$self next pktTraceFile
@@ -671,34 +764,43 @@ Test/threedrops_SA_sack instproc init {} {
 
 Class Test/threedrops_sack_full -superclass TestSuite
 Test/threedrops_sack_full instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	threedrops_sack_full
+	set guide_	"Sack, Full TCP, three drops."
 	$self next pktTraceFile
 }
 Test/threedrops_sack_full instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup FullTcpSack1 {16 28 30}
 }
 
 Class Test/threedrops_fack -superclass TestSuite
 Test/threedrops_fack instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	threedrops_fack
+	set guide_	"Fack TCP, three drops."
 	$self next pktTraceFile
 }
 Test/threedrops_fack instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup Fack {14 26 28}
 }
 
 Class Test/threedrops_sackRH -superclass TestSuite
 Test/threedrops_sackRH instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	threedrops_sackRH
+	set guide_	"Sack TCP with Rate Halving, three drops."
 	$self next pktTraceFile
 }
 Test/threedrops_sackRH instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup SackRH {14 26 28}
 }
 
@@ -709,20 +811,24 @@ Test/threedrops_sackRH instproc run {} {
 
 Class Test/fourdrops_tahoe -superclass TestSuite
 Test/fourdrops_tahoe instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	fourdrops_tahoe
+	set guide_	"Tahoe TCP, four drops."
 	$self next pktTraceFile
 }
 Test/fourdrops_tahoe instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup Tahoe {14 24 26 28}
 }
 
 Class Test/fourdrops_SA_tahoe -superclass TestSuite
 Test/fourdrops_SA_tahoe instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	fourdrops_SA_tahoe
+	set guide_	"Tahoe TCP with Limited Transmit, four drops."
 	Agent/TCP set singledup_ 1
 	Test/fourdrops_SA_tahoe instproc run {} [Test/fourdrops_tahoe info instbody run ]
 	$self next pktTraceFile
@@ -730,31 +836,38 @@ Test/fourdrops_SA_tahoe instproc init {} {
 
 Class Test/fourdrops_tahoe_full -superclass TestSuite
 Test/fourdrops_tahoe_full instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	fourdrops_tahoe_full
+	set guide_	"Tahoe, Full TCP, four drops."
 	$self next pktTraceFile
 }
 Test/fourdrops_tahoe_full instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup FullTcpTahoe {16 26 28 30}
 }
 
 Class Test/fourdrops_reno -superclass TestSuite
 Test/fourdrops_reno instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	fourdrops_reno
+	set guide_	"Reno TCP, four drops."
 	$self next pktTraceFile
 }
 Test/fourdrops_reno instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup Reno {14 24 26 28}
 }
 
 Class Test/fourdrops_SA_reno -superclass TestSuite
 Test/fourdrops_SA_reno instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	fourdrops_SA_reno
+	set guide_	"Reno TCP with Limited Transmit, four drops."
 	Agent/TCP set singledup_ 1
 	Test/fourdrops_SA_reno instproc run {} [Test/fourdrops_reno info instbody run ]
 	$self next pktTraceFile
@@ -762,31 +875,38 @@ Test/fourdrops_SA_reno instproc init {} {
 
 Class Test/fourdrops_reno_full -superclass TestSuite
 Test/fourdrops_reno_full instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	fourdrops_reno_full
+	set guide_	"Reno, Full TCP, four drops."
 	$self next pktTraceFile
 }
 Test/fourdrops_reno_full instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup FullTcp {16 26 28 30}
 }
 
 Class Test/fourdrops_newreno -superclass TestSuite
 Test/fourdrops_newreno instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	fourdrops_newreno
+	set guide_	"NewReno TCP, four drops."
 	$self next pktTraceFile
 }
 Test/fourdrops_newreno instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup Newreno {14 24 26 28}
 }
 
 Class Test/fourdrops_SA_newreno -superclass TestSuite
 Test/fourdrops_SA_newreno instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	fourdrops_SA_newreno
+	set guide_	"NewReno TCP with Limited Transmit, four drops."
 	Agent/TCP set singledup_ 1
 	Test/fourdrops_SA_newreno instproc run {} [Test/fourdrops_newreno info instbody run ]
 	$self next pktTraceFile
@@ -794,31 +914,38 @@ Test/fourdrops_SA_newreno instproc init {} {
 
 Class Test/fourdrops_newreno_full -superclass TestSuite
 Test/fourdrops_newreno_full instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	fourdrops_newreno_full
+	set guide_	"NewReno, Full TCP, four drops."
 	$self next pktTraceFile
 }
 Test/fourdrops_newreno_full instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup FullTcpNewreno {16 26 28 30}
 }
 
 Class Test/fourdrops_sack -superclass TestSuite
 Test/fourdrops_sack instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	fourdrops_sack
+	set guide_	"Sack TCP, four drops."
 	$self next pktTraceFile
 }
 Test/fourdrops_sack instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup Sack1 {14 24 26 28}
 }
 
 Class Test/fourdrops_SA_sack -superclass TestSuite
 Test/fourdrops_SA_sack instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	fourdrops_SA_sack
+	set guide_	"Sack TCP with Limited Transmit, four drops."
 	Agent/TCP set singledup_ 1
 	Test/fourdrops_SA_sack instproc run {} [Test/fourdrops_sack info instbody run ]
 	$self next pktTraceFile
@@ -826,33 +953,42 @@ Test/fourdrops_SA_sack instproc init {} {
 
 Class Test/fourdrops_sack_full -superclass TestSuite
 Test/fourdrops_sack_full instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	fourdrops_sack_full
+	set guide_	"Sack, Full TCP, four drops."
 	$self next pktTraceFile
 }
 Test/fourdrops_sack_full instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup FullTcpSack1 {16 26 28 30}
 }
 
 Class Test/fourdrops_fack -superclass TestSuite
 Test/fourdrops_fack instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	fourdrops_fack
+	set guide_	"Fack TCP, four drops."
 	$self next pktTraceFile
 }
 Test/fourdrops_fack instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup Fack {14 24 26 28}
 }
 Class Test/fourdrops_sackRH -superclass TestSuite
 Test/fourdrops_sackRH instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	fourdrops_sackRH
+	set guide_	"Sack TCP with Rate Halving, four drops."
 	$self next pktTraceFile
 }
 Test/fourdrops_sackRH instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup SackRH {14 24 26 28}
 }
 
@@ -862,12 +998,15 @@ Test/fourdrops_sackRH instproc run {} {
 
 Class Test/multiple_tahoe -superclass TestSuite
 Test/multiple_tahoe instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	multiple_tahoe
+	set guide_	"Tahoe TCP, eight drops."
 	$self next pktTraceFile
 }
 Test/multiple_tahoe instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup Tahoe {11 12 13 14 16 17 18 19 }
 }
 
@@ -876,9 +1015,10 @@ Test/multiple_tahoe instproc run {} {
 ## the highest sequence number sent to far.
 Class Test/multiple_SA_tahoe -superclass TestSuite
 Test/multiple_SA_tahoe instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	multiple_SA_tahoe
+	set guide_	"Tahoe TCP with Limited Transmit, eight drops."
 	Agent/TCP set singledup_ 1
 	Test/multiple_SA_tahoe instproc run {} [Test/multiple_tahoe info instbody run ]
 	$self next pktTraceFile
@@ -886,20 +1026,24 @@ Test/multiple_SA_tahoe instproc init {} {
 
 Class Test/multiple_reno -superclass TestSuite
 Test/multiple_reno instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	multiple_reno
+	set guide_	"Reno TCP, eight drops."
 	$self next pktTraceFile
 }
 Test/multiple_reno instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
 	$self setup Reno {11 12 13 14 16 17 18 19 }
 }
 
 Class Test/multiple_SA_reno -superclass TestSuite
 Test/multiple_SA_reno instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	multiple_SA_reno
+	set guide_	"Reno TCP with Limited Transmit, eight drops."
 	Agent/TCP set singledup_ 1
 	Test/multiple_SA_reno instproc run {} [Test/multiple_reno info instbody run ]
 	$self next pktTraceFile
@@ -907,20 +1051,24 @@ Test/multiple_SA_reno instproc init {} {
 
 Class Test/multiple_newreno -superclass TestSuite
 Test/multiple_newreno instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	multiple_newreno
+	set guide_	"NewReno TCP, eight drops."
 	$self next pktTraceFile
 }
 Test/multiple_newreno instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
 	$self setup Newreno {11 12 13 14 16 17 18 19 }
 }
 
 Class Test/multiple_SA_newreno -superclass TestSuite
 Test/multiple_SA_newreno instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	multiple_SA_newreno
+	set guide_	"NewReno TCP with Limited Transmit, eight drops."
 	Agent/TCP set singledup_ 1
 	Test/multiple_SA_newreno instproc run {} [Test/multiple_newreno info instbody run ]
 	$self next pktTraceFile
@@ -928,21 +1076,25 @@ Test/multiple_SA_newreno instproc init {} {
 
 Class Test/multiple_sack -superclass TestSuite
 Test/multiple_sack instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	multiple_sack
+	set guide_	"Sack TCP, eight drops."
 	$self next pktTraceFile
 }
 Test/multiple_sack instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
 	$self setup Sack1 {11 12 13 14 16 17 18 19 } 
 }
 
 # Limited Transmit
 Class Test/multiple_SA_sack -superclass TestSuite
 Test/multiple_SA_sack instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	multiple_SA_sack
+	set guide_	"Sack TCP with Limited Transmit, eight drops."
 	Agent/TCP set singledup_ 1
 	Test/multiple_SA_sack instproc run {} [Test/multiple_sack info instbody run ]
 	$self next pktTraceFile
@@ -951,9 +1103,10 @@ Test/multiple_SA_sack instproc init {} {
 # Partial_ack 
 Class Test/multiple_partial_ack_sack -superclass TestSuite
 Test/multiple_partial_ack_sack instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	multiple_partial_ack_sack
+	set guide_	"Sack TCP with an ensured response to a partial ack, eight drops."
 	Agent/TCP set partial_ack_ 1
 	Test/multiple_partial_ack_sack instproc run {} [Test/multiple_sack info instbody run ]
 	$self next pktTraceFile
@@ -965,12 +1118,15 @@ Test/multiple_partial_ack_sack instproc init {} {
 
 Class Test/multiple2_tahoe -superclass TestSuite
 Test/multiple2_tahoe instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	multiple2_tahoe
+	set guide_	"Tahoe TCP, five drops."
 	$self next pktTraceFile
 }
 Test/multiple2_tahoe instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
         $self setup Tahoe {11 12 13 14 16 }
 	# $self setup Tahoe {11 12 13 14 16 17 18 19 }
 }
@@ -980,9 +1136,10 @@ Test/multiple2_tahoe instproc run {} {
 ## the highest sequence number sent to far.
 Class Test/multiple2_SA_tahoe -superclass TestSuite
 Test/multiple2_SA_tahoe instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	multiple2_SA_tahoe
+	set guide_	"Tahoe TCP with Limited Transmit, five drops."
 	Agent/TCP set singledup_ 1
 	Test/multiple2_SA_tahoe instproc run {} [Test/multiple2_tahoe info instbody run ]
 	$self next pktTraceFile
@@ -990,20 +1147,24 @@ Test/multiple2_SA_tahoe instproc init {} {
 
 Class Test/multiple2_reno -superclass TestSuite
 Test/multiple2_reno instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	multiple2_reno
+	set guide_	"Reno TCP, five drops."
 	$self next pktTraceFile
 }
 Test/multiple2_reno instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
 	$self setup Reno {11 12 13 14 16 }
 }
 
 Class Test/multiple2_SA_reno -superclass TestSuite
 Test/multiple2_SA_reno instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	multiple2_SA_reno
+	set guide_	"Reno TCP with Limited Transmit, five drops."
 	Agent/TCP set singledup_ 1
 	Test/multiple2_SA_reno instproc run {} [Test/multiple2_reno info instbody run ]
 	$self next pktTraceFile
@@ -1011,20 +1172,24 @@ Test/multiple2_SA_reno instproc init {} {
 
 Class Test/multiple2_newreno -superclass TestSuite
 Test/multiple2_newreno instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	multiple2_newreno
+	set guide_	"NewReno TCP, five drops."
 	$self next pktTraceFile
 }
 Test/multiple2_newreno instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
 	$self setup Newreno {11 12 13 14 16 }
 }
 
 Class Test/multiple2_SA_newreno -superclass TestSuite
 Test/multiple2_SA_newreno instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	multiple2_SA_newreno
+	set guide_	"NewReno TCP with Limited Transmit, five drops."
 	Agent/TCP set singledup_ 1
 	Test/multiple2_SA_newreno instproc run {} [Test/multiple2_newreno info instbody run ]
 	$self next pktTraceFile
@@ -1032,21 +1197,25 @@ Test/multiple2_SA_newreno instproc init {} {
 
 Class Test/multiple2_sack -superclass TestSuite
 Test/multiple2_sack instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	multiple2_sack
+	set guide_	"Sack TCP, five drops."
 	$self next pktTraceFile
 }
 Test/multiple2_sack instproc run {} {
+	$self instvar guide_
+	puts "Guide: $guide_"
 	$self setup Sack1 {11 12 13 14 16 } 
 }
 
 # Limited Transmit
 Class Test/multiple2_SA_sack -superclass TestSuite
 Test/multiple2_SA_sack instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	multiple2_SA_sack
+	set guide_	"Sack TCP with Limited Transmit, five drops."
 	Agent/TCP set singledup_ 1
 	Test/multiple2_SA_sack instproc run {} [Test/multiple2_sack info instbody run ]
 	$self next pktTraceFile
@@ -1058,9 +1227,10 @@ Test/multiple2_SA_sack instproc init {} {
 #  has just been sent?
 Class Test/multiple2_partial_ack_sack -superclass TestSuite
 Test/multiple2_partial_ack_sack instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	multiple2_partial_ack_sack
+	set guide_	"Sack TCP with an ensured response to a partial ack, five drops."
 	Agent/TCP set partial_ack_ 1
 	Test/multiple2_partial_ack_sack instproc run {} [Test/multiple2_sack info instbody run ]
 	$self next pktTraceFile
