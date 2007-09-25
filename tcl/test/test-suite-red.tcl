@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.63 2007/09/19 04:59:09 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.64 2007/09/25 05:30:57 sallyfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -274,13 +274,15 @@ TestSuite instproc mainSim {TCPStyle {window 15} } {
 
 Class Test/red1 -superclass TestSuite
 Test/red1 instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_ net2 
     set test_ red1
+    set guide_ "RED, without ECN."
     $self next
 }
 Test/red1 instproc run {} {
-    $self instvar ns_ node_ testName_ net_
+    $self instvar ns_ node_ testName_ net_ guide_
+    puts "Guide: $guide_"
     $self setTopo
     $self mainSim Reno
     $ns_ run
@@ -288,15 +290,17 @@ Test/red1 instproc run {} {
 
 Class Test/ecn -superclass TestSuite
 Test/ecn instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     Queue/RED set setbit_ true
     Agent/TCP set old_ecn_ 1
     set net_	net2
     set test_	ecn
+    set guide_ "RED with ECN."
     $self next
 }
 Test/ecn instproc run {} {
-    $self instvar ns_ node_ testName_
+    $self instvar ns_ node_ testName_ guide_
+    puts "Guide: $guide_"
     $self setTopo 
 
     set stoptime 10.0
@@ -331,13 +335,15 @@ Test/ecn instproc run {} {
 # This should give worse performance than "red1".
 Class Test/red2 -superclass TestSuite
 Test/red2 instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_	net2
     set test_	red2
+    set guide_ "RED, without ECN, with different parameters."
     $self next
 }
 Test/red2 instproc run {} {
-    $self instvar ns_ node_ testName_
+    $self instvar ns_ node_ testName_ guide_
+    puts "Guide: $guide_"
     $self setTopo
 
     set stoptime 10.0
@@ -371,13 +377,15 @@ Test/red2 instproc run {} {
 # The queue is measured in "packets".
 Class Test/red_twoway -superclass TestSuite
 Test/red_twoway instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_	net2
     set test_	red_twoway
+    set guide_ "RED, two-way traffic, queue measured in packets."
     $self next
 }
 Test/red_twoway instproc run {} {
-    $self instvar ns_ node_ testName_
+    $self instvar ns_ node_ testName_ guide_
+    puts "Guide: $guide_"
     $self setTopo
 
     set stoptime 10.0
@@ -414,14 +422,16 @@ Test/red_twoway instproc run {} {
 # The queue is measured in "bytes".
 Class Test/red_twowaybytes -superclass TestSuite
 Test/red_twowaybytes instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_	net2
     set test_	red_twowaybytes
+    set guide_ "RED, two-way traffic, queue measured in bytes."
     Queue/RED set ns1_compat_ true
     $self next
 }
 Test/red_twowaybytes instproc run {} {
-    $self instvar ns_ node_ testName_
+    $self instvar ns_ node_ testName_ guide_
+    puts "Guide: $guide_"
     $self setTopo
 
     set stoptime 10.0
@@ -703,16 +713,18 @@ TestSuite instproc droptest { stoptime } {
 
 Class Test/flows_unforced -superclass TestSuite
 Test/flows_unforced instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_    net2   
     set test_   flows_unforced
+    set guide_ "RED, sending rate vs. packet drop rate, unforced packet drops."
     Queue/RED set gentle_ false
     $self next noTraceFiles; # zero here means don't product all.tr
 }   
 
 Test/flows_unforced instproc run {} {
 
-	$self instvar ns_ node_ testName_ r1fm_ awkprocedure_
+	$self instvar ns_ node_ testName_ r1fm_ awkprocedure_ guide_
+        puts "Guide: $guide_"
 	$self instvar dump_pthresh_
 	$self setTopo
         set stoptime 500.0
@@ -726,16 +738,18 @@ Test/flows_unforced instproc run {} {
 
 Class Test/flows_forced -superclass TestSuite
 Test/flows_forced instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_    net2   
     set test_   flows_forced
+    set guide_ "RED, sending rate vs. packet drop rate, forced packet drops."
     Queue/RED set gentle_ false
     $self next noTraceFiles; # zero here means don't product all.tr
 }   
 
 Test/flows_forced instproc run {} {
 
-	$self instvar ns_ node_ testName_ r1fm_ awkprocedure_
+	$self instvar ns_ node_ testName_ r1fm_ awkprocedure_ guide_
+        puts "Guide: $guide_"
 	$self instvar dump_pthresh_
 	$self setTopo
  
@@ -749,17 +763,19 @@ Test/flows_forced instproc run {} {
 
 Class Test/flows_combined -superclass TestSuite
 Test/flows_combined instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_    net2   
     set test_   flows_combined
+    set guide_ "RED, sending rate vs. packet drop rate, all packet drops."
     Queue/RED set gentle_ false
     $self next noTraceFiles; # zero here means don't product all.tr
 }   
 
 Test/flows_combined instproc run {} {
 
-	$self instvar ns_ node_ testName_ r1fm_ awkprocedure_
+	$self instvar ns_ node_ testName_ r1fm_ awkprocedure_ guide_
 	$self instvar dump_pthresh_
+        puts "Guide: $guide_"
 	$self setTopo
  
         set stoptime 500.0
@@ -778,14 +794,16 @@ TestSuite instproc printall { fmon } {
 
 Class Test/ungentle -superclass TestSuite
 Test/ungentle instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_ net3 
     set test_ ungentle
+    set guide_ "RED, not gentle."
     Queue/RED set gentle_ false
     $self next
 }
 Test/ungentle instproc run {} {
-    $self instvar ns_ node_ testName_ net_
+    $self instvar ns_ node_ testName_ net_ guide_
+    puts "Guide: $guide_"
     $self setTopo
     Agent/TCP set packetSize_ 1500
     Agent/TCP set window_ 50
@@ -843,9 +861,10 @@ Test/ungentle instproc run {} {
 
 Class Test/gentle -superclass TestSuite
 Test/gentle instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_ net3 
     set test_ gentle
+    set guide_ "RED, gentle."
     Queue/RED set gentle_ true
     Test/gentle instproc run {} [Test/ungentle info instbody run ]
     $self next
@@ -853,11 +872,12 @@ Test/gentle instproc init {} {
 
 Class Test/gentleEcn -superclass TestSuite
 Test/gentleEcn instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     Queue/RED set setbit_ true
     Agent/TCP set ecn_ 1
     set net_ net3 
     set test_ gentleEcn
+    set guide_ "RED, gentle, with ECN."
     Queue/RED set gentle_ true
     Test/gentleEcn instproc run {} [Test/ungentle info instbody run ]
     $self next
@@ -865,11 +885,12 @@ Test/gentleEcn instproc init {} {
 
 Class Test/gentleEcn1 -superclass TestSuite
 Test/gentleEcn1 instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     Queue/RED set setbit_ true
     Agent/TCP set ecn_ 1
     set net_ net3 
     set test_ gentleEcn1
+    set guide_ "RED, gentle, with ECN, with mark_p_ set to 0.1."
     Queue/RED set gentle_ true
     Queue/RED set mark_p_ 0.1
     Queue/RED set use_mark_p_ true
@@ -879,9 +900,10 @@ Test/gentleEcn1 instproc init {} {
 
 Class Test/ungentleBadParams -superclass TestSuite
 Test/ungentleBadParams instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_ net3 
     set test_ ungentleBadParams
+    set guide_ "RED, not gentle, bad RED parameters."
     Queue/RED set gentle_ false
     Queue/RED set linterm_ 50
     Queue/RED set maxthresh_ 10
@@ -891,10 +913,11 @@ Test/ungentleBadParams instproc init {} {
 
 Class Test/gentleBadParams -superclass TestSuite
 Test/gentleBadParams instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_ net3 
     set test_ gentleBadParams
     Queue/RED set gentle_ true
+    set guide_ "RED, gentle, bad RED parameters."
     Queue/RED set linterm_ 50
     Queue/RED set maxthresh_ 10
     Test/gentleBadParams instproc run {} [Test/ungentle info instbody run ]
@@ -903,13 +926,15 @@ Test/gentleBadParams instproc init {} {
 
 Class Test/q_weight -superclass TestSuite
 Test/q_weight instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_ net2 
     set test_ q_weight
+    set guide_ "RED, q_weight set to 0.002."
     $self next
 }
 Test/q_weight instproc run {} {
-    $self instvar ns_ node_ testName_ net_
+    $self instvar ns_ node_ testName_ net_ guide_
+    puts "Guide: $guide_"
     $self setTopo
     $self mainSim Sack1
     $ns_ run
@@ -917,10 +942,11 @@ Test/q_weight instproc run {} {
 
 Class Test/q_weight_auto -superclass TestSuite
 Test/q_weight_auto instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_ net2 
     set test_ q_weight_auto
     Queue/RED set q_weight_ 0.0
+    set guide_ "RED, q_weight and maxthresh_ set automatically."
     Queue/RED set maxthresh_ 0
     Test/q_weight_auto instproc run {} [Test/q_weight info instbody run ]
     $self next
@@ -928,7 +954,7 @@ Test/q_weight_auto instproc init {} {
 
 # Class Test/q_weight1 -superclass TestSuite
 # Test/q_weight1 instproc init {} {
-#     $self instvar net_ test_
+#     $self instvar net_ test_ guide_
 #     set net_ net2 
 #     set test_ q_weight
 #     $self next
@@ -943,7 +969,7 @@ Test/q_weight_auto instproc init {} {
 # 
 # Class Test/q_weight1_auto -superclass TestSuite
 # Test/q_weight1_auto instproc init {} {
-#     $self instvar net_ test_
+#     $self instvar net_ test_ guide_
 #     set net_ net2 
 #     set test_ q_weight1_auto
 #     Queue/RED set q_weight_ 0.0
@@ -958,14 +984,16 @@ Test/q_weight_auto instproc init {} {
 ##
 Class Test/congested -superclass TestSuite
 Test/congested instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_ net3 
     set test_ congested
+    set guide_ "RED, not gentle, ECN."
     Queue/RED set use_mark_p_ false
     $self next
 }
 Test/congested instproc run {} {
-    $self instvar ns_ node_ testName_ net_
+    $self instvar ns_ node_ testName_ net_ guide_
+    puts "Guide: $guide_"
     Agent/TCP set packetSize_ 1500
     Agent/TCP set window_ 75
     Agent/TCP set ecn_ 1
@@ -1003,9 +1031,10 @@ Test/congested instproc run {} {
 ##
 Class Test/congested_mark_p -superclass TestSuite
 Test/congested_mark_p instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_ net3 
     set test_ congested_mark_p
+    set guide_ "RED, not gentle, ECN.  Packets not dropped unless buffer full."
     Queue/RED set mark_p_ 2.0
     Queue/RED set use_mark_p_ true
     Test/congested_mark_p instproc run {} [Test/congested info instbody run ]
@@ -1018,15 +1047,17 @@ Test/congested_mark_p instproc init {} {
 ##
 Class Test/congested1_mark_p -superclass TestSuite
 Test/congested1_mark_p instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_ net3 
     set test_ congested1_mark_p
+    set guide_ "RED, gentle, ECN.  Packets sometimes dropped instead of marked."
     Queue/RED set mark_p_ 1.0
     Queue/RED set use_mark_p_ true
     $self next
 }
 Test/congested1_mark_p instproc run {} {
-    $self instvar ns_ node_ testName_ net_
+    $self instvar ns_ node_ testName_ net_ guide_
+    puts "Guide: $guide_"
     Agent/TCP set packetSize_ 1500
     Agent/TCP set window_ 1000
     Agent/TCP set ecn_ 1
@@ -1066,9 +1097,10 @@ Test/congested1_mark_p instproc run {} {
 ##
 Class Test/congested2_mark_p -superclass TestSuite
 Test/congested2_mark_p instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     set net_ net3 
     set test_ congested2_mark_p
+    set guide_ "RED, gentle, ECN.  Packets not dropped unless buffer full."
     Queue/RED set mark_p_ 2.0
     Queue/RED set use_mark_p_ true
     Test/congested2_mark_p instproc run {} [Test/congested1_mark_p info instbody run ]
