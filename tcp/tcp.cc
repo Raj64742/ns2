@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.175 2007/09/04 04:32:19 tom_henderson Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.176 2007/09/26 05:14:12 sallyfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -115,6 +115,7 @@ TcpAgent::delay_bind_init_all()
         delay_bind_init_one("windowInitOption_");
 
         delay_bind_init_one("syn_");
+        delay_bind_init_one("max_connect_");
         delay_bind_init_one("windowOption_");
         delay_bind_init_one("windowConstant_");
         delay_bind_init_one("windowThresh_");
@@ -225,6 +226,7 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
         if (delay_bind(varName, localName, "windowInit_", &wnd_init_, tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "windowInitOption_", &wnd_init_option_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "syn_", &syn_, tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "max_connect_", &max_connect_, tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "windowOption_", &wnd_option_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "windowConstant_",  &wnd_const_, tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "windowThresh_", &wnd_th_ , tracer)) return TCL_OK;
@@ -420,9 +422,10 @@ TcpAgent::trace(TracedVar* v)
 void
 TcpAgent::set_initial_window()
 {
-	if (syn_ && delay_growth_)
+	if (syn_ && delay_growth_) {
 		cwnd_ = 1.0; 
-	else
+		syn_connects_ = 0;
+	} else
 		cwnd_ = initial_window();
 }
 
@@ -697,6 +700,16 @@ void TcpAgent::output(int seqno, int reason)
 			databytes = 0;
 			curseq_ += 1;
 			hdr_cmn::access(p)->size() = tcpip_base_hdr_size_;
+			++syn_connects_;
+			//fprintf(stderr, "TCPAgent: syn_connects_ %d max_connect_ %d\n",
+			//	syn_connects_, max_connect_);
+			if (syn_connects_ > max_connect_ + 1) {
+			      // Abort the connection.	
+			      // What is the best way to abort the connection?	
+			      curseq_ = 0;
+	                      rtx_timer_.resched(10000);
+                              return;
+                        }
 		}
 		if (ecn_) {
 			hf->ecnecho() = 1;
