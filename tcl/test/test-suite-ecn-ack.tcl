@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.27 2007/09/16 21:28:17 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.28 2007/09/26 05:15:49 sallyfloyd Exp $
 #
 # To run all tests: test-all-ecn-ack
 set dir [pwd]
@@ -43,6 +43,8 @@ add-packet-header Flags IP TCP RTP ; # hdrs reqd for validation test
 # FOR UPDATING GLOBAL DEFAULTS:
 
 # Agent/TCP/FullTcp set debug_ true;
+
+Agent/TCP set max_connect_ 5;
 
 set flowfile fairflow.tr; # file where flow data is written
 set flowgraphfile fairflow.xgr; # file given to graph tool 
@@ -305,13 +307,28 @@ TestSuite instproc mark_pkt { number } {
     $lossmodel set markecn_ true
 }
 
+TestSuite instproc emod1 {} {
+        $self instvar lossylink_
+        set errmodule [$lossylink_ errormodule]
+        return $errmodule
+}
+
+TestSuite instproc set_lossylink {} {
+        $self instvar lossylink_ ns_ node_
+        set lossylink_ [$ns_ link $node_(r1) $node_(r2)]
+        set em [new ErrorModule Fid]
+        set errmodel [new ErrorModel/Periodic]
+        $errmodel unit pkt
+        $lossylink_ errormodule $em
+}
+
 TestSuite instproc drop_pkts pkts {
     $self instvar ns_
-    set emod [$self emod]
+    set emod [$self emod1]
     set errmodel1 [new ErrorModel/List]
     $errmodel1 droplist $pkts
     $emod insert $errmodel1
-    $emod bind $errmodel1 1
+    $emod bind $errmodel1 0
 }
 
 #######################################################################
@@ -470,6 +487,68 @@ Test/synack0A instproc init {} {
 	Agent/TCP set updated_rttvar_ false 
 	Test/synack0A instproc run {} [Test/synack0 info instbody run ]
         $self next pktTraceFile
+}
+
+# Five SYN packets dropped.
+Class Test/synack-5 -superclass TestSuite
+Test/synack-5 instproc init {} {
+        $self instvar net_ test_ guide_ 
+        set net_        net2
+        set test_       synack-5_
+        set guide_      "Five SYN packets dropped."
+        Agent/TCPSink set ecn_syn_ false
+        $self next pktTraceFile
+}
+Test/synack-5 instproc run {} {
+        global quiet
+        $self instvar ns_ guide_ node_ guide_ testName_ 
+        puts "Guide: $guide_"
+        Agent/TCP set ecn_ 1
+	Agent/TCP set window_ 8
+        $self setTopo
+	$self set_lossylink
+
+        # Set up forward TCP connection
+        set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(s4) 0]
+	$tcp1 set window_ 8
+        set ftp1 [$tcp1 attach-app FTP]
+        $ns_ at 0.00 "$ftp1 produce 20"
+
+        $self drop_pkts {0 1 2 3 4}
+        #$self tcpDump $tcp1 5.0
+        $ns_ at 200.0 "$self cleanupAll $testName_"
+        $ns_ run
+}
+
+# Fifteen SYN packets dropped.
+Class Test/synack-15 -superclass TestSuite
+Test/synack-15 instproc init {} {
+        $self instvar net_ test_ guide_ 
+        set net_        net2
+        set test_       synack-15_
+        set guide_      "Fifteen SYN packets dropped."
+        Agent/TCPSink set ecn_syn_ false
+        $self next pktTraceFile
+}
+Test/synack-15 instproc run {} {
+        global quiet
+        $self instvar ns_ guide_ node_ guide_ testName_ 
+        puts "Guide: $guide_"
+        Agent/TCP set ecn_ 1
+	Agent/TCP set window_ 8
+        $self setTopo
+	$self set_lossylink
+
+        # Set up forward TCP connection
+        set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(s4) 0]
+	$tcp1 set window_ 8
+        set ftp1 [$tcp1 attach-app FTP]
+        $ns_ at 0.00 "$ftp1 produce 20"
+
+        $self drop_pkts {0 1 2 3 4 5 6 7 8 9 10 11 12 13 14} 
+        #$self tcpDump $tcp1 5.0
+        $ns_ at 3000.0 "$self cleanupAll $testName_"
+        $ns_ run
 }
 
 # SYN/ACK packet dropped.
