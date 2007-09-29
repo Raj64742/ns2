@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.374 2007/09/26 05:14:12 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.375 2007/09/29 01:07:21 sallyfloyd Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -844,7 +844,8 @@ Agent/TCP set window_ 20
 Agent/TCP set windowInit_ 2 ;		# default changed on 2001/5/26.
 Agent/TCP set windowInitOption_ 1
 Agent/TCP set syn_ true ;		# default changed on 2001/5/17.
-Agent/TCP set max_connect_ 5 ;		# Variable added on 2007/9/25.
+Agent/TCP set max_connects_ -1 ;	# Variable added on 2007/9/25.
+					# Set to -1 for a no-op, 2007/9/28.
 Agent/TCP set windowOption_ 1
 Agent/TCP set windowConstant_ 4
 Agent/TCP set windowThresh_ 0.002

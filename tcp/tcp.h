@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.129 2007/09/26 05:14:12 sallyfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.130 2007/09/29 01:07:22 sallyfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -338,11 +338,12 @@ protected:
 	/* For modeling SYN and SYN/ACK packets. */
 	int syn_;		/* 1 for modeling SYN/ACK exchange */
 	int delay_growth_;  	/* delay opening cwnd until 1st data recv'd */
-        int max_connect_;  	/* max number of retransmits for syn packet */
+        int max_connects_;  	/* max number of transmits for syn packet */
+				/* -1 to allow infinite number of transmits */
 	/* End of modeling SYN and SYN/ACK packets. */
 
 	/* Dynamic state for SYN packet retransmissions. */
-	int syn_connects_;	/* number of retransmits of syn packet */
+	int syn_connects_;	/* number of transmits of syn packet */
 	/* End of dynamic state for SYN packet retransmissions. */
 
 	/* F-RTO */
