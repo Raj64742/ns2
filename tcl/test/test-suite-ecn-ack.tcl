@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.28 2007/09/26 05:15:49 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.29 2007/09/29 01:09:23 sallyfloyd Exp $
 #
 # To run all tests: test-all-ecn-ack
 set dir [pwd]
@@ -43,8 +43,6 @@ add-packet-header Flags IP TCP RTP ; # hdrs reqd for validation test
 # FOR UPDATING GLOBAL DEFAULTS:
 
 # Agent/TCP/FullTcp set debug_ true;
-
-Agent/TCP set max_connect_ 5;
 
 set flowfile fairflow.tr; # file where flow data is written
 set flowgraphfile fairflow.xgr; # file given to graph tool 
@@ -489,17 +487,62 @@ Test/synack0A instproc init {} {
         $self next pktTraceFile
 }
 
-# Five SYN packets dropped.
-Class Test/synack-5 -superclass TestSuite
-Test/synack-5 instproc init {} {
+# Four SYN packets dropped.
+Class Test/synack-4 -superclass TestSuite
+Test/synack-4 instproc init {} {
         $self instvar net_ test_ guide_ 
         set net_        net2
-        set test_       synack-5_
-        set guide_      "Five SYN packets dropped."
+        set test_       synack-4_
+        set guide_      "Four SYN packets dropped, max_connects_ not used."
         Agent/TCPSink set ecn_syn_ false
+        Agent/TCP set max_connects_ -1;
         $self next pktTraceFile
 }
-Test/synack-5 instproc run {} {
+Test/synack-4 instproc run {} {
+        global quiet
+        $self instvar ns_ guide_ node_ guide_ testName_ 
+        puts "Guide: $guide_"
+        Agent/TCP set ecn_ 1
+	Agent/TCP set window_ 8
+        $self setTopo
+	$self set_lossylink
+
+        # Set up forward TCP connection
+        set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(s4) 0]
+	$tcp1 set window_ 8
+        set ftp1 [$tcp1 attach-app FTP]
+        $ns_ at 0.00 "$ftp1 produce 20"
+
+        $self drop_pkts {0 1 2 3}
+        #$self tcpDump $tcp1 5.0
+        $ns_ at 200.0 "$self cleanupAll $testName_"
+        $ns_ run
+}
+# Four SYN packets dropped.
+Class Test/synack-4-maxconnect -superclass TestSuite
+Test/synack-4-maxconnect instproc init {} {
+        $self instvar net_ test_ guide_ 
+        set net_        net2
+        set test_       synack-4-maxconnect_
+        set guide_      "Four SYN packets dropped, max_connects_ 5."
+        Agent/TCPSink set ecn_syn_ false
+        Agent/TCP set max_connects_ 5;
+	Test/synack-4-maxconnect instproc run {} [Test/synack-4 info instbody run ]
+        $self next pktTraceFile
+}
+
+# Five SYN packets dropped.
+Class Test/synack-5-maxconnect -superclass TestSuite
+Test/synack-5-maxconnect instproc init {} {
+        $self instvar net_ test_ guide_ 
+        set net_        net2
+        set test_       synack-5-maxconnect_
+        set guide_      "Five SYN packets dropped, max_connects_ 5."
+        Agent/TCPSink set ecn_syn_ false
+        Agent/TCP set max_connects_ 5;
+        $self next pktTraceFile
+}
+Test/synack-5-maxconnect instproc run {} {
         global quiet
         $self instvar ns_ guide_ node_ guide_ testName_ 
         puts "Guide: $guide_"
@@ -526,8 +569,9 @@ Test/synack-15 instproc init {} {
         $self instvar net_ test_ guide_ 
         set net_        net2
         set test_       synack-15_
-        set guide_      "Fifteen SYN packets dropped."
+        set guide_      "Fifteen SYN packets dropped, max_connects not used."
         Agent/TCPSink set ecn_syn_ false
+        Agent/TCP set max_connects_ -1;
         $self next pktTraceFile
 }
 Test/synack-15 instproc run {} {
