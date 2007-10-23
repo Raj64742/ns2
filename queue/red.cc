@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-     "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.87 2007/09/19 04:34:23 sallyfloyd Exp $ (LBL)";
+     "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.88 2007/10/23 06:55:54 seashadow Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -110,7 +110,7 @@ REDQueue::REDQueue(const char * trace) : link_(NULL), de_drop_(NULL), EDTrace(NU
 	bind("thresh_", &edp_.th_min_pkts);		    // minthresh
 	bind("thresh_queue_", &edp_.th_min);
 	bind("maxthresh_", &edp_.th_max_pkts);	    // maxthresh
-	bind("minthresh_queue_", &edp_.th_max);
+	bind("maxthresh_queue_", &edp_.th_max);
 	bind("mean_pktsize_", &edp_.mean_pktsize);  // avg pkt size
 	bind("idle_pktsize_", &edp_.idle_pktsize);  // avg pkt size for idles
 	bind("q_weight_", &edp_.q_w);		    // for EWMA

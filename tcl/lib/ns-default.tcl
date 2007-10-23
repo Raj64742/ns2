@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.375 2007/09/29 01:07:21 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.376 2007/10/23 06:55:54 seashadow Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -126,8 +126,8 @@ Queue/RED set maxthresh_ 0
 # Queue/RED/maxthresh_ was changed on 12/29/01, for automatic configuration.
 Queue/RED set thresh_queue_ [Queue set limit_]
 # Note from Sally: I don't see that thresh_queue_ is used for anything.
-Queue/RED set minthresh_queue_ [Queue set limit_]
-# Note from Sally: I don't see that minthresh_queue_ is used for anything.
+Queue/RED set maxthresh_queue_ [Queue set limit_]
+# Note from Sally: I don't see that maxthresh_queue_ is used for anything.
 Queue/RED set mean_pktsize_ 500
 Queue/RED set idle_pktsize_ 100
 # Queue/RED set q_weight_ 0.002
