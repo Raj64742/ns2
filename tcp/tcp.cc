@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.177 2007/09/29 01:07:23 sallyfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.178 2007/10/24 19:10:29 sallyfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -1742,9 +1742,8 @@ void TcpAgent::spurious_timeout()
 
 /*
  * Loss occurred in Quick-Start window.
- * If Quick-Start is enabled, packet loss in the QS phase should
- * trigger slow start instead of the regular fast retransmit,
- * see [draft-amit-quick-start-03.txt] (to appear).
+ * If Quick-Start is enabled, packet loss in the QS phase, during slow-start,
+ * should trigger slow start instead of the regular fast retransmit.
  * We use variable tcp_qs_recovery_ to toggle this behaviour on and off.
  * If tcp_qs_recovery_ is true, initiate slow start to probe for
  * a correct window size.
