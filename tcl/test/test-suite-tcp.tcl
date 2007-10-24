@@ -30,13 +30,14 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.40 2007/03/29 04:57:33 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.41 2007/10/24 22:40:24 sallyfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
 #
 
 source misc.tcl
+source topologies.tcl
 remove-all-packet-headers       ; # removes all except common
 add-packet-header Flags IP TCP  ; # hdrs reqd for TCP
 
@@ -60,7 +61,6 @@ Agent/TCP set windowInit_ 1
 # The default is being changed to 2.
 Agent/TCP set singledup_ 0
 # The default is being changed to 1
-source topologies.tcl
 Agent/TCP set minrto_ 0
 # The default is being changed to minrto_ 1
 Agent/TCP set syn_ false
@@ -87,7 +87,7 @@ TestSuite instproc finish file {
 TestSuite instproc printtimers { tcp time} {
 	global quiet
 	if {$quiet == "false"} {
-        	puts "time: $time sRTT(in ticks): [$tcp set srtt_]/8 RTTvar(in ticks): [$tcp set rttvar_]/4 backoff: [$tcp set backoff_]"
+        	puts "time: [format %.3f $time] sRTT(in ticks): [$tcp set srtt_]/8 RTTvar(in ticks): [$tcp set rttvar_]/4 backoff: [$tcp set backoff_]"
 	}
 }
 
@@ -119,6 +119,30 @@ Topology/net4 instproc init ns {
     if {[$class info instprocs config] != ""} {
 	$self config $ns
     }
+}
+
+TestSuite instproc set_lossylink {} {
+        $self instvar lossylink_ ns_ node_
+        set lossylink_ [$ns_ link $node_(r1) $node_(k1)]
+        set em [new ErrorModule Fid]
+        set errmodel [new ErrorModel/Periodic]
+        $errmodel unit pkt
+        $lossylink_ errormodule $em
+}
+
+TestSuite instproc emod {} {
+        $self instvar lossylink_
+        set errmodule [$lossylink_ errormodule]
+        return $errmodule
+}
+
+TestSuite instproc drop_pkts pkts {
+    $self instvar ns_
+    set emod [$self emod]
+    set errmodel1 [new ErrorModel/List]
+    $errmodel1 droplist $pkts
+    $emod insert $errmodel1
+    $emod bind $errmodel1 1
 }
 
 #
@@ -209,30 +233,25 @@ Test/timers instproc init topo {
 	set net_	$topo
 	set defNet_	net4
 	set test_	timers_(first_packet_dropped)
-	set guide_	"TCP's retransmit timers when first and second packets are droopped."
+	set guide_	"TCP's retransmit timers when first and second packets are dropped."
 	$self next
 }
 Test/timers instproc run {} {
 	global quiet
-	$self instvar ns_ node_ testName_ guide_
+	$self instvar ns_ node_ testName_ guide_ 
 	puts "Guide: $guide_"
+        $self set_lossylink
 
 	if {$quiet == "false"} {puts "tcpTICK: [Agent/TCP set tcpTick_]"}
 
 	# Set up TCP connection
-	set tcp2 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(k1) 0]
-	$tcp2 set window_ 3
-	set ftp2 [$tcp2 attach-app FTP]
+	set tcp1 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(k1) 1]
+	$tcp1 set window_ 3
+	set ftp2 [$tcp1 attach-app FTP]
 	$ns_ at 0.09 "$ftp2 start"
-	$ns_ at 1.0 "$self printtimersAll $tcp2 1.0 1.0" 
+	$ns_ at 1.0 "$self printtimersAll $tcp1 1.0 1.0" 
 
-	# Set up TCP connection
-	set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 1]
-	$tcp1 set window_ 5
-	set ftp1 [$tcp1 attach-app FTP]
-	$ns_ at 0.0 "$ftp1 produce 800"
-	$ns_ at 20.3 "$ftp1 producemore 5"
-	$ns_ at 20.7 "$ftp1 producemore 5" 
+	$self drop_pkts {0 1}
 
 	$self traceQueues $node_(r1) [$self openTrace 25.0 $testName_]
 	$ns_ run
@@ -260,15 +279,9 @@ Test/timersA instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
 	puts "Guide: $guide_"
+        $self set_lossylink
 
 	if {$quiet == "false"} {puts "tcpTICK: [Agent/TCP set tcpTick_]"}
-
-	# Set up TCP connection
-	set tcp2 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(k1) 0]
-	$tcp2 set window_ 3
-	set ftp2 [$tcp2 attach-app FTP]
-	$ns_ at 0.07 "$ftp2 start"
-	$ns_ at 0.1 "$self printtimersAll $tcp2 0.1 0.1" 
 
 	# Set up TCP connection
 	set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 1]
@@ -281,6 +294,8 @@ Test/timersA instproc run {} {
 	$ns_ at 26.5 "$ftp1 producemore 5" 
 	$ns_ at 26.9 "$ftp1 producemore 5" 
 	$ns_ at 28.8 "$ftp1 producemore 5" 
+
+	$self drop_pkts {2 7 9 10 11}
 
 	$self traceQueues $node_(r1) [$self openTrace 3.5 $testName_]
 	$ns_ run
@@ -495,7 +510,7 @@ Test/timers5 instproc run {} {
 
 TestSuite instproc printtcp { label tcp time } {
 	puts ""
-	puts "tcp: $label time: $time" 
+	puts "tcp: $label time: [format %.3f $time]" 
 	puts "total_data_packets_sent: [$tcp set ndatapack_] data_bytes_sent: [$tcp set ndatabytes_]" 
 	puts "packets_resent: [$tcp set nrexmitpack_] bytes_resent: [$tcp set nrexmitbytes_]" 
 	puts "ack_packets_received: [$tcp set nackpack_]"
@@ -574,30 +589,6 @@ Test/stats1 instproc run {} {
         $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
         $ns_ run
 }
-
-TestSuite instproc set_lossylink {} {
-    	$self instvar lossylink_ ns_ node_ guide_
-    	set lossylink_ [$ns_ link $node_(r1) $node_(k1)]
-   	set em [new ErrorModule Fid]
-    	set errmodel [new ErrorModel/Periodic]
-    	$errmodel unit pkt
-    	$lossylink_ errormodule $em
-}
-
-TestSuite instproc emod {} {
-	$self instvar lossylink_
-        set errmodule [$lossylink_ errormodule]
-        return $errmodule
-}
-
-TestSuite instproc drop_pkts pkts {
-	$self instvar ns_
-	set emod [$self emod]
-	set errmodel1 [new ErrorModel/List]
-	$errmodel1 droplist $pkts
-	$emod insert $errmodel1
-	$emod bind $errmodel1 1
-} 
 
 TestSuite instproc run1 { tcp0 {stoptime 30.1}} {
         $self instvar ns_ node_ testName_ guide_
@@ -892,7 +883,7 @@ Test/quiescent_500ms_coarse instproc init topo {
 TestSuite instproc printtimeouts { label tcp time } {
 	global quiet
 	if {$quiet == "false"} {
-	  puts "tcp: $label time: $time retransmit_timeouts: [$tcp set nrexmit_]" 
+	  puts "tcp: $label time: [format %.3f $time] retransmit_timeouts: [$tcp set nrexmit_]" 
 	}
 }
 
