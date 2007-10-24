@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-oddBehaviors.tcl,v 1.15 2006/10/07 15:38:03 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-oddBehaviors.tcl,v 1.16 2007/10/24 02:13:50 sallyfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -224,7 +224,6 @@ TestSuite instproc setup {tcptype list} {
 ## One drop, numdupacks
 ###################################################
 
-# 
 # cwnd is 4 when a packet is dropped.
 # When three dup acks come in, cwnd in halved to 2.  
 # dupwnd_ is set # to three, 
@@ -232,6 +231,8 @@ TestSuite instproc setup {tcptype list} {
 # and also sends a new packet off the top, because
 # cwnd has been "inflated" by the three dup acks.
 # This occurs, appropriately, with both Reno and Newreno.
+# This does not occur for Sack, because Sack only sends one packet
+# in response to the third dup ack.
 #
 Class Test/onedrop_reno -superclass TestSuite
 Test/onedrop_reno instproc init {} {
@@ -254,6 +255,19 @@ Test/onedrop_sack instproc init {} {
 	$self next pktTraceFile
 }
 Test/onedrop_sack instproc run {} {
+        $self setup Sack1 {3}
+}
+
+Class Test/onedrop_sack1 -superclass TestSuite
+Test/onedrop_sack1 instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4
+	set test_	onedrop_sack1
+	Agent/TCP set singledup_ 1
+        set guide_      "Sack, Limited Transmit, inflated congestion window."
+	$self next pktTraceFile
+}
+Test/onedrop_sack1 instproc run {} {
         $self setup Sack1 {3}
 }
 
