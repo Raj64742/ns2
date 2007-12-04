@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.74 2006/02/21 15:20:18 mahrenho Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.75 2007/12/04 19:59:31 seashadow Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.74 2006/02/21 15:20:18 mahrenho Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.75 2007/12/04 19:59:31 seashadow Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -581,6 +581,17 @@ public:
 } class_calendar_sched;
 
 CalendarScheduler::CalendarScheduler() : cal_clock_(clock_) {
+	bind("adjust_new_width_interval_", &adjust_new_width_interval_);
+	bind("min_bin_width_", &min_bin_width_);
+	if (adjust_new_width_interval_) {
+		avg_gap_ = -2;
+		last_time_ = -2;
+		gap_num_ = 0;
+		head_search_ = 0;
+		insert_search_ = 0; 
+		round_num_ = 0; 
+		time_to_newwidth = adjust_new_width_interval_;
+	}
 	reinit(4, 1.0, cal_clock_);
 }
 
@@ -595,47 +606,46 @@ void
 CalendarScheduler::insert(Event* e)
 {
 	int i;
-	if (cal_clock_ > e->time_) {
+	double newtime = e->time_;
+	if (cal_clock_ > newtime) {
 		// may happen in RT scheduler
-		cal_clock_ = e->time_;
+		cal_clock_ = newtime;
 		i = lastbucket_ = CALENDAR_HASH(cal_clock_);
 	} else
-		i = CALENDAR_HASH(e->time_);
+		i = CALENDAR_HASH(newtime);
 
-	Event *head = buckets_[i].list_;
-	Event *before=0;
+	Bucket* current=(&buckets_[i]);
+	Event *head = current->list_;
+	Event *after=0;
 
 	if (!head) {
-		buckets_[i].list_ = e;
+		current->list_ = e;
 		e->next_ = e->prev_ = e;
 		++stat_qsize_; 
-		++buckets_[i].count_;
+		++(current->count_);
 	} else {
-		bool newhead;
-		if (e->time_ >= head->prev_->time_) {
-			// insert at the tail
-			before = head;
-			newhead = false;
+		insert_search_++;
+		if (newtime < head->time_) {
+			//  e-> head -> ...
+			e->next_ = head;
+			e->prev_ = head->prev_;
+			e->prev_->next_ = e;
+			head->prev_ = e;
+			current->list_ = e;
+                        ++stat_qsize_;
+                        ++(current->count_);
 		} else {
-			// insert event in time sorted order, FIFO for sim-time events
-			for (before = head; e->time_ >= before->time_; before = before->next_)
-				;
-			newhead = (before == head);
-		}
-
-		e->next_ = before;
-		e->prev_ = before->prev_;
-		before->prev_ = e;
-		e->prev_->next_ = e;
-		if (newhead) {
-			buckets_[i].list_ = e;
-			//assert(e->time_ <= e->next_->time_);
-		}
-		//assert(e->prev_ != e);
-		if (e->prev_->time_ != e->time_) {
-			// unique timing
-			++stat_qsize_; 
-			++buckets_[i].count_;
+                        for (after = head->prev_; newtime < after->time_; after = after->prev_) { insert_search_++; };
+			//...-> after -> e -> ...
+			e->next_ = after->next_;
+			e->prev_ = after;
+			e->next_->prev_ = e;
+			after->next_ = e;
+			if (after->time_ < newtime) {
+				//unique timing
+				++stat_qsize_; 
+				++(current->count_);
+			}
 		}
 	}
 	++qsize_;
@@ -710,6 +720,7 @@ CalendarScheduler::head()
 	Event *e, *min_e = NULL;
 #define CAL_DEQUEUE(x) 						\
 do { 								\
+	head_search_++;						\
 	if ((e = buckets_[i].list_) != NULL) {			\
 		diff = e->time_ - cal_clock_;			\
 		if (diff < diff##x##_)	{			\
@@ -768,6 +779,34 @@ CalendarScheduler::deque()
 
 	if (!e)
 		return 0;
+
+	if (adjust_new_width_interval_) {
+		if (last_time_< 0) last_time_ = e->time_;
+		else 
+		{
+			gap_num_ ++;
+			if (gap_num_ >= qsize_ ) {
+	                	double tt_gap_ = e->time_ - last_time_;
+				avg_gap_ = tt_gap_ / gap_num_;
+        	                gap_num_ = 0;
+                	        last_time_ = e->time_;
+				round_num_ ++;
+				if ((round_num_ > 20) &&
+					   (( head_search_> (insert_search_<<1))
+					  ||( insert_search_> (head_search_<<1)) )) 
+				{
+					resize(nbuckets_, cal_clock_);
+					round_num_ = 0;
+				} else {
+                        	        if (round_num_ > 100) {
+                                	        round_num_ = 0;
+                                        	head_search_ = 0;
+	                                        insert_search_ = 0;
+        	                        }
+				}
+			}
+		}
+	};
 
 	int l = lastbucket_;
 
@@ -828,10 +867,32 @@ CalendarScheduler::reinit(int nbuck, double bwidth, double start)
 void 
 CalendarScheduler::resize(int newsize, double start)
 {
-	double bwidth = newwidth(newsize);
-
-	if (newsize < 4)
-		newsize = 4;
+	double bwidth;
+	if (newsize == nbuckets_) {
+		/* we resize for bwidth*/
+		if (head_search_) bwidth = head_search_; else bwidth = 1;
+		if (insert_search_) bwidth = bwidth / insert_search_;
+		bwidth = sqrt (bwidth) * width_;
+ 		if (bwidth < min_bin_width_) {
+ 			if (time_to_newwidth>0) {
+ 				time_to_newwidth --;
+ 			        head_search_ = 0;
+ 			        insert_search_ = 0;
+ 				round_num_ = 0;
+ 				return; //failed to adjust bwidth
+ 			} else {
+				// We have many (adjust_new_width_interval_) times failure in adjusting bwidth.
+				// should do a reshuffle with newwidth 
+ 				bwidth = newwidth(newsize);
+ 			}
+ 		};
+		//snoopy queue calculation
+	} else {
+		/* we resize for size */
+		bwidth = newwidth(newsize);
+		if (newsize < 4)
+			newsize = 4;
+	}
 
 	Bucket *oldb = buckets_;
 	int oldn = nbuckets_;
@@ -856,13 +917,20 @@ CalendarScheduler::resize(int newsize, double start)
 			} while (e != tail);
 		}
 	}
-	delete [] oldb;
+        head_search_ = 0;
+        insert_search_ = 0;
+	round_num_ = 0;
+        delete [] oldb;
 }
 
 // take samples from the most populated bucket.
 double
 CalendarScheduler::newwidth(int newsize)
 {
+	if (adjust_new_width_interval_) {
+		time_to_newwidth = adjust_new_width_interval_;
+		if (avg_gap_ > 0) return avg_gap_*4.0;
+	}
 	int i;
 	int max_bucket = 0; // index of the fullest bucket
 	for (i = 1; i < nbuckets_; ++i) {

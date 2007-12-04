@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.178 2007/10/24 19:10:29 sallyfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.179 2007/12/04 19:59:35 seashadow Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -667,10 +667,10 @@ void TcpAgent::output(int seqno, int reason)
                 if (tss==NULL) exit(1);
         }
         //dynamically grow the timestamp array if it's getting full
-        if (bugfix_ts_ && window() > tss_size_* 0.9) {
+        if (bugfix_ts_ && ((seqno - highest_ack_) > tss_size_* 0.9)) {
                 double *ntss;
                 ntss = (double*) calloc(tss_size_*2, sizeof(double));
-                printf("resizing timestamp table\n");
+                printf("%p resizing timestamp table\n", this);
                 if (ntss == NULL) exit(1);
                 for (int i=0; i<tss_size_; i++)
                         ntss[(highest_ack_ + i) % (tss_size_ * 2)] =

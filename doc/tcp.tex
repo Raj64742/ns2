@@ -23,6 +23,7 @@ The one-way TCP sending agents currently supported are:
         \item Agent/TCP/Sack1 - TCP with selective repeat (follows RFC2018)
         \item Agent/TCP/Vegas - TCP Vegas
         \item Agent/TCP/Fack - Reno TCP with ``forward acknowledgment''
+	\item Agent/TCP/Linux - a TCP sender with SACK support that runs TCP congestion control modules from Linux kernel
 \end{itemize}
 The one-way TCP receiving agents currently supported are:
 \begin{itemize}\itemsep0pt
@@ -240,6 +241,28 @@ with Matt Mathis and Jamshid Mahdavi.
 \paragraph{Fack TCP}
 This agent implements ``forward ACK'' TCP, a modification of Sack
 TCP described in \cite{Math96:Forward}.
+
+\paragraph{Linux TCP}
+This agent runs TCP congestion control modules imported from Linux kernel.
+The agent generates simulation results that are consistent, in congestion window trajectory level, with the behavior of Linux hosts.
+
+Simulation users can update or import new congestion control modules from Linux kernel source code for this agent.
+The Linux congestion control modules are compiled into the NS-2 binary. Users can select different congestion control algorithms, different
+congestion control module parameters, and different Linux TCP parameters for different instances of this agent.
+This agent supports SACK. A receiver that supports SACK is recommended to work with this agent.
+There is a tutorial for using this agent in \cite{Wei07NSLinuxTutorial}.
+
+The implementation of this agent loosely follows the Linux TCP packet processing routine and calls the congestion control source
+codes from Linux kernel to change congestion control related parameters (e.g. congestion window, slow start threshold and etc).
+The design and implementation details are described in \cite{WeiCao06NSLinuxTCP}.
+
+To achieve simulation results close to Linux performance, this agent changes the default values of the following parameters
+according to the Linux parameters: 
+\begin{program}
+Agent/TCP/Linux set maxrto_ 120
+Agent/TCP/Linux set ts_resetRTO_ true
+Agent/TCP/Linux set delay_growth_ false
+\end{program}
 
 \section{TCP Receivers (sinks)}
 

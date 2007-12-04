@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.376 2007/10/23 06:55:54 seashadow Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.377 2007/12/04 19:59:32 seashadow Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -71,6 +71,9 @@ CMUTrace set radius_scaling_factor_ 1.0
 CMUTrace set duration_scaling_factor_ 3.0e4
 
 Scheduler/RealTime set maxslop_ 0.010; # max allowed slop b4 error (sec)
+
+Scheduler/Calendar set adjust_new_width_interval_ 10;	# the interval (in unit of resize times) we recalculate bin width. 0 means disable dynamic adjustment
+Scheduler/Calendar set min_bin_width_ 1e-18;		# the lower bound for the bin_width
 
 #
 # Queues and associated
@@ -1377,3 +1380,12 @@ Queue set util_records_ 5 ; 		# Changed from 0 to 5, 2/25/05.
 # Quick Start definitions end here
 
 Delayer set debug_ false
+
+Agent/TCP/Linux set rtxcur_init_ 3
+Agent/TCP/Linux set maxrto_ 120
+Agent/TCP/Linux set minrto_ 0.2
+Agent/TCP/Linux set ts_resetRTO_ true
+Agent/TCP/Linux set next_pkts_in_flight_ 0
+Agent/TCP/Linux set delay_growth_ false
+
+

@@ -191,6 +191,13 @@ OBJ_CC = \
 	tcp/tcp-vegas.o tcp/tcp-rbp.o tcp/tcp-full.o tcp/rq.o \
 	baytcp/tcp-full-bay.o baytcp/ftpc.o baytcp/ftps.o \
 	tcp/scoreboard.o tcp/scoreboard-rq.o tcp/tcp-sack1.o tcp/tcp-fack.o \
+	tcp/linux/tcp_naivereno.o\
+	tcp/linux/src/tcp_cong.o\
+	tcp/linux/src/tcp_highspeed.o tcp/linux/src/tcp_bic.o tcp/linux/src/tcp_htcp.o tcp/linux/src/tcp_scalable.o tcp/linux/src/tcp_cubic.o\
+	tcp/linux/src/tcp_westwood.o tcp/linux/src/tcp_vegas.o tcp/linux/src/tcp_hybla.o\
+	tcp/linux/src/tcp_illinois.o tcp/linux/src/tcp_yeah.o \
+	tcp/linux/src/tcp_veno.o tcp/linux/src/tcp_compound.o tcp/linux/src/tcp_lp.o\
+	tcp/scoreboard1.o tcp/tcp-linux.o tcp/linux/ns-linux-util.o tcp/linux/ns-linux-c.o tcp/linux/ns-linux-param.o\
 	tcp/tcp-asym.o tcp/tcp-asym-sink.o tcp/tcp-fs.o \
 	tcp/tcp-asym-fs.o \
 	tcp/tcp-int.o tcp/chost.o tcp/tcp-session.o \

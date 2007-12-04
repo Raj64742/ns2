@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.27 2005/07/27 01:13:42 tomh Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.28 2007/12/04 19:59:31 seashadow Exp $ (LBL)
  */
 
 #ifndef ns_scheduler_h
@@ -154,6 +154,16 @@ public:
 	const Event* head();
 
 protected:
+	double min_bin_width_;		// minimum bin width for Calendar Queue
+	unsigned int adjust_new_width_interval_; // The interval (in unit of resize time) for adjustment of bin width. A zero value disables automatic bin width adjustment
+	unsigned time_to_newwidth;	// how many time we failed to adjust the width based on snoopy-queue
+	long unsigned head_search_;
+	long unsigned insert_search_;
+	int round_num_;
+	long int gap_num_;		//the number of gap samples in this window (in process of calculation)
+	double last_time_;		//the departure time of first event in this window
+	double avg_gap_;		//the average gap in last window (finished calculation)
+
 	double width_;
 	double diff0_, diff1_, diff2_; /* wrap-around checks */
 
