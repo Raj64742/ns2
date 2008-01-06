@@ -168,9 +168,27 @@ T.~S. Rappaport.
 \newblock {\em Wireless communications, principles and practice}.
 \newblock Prentice Hall, 1996.
 
+\bibitem{Tan00SNOOPyQueue}
+Kah~Leong Tan and Li-Jin Thng.
+\newblock Snoopy calendar queue.
+\newblock In {\em Proceedings of the 32nd conference on Winter simulation
+  Orlando, Florida}, pages 487--495, 2000.
+
 \bibitem{rfc1075}
 D.~Waitzman, C.~Partridge, and S.E. Deering.
 \newblock {\em {Distance Vector Multicast Routing Protocol}}, {RFC 1075}
   edition, 1988.
+
+\bibitem{Wei07NSLinuxTutorial}
+Xiaoliang~(David) Wei.
+\newblock {A mini-tutorial for TCP-Linux in NS-2}.
+\newblock \url{http://netlab.caltech.edu/projects/ns2tcplinux/}.
+
+\bibitem{WeiCao06NSLinuxTCP}
+Xiaoliang~(David) Wei and Pei Cao.
+\newblock {NS-2 TCP-Linux: an NS-2 TCP implementation with congestion control
+  algorithms from Linux}.
+\newblock In {\em {WNS2 '06: Proceeding from the 2006 workshop on ns-2: the IP
+  network simulator}}, page~9, New York, NY, USA, 2006. ACM Press.
 
 \end{thebibliography}
