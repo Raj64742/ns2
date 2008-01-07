@@ -1038,10 +1038,10 @@ a similar set of interfaces:
   The Node class provides the following two {\em procs} to manipulate
   this module list:
   \begin{alist}
-    {\let\[=[\let\]=] \proc[\[name\]]{Node::enable-module}} & If module
+    \proc[name]{Node::enable-module} & If module
     \code{RtModule/[name]} exists, this proc puts [name] into the
     module list. \\ 
-    {\let\[=[\let\]=]\proc[\[name\]]{Node::disable-module}} & If
+    \proc[name]{Node::disable-module} & If
     [name] is in the module 
     list, remove it from the list. 
   \end{alist}
@@ -1055,7 +1055,7 @@ a similar set of interfaces:
   \begin{alist}
     \proc[]{Node::list-modules} & Return a list of the handles (shadow
     objects) of all registered modules. \\
-    {\let\[=[\let\]=]\proc[\[name\]]{Node::get-module}} & Return a
+    \proc[name]{Node::get-module} & Return a
     handle of the 
     registered module whose name matches the given one. Notice that
     any routing module can only have a single instance registered at
