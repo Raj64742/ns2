@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.36 2006/06/29 06:29:29 tom_henderson Exp $
+# $Id: Makefile,v 1.37 2008/01/07 07:47:19 tom_henderson Exp $
 #
 
 # by default, just assume latex2html is in the user's path
@@ -64,7 +64,7 @@ all: everything.dvi everything.ps.gz everything.html everything.pdf
 html-pre-process:
 	$(RM) -rf $(L2H_WORKING_DIR)
 	mkdir $(L2H_WORKING_DIR)
-	$(CP) -r *.sty *.tex *.aux *.bib *.bbl *.log figures $(L2H_WORKING_DIR)
+	$(CP) -r *.sty *.tex *.aux *.bib *.bbl *.log figures/*.eps $(L2H_WORKING_DIR)
 	cd $(L2H_WORKING_DIR); 	../pre-process.pl .
 
 html-process:
