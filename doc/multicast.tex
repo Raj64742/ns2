@@ -271,8 +271,7 @@ arbiter to perform protocol actions, either to a specific protocol
 instance active at that node, or to all protocol instances at that
 node.
 \begin{alist}
-{\let\[=[\let\]=]
-\proc[instance, \[iiflist\]]{addproto}} &
+\proc[instance]{addproto} &
         adds the handle for a protocol instance to its array of
         protocols.  The second optional argument is the incoming
         interface list controlled by the protocol.  If this argument
@@ -293,8 +292,7 @@ node.
 \proc[dummy]{notify} &
         is called when a topology change occurs. The dummy argument is
         currently not used.\\
-{\let\[=[\let\]=]
-\proc[file-handle, \[grp\], \[src\]]{dump-mroutes}} &
+\proc[file-handle]{dump-mroutes} &
         dump multicast routes to specified file-handle. \\
 \proc[G, S]{join-group} &
         signals all protocol instances to join \tup{S, G}. \\
