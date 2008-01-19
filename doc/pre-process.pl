@@ -144,13 +144,13 @@ sub pre_process_file
         s/alist/\\par\\tabular{\\textwidth}{rX}/g;
         # latex2html does not read \def macros; therefore, we must
         # remap them here to normal latex commands
+        s/\\nsf/\\textasciitilde\\emph{ns}\//g;
         s/\\ns/\\emph{ns}/g;
-        s/\\nsf/\\emph{ns}/g;
+        s/\\namf/\\textasciitilde\\emph{nam}\//g;
         s/\\nam/\\emph{nam}/g;
-        s/\\namf/\\emph{nam}/g;
+        s/\\Tclf/\\textasciitilde\\emph{tclcl}\//g;
         s/\\nsTcl/\\emph{ns\/tclcl}/g;
         s/\\rtglib/\\textsl{rtglib}/g;
-        s/\\Tclf/\\emph{tclcl}/g;
 	# nader's old code handling:
 #	s/\\code{([^\$}]*)}/{\\ss $1}/g && ($change = 1);
 #	s/\\code{\s*\$([^}]*)}/{\\em $1}/g && ($change = 1);
