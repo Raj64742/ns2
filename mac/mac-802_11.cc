@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.51 2006/01/30 21:27:51 mweigle Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.52 2008/01/24 01:53:19 tom_henderson Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  * Contributions by:
@@ -164,6 +164,8 @@ PHY_MIB::PHY_MIB(Mac802_11 *parent)
 	parent->bind("CWMax_", &CWMax);
 	parent->bind("SlotTime_", &SlotTime);
 	parent->bind("SIFS_", &SIFSTime);
+	parent->bind("BeaconInterval_", &BeaconInterval);
+	
 	parent->bind("PreambleLength_", &PreambleLength);
 	parent->bind("PLCPHeaderLength_", &PLCPHeaderLength);
 	parent->bind_bw("PLCPDataRate_", &PLCPDataRate);
@@ -179,7 +181,14 @@ MAC_MIB::MAC_MIB(Mac802_11 *parent)
 	parent->bind("RTSThreshold_", &RTSThreshold);
 	parent->bind("ShortRetryLimit_", &ShortRetryLimit);
 	parent->bind("LongRetryLimit_", &LongRetryLimit);
+	parent->bind("ScanType_", &ScanType);
+	parent->bind("ProbeDelay_", &ProbeDelay);
+	parent->bind("MaxChannelTime_", &MaxChannelTime);
+	parent->bind("MinChannelTime_", &MinChannelTime);
+	parent->bind("ChannelTime_", &ChannelTime);
 }
+	
+
 
 /* ======================================================================
    Mac Class Functions
@@ -187,7 +196,7 @@ MAC_MIB::MAC_MIB(Mac802_11 *parent)
 Mac802_11::Mac802_11() : 
 	Mac(), phymib_(this), macmib_(this), mhIF_(this), mhNav_(this), 
 	mhRecv_(this), mhSend_(this), 
-	mhDefer_(this), mhBackoff_(this)
+	mhDefer_(this), mhBackoff_(this), mhBeacon_(this), mhProbe_(this)
 {
 	
 	nav_ = 0.0;
@@ -195,7 +204,12 @@ Mac802_11::Mac802_11() :
 	tx_active_ = 0;
 	eotPacket_ = NULL;
 	pktRTS_ = 0;
-	pktCTRL_ = 0;		
+	pktCTRL_ = 0;	
+	pktBEACON_ = 0;
+	pktASSOCREP_ = 0;
+	pktASSOCREQ_ = 0;
+	BeaconTxtime_ = 0;
+	infra_mode_ = 0;	
 	cw_ = phymib_.getCWMin();
 	ssrc_ = slrc_ = 0;
 	// Added by Sushmita
@@ -204,6 +218,19 @@ Mac802_11::Mac802_11() :
 	sta_seqno_ = 1;
 	cache_ = 0;
 	cache_node_count_ = 0;
+	client_list = NULL;
+	ap_list = NULL;
+	Pr = 0;
+	ap_temp = -1;
+	head = 0;
+	ap_addr = -1;
+	associated = 0;
+	authenticated = 0;
+	OnMinChannelTime = 0;
+	OnMaxChannelTime = 0;
+	Recv_Busy_ = 0;
+	handoff= 0;
+//	ssid_ = "0";
 	
 	// chk if basic/data rates are set
 	// otherwise use bandwidth_ as default;
@@ -221,11 +248,11 @@ Mac802_11::Mac802_11() :
 	else
 		dataRate_ = bandwidth_;
 
+		
 	bind_bool("bugFix_timer_", &bugFix_timer_);
 
         EOTtarget_ = 0;
        	bss_id_ = IBSS_ID;
-	//printf("bssid in constructor %d\n",bss_id_);
 }
 
 
@@ -238,8 +265,26 @@ Mac802_11::command(int argc, const char*const* argv)
 			if (EOTtarget_ == 0)
 				return TCL_ERROR;
 			return TCL_OK;
-		} else if (strcmp(argv[1], "bss_id") == 0) {
-			bss_id_ = atoi(argv[2]);
+		}
+		if (strcmp(argv[1], "ap") == 0) {
+			ap_addr = addr();
+			bss_id_ = addr();
+			infra_mode_ = 1;
+			mhBeacon_.start((Random::random() % cw_) * 
+					phymib_.getSlotTime());
+			return TCL_OK;
+		} 
+		if (strcmp(argv[1], "ScanType") == 0) {
+			if (strcmp(argv[2], "ACTIVE") == 0) {
+				ScanType_ = ACTIVE;
+				infra_mode_ = 1;
+				ap_list = NULL;
+				mhProbe_.start(macmib_.getProbeDelay());
+			} else if (strcmp(argv[2], "PASSIVE") == 0) {
+				ScanType_ = PASSIVE;
+				mhProbe_.start(macmib_.getChannelTime());
+				infra_mode_ = 1;
+			}
 			return TCL_OK;
 		} else if (strcmp(argv[1], "log-target") == 0) { 
 			logtarget_ = (NsObject*) TclObject::lookup(argv[2]);
@@ -268,7 +313,6 @@ void Mac802_11::trace_event(char *eventtype, Packet *p)
         if (et_ == NULL) return;
         char *wrk = et_->buffer();
         char *nwrk = et_->nbuffer();
-	
         //char *src_nodeaddr =
 	//       Address::instance().print_nodeaddr(iph->saddr());
         //char *dst_nodeaddr =
@@ -325,9 +369,8 @@ Mac802_11::dump(char *fname)
 		tx_state_, rx_state_, nav_, is_idle());
 
 	fprintf(stderr,
-		"\tpktTx_: %lx, pktRx_: %lx, pktRTS_: %lx, pktCTRL_: %lx, callback: %lx\n",
-		(long) pktTx_, (long) pktRx_, (long) pktRTS_,
-		(long) pktCTRL_, (long) callback_);
+		"\tpktTx_: %lx, pktRx_: %lx, pktRTS_: %lx, pktCTRL_: %lx, pktBEACON_: %lx, pktASSOCREQ_: %lx, pktASSOCREP_: %lx, pktPROBEREQ_: %lx, pktPROBEREP_: %lx, pktAUTHENTICATE_: %lx, callback: %lx\n", (long) pktTx_, (long) pktRx_, (long) pktRTS_,
+		(long) pktCTRL_, (long) pktBEACON_, (long) pktASSOCREQ_, (long) pktASSOCREP_, (long) pktPROBEREQ_, (long) pktPROBEREP_, (long) pktAUTHENTICATE_, (long) callback_);
 
 	fprintf(stderr,
 		"\tDefer: %d, Backoff: %d (%d), Recv: %d, Timer: %d Nav: %d\n",
@@ -348,27 +391,27 @@ Mac802_11::hdr_dst(char* hdr, int dst )
 	struct hdr_mac802_11 *dh = (struct hdr_mac802_11*) hdr;
 	
        if (dst > -2) {
-               if ((bss_id() == ((int)IBSS_ID)) || (addr() == bss_id())) {
-                       /* if I'm AP (2nd condition above!), the dh_3a
-                        * is already set by the MAC whilst fwding; if
-                        * locally originated pkt, it might make sense
-                        * to set the dh_3a to myself here! don't know
-                        * how to distinguish between the two here - and
-                        * the info is not critical to the dst station
-                        * anyway!
-                        */
-                       STORE4BYTE(&dst, (dh->dh_ra));
-               } else {
-                       /* in BSS mode, the AP forwards everything;
-                        * therefore, the real dest goes in the 3rd
-                        * address, and the AP address goes in the
-                        * destination address
-                        */
-                       STORE4BYTE(&bss_id_, (dh->dh_ra));
-                       STORE4BYTE(&dst, (dh->dh_3a));
-               }
-       }
+               if (bss_id() == ((int)IBSS_ID)) {
+			STORE4BYTE(&dst, (dh->dh_ra));
+		} else if ( addr() == bss_id_) {
+			if ( find_client(dst) == 1 || (u_int32_t) dst == MAC_BROADCAST) {
+				STORE4BYTE(&dst, (dh->dh_ra));
+			} else {
+				int dst_broadcast;
+				dst_broadcast = MAC_BROADCAST;
+	
+				STORE4BYTE(&dst_broadcast, (dh->dh_ra));
+				STORE4BYTE(&dst, (dh->dh_3a));
+				dh->dh_fc.fc_to_ds      = 1;
+				dh->dh_fc.fc_from_ds    = 1;		
+			}
 
+		} else {
+
+			STORE4BYTE(&bss_id_, (dh->dh_ra));
+                        STORE4BYTE(&dst, (dh->dh_3a));
+		}
+	}
 
        return (u_int32_t)ETHER_ADDR(dh->dh_ra);
 }
@@ -423,8 +466,38 @@ Mac802_11::discard(Packet *p, const char* why)
 
 	switch(mh->dh_fc.fc_type) {
 	case MAC_Type_Management:
-		drop(p, why);
-		return;
+		switch(mh->dh_fc.fc_subtype) {
+		case MAC_Subtype_Auth:
+			 if((u_int32_t)ETHER_ADDR(mh->dh_ra) == (u_int32_t)index_) {
+				drop(p, why);
+				return;
+			}
+			break;
+//		drop(p, why);
+//		return;
+		case MAC_Subtype_AssocReq:
+			if((u_int32_t)ETHER_ADDR(mh->dh_ra) == (u_int32_t)index_) {
+				drop(p, why);
+				return;
+			}
+			break;
+		case MAC_Subtype_AssocRep:
+			break;
+		case MAC_Subtype_ProbeReq:
+			 if((u_int32_t)ETHER_ADDR(mh->dh_ra) == (u_int32_t)index_) {
+				drop(p, why);
+				return;
+			}
+			break;
+		case MAC_Subtype_ProbeRep:
+			break;
+		case MAC_Subtype_80211_Beacon:
+			break;
+		default:
+			fprintf(stderr, "invalid MAC Management subtype\n");
+			exit(1);
+		}
+		break;
 	case MAC_Type_Control:
 		switch(mh->dh_fc.fc_subtype) {
 		case MAC_Subtype_RTS:
@@ -452,7 +525,7 @@ Mac802_11::discard(Packet *p, const char* why)
                            (u_int32_t)index_ ||
                           (u_int32_t)ETHER_ADDR(mh->dh_ta) == \
                            (u_int32_t)index_ ||
-                          (u_int32_t)ETHER_ADDR(mh->dh_ra) == MAC_BROADCAST) {
+                          ((u_int32_t)ETHER_ADDR(mh->dh_ra) == MAC_BROADCAST && mh->dh_fc.fc_to_ds == 0)) {
                                 drop(p,why);
                                 return;
 			}
@@ -563,6 +636,7 @@ Mac802_11::tx_resume()
 		h->handle((Event*) 0);
 	}
 	setTxState(MAC_IDLE);
+
 }
 
 void
@@ -580,23 +654,113 @@ Mac802_11::rx_resume()
 void
 Mac802_11::backoffHandler()
 {
+	if(addr() != bss_id_ && infra_mode_ == 1) {
+		if(check_pktPROBEREQ() == 0)
+			return;
+		if(check_pktAUTHENTICATE() == 0)
+			return;
+		if(check_pktASSOCREQ() == 0)
+			return;
+	}
+
 	if(pktCTRL_) {
 		assert(mhSend_.busy() || mhDefer_.busy());
 		return;
 	}
 
+	if ( addr() == bss_id_ ) {
+		if (pktPROBEREP_ && priority_queue[head] == 1) {
+			if (check_pktPROBEREP() == 0) 
+				return;
+		} else if (pktBEACON_ && priority_queue[head] == 2) {
+			if (check_pktBEACON() == 0) {
+				return;
+			}
+		} else if (pktAUTHENTICATE_ && priority_queue[head] == 3) { 
+			if (check_pktAUTHENTICATE() == 0)
+				return;
+		} else if(pktASSOCREP_ && priority_queue[head] == 4) {
+			if (check_pktASSOCREP() == 0)
+				return;
+		}
+	}
+
 	if(check_pktRTS() == 0)
 		return;
-
 	if(check_pktTx() == 0)
 		return;
+}
+
+void
+Mac802_11::BeaconHandler()
+{
+	
+	mhBeacon_.start(phymib_.getBeaconInterval());
+	sendBEACON(index_);
+	
+}
+
+
+// Probe timer is used for multiple purposes. It can be set to 4 different values
+// Probe Delay, MinChannelTime and MaxChannelTime -  for Active Scanning
+// ChannelTime - Passive Scanning
+
+
+
+void
+Mac802_11::ProbeHandler()
+{
+	if (ScanType_ == ACTIVE) {
+		if ( (bss_id_ == (int)IBSS_ID || handoff == 1) && OnMinChannelTime == 0 && Recv_Busy_ == 0 && OnMaxChannelTime == 0) {
+			if (strongest_ap() < 0) {   // Probe delay over - Active Scan starts here, when the ap_table has not been built yet
+				sendPROBEREQ(MAC_BROADCAST); 
+				return;
+			} else {
+				checkAssocAuthStatus();	 // MaxChannelTime Over - Handoff is taking place and ap_table is built, complete authentication and (re)association
+				return;
+			}
+		}
+		else if (OnMinChannelTime == 1 && Recv_Busy_ == 1 && OnMaxChannelTime == 0) {
+			// MinChannelTime Over - receiver indicated busy before timer expiry, hence Probe timer should be continued for MaxChannelTime, to reeive all probe responses
+			OnMinChannelTime = 0;
+			OnMaxChannelTime = 1;
+			mhProbe_.start(macmib_.getMaxChannelTime()); 
+			return;
+		}
+		else if (OnMinChannelTime == 0 && Recv_Busy_ == 1 && OnMaxChannelTime == 1) {
+			// MaxChannelTime Over - Active Scanning is over, start authentication and association
+			OnMaxChannelTime = 0;
+			Recv_Busy_ = 0;
+			if (strongest_ap() > -1)
+				active_scan();
+			else 
+				printf("No APs in range\n");
+			return;
+		}
+		else if (OnMinChannelTime == 1 && Recv_Busy_ == 0 && OnMaxChannelTime == 0) {
+			//printf("Out of range of any Access Point or channel without APs\n");
+			OnMinChannelTime = 0;
+			deletelist();	//  MinChannelTime Over - Delete ap_table
+			return;
+		}				
+	} else {
+		if (ScanType_ == PASSIVE && bss_id_ == (int)IBSS_ID) {
+			 //  ChannelTime Over - Passive Scanning is over, start authentication and association
+			passive_scan();	 // 
+			return;
+		}
+	}
+	if (bss_id_ != (int)IBSS_ID && !mhProbe_.busy()) {
+	// Start Authentication and Association
+		checkAssocAuthStatus();
+	}
 }
 
 void
 Mac802_11::deferHandler()
 {
 	assert(pktCTRL_ || pktRTS_ || pktTx_);
-
+	
 	if(check_pktCTRL() == 0)
 		return;
 	assert(mhBackoff_.busy() == 0);
@@ -645,9 +809,72 @@ void
 Mac802_11::send_timer()
 {
 	switch(tx_state_) {
-	/*
-	 * Sent a RTS, but did not receive a CTS.
-	 */
+	
+	case MAC_MGMT:
+		if (pktAUTHENTICATE_) {
+			assert(pktAUTHENTICATE_);
+			Packet::free(pktAUTHENTICATE_);
+			pktAUTHENTICATE_ = 0;
+			if(addr() == bss_id_) {
+				if (end() > (head + 1)) {
+					shift_priority_queue();
+					assert(mhBackoff_.busy() == 0);
+					mhBackoff_.start(cw_, is_idle());
+				} else 
+					priority_queue[head] = 0;
+			} else
+				checkAssocAuthStatus();
+			break;
+		}
+ 		if (pktASSOCREQ_) {
+			assert(pktASSOCREQ_);
+			Packet::free(pktASSOCREQ_);
+			pktASSOCREQ_ = 0;
+			checkAssocAuthStatus();
+			break;
+ 		}
+		if (pktASSOCREP_) {
+			assert(pktASSOCREP_);
+			Packet::free(pktASSOCREP_);
+			pktASSOCREP_ = 0;
+			if (end() > (head + 1)) {
+				shift_priority_queue();
+				assert(mhBackoff_.busy() == 0);
+				mhBackoff_.start(cw_, is_idle());
+			} else 
+				priority_queue[head] = 0;
+			break;
+		}
+		if (pktPROBEREQ_) {
+			assert(pktPROBEREQ_);
+			Packet::free(pktPROBEREQ_);
+			pktPROBEREQ_ = 0;
+			break;
+ 		}
+		if (pktPROBEREP_) {
+			assert(pktPROBEREP_);
+			Packet::free(pktPROBEREP_);
+			pktPROBEREP_ = 0;
+			if (end() > (head + 1)) {
+				shift_priority_queue();
+				assert(mhBackoff_.busy() == 0);
+				mhBackoff_.start(cw_, is_idle());
+			} else 
+				priority_queue[head] = 0;
+			break;
+		}
+	case MAC_BCN:
+		assert(pktBEACON_);
+		Packet::free(pktBEACON_);
+		pktBEACON_ = 0;
+		if (end() > (head + 1)) {
+			shift_priority_queue();
+			assert(mhBackoff_.busy() == 0);
+			mhBackoff_.start(cw_, is_idle());
+		} else 
+			priority_queue[head] = 0;
+		break;
+
 	case MAC_RTS:
 		RetransmitRTS();
 		break;
@@ -778,6 +1005,7 @@ Mac802_11::check_pktRTS()
 int
 Mac802_11::check_pktTx()
 {
+
 	struct hdr_mac802_11 *mh;
 	double timeout;
 	
@@ -787,6 +1015,11 @@ Mac802_11::check_pktTx()
 		return -1;
 
 	mh = HDR_MAC802_11(pktTx_);
+	
+	if (addr() != bss_id_ && bss_id_ != (int)IBSS_ID) {
+		if (handoff == 0)
+			STORE4BYTE(&bss_id_, (mh->dh_ra));
+	}
 
 	switch(mh->dh_fc.fc_subtype) {
 	case MAC_Subtype_Data:
@@ -848,14 +1081,15 @@ Mac802_11::sendRTS(int dst)
 	rf->rf_fc.fc_protocol_version = MAC_ProtocolVersion;
  	rf->rf_fc.fc_type	= MAC_Type_Control;
  	rf->rf_fc.fc_subtype	= MAC_Subtype_RTS;
- 	rf->rf_fc.fc_to_ds	= 0;
- 	rf->rf_fc.fc_from_ds	= 0;
+	rf->rf_fc.fc_to_ds	= 0;
+	rf->rf_fc.fc_from_ds	= 0;
  	rf->rf_fc.fc_more_frag	= 0;
  	rf->rf_fc.fc_retry	= 0;
  	rf->rf_fc.fc_pwr_mgt	= 0;
  	rf->rf_fc.fc_more_data	= 0;
  	rf->rf_fc.fc_wep	= 0;
  	rf->rf_fc.fc_order	= 0;
+
 
 	//rf->rf_duration = RTS_DURATION(pktTx_);
 	STORE4BYTE(&dst, (rf->rf_ra));
@@ -898,14 +1132,15 @@ Mac802_11::sendCTS(int dst, double rts_duration)
 	cf->cf_fc.fc_type	= MAC_Type_Control;
 	cf->cf_fc.fc_subtype	= MAC_Subtype_CTS;
  	cf->cf_fc.fc_to_ds	= 0;
- 	cf->cf_fc.fc_from_ds	= 0;
+	cf->cf_fc.fc_from_ds	= 0;
  	cf->cf_fc.fc_more_frag	= 0;
  	cf->cf_fc.fc_retry	= 0;
  	cf->cf_fc.fc_pwr_mgt	= 0;
  	cf->cf_fc.fc_more_data	= 0;
  	cf->cf_fc.fc_wep	= 0;
  	cf->cf_fc.fc_order	= 0;
-	
+
+		
 	//cf->cf_duration = CTS_DURATION(rts_duration);
 	STORE4BYTE(&dst, (cf->cf_ra));
 	
@@ -970,7 +1205,7 @@ Mac802_11::sendDATA(Packet *p)
 {
 	hdr_cmn* ch = HDR_CMN(p);
 	struct hdr_mac802_11* dh = HDR_MAC802_11(p);
-
+	u_int32_t dst = ETHER_ADDR(dh->dh_ra);
 	assert(pktTx_ == 0);
 
 	/*
@@ -981,9 +1216,23 @@ Mac802_11::sendDATA(Packet *p)
 	dh->dh_fc.fc_protocol_version = MAC_ProtocolVersion;
 	dh->dh_fc.fc_type       = MAC_Type_Data;
 	dh->dh_fc.fc_subtype    = MAC_Subtype_Data;
-	
-	dh->dh_fc.fc_to_ds      = 0;
-	dh->dh_fc.fc_from_ds    = 0;
+	if ( bss_id_ != (int)IBSS_ID ) {
+		if ( index_ == ap_addr ) {
+			if (dh->dh_fc.fc_to_ds == 0) {
+				if (find_client(dst) == 1 || dst == MAC_BROADCAST) {
+ 					dh->dh_fc.fc_to_ds      = 0;
+					dh->dh_fc.fc_from_ds    = 1;
+					}
+			} 
+		} else {
+		dh->dh_fc.fc_to_ds	= 1;
+		dh->dh_fc.fc_from_ds	= 0;
+		}
+	} else {
+		dh->dh_fc.fc_to_ds	= 0;
+		dh->dh_fc.fc_from_ds	= 0;
+	}	
+
 	dh->dh_fc.fc_more_frag  = 0;
 	dh->dh_fc.fc_retry      = 0;
 	dh->dh_fc.fc_pwr_mgt    = 0;
@@ -1099,6 +1348,18 @@ Mac802_11::RetransmitDATA()
 
 	(*rcount)++;
 
+
+
+	if (index_ == 4 && *rcount == 3 && handoff == 0) {
+		//start handoff process
+		printf("Client %d: Handoff Attempted\n",index_);
+		associated = 0;
+		authenticated = 0;
+		handoff = 1;
+		ScanType_ = ACTIVE;
+		sendPROBEREQ(MAC_BROADCAST);
+		return;
+	}	
 	if(*rcount >= thresh) {
 		/* IEEE Spec section 9.2.3.5 says this should be greater than
 		   or equal */
@@ -1130,6 +1391,125 @@ Mac802_11::RetransmitDATA()
 	}
 }
 
+void
+Mac802_11::RetransmitPROBEREP()
+{
+double rTime;
+
+	if(mhBackoff_.busy() == 0) {
+		if(is_idle()) {
+			if (mhDefer_.busy() == 0) {
+				/*
+				 * If we are already deferring, there is no
+				 * need to reset the Defer timer.
+				 */
+				if (bugFix_timer_) {
+				 	mhBackoff_.start(cw_, is_idle(), 
+							  phymib_.getDIFS());
+					priority_queue[head] = 1;
+				}
+				else {
+					rTime = (Random::random() % cw_)
+						* (phymib_.getSlotTime());
+					mhDefer_.start(phymib_.getDIFS() + 
+						       rTime);
+				}
+			}
+		} else {
+			/*
+			 * If the medium is NOT IDLE, then we start
+			 * the backoff timer.
+			 */
+			mhBackoff_.start(cw_, is_idle());
+			priority_queue[head] = 1;
+			
+		}
+		
+	} else {
+		priority_queue[end()] = 1;
+	}
+
+}
+
+void
+Mac802_11::RetransmitAUTHENTICATE()
+{
+double rTime;
+
+	if(mhBackoff_.busy() == 0) {
+		if(is_idle()) {
+			if (mhDefer_.busy() == 0) {
+				/*
+				 * If we are already deferring, there is no
+				 * need to reset the Defer timer.
+				 */
+				if (bugFix_timer_) {
+				 	mhBackoff_.start(cw_, is_idle(), 
+							  phymib_.getDIFS());
+					priority_queue[head] = 3;
+				}
+				else {
+					rTime = (Random::random() % cw_)
+						* (phymib_.getSlotTime());
+					mhDefer_.start(phymib_.getDIFS() + 
+						       rTime);
+				}
+			}
+		} else {
+			/*
+			 * If the medium is NOT IDLE, then we start
+			 * the backoff timer.
+			 */
+			mhBackoff_.start(cw_, is_idle());
+			priority_queue[head] = 3;
+			
+		}
+		
+	} else {
+		priority_queue[end()] = 3;	
+	}
+
+}
+
+void
+Mac802_11::RetransmitASSOCREP()
+{
+double rTime;
+
+	if(mhBackoff_.busy() == 0) {
+		if(is_idle()) {
+			if (mhDefer_.busy() == 0) {
+				/*
+				 * If we are already deferring, there is no
+				 * need to reset the Defer timer.
+				 */
+				if (bugFix_timer_) {
+				 	mhBackoff_.start(cw_, is_idle(), 
+							  phymib_.getDIFS());
+					priority_queue[head] = 4;
+				}
+				else {
+					rTime = (Random::random() % cw_)
+						* (phymib_.getSlotTime());
+					mhDefer_.start(phymib_.getDIFS() + 
+						       rTime);
+				}
+			}
+		} else {
+			/*
+			 * If the medium is NOT IDLE, then we start
+			 * the backoff timer.
+			 */
+			mhBackoff_.start(cw_, is_idle());
+			priority_queue[head] = 4;
+			
+		}
+		
+	} else {
+		priority_queue[end()] = 4;	
+	}
+
+}
 /* ======================================================================
    Incoming Packet Routines
    ====================================================================== */
@@ -1158,6 +1538,7 @@ Mac802_11::send(Packet *p, Handler *h)
 	 *  If the medium is IDLE, we must wait for a DIFS
 	 *  Space before transmitting.
 	 */
+       
 	if(mhBackoff_.busy() == 0) {
 		if(is_idle()) {
 			if (mhDefer_.busy() == 0) {
@@ -1175,7 +1556,7 @@ Mac802_11::send(Packet *p, Handler *h)
 					mhDefer_.start(phymib_.getDIFS() + 
 						       rTime);
 				}
-			}
+			} 
 		} else {
 			/*
 			 * If the medium is NOT IDLE, then we start
@@ -1184,6 +1565,7 @@ Mac802_11::send(Packet *p, Handler *h)
 			mhBackoff_.start(cw_, is_idle());
 		}
 	}
+	
 }
 
 void
@@ -1228,6 +1610,11 @@ Mac802_11::recv(Packet *p, Handler *h)
 		 * Schedule the reception of this packet, in
 		 * txtime seconds.
 		 */
+		if (mhProbe_.busy() && OnMinChannelTime) {
+			Recv_Busy_ = 1;  // Receiver busy indication for Probe Timer 
+		}
+			
+			
 		mhRecv_.start(txtime(p));
 	} else {
 		/*
@@ -1250,12 +1637,13 @@ Mac802_11::recv_timer()
 	hdr_cmn *ch = HDR_CMN(pktRx_);
 	hdr_mac802_11 *mh = HDR_MAC802_11(pktRx_);
 	u_int32_t dst = ETHER_ADDR(mh->dh_ra);
-	
+	u_int32_t ap_dst = ETHER_ADDR(mh->dh_3a);
 	u_int8_t  type = mh->dh_fc.fc_type;
 	u_int8_t  subtype = mh->dh_fc.fc_subtype;
 
 	assert(pktRx_);
 	assert(rx_state_ == MAC_RECV || rx_state_ == MAC_COLL);
+	
 	
         /*
          *  If the interface is in TRANSMIT mode when this packet
@@ -1323,12 +1711,53 @@ Mac802_11::recv_timer()
 		discard(pktRx_, "---");
 		goto done;
 	}
+	
+	
+	if ( dst == MAC_BROADCAST && mh->dh_fc.fc_to_ds == 1 && mh->dh_fc.fc_from_ds == 1) {
+		if (addr() != bss_id_) {
+ 			discard(pktRx_, "---");
+ 			goto done;
+		}
+		if (addr() == bss_id_ && find_client(ap_dst) == 0) {
+			discard(pktRx_, "---");
+ 			goto done;
+		}
+ 	}
+	
+	if ( addr() != bss_id_ && subtype == MAC_Subtype_ProbeReq) {
+		discard(pktRx_, "---");
+ 			goto done;
+	}
 
 	switch(type) {
 
 	case MAC_Type_Management:
-		discard(pktRx_, DROP_MAC_PACKET_ERROR);
-		goto done;
+		//discard(pktRx_, DROP_MAC_PACKET_ERROR);
+		switch(subtype) {
+		case MAC_Subtype_80211_Beacon:
+			recvBEACON(pktRx_);
+			break;
+		case MAC_Subtype_Auth:
+			recvAUTHENTICATE(pktRx_);
+			break;
+		case MAC_Subtype_AssocReq:
+			recvASSOCREQ(pktRx_);
+			break;
+		case MAC_Subtype_AssocRep:
+			recvASSOCREP(pktRx_);
+			break;
+		case MAC_Subtype_ProbeReq:
+			recvPROBEREQ(pktRx_);
+			break;
+		case MAC_Subtype_ProbeRep:
+			recvPROBEREP(pktRx_);
+			break;
+		default:
+			fprintf(stderr,"recvTimer1:Invalid MAC Management Subtype %x\n",
+				subtype);
+			exit(1);
+		}
+		break;
 	case MAC_Type_Control:
 		switch(subtype) {
 		case MAC_Subtype_RTS:
@@ -1341,7 +1770,7 @@ Mac802_11::recv_timer()
 			recvACK(pktRx_);
 			break;
 		default:
-			fprintf(stderr,"recvTimer1:Invalid MAC Control Subtype %x\n",
+			fprintf(stderr,"recvTimer2:Invalid MAC Control Subtype %x\n",
 				subtype);
 			exit(1);
 		}
@@ -1352,18 +1781,19 @@ Mac802_11::recv_timer()
 			recvDATA(pktRx_);
 			break;
 		default:
-			fprintf(stderr, "recv_timer2:Invalid MAC Data Subtype %x\n",
+			fprintf(stderr, "recv_timer3:Invalid MAC Data Subtype %x\n",
 				subtype);
 			exit(1);
 		}
 		break;
 	default:
-		fprintf(stderr, "recv_timer3:Invalid MAC Type %x\n", subtype);
+		fprintf(stderr, "recv_timer4:Invalid MAC Type %x\n", subtype);
 		exit(1);
 	}
  done:
 	pktRx_ = 0;
 	rx_resume();
+
 }
 
 
@@ -1554,31 +1984,76 @@ Mac802_11::recvDATA(Packet *p)
 	 * receiver; we finally push the packet towards the
 	 * LL to be added back to my queue - accomplish this
 	 * by reversing the direction!*/
-
-	if ((bss_id() == addr()) && ((u_int32_t)ETHER_ADDR(dh->dh_ra)!= MAC_BROADCAST)&& ((u_int32_t)ETHER_ADDR(dh->dh_3a) != ((u_int32_t)addr()))) {
+	
+	
+		
+	if ((bss_id() == addr()) && ((u_int32_t)ETHER_ADDR(dh->dh_ra)!= MAC_BROADCAST) && ((u_int32_t)ETHER_ADDR(dh->dh_3a) != ((u_int32_t)addr())) && dh->dh_fc.fc_from_ds == 0) {
 		struct hdr_cmn *ch = HDR_CMN(p);
+	
+				
 		u_int32_t dst = ETHER_ADDR(dh->dh_3a);
 		u_int32_t src = ETHER_ADDR(dh->dh_ta);
 		/* if it is a broadcast pkt then send a copy up
 		 * my stack also
 		 */
+		
 		if (dst == MAC_BROADCAST) {
 			uptarget_->recv(p->copy(), (Handler*) 0);
 		}
 
 		ch->next_hop() = dst;
-		STORE4BYTE(&src, (dh->dh_3a));
+
+		if (find_client(dst) == 1 || dst == MAC_BROADCAST) {
+			STORE4BYTE(&src, (dh->dh_3a));
+		} else {
+			STORE4BYTE(&src, (dh->dh_4a));			
+		}
+
 		ch->addr_type() = NS_AF_ILINK;
 		ch->direction() = hdr_cmn::DOWN;
+		
 	}
+	
+ 	if ((bss_id() == addr()) && dh->dh_fc.fc_to_ds == 1 && dh->dh_fc.fc_from_ds == 1) {
+ 		u_int32_t dst = ETHER_ADDR(dh->dh_3a);
+ 		u_int32_t src = ETHER_ADDR(dh->dh_4a);
+		if (find_client(src)) { 
+			update_client_table(src,0,0);   // If the source is from another BSS and it is found in this AP's table, delete the node from the table
+		}	
+ 		ch->next_hop() = dst;
+ 		STORE4BYTE(&src, (dh->dh_3a));
+ 		ch->addr_type() = NS_AF_ILINK;
+ 		ch->direction() = hdr_cmn::DOWN;
+ 	}
 
 	uptarget_->recv(p, (Handler*) 0);
+	
 }
 
 
 void
 Mac802_11::recvACK(Packet *p)
 {	
+	if (tx_state_ == MAC_MGMT) {
+		mhSend_.stop();
+		if (addr() == bss_id_) {
+			if (pktASSOCREP_ && priority_queue[head] == 4) {
+				Packet::free(pktASSOCREP_);
+				pktASSOCREP_ = 0;
+				update_client_table(associating_node_,1,1);
+			} 
+			if (pktPROBEREP_ && priority_queue[head] == 1) {
+				Packet::free(pktPROBEREP_);
+				pktPROBEREP_ = 0;
+			}
+			if (pktAUTHENTICATE_ && priority_queue[head] == 3) {
+				Packet::free(pktAUTHENTICATE_);
+				pktAUTHENTICATE_ = 0;
+				update_client_table(authenticating_node_,1,0);
+			}
+		}
+		goto done;
+	}
 	if(tx_state_ != MAC_SEND) {
 		discard(p, DROP_MAC_INVALID_STATE);
 		return;
@@ -1605,11 +2080,1133 @@ Mac802_11::recvACK(Packet *p)
 	
 	/*
 	 * Backoff before sending again.
-	 */
+// 	 */
+
 	assert(mhBackoff_.busy() == 0);
 	mhBackoff_.start(cw_, is_idle());
+done:
+	if (addr() == bss_id_) {
+		if (end() > (head + 1)) {
+			shift_priority_queue();
+			assert(mhBackoff_.busy() == 0);
+			mhBackoff_.start(cw_, is_idle());
+		} else 
+			priority_queue[head] = 0;
+	}
 
 	tx_resume();
 
 	mac_log(p);
+}
+
+
+/* AP's association table funtions
+*/
+void Mac802_11::update_client_table(int num, int auth_status, int assoc_status) {
+	if (client_list == NULL) {
+		client_list = (struct client_table*)malloc(sizeof(struct client_table));
+		client_list->client_id=num;
+		client_list->auth_status=auth_status;
+		client_list->assoc_status=assoc_status;
+		client_list->next=NULL;
+	}
+	else {
+		push(num, auth_status, assoc_status);
+	}
+// 	printf("Client List for AP %d\n",index_);
+// 	struct client_table *temp;
+// 	temp = client_list;
+// 		
+// 	while (temp != NULL) {
+// 		printf("Client %d: Authenticated = %d Associated = %d\n", temp->client_id,temp->auth_status,temp->assoc_status,NOW);
+// 		temp=temp->next;
+// 	}
+// 	printf("\n");
+	
+}
+
+void Mac802_11::push(int num, int auth_status, int assoc_status) {
+	struct client_table *temp;
+	temp = client_list;
+	while (temp != NULL) {
+		if (temp->client_id == num) {
+			temp->auth_status=auth_status;
+			temp->assoc_status=assoc_status;
+			return;
+		}
+		temp=temp->next;
+			
+		if (temp == NULL) {
+			break; 
+		}
+	}
+			
+	temp = client_list;
+	while (temp->next != NULL) {
+		temp=temp->next;
+	}
+	temp->next = (struct client_table*)malloc(sizeof(struct client_table));
+	temp->next->client_id = num;
+	temp->next->auth_status=auth_status;
+	temp->next->assoc_status=assoc_status;
+	temp->next->next = NULL; 
+}
+
+int Mac802_11::find_client(int num) {
+	struct client_table *temp;
+	temp = client_list;
+	while (temp != NULL) {
+		if (temp->client_id == num && temp->auth_status == 1 && temp->assoc_status == 1) {
+			return 1;
+			break;
+		}
+
+		temp=temp->next;
+			
+		if (temp == NULL) {
+			return 0; 
+		}
+	}
+	return 0;
+}
+
+/* Beacon send and Receive functions
+*/
+void
+Mac802_11::sendBEACON(int src)
+{
+	Packet *p = Packet::alloc();
+	
+	hdr_cmn* ch = HDR_CMN(p);
+	struct beacon_frame *bf = (struct beacon_frame*)p->access(hdr_mac::offset_);
+	double rTime;
+	pktBEACON_ = 0;
+
+	ch->uid() = 0;
+	
+
+	ch->ptype() = PT_MAC;
+	ch->size() = phymib_.getBEACONlen();
+	ch->iface() = -2;
+	ch->error() = 0;
+	
+	bzero(bf, MAC_HDR_LEN);
+
+/* Note: I had to give a different name for MAC_Subtype_80211_Beacon as MAC_Subtype_80211_Beacon as MAC_Subtype_80211_Beacon is already defined for 802.15.4 with a different value!! (See cmu-trace.cc).
+*/
+
+	bf->bf_fc.fc_protocol_version = MAC_ProtocolVersion;
+ 	bf->bf_fc.fc_type	= MAC_Type_Management;
+ 	bf->bf_fc.fc_subtype	= MAC_Subtype_80211_Beacon;
+ 	bf->bf_fc.fc_to_ds	= 0;
+ 	bf->bf_fc.fc_from_ds	= 0;
+ 	bf->bf_fc.fc_more_frag	= 0;
+ 	bf->bf_fc.fc_retry	= 0;
+ 	bf->bf_fc.fc_pwr_mgt	= 0;
+ 	bf->bf_fc.fc_more_data	= 0;
+ 	bf->bf_fc.fc_wep	= 0;
+ 	bf->bf_fc.fc_order	= 0;
+
+	int  dst = MAC_BROADCAST;
+	STORE4BYTE(&dst, (bf->bf_ra));
+	STORE4BYTE(&src, (bf->bf_ta));
+	STORE4BYTE(&ap_addr, (bf->bf_3a));
+	
+	bf->bf_timestamp = Scheduler::instance().clock();
+	bf->bf_bcninterval = phymib_.getBeaconInterval();
+
+	/* store beacon tx time */
+
+ 	ch->txtime() = txtime(ch->size(), basicRate_);
+	
+	/* calculate beacon duration??? */
+ 	bf->bf_duration = 0;
+	
+	pktBEACON_ = p;
+	
+	BeaconTxtime_ = txtime(phymib_.getBEACONlen(), basicRate_);
+	
+	if(mhBackoff_.busy() == 0) {
+		if(is_idle()) {
+			if (mhDefer_.busy() == 0) {
+				
+				if (bugFix_timer_) {
+				 	mhBackoff_.start(cw_, is_idle(), 
+							  phymib_.getDIFS());
+					priority_queue[head] = 2;
+				}
+				else {
+					rTime = (Random::random() % cw_)
+						* (phymib_.getSlotTime());
+					mhDefer_.start(phymib_.getDIFS() + 
+						       rTime);
+				}
+			}
+		} else {
+			/*
+			 * If the medium is NOT IDLE, then we start
+			 * the backoff timer.
+			 */
+			
+			mhBackoff_.start(cw_, is_idle());
+			priority_queue[head] = 2;
+		}
+	} else {
+		priority_queue[end()] = 2;
+	}			
+
+}
+
+int
+Mac802_11::check_pktBEACON()
+{	
+	struct beacon_frame *bf = (struct beacon_frame*)pktBEACON_->access(hdr_mac::offset_);
+	bf->bf_timestamp = Scheduler::instance().clock();
+	
+	struct hdr_mac802_11 *mh;
+	double timeout;
+
+	assert(mhBackoff_.busy() == 0);
+
+	if(pktBEACON_ == 0)
+ 		return -1;
+	mh = HDR_MAC802_11(pktBEACON_);
+
+ 	switch(mh->dh_fc.fc_subtype) {
+	case MAC_Subtype_80211_Beacon:
+		if(! is_idle()) {
+			inc_cw();
+			mhBackoff_.start(cw_, is_idle());
+			return 0;
+		}
+		setTxState(MAC_BCN);
+		timeout = txtime(phymib_.getBEACONlen(), basicRate_);
+		break;
+	default:
+		fprintf(stderr, "check_pktBEACON:Invalid MAC Control subtype\n");
+		exit(1);
+	}
+	transmit(pktBEACON_, timeout);
+
+	return 0;
+}
+ 
+
+void
+Mac802_11::recvBEACON(Packet *p)
+{
+	struct beacon_frame *bf = (struct beacon_frame*)p->access(hdr_mac::offset_);
+
+	if(tx_state_ != MAC_IDLE) {
+		discard(p, DROP_MAC_BUSY);
+		return;
+	}
+	u_int32_t bss_id, src;
+
+	//double timestamp, beaconint;
+	bss_id = ETHER_ADDR(bf->bf_3a);
+ 	src = ETHER_ADDR(bf->bf_ta);
+	infra_mode_ = 1;
+	//timestamp = bf->bf_timestamp;
+	Pr = p->txinfo_.RxPr;
+	if ( addr() != ap_addr && ScanType_ == PASSIVE) {
+		if (authenticated == 0 && associated == 0) {
+			if (find_ap(src,Pr) != 1) {
+				update_ap_table(src,Pr);
+			}
+ 		}
+	}
+
+	mac_log(p);
+}
+
+void
+Mac802_11::passive_scan()
+{
+	if ( addr() != ap_addr && ScanType_ == PASSIVE) {
+		if (authenticated == 0 && associated == 0) {
+			ap_temp = strongest_ap();
+			if (!pktAUTHENTICATE_)
+				sendAUTHENTICATE(ap_temp);						
+		}
+			
+	}
+}
+void
+Mac802_11::active_scan()
+{
+	
+	if ( addr() != ap_addr && ScanType_ == ACTIVE) {
+		if (authenticated == 0 && associated == 0) {
+			ap_temp = strongest_ap();
+			sendAUTHENTICATE(ap_temp);						
+		}
+			
+	}
+}
+
+
+// Association functions
+
+void
+Mac802_11::sendASSOCREQ(int dst)
+{
+	Packet *p = Packet::alloc();
+	hdr_cmn* ch = HDR_CMN(p);
+	struct assocreq_frame *acrqf =(struct assocreq_frame*)p->access(hdr_mac::offset_);
+	
+	double rTime;
+	pktASSOCREQ_ = 0;
+
+	ch->uid() = 0;
+	
+
+	ch->ptype() = PT_MAC;
+	ch->size() = phymib_.getASSOCREQlen();
+	ch->iface() = -2;
+	ch->error() = 0;
+	
+	bzero(acrqf, MAC_HDR_LEN);
+
+	acrqf->acrqf_fc.fc_protocol_version = MAC_ProtocolVersion;
+ 	acrqf->acrqf_fc.fc_type	= MAC_Type_Management;
+ 	acrqf->acrqf_fc.fc_subtype	= MAC_Subtype_AssocReq;
+ 	acrqf->acrqf_fc.fc_to_ds	= 0;
+ 	acrqf->acrqf_fc.fc_from_ds	= 0;
+ 	acrqf->acrqf_fc.fc_more_frag= 0;
+ 	acrqf->acrqf_fc.fc_retry	= 0;
+ 	acrqf->acrqf_fc.fc_pwr_mgt	= 0;
+ 	acrqf->acrqf_fc.fc_more_data= 0;
+ 	acrqf->acrqf_fc.fc_wep	= 0;
+ 	acrqf->acrqf_fc.fc_order	= 0;
+	
+	STORE4BYTE(&dst, (acrqf->acrqf_ra));
+	STORE4BYTE(&index_, (acrqf->acrqf_ta));
+	STORE4BYTE(&dst, (acrqf->acrqf_3a));
+
+	
+	ch->txtime() = txtime(ch->size(), basicRate_);
+ 	acrqf->acrqf_duration = 0;
+
+	
+	pktASSOCREQ_ = p;
+
+	if(mhBackoff_.busy() == 0) {
+		if(is_idle()) {
+			if (mhDefer_.busy() == 0) {
+				/*
+				 * If we are already deferring, there is no
+				 * need to reset the Defer timer.
+				 */
+				if (bugFix_timer_) {
+				 	mhBackoff_.start(cw_, is_idle(), 
+							  phymib_.getDIFS());
+				}
+				else {
+					rTime = (Random::random() % cw_)
+						* (phymib_.getSlotTime());
+					mhDefer_.start(phymib_.getDIFS() + 
+						       rTime);
+				}
+			}
+		} else {
+			/*
+			 * If the medium is NOT IDLE, then we start
+			 * the backoff timer.
+			 */
+			mhBackoff_.start(cw_, is_idle());	
+		}
+	}
+}
+
+int
+Mac802_11::check_pktASSOCREQ()
+{	
+	struct hdr_mac802_11 *mh;
+	double timeout;
+
+	assert(mhBackoff_.busy() == 0);
+
+	if(pktASSOCREQ_ == 0)
+ 		return -1;
+	mh = HDR_MAC802_11(pktASSOCREQ_);
+
+ 	switch(mh->dh_fc.fc_subtype) {
+	case MAC_Subtype_AssocReq:
+		if(! is_idle()) {
+			inc_cw();
+			mhBackoff_.start(cw_, is_idle());
+			return 0;
+		}
+		setTxState(MAC_MGMT);
+		timeout = txtime(phymib_.getASSOCREQlen(), basicRate_)
+			+ DSSS_MaxPropagationDelay
+			+ macmib_.getMaxChannelTime()
+			+ txtime(phymib_.getASSOCREPlen(), basicRate_)
+			+ DSSS_MaxPropagationDelay;
+		break;
+	default:
+		fprintf(stderr, "check_pktASSOCREQ:Invalid MAC Control subtype\n");
+		exit(1);
+	}
+	transmit(pktASSOCREQ_, timeout);
+  
+
+	return 0;
+}
+
+void
+Mac802_11::sendASSOCREP(int dst)
+{
+	Packet *p = Packet::alloc();
+	hdr_cmn* ch = HDR_CMN(p);
+	struct assocrep_frame *acrpf =(struct assocrep_frame*)p->access(hdr_mac::offset_);
+	double rTime;
+	pktASSOCREP_ = 0;
+
+	ch->uid() = 0;
+	
+
+	ch->ptype() = PT_MAC;
+	ch->size() = phymib_.getASSOCREPlen();
+	ch->iface() = -2;
+	ch->error() = 0;
+	
+	bzero(acrpf, MAC_HDR_LEN);
+
+	acrpf->acrpf_fc.fc_protocol_version = MAC_ProtocolVersion;
+ 	acrpf->acrpf_fc.fc_type	= MAC_Type_Management;
+ 	acrpf->acrpf_fc.fc_subtype	= MAC_Subtype_AssocRep;
+ 	acrpf->acrpf_fc.fc_to_ds	= 0;
+ 	acrpf->acrpf_fc.fc_from_ds	= 0;
+ 	acrpf->acrpf_fc.fc_more_frag= 0;
+ 	acrpf->acrpf_fc.fc_retry	= 0;
+ 	acrpf->acrpf_fc.fc_pwr_mgt	= 0;
+ 	acrpf->acrpf_fc.fc_more_data= 0;
+ 	acrpf->acrpf_fc.fc_wep	= 0;
+ 	acrpf->acrpf_fc.fc_order	= 0;
+	
+	STORE4BYTE(&dst, (acrpf->acrpf_ra));
+	STORE4BYTE(&index_, (acrpf->acrpf_ta));
+	STORE4BYTE(&index_, (acrpf->acrpf_3a));
+
+	acrpf->acrpf_statuscode = 0;
+	ch->txtime() = txtime(ch->size(), basicRate_);
+ 	acrpf->acrpf_duration = 0;
+	
+	
+ 	pktASSOCREP_ = p;
+
+	if(mhBackoff_.busy() == 0) {
+		if(is_idle()) {
+			if (mhDefer_.busy() == 0) {
+				/*
+				 * If we are already deferring, there is no
+				 * need to reset the Defer timer.
+				 */
+				if (bugFix_timer_) {
+				 	mhBackoff_.start(cw_, is_idle(), 
+							  phymib_.getDIFS());
+					priority_queue[head] = 4;
+				}
+				else {
+					rTime = (Random::random() % cw_)
+						* (phymib_.getSlotTime());
+					mhDefer_.start(phymib_.getDIFS() + 
+						       rTime);
+				}
+			}
+		} else {
+			/*
+			 * If the medium is NOT IDLE, then we start
+			 * the backoff timer.
+			 */
+			mhBackoff_.start(cw_, is_idle());
+			priority_queue[head] = 4;
+			
+		} 
+			
+	
+	} else {
+		priority_queue[end()] = 4;
+	}
+
+}
+
+int
+Mac802_11::check_pktASSOCREP()
+{
+ 	struct hdr_mac802_11 *mh;
+ 	double timeout;
+
+ 	assert(mhBackoff_.busy() == 0);
+ 	if(pktASSOCREP_ == 0)
+  		return -1;
+	mh = HDR_MAC802_11(pktASSOCREP_);
+  	switch(mh->dh_fc.fc_subtype) {
+ 	case MAC_Subtype_AssocRep:
+ 		if(!is_idle()) {
+ 			inc_cw();
+			mhBackoff_.start(cw_, is_idle());
+			return 0;
+ 		}
+		
+ 		setTxState(MAC_MGMT);
+ 		timeout = txtime(phymib_.getASSOCREPlen(), basicRate_)
+			+ DSSS_MaxPropagationDelay
+			+ phymib_.getSIFS()
+			+ txtime(phymib_.getACKlen(), basicRate_)
+			+ DSSS_MaxPropagationDelay;
+			
+ 		break;
+	default:
+ 		fprintf(stderr, "check_pktASSOCREP:Invalid MAC Control subtype\n");
+ 		exit(1);
+	}
+ 	transmit(pktASSOCREP_, timeout);
+		
+ 	return 0;
+}
+
+void
+Mac802_11::recvASSOCREQ(Packet *p)
+{
+	struct assocreq_frame *acrqf = (struct assocreq_frame*)p->access(hdr_mac::offset_);
+
+	if(tx_state_ != MAC_IDLE) {
+		discard(p, DROP_MAC_BUSY);
+		return;
+	}
+	u_int32_t bss_id, src;
+	
+	bss_id = ETHER_ADDR(acrqf->acrqf_3a);
+ 	src = ETHER_ADDR(acrqf->acrqf_ta);
+	
+	if (!pktASSOCREP_) {
+		sendASSOCREP(src);
+		associating_node_ = src;
+	} else {
+		discard(p, DROP_MAC_BUSY);
+		return;
+	}
+	tx_resume();
+			
+	mac_log(p);
+}
+
+void
+Mac802_11::recvASSOCREP(Packet *p)
+{
+	struct assocrep_frame *acrpf = (struct assocrep_frame*)p->access(hdr_mac::offset_);
+
+	assert(pktASSOCREQ_);
+	Packet::free(pktASSOCREQ_);
+	pktASSOCREQ_ = 0;
+	mhSend_.stop();
+
+	u_int32_t src;
+	u_int16_t statuscode;
+	
+ 	src = ETHER_ADDR(acrpf->acrpf_ta);
+	statuscode = acrpf->acrpf_statuscode;
+	
+	if (statuscode == 0) {
+		associated = 1;
+		deletelist();
+		if (handoff) {
+			handoff = 0; //handoff completed
+		}
+		sendACK(src);
+		
+	}
+	if(mhSend_.busy() == 0)
+		tx_resume();
+	
+	mac_log(p);
+
+	
+}
+
+//Authentication functions
+
+void
+Mac802_11::sendAUTHENTICATE(int dst)
+{
+	Packet *p = Packet::alloc();
+	hdr_cmn* ch = HDR_CMN(p);
+	struct auth_frame *authf =(struct auth_frame*)p->access(hdr_mac::offset_);
+	
+	double rTime;
+	pktAUTHENTICATE_ = 0;
+
+	ch->uid() = 0;
+	
+
+	ch->ptype() = PT_MAC;
+	ch->size() = phymib_.getAUTHENTICATElen();
+	ch->iface() = -2;
+	ch->error() = 0;
+	
+	bzero(authf, MAC_HDR_LEN);
+
+	authf->authf_fc.fc_protocol_version = MAC_ProtocolVersion;
+ 	authf->authf_fc.fc_type	= MAC_Type_Management;
+ 	authf->authf_fc.fc_subtype	= MAC_Subtype_Auth;
+ 	authf->authf_fc.fc_to_ds	= 0;
+ 	authf->authf_fc.fc_from_ds	= 0;
+ 	authf->authf_fc.fc_more_frag= 0;
+ 	authf->authf_fc.fc_retry	= 0;
+ 	authf->authf_fc.fc_pwr_mgt	= 0;
+ 	authf->authf_fc.fc_more_data= 0;
+ 	authf->authf_fc.fc_wep	= 0;
+ 	authf->authf_fc.fc_order	= 0;
+	
+	
+	STORE4BYTE(&dst, (authf->authf_ra));
+	STORE4BYTE(&index_, (authf->authf_ta));
+	if (addr() != bss_id_)
+		STORE4BYTE(&dst, (authf->authf_3a));
+	else 
+		STORE4BYTE(&index_, (authf->authf_3a));
+	authf->authf_algono = 0; //Open system authentication
+
+	if (addr() != bss_id_) {
+		authf->authf_seqno = 1;  // 
+	} else {
+		authf->authf_seqno = 2;  //
+		authf->authf_statuscode = 0;
+	}
+	
+	ch->txtime() = txtime(ch->size(), basicRate_);
+	if (addr() == bss_id_) {
+ 		authf->authf_duration = usec(txtime(phymib_.getACKlen(), basicRate_)
+				       + phymib_.getSIFS());
+	} else { 
+		authf->authf_duration = 0;
+	}
+
+	
+	pktAUTHENTICATE_ = p;
+
+	if(mhBackoff_.busy() == 0) {
+		if(is_idle()) {
+			if (mhDefer_.busy() == 0) {
+				/*
+				 * If we are already deferring, there is no
+				 * need to reset the Defer timer.
+				 */
+				if (bugFix_timer_) {
+				 	mhBackoff_.start(cw_, is_idle(), 
+							  phymib_.getDIFS());
+					priority_queue[head] = 3;
+				}
+				else {
+					rTime = (Random::random() % cw_)
+						* (phymib_.getSlotTime());
+					mhDefer_.start(phymib_.getDIFS() + 
+						       rTime);
+				}
+			}
+		} else {
+			/*
+			 * If the medium is NOT IDLE, then we start
+			 * the backoff timer.
+			 */
+			mhBackoff_.start(cw_, is_idle());
+			priority_queue[head] = 3;
+			
+		}
+	} else {
+		priority_queue[end()] = 3;
+	}
+
+}
+
+int
+Mac802_11::check_pktAUTHENTICATE()
+{	
+	struct hdr_mac802_11 *mh;
+	double timeout;
+
+	assert(mhBackoff_.busy() == 0);
+
+	if(pktAUTHENTICATE_ == 0)
+ 		return -1;
+	mh = HDR_MAC802_11(pktAUTHENTICATE_);
+
+ 	switch(mh->dh_fc.fc_subtype) {
+	case MAC_Subtype_Auth:
+		if(! is_idle()) {
+			inc_cw();
+			mhBackoff_.start(cw_, is_idle());
+			return 0;
+		}
+		setTxState(MAC_MGMT);
+		if (addr() != bss_id_) {
+			timeout = txtime(phymib_.getAUTHENTICATElen(), basicRate_)
+				+ DSSS_MaxPropagationDelay                      // XXX
+				+ macmib_.getMaxChannelTime()
+				+ txtime(phymib_.getAUTHENTICATElen(), basicRate_)
+				+ DSSS_MaxPropagationDelay;
+		} else {
+			timeout = txtime(phymib_.getAUTHENTICATElen(), basicRate_)
+				+ DSSS_MaxPropagationDelay                      // XXX
+				+ phymib_.getSIFS()
+				+ txtime(phymib_.getACKlen(), basicRate_)
+				+ DSSS_MaxPropagationDelay;
+		}
+		break;
+	default:
+		fprintf(stderr, "check_pktAUTHENTICATE:Invalid MAC Control subtype\n");
+		exit(1);
+	}
+
+	transmit(pktAUTHENTICATE_, timeout);
+
+	return 0;
+}
+
+void
+Mac802_11::recvAUTHENTICATE(Packet *p)
+{
+	struct auth_frame *authf = (struct auth_frame*)p->access(hdr_mac::offset_);
+	
+	if (addr() != bss_id_) {
+			assert(pktAUTHENTICATE_);
+			Packet::free(pktAUTHENTICATE_);
+			pktAUTHENTICATE_ = 0;
+			mhSend_.stop();
+	} else {
+		if ( tx_state_ != MAC_IDLE) {
+		discard(p, DROP_MAC_BUSY);
+		return;
+		}
+	}
+	
+	u_int32_t src;
+		
+ 	src = ETHER_ADDR(authf->authf_ta);
+	
+	if (addr() == ap_addr) {
+		if (authf->authf_seqno == 1) {
+			if (!pktAUTHENTICATE_) {// AP is not currently involved in Authentication with any other STA 
+				sendAUTHENTICATE(src);
+				authenticating_node_ = src;
+			} else {
+				discard(p, DROP_MAC_BUSY);
+				return;
+			}
+		} else 
+			printf("Out of sequence\n");
+	} else if (authf->authf_seqno == 2 && authf->authf_statuscode == 0) {
+		authenticated = 1;
+		if (bss_id_ != ETHER_ADDR(authf->authf_3a) && handoff == 1) {
+			printf("Client %d: Handoff from AP %d to AP %d\n",index_, bss_id_,ETHER_ADDR(authf->authf_3a));
+		}
+		bss_id_ = ETHER_ADDR(authf->authf_3a);
+		sendACK(src);
+		mhProbe_.start(phymib_.getSIFS() + txtime(phymib_.getACKlen(), basicRate_) + macmib_.getMaxChannelTime());
+		
+	}
+	
+	if(mhSend_.busy() == 0)
+		tx_resume();
+		
+	mac_log(p);
+
+}
+
+// Active Scanning Functions 
+void
+Mac802_11::sendPROBEREQ(int dst)
+{
+	Packet *p = Packet::alloc();
+	hdr_cmn* ch = HDR_CMN(p);
+	struct probereq_frame *prrqf =(struct probereq_frame*)p->access(hdr_mac::offset_);
+	
+	double rTime;
+	pktPROBEREQ_ = 0;
+
+	ch->uid() = 0;
+	
+
+	ch->ptype() = PT_MAC;
+	ch->size() = phymib_.getPROBEREQlen();
+	ch->iface() = -2;
+	ch->error() = 0;
+	
+	bzero(prrqf, MAC_HDR_LEN);
+
+	prrqf->prrqf_fc.fc_protocol_version = MAC_ProtocolVersion;
+ 	prrqf->prrqf_fc.fc_type	= MAC_Type_Management;
+ 	prrqf->prrqf_fc.fc_subtype	= MAC_Subtype_ProbeReq;
+ 	prrqf->prrqf_fc.fc_to_ds	= 0;
+ 	prrqf->prrqf_fc.fc_from_ds	= 0;
+ 	prrqf->prrqf_fc.fc_more_frag= 0;
+ 	prrqf->prrqf_fc.fc_retry	= 0;
+ 	prrqf->prrqf_fc.fc_pwr_mgt	= 0;
+ 	prrqf->prrqf_fc.fc_more_data= 0;
+ 	prrqf->prrqf_fc.fc_wep	= 0;
+ 	prrqf->prrqf_fc.fc_order	= 0;
+	
+		
+	STORE4BYTE(&dst, (prrqf->prrqf_ra));
+	STORE4BYTE(&index_, (prrqf->prrqf_ta));
+	STORE4BYTE(&dst, (prrqf->prrqf_3a));
+
+	
+	ch->txtime() = txtime(ch->size(), basicRate_);
+ 	prrqf->prrqf_duration = 0;
+
+	
+	pktPROBEREQ_ = p;
+
+	if(mhBackoff_.busy() == 0) {
+		if(is_idle()) {
+			if (mhDefer_.busy() == 0) {
+				/*
+				 * If we are already deferring, there is no
+				 * need to reset the Defer timer.
+				 */
+				if (bugFix_timer_) {
+				 	mhBackoff_.start(cw_, is_idle(), 
+							  phymib_.getDIFS());
+				}
+				else {
+					rTime = (Random::random() % cw_)
+						* (phymib_.getSlotTime());
+					mhDefer_.start(phymib_.getDIFS() + 
+						       rTime);
+				}
+			}
+		} else {
+			/*
+			 * If the medium is NOT IDLE, then we start
+			 * the backoff timer.
+			 */
+			mhBackoff_.start(cw_, is_idle());
+			
+		}
+	}
+}
+
+
+int
+Mac802_11::check_pktPROBEREQ()
+{	
+	struct hdr_mac802_11 *mh;
+	double timeout;
+
+	assert(mhBackoff_.busy() == 0);
+
+	if(pktPROBEREQ_ == 0)
+ 		return -1;
+	mh = HDR_MAC802_11(pktPROBEREQ_);
+
+ 	switch(mh->dh_fc.fc_subtype) {
+	case MAC_Subtype_ProbeReq:
+		if(! is_idle()) {
+			inc_cw();
+			mhBackoff_.start(cw_, is_idle());
+			return 0;
+		}
+		setTxState(MAC_MGMT);
+		timeout = txtime(phymib_.getPROBEREQlen(), basicRate_)
+			+ DSSS_MaxPropagationDelay;                      // XXX
+		break;
+	default:
+		fprintf(stderr, "check_pktPROBEREQ:Invalid MAC Control subtype\n");
+		exit(1);
+	}
+	transmit(pktPROBEREQ_, timeout);
+	mhProbe_.start(macmib_.getMinChannelTime());
+	OnMinChannelTime = 1;
+	return 0;
+}
+
+
+
+void
+Mac802_11::sendPROBEREP(int dst)
+{
+	Packet *p = Packet::alloc();
+	
+	hdr_cmn* ch = HDR_CMN(p);
+	struct proberep_frame *prrpf = (struct proberep_frame*)p->access(hdr_mac::offset_);
+	
+	pktPROBEREP_ = 0;
+
+	ch->uid() = 0;
+	
+	double rTime;
+
+	ch->ptype() = PT_MAC;
+	ch->size() = phymib_.getPROBEREPlen();
+	ch->iface() = -2;
+	ch->error() = 0;
+	
+	bzero(prrpf, MAC_HDR_LEN);
+
+	prrpf->prrpf_fc.fc_protocol_version = MAC_ProtocolVersion;
+ 	prrpf->prrpf_fc.fc_type	= MAC_Type_Management;
+ 	prrpf->prrpf_fc.fc_subtype	= MAC_Subtype_ProbeRep;
+ 	prrpf->prrpf_fc.fc_to_ds	= 0;
+ 	prrpf->prrpf_fc.fc_from_ds	= 0;
+ 	prrpf->prrpf_fc.fc_more_frag= 0;
+ 	prrpf->prrpf_fc.fc_retry	= 0;
+ 	prrpf->prrpf_fc.fc_pwr_mgt	= 0;
+ 	prrpf->prrpf_fc.fc_more_data= 0;
+ 	prrpf->prrpf_fc.fc_wep	= 0;
+ 	prrpf->prrpf_fc.fc_order	= 0;
+	
+	STORE4BYTE(&dst, (prrpf->prrpf_ra));
+	STORE4BYTE(&index_, (prrpf->prrpf_ta));
+	STORE4BYTE(&index_, (prrpf->prrpf_3a));
+	
+//	prrpf->prrpf_timestamp = Scheduler::instance().clock();
+	prrpf->prrpf_bcninterval = phymib_.getBeaconInterval();
+
+	ch->txtime() = txtime(ch->size(), basicRate_);
+ 	prrpf->prrpf_duration = 0;
+	
+	pktPROBEREP_ = p;
+
+	if(mhBackoff_.busy() == 0) {
+		if(is_idle()) {
+			if (mhDefer_.busy() == 0) {
+				/*
+				 * If we are already deferring, there is no
+				 * need to reset the Defer timer.
+				 */
+				if (bugFix_timer_) {
+				 	mhBackoff_.start(cw_, is_idle(), 
+							  phymib_.getDIFS());
+					priority_queue[head] = 1;
+				}
+				else {
+					rTime = (Random::random() % cw_)
+						* (phymib_.getSlotTime());
+					mhDefer_.start(phymib_.getDIFS() + 
+						       rTime);
+				}
+			}
+		} else {
+			/*
+			 * If the medium is NOT IDLE, then we start
+			 * the backoff timer.
+			 */
+			mhBackoff_.start(cw_, is_idle());
+			priority_queue[head] = 1;
+			
+		}
+		
+	} else {
+		priority_queue[end()] = 1;
+	}
+
+}
+
+int
+Mac802_11::check_pktPROBEREP()
+{	
+	struct proberep_frame *prrpf = (struct proberep_frame*)pktPROBEREP_->access(hdr_mac::offset_);
+	prrpf->prrpf_timestamp = Scheduler::instance().clock();
+	
+	struct hdr_mac802_11 *mh;
+	double timeout;
+
+	assert(mhBackoff_.busy() == 0);
+
+	if(pktPROBEREP_ == 0)
+ 		return -1;
+	mh = HDR_MAC802_11(pktPROBEREP_);
+
+ 	switch(mh->dh_fc.fc_subtype) {
+	case MAC_Subtype_ProbeRep:
+		if(! is_idle()) {
+			inc_cw();
+			mhBackoff_.start(cw_, is_idle());
+			return 0;
+		}
+		setTxState(MAC_MGMT);
+		timeout = txtime(phymib_.getPROBEREPlen(), basicRate_)
+			+ DSSS_MaxPropagationDelay                     // XXX
+			+ phymib_.getSIFS()
+			+ txtime(phymib_.getACKlen(), basicRate_)
+			+ DSSS_MaxPropagationDelay;
+		break;
+	default:
+		fprintf(stderr, "check_pktPROBEREP:Invalid MAC Control subtype\n");
+		exit(1);
+	}
+	transmit(pktPROBEREP_, timeout);
+  
+
+	return 0;
+}
+
+
+void
+Mac802_11::recvPROBEREQ(Packet *p)
+{
+	struct probereq_frame *prrqf = (struct probereq_frame*)p->access(hdr_mac::offset_);
+
+	if(tx_state_ != MAC_IDLE) {
+		discard(p, DROP_MAC_BUSY);
+		return;
+	}
+	u_int32_t bss_id, src;
+	bss_id = ETHER_ADDR(prrqf->prrqf_3a);
+ 	src = ETHER_ADDR(prrqf->prrqf_ta);
+	
+	if (!pktPROBEREP_) {
+		sendPROBEREP(src);
+	} else {
+		discard(p, DROP_MAC_BUSY);
+		return;
+	}		 
+		
+	
+	tx_resume();
+			
+	mac_log(p);
+}
+
+void
+Mac802_11::recvPROBEREP(Packet *p)
+{
+	struct proberep_frame *prrpf = (struct proberep_frame*)p->access(hdr_mac::offset_);
+
+	assert(pktPROBEREQ_);
+	mhSend_.stop();
+
+	u_int32_t bss_id, src;
+
+	Pr = p->txinfo_.RxPr;
+ 	src = ETHER_ADDR(prrpf->prrpf_ta);
+	bss_id = ETHER_ADDR(prrpf->prrpf_ta);
+	
+	update_ap_table(src,Pr);
+		
+	sendACK(src);
+		
+
+	if(mhSend_.busy() == 0)
+		tx_resume();
+	
+	mac_log(p);
+
+	
+}
+
+void Mac802_11::checkAssocAuthStatus() {
+	if ( addr() != bss_id_ ) {
+		if (authenticated == 0 && associated == 0) {
+
+			sendAUTHENTICATE(strongest_ap());
+		} 
+		if (authenticated == 1 && associated == 0) {
+			sendASSOCREQ(bss_id_);
+		}
+	}
+}
+
+/* STA's beacon power table funtions
+*/
+void Mac802_11::update_ap_table(int num, double power) {
+	if (ap_list == NULL) {
+		ap_list = (struct ap_table*)malloc(sizeof(struct ap_table));
+		ap_list->ap_id=num;
+		ap_list->ap_power = power;
+		ap_list->next=NULL;
+	}
+	else {
+		push_ap(num, power);
+	}
+	struct ap_table *temp;
+	temp = ap_list;
+// 	while (temp != NULL) {
+// 		printf("Client %d: AP %d and %f\t", index_, temp->ap_id,temp->ap_power);
+// 		temp=temp->next;
+// 	}
+// 	printf("\n");
+}
+
+void Mac802_11::push_ap(int num, double power) {
+	struct ap_table *temp;
+	temp = ap_list;
+	while (temp->next != NULL) {
+		temp=temp->next;
+	}
+	temp->next = (struct ap_table*)malloc(sizeof(struct ap_table));
+	temp->next->ap_id = num;
+	temp->next->ap_power= power;
+	temp->next->next = NULL; 
+}
+
+void Mac802_11::deletelist() {
+	struct ap_table *temp;
+	while (ap_list != NULL) {
+
+		temp = ap_list;
+		ap_list = ap_list->next;
+		free(temp);
+	}
+
+}
+
+int Mac802_11::strongest_ap() {
+	struct ap_table *temp;
+	double max_power;
+	int ap;
+	temp = ap_list;
+	if (ap_list == NULL)
+		return -1;
+	max_power = 0;
+	while (temp != NULL) {
+		if (temp->ap_power > max_power) {
+			max_power = temp->ap_power;
+			ap = temp->ap_id;	
+		}
+		temp = temp->next;
+	}
+	
+	return ap;	
+}
+
+int Mac802_11::find_ap(int num, double power) {
+	struct ap_table *temp;
+	temp = ap_list;
+	while (temp != NULL) {
+		if (temp->ap_id == num && temp->ap_power == power) {
+			return 1;
+		} 
+
+		temp=temp->next;
+			
+		if (temp == NULL) {
+			return 0; 
+		}
+	}
+	return 0;
+}
+
+int Mac802_11::end() 
+{
+	int end;
+	end = head;
+	while (priority_queue[end] != 0) {
+		end = end + 1;
+	}
+	return end;
+}
+
+void Mac802_11::shift_priority_queue()
+{
+	int i;
+	i = head;
+	while (priority_queue[i] != 0) {
+		priority_queue[i] = priority_queue[i+1];
+		i = i + 1;
+	}		
 }

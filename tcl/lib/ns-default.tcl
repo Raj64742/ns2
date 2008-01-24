@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.377 2007/12/04 19:59:32 seashadow Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.378 2008/01/24 01:53:21 tom_henderson Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -684,6 +684,15 @@ Snoop set debug_ false
 
 Mac/802_11 set bugFix_timer_ true;         # fix for when RTS/CTS not used
 # details at http://www.dei.unipd.it/wdyn/?IDsezione=2435
+
+ Mac/802_11 set BeaconInterval_	       0.1		;# 100ms	
+ Mac/802_11 set ScanType_	PASSIVE
+ Mac/802_11 set ProbeDelay_	0.0001		;# 0.1 ms
+ Mac/802_11 set MaxChannelTime_ 0.011		;# 11 ms
+ Mac/802_11 set MinChannelTime_ 0.005		; # 5 ms
+ Mac/802_11 set ChannelTime_ 0.12		;# 120 ms
+
+
 
 # 
 # Support for Abstract LAN

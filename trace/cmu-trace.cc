@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.89 2006/03/21 22:31:32 liyuan Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.90 2008/01/24 01:53:28 tom_henderson Exp $
  */
 
 #include <packet.h>
@@ -230,7 +230,6 @@ CMUTrace::format_mac_common(Packet *p, const char *why, int offset)
         x = 0.0, y = 0.0, z = 0.0;
         node_->getLoc(&x, &y, &z);
 #endif
-
 	sprintf(pt_->buffer() + offset,
 #ifdef LOG_POSITION
 		"%c %.9f %d (%6.2f %6.2f) %3s %4s %d %s %d ",
@@ -250,9 +249,10 @@ CMUTrace::format_mac_common(Packet *p, const char *why, int offset)
                 ch->uid(),                      // identifier for this event
 		
 		((ch->ptype() == PT_MAC) ? (
+		  (mh->dh_fc.fc_type == MAC_Type_Control) ? (
 		  (mh->dh_fc.fc_subtype == MAC_Subtype_RTS) ? "RTS"  :
 		  (mh->dh_fc.fc_subtype == MAC_Subtype_CTS) ? "CTS"  :
-		  (mh->dh_fc.fc_subtype == MAC_Subtype_ACK) ? "ACK"  :
+		  (mh->dh_fc.fc_subtype == MAC_Subtype_ACK) ? "ACK":
 		  //<zheng: add for 802.15.4>
 		  (mh->dh_fc.fc_subtype == MAC_Subtype_Beacon) ? "BCN"  :		//Beacon
 		  (mh->dh_fc.fc_subtype == MAC_Subtype_Command_AssoReq) ? "CM1"  :	//CMD: Association request
@@ -264,7 +264,15 @@ CMUTrace::format_mac_common(Packet *p, const char *why, int offset)
 		  (mh->dh_fc.fc_subtype == MAC_Subtype_Command_BconReq) ? "CM7"  :	//CMD: Beacon request
 		  (mh->dh_fc.fc_subtype == MAC_Subtype_Command_CoorRea) ? "CM8"  :	//CMD: Coordinator realignment
 		  (mh->dh_fc.fc_subtype == MAC_Subtype_Command_GTSReq) ? "CM9"  :	//CMD: GTS request
-		  //</zheng: add for 802.15.4>
+	          "UNKN") :
+		   (mh->dh_fc.fc_type == MAC_Type_Management) ? (
+		  (mh->dh_fc.fc_subtype == MAC_Subtype_80211_Beacon) ? "BCN"  :
+		  (mh->dh_fc.fc_subtype == MAC_Subtype_AssocReq) ? "ACRQ"  :
+		  (mh->dh_fc.fc_subtype == MAC_Subtype_AssocRep) ? "ACRP"  : 
+		  (mh->dh_fc.fc_subtype == MAC_Subtype_Auth) ? "AUTH"  :
+		  (mh->dh_fc.fc_subtype == MAC_Subtype_ProbeReq) ? "PRRQ"  :
+		  (mh->dh_fc.fc_subtype == MAC_Subtype_ProbeRep) ? "PRRP"  :
+		  "UNKN") :
 		  "UNKN") :
 		 (ch->ptype() == PT_SMAC) ? (
 		  (sh->type == RTS_PKT) ? "RTS" :
@@ -918,6 +926,8 @@ CMUTrace::nam_format(Packet *p, int offset)
 	  (mh->dh_fc.fc_subtype == MAC_Subtype_CTS) ? "CTS"  :
 	  (mh->dh_fc.fc_subtype == MAC_Subtype_ACK) ? "ACK"  :
 	  (mh->dh_fc.fc_subtype == MAC_Subtype_Beacon) ? "BCN"  :		//Beacon
+	  (mh->dh_fc.fc_subtype == MAC_Subtype_AssocReq) ? "ACRQ"  :
+          (mh->dh_fc.fc_subtype == MAC_Subtype_AssocRep) ? "ACRP"  :
 	  (mh->dh_fc.fc_subtype == MAC_Subtype_Command_AssoReq) ? "CM1"  :	//CMD: Association request
 	  (mh->dh_fc.fc_subtype == MAC_Subtype_Command_AssoRsp) ? "CM2"  :	//CMD: Association response
 	  (mh->dh_fc.fc_subtype == MAC_Subtype_Command_DAssNtf) ? "CM3"  :	//CMD: Disassociation notification
