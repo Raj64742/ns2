@@ -239,9 +239,11 @@ OBJ_CC = \
 	common/Decapsulator.o common/Encapsulator.o \
 	common/encap.o \
 	mac/channel.o mac/mac.o mac/ll.o mac/mac-802_11.o \
+	mac/mac-802_11Ext.o \
 	mac/mac-802_3.o mac/mac-tdma.o mac/smac.o \
 	mobile/mip.o mobile/mip-reg.o mobile/gridkeeper.o \
 	mobile/propagation.o mobile/tworayground.o \
+	mobile/nakagami.o \
 	mobile/antenna.o mobile/omni-antenna.o \
 	mobile/shadowing.o mobile/shadowing-vis.o mobile/dumb-agent.o \
 	common/bi-connector.o common/node.o \
@@ -250,6 +252,7 @@ OBJ_CC = \
 	mobile/topography.o mobile/modulation.o \
 	queue/priqueue.o queue/dsr-priqueue.o \
 	mac/phy.o mac/wired-phy.o mac/wireless-phy.o \
+	mac/wireless-phyExt.o \
 	mac/mac-timers.o trace/cmu-trace.o mac/varp.o \
 	mac/mac-simple.o \
 	satellite/sat-hdlc.o \
@@ -317,6 +320,7 @@ OBJ_CC = \
 	wpan/p802_15_4nam.o wpan/p802_15_4phy.o \
 	wpan/p802_15_4sscs.o wpan/p802_15_4timer.o \
 	wpan/p802_15_4trace.o wpan/p802_15_4transac.o \
+	apps/pbc.o \
 	@V_STLOBJ@
 
 

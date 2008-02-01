@@ -41,7 +41,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.cc,v 1.21 2006/11/18 19:54:54 mweigle Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.cc,v 1.22 2008/02/01 21:39:43 tom_henderson Exp $ (Xerox)";
 #endif
 
 #include <stdio.h>
@@ -142,6 +142,103 @@ double ExponentialRandomVariable::value()
 {
 	return(rng_->exponential(avg_));
 }
+
+/*
+	Generates Erlang variables following:
+	
+	                   x^(k-1)*exp(-x/lambda)
+	p(x; lambda, k) = ------------------------
+                       (k-1)!*lambda^k
+*/
+static class ErlangRandomVariableClass : public TclClass {
+public:
+	ErlangRandomVariableClass() : TclClass("RandomVariable/Erlang") {}
+	TclObject* create(int, const char*const*) {
+		return(new ErlangRandomVariable());
+	}
+} class_erlangranvar;
+ 
+ErlangRandomVariable::ErlangRandomVariable()
+{
+	bind("lambda_", &lambda_);
+	bind("k_", &k_);
+}
+
+
+ErlangRandomVariable::ErlangRandomVariable(double lambda, int k)
+{
+	lambda_ = lambda;
+	k_ = k;
+}
+
+double ErlangRandomVariable::value()
+{
+		ExponentialRandomVariable * expRV = new ExponentialRandomVariable(lambda_);
+		double result=0;
+		for (int i=0; i < k_; i++){
+			result += expRV->value();
+		}
+		return result;
+}
+
+
+/*
+	Generates Erlang variables following:
+	
+	                     x^(alpha-1)*exp(-x/beta)
+	p(x; alpha, beta) = --------------------------
+                         Gamma(alpha)*beta^alpha
+*/
+static class GammaRandomVariableClass : public TclClass {
+public:
+	GammaRandomVariableClass() : TclClass("RandomVariable/Gamma") {}
+	TclObject* create(int, const char*const*) {
+		return(new GammaRandomVariable());
+	}
+} class_gammaranvar;
+
+GammaRandomVariable::GammaRandomVariable()
+{
+	bind("alpha_", &alpha_);
+	bind("beta_", &beta_);
+}
+
+GammaRandomVariable::GammaRandomVariable(double alpha, double beta)
+{
+	alpha_ = alpha;
+	beta_ = beta;
+}
+
+double GammaRandomVariable::value()
+{
+	// Proposed by Marsaglia in 2000:
+	// G. Marsaglia, W. W. Tsang: A simple method for gereating Gamma variables
+	// ACM Transactions on mathematical software, Vol. 26, No. 3, Sept. 2000
+	if (alpha_ < 1) {
+		double u = rng_->uniform(1.0);
+		return GammaRandomVariable::GammaRandomVariable(1.0 + alpha_, beta_).value() * pow (u, 1.0 / alpha_);
+	}
+	
+	double x, v, u;
+	double d = alpha_ - 1.0 / 3.0;
+	double c = (1.0 / 3.0) / sqrt (d);
+
+	while (1) {
+		do {
+			x = rng_->normal(0.0, 1.0);
+			v = 1.0 + c * x;
+		} while (v <= 0);
+
+		v = v * v * v;
+		u = rng_->uniform(1.0);
+		if (u < 1 - 0.0331 * x * x * x * x)
+			break;
+		if (log (u) < 0.5 * x * x + d * (1 - v + log (v)))
+			break;
+	}
+	return beta_ * d * v;
+}
+
 
 
 static class ParetoRandomVariableClass : public TclClass {
@@ -456,7 +553,8 @@ int EmpiricalRandomVariable::lookup(double u)
 		mid = (lo + hi) / 2;
 		if (u > table_[mid].cdf_)
 			lo = mid + 1;
-		else hi = mid;
+		else
+			hi = mid;
 	}
 	return lo;
 }

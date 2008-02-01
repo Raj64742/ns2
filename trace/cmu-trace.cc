@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.90 2008/01/24 01:53:28 tom_henderson Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.91 2008/02/01 21:39:43 tom_henderson Exp $
  */
 
 #include <packet.h>
@@ -92,6 +92,9 @@ CMUTrace::CMUTrace(const char *s, char t) : Trace(t)
         }
 	else if(strcmp(tracename, "TRP") == 0) {
                 tracetype = TR_ROUTER;
+        }
+        else if(strcmp(tracename, "PHY") == 0) {
+                tracetype = TR_PHY;
         }
         else if(strcmp(tracename, "MAC") == 0) {
                 tracetype = TR_MAC;
@@ -285,6 +288,12 @@ CMUTrace::format_mac_common(Packet *p, const char *why, int offset)
 	
 	offset = strlen(pt_->buffer());
 
+	if(tracetype == TR_PHY) {
+		format_phy(p, offset);
+		offset = strlen(pt_->buffer());
+		return;
+	}
+
 	if (strncmp (mactype, "Mac/SMAC", 8) == 0) {
 		format_smac(p, offset);
 	} else {
@@ -307,6 +316,13 @@ CMUTrace::format_mac_common(Packet *p, const char *why, int offset)
 		}
         }
 }
+
+void
+CMUTrace::format_phy(Packet *p, int offset)
+{
+	sprintf(pt_->buffer() + offset, " ");
+}
+
 
 void
 CMUTrace::format_mac(Packet *p, int offset)

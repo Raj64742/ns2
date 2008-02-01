@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.55 2005/06/17 17:41:16 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.56 2008/02/01 21:39:42 tom_henderson Exp $
 #
 # set up the packet format for the simulation
 # (initial version)
@@ -153,6 +153,7 @@ foreach prot {
 # Application-Layer Protocols:
 	Message # a protocol to carry text messages
 	Ping 	# Ping
+    PBC     # PBC
 # Wireless:
 	ARP 	# Address Resolution Protocol, network wireless stack
 	GAF 	# Geographic Adaptive Delity, for ad-hoc networks

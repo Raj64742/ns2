@@ -37,7 +37,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.45 2005/02/03 20:15:00 haldar Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.46 2008/02/01 21:39:39 tom_henderson Exp $ (UCB)";
 #endif
 
 // Time interval for updating a position of a node in the X-List
@@ -63,6 +63,7 @@ static const char rcsid[] =
 #include "dsr/hdr_sr.h"
 #include "gridkeeper.h"
 #include "tworayground.h"
+#include "wireless-phyExt.h"
 
 static class ChannelClass : public TclClass {
 public:
@@ -621,17 +622,30 @@ WirelessChannel::calcHighestAntennaZ(Phy *tifp)
        double highestZ = 0;
        Phy *n;
  
+       // HACK: the dynamic_cast is a workaround only!
        for(n = ifhead_.lh_first; n; n = n->nextchnl()) {
-                   if(((WirelessPhy *)n)->getAntennaZ() > highestZ)
-                               highestZ = ((WirelessPhy *)n)->getAntennaZ();
+    	   if(dynamic_cast<WirelessPhyExt*>(n)) {
+    		   if(((WirelessPhyExt *)n)->getAntennaZ() > highestZ)
+    			   highestZ = ((WirelessPhyExt *)n)->getAntennaZ();
+    	   } else if (dynamic_cast<WirelessPhy*>(n)) {
+    		   if(((WirelessPhy *)n)->getAntennaZ() > highestZ)
+    			   highestZ = ((WirelessPhy *)n)->getAntennaZ();
+    	   } else highestZ = 0;
        }
  
        highestAntennaZ_ = highestZ;
 
-       WirelessPhy *wifp = (WirelessPhy *)tifp;
-       distCST_ = wifp->getDist(wifp->getCSThresh(), wifp->getPt(), 1.0, 1.0,
-				highestZ , highestZ, wifp->getL(),
-				wifp->getLambda());       
+       if (dynamic_cast<WirelessPhyExt*>(tifp)) {
+    	   WirelessPhyExt *wifp = (WirelessPhyExt *)tifp;
+    	   distCST_ = wifp->getDist(wifp->getCSThresh(), wifp->getPt(), 1.0, 1.0, 
+			   highestZ , highestZ, wifp->getL(),
+			   wifp->getLambda());
+       } else if (dynamic_cast<WirelessPhy*>(tifp)) {
+    	   WirelessPhy *wifp = (WirelessPhy *)tifp;
+    	   distCST_ = wifp->getDist(wifp->getCSThresh(), wifp->getPt(), 1.0, 1.0,
+    			   highestZ , highestZ, wifp->getL(),
+    			   wifp->getLambda());       
+       } else distCST_ = DBL_MAX;
 }
 
 	

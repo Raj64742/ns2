@@ -19,7 +19,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/validate,v 1.149 2008/01/24 01:53:19 tom_henderson Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/validate,v 1.150 2008/02/01 21:39:34 tom_henderson Exp $
 
 try () {
         for excluding in $cygwin_exclude; do
@@ -74,8 +74,8 @@ red adaptive-red red-pd rio vq rem gk pi cbq schedule rr monitor jobs \
 intserv diffserv webtraf \
 mip links linkstate mpls oddBehaviors \
 wireless-shadowing wireless-lan-aodv wireless-gridkeeper \
-wireless-diffusion wireless-lan-newnode WLtutorial \
-wireless-infra wireless-infra-mobility \
+wireless-diffusion wireless-lan-newnode wireless-lan-newnode-80211Ext \
+WLtutorial wireless-infra wireless-infra-mobility \
 source-routing \
 misc tagged-trace message rng xcp wpan \
 energy snoop \

@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.56 2007/01/30 05:00:51 tom_henderson Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.57 2008/02/01 21:39:42 tom_henderson Exp $
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 #
@@ -531,6 +531,38 @@ Node/MobileNode instproc add-interface { channel pmodel lltype mactype qtype qle
 	# let topo keep handle of channel
 	$topo channel $channel
 	# ============================================================
+
+	if { [Simulator set PhyTrace_] == "ON" } {
+		#
+		# Trace Dropped Packets
+		#
+		if {$imepflag != ""} {
+			set drpPhyT [$self mobility-trace Drop "PHY"]
+		} else {
+			set drpPhyT [cmu-trace Drop "PHY" $self]
+		}
+		$netif drop-target $drpPhyT
+		if { $namfp != "" } {
+			$drpPhyT namattach $namfp
+		}
+
+		#
+		# Trace Sent Packets
+		#
+        if {$imepflag != ""} {
+            set sndPhyT [$self mobility-trace Send "PHY"]
+        } else {
+            set sndPhyT [cmu-trace Send "PHY" $self]
+        }
+        $sndPhyT target $channel
+        $netif channel $sndPhyT
+        if { $namfp != "" } {
+            $sndPhyT namattach $namfp
+        }
+        
+	} else {
+		$netif drop-target [$ns set nullAgent_]
+	}
 
 	if { [Simulator set MacTrace_] == "ON" } {
 		#

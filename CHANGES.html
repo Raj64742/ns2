@@ -16,6 +16,18 @@ with the most recent changes coming first.
 <hr>
 <h3>ns-2.33 pending</h3>
 <ul>
+<p><li><b>[tomh]</b>Fri Feb 1 13:30:00 PST 2008:
+<br> Add 80211Ext models from Mercedes-Benz/Karlsruhe team.
+<ul>
+<li>Structured design of MAC functionality modules: transmission, reception, transmission coordination, reception coordination, backoff manager, and channel state monitor</li>
+<li>Cumulative SINR computation</li>
+<li>MAC frame capture capabbilities</li>
+<li>Multiple modulation scheme support</li>
+<li>Packet drop tracing at the PHY layer</li>
+<li>Nakagami fading model</li>
+</ul>
+New files:  mac/mac-802_11Ext.{cc,h}, mac/wireless-phyExt.{cc,h}, mobile/nakagami.{cc,h}, apps/pbc.{cc,h}, plus examples in the tcl/ex/802.11 directory.
+</ul>
 <p><li><b>[tomh]</b>Wed Jan 23 17:41:00 PST 2008:
 <br>Add Ilango Purushothaman's 802.11 infrastructure mode support.
 <ul>

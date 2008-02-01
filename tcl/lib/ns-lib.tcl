@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.274 2007/01/30 05:00:51 tom_henderson Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.275 2008/02/01 21:39:42 tom_henderson Exp $
 
 
 #
@@ -331,6 +331,7 @@ Simulator instproc dumper obj {
 #                  -agentTrace  ON
 #                  -routerTrace ON 
 #                  -macTrace OFF 
+#                  -phyTrace OFF 
 #                  -toraDebug OFF                
 #                  -movementTrace OFF
 # change wrt Mike's code
@@ -370,6 +371,7 @@ Simulator instproc FECProc  {val} { $self set FECProc_  $val }
 Simulator instproc agentTrace  {val} { $self set agentTrace_  $val }
 Simulator instproc routerTrace  {val} { $self set routerTrace_  $val }
 Simulator instproc macTrace  {val} { $self set macTrace_  $val }
+Simulator instproc phyTrace  {val} { $self set phyTrace_  $val }
 Simulator instproc movementTrace  {val} { $self set movementTrace_  $val }
 Simulator instproc toraDebug {val} {$self set toraDebug_ $val }
 Simulator instproc satNodeType {val} {$self set satNodeType_ $val}
@@ -446,7 +448,12 @@ Simulator instproc node-config args {
 	    routerTrace_ agentTrace_ movementTrace_ channelType_ channel_ \
 	    chan topoInstance_ propInstance_ mobileIP_ \
 	    rxPower_ txPower_ idlePower_ sleepPower_ sleepTime_ transitionPower_ \
-	    transitionTime_ satNodeType_ eotTrace_
+	    transitionTime_ satNodeType_ eotTrace_ phyTrace_
+
+	if [info exists phyTrace_] {
+		Simulator set PhyTrace_ $phyTrace_
+	}
+
 
         if [info exists macTrace_] {
 		Simulator set MacTrace_ $macTrace_

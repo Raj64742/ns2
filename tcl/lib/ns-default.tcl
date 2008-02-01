@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.378 2008/01/24 01:53:21 tom_henderson Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.379 2008/02/01 21:39:41 tom_henderson Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -508,6 +508,10 @@ Application/SctpApp1 set reliability_ 0
 RandomVariable/Uniform set min_ 0.0
 RandomVariable/Uniform set max_ 1.0
 RandomVariable/Exponential set avg_ 1.0
+RandomVariable/Erlang set lambda_ 1.0
+RandomVariable/Erlang set k_ 1.0
+RandomVariable/Gamma set alpha_ 1.0
+RandomVariable/Gamma set beta_ 1.0
 RandomVariable/Pareto set avg_ 1.0
 RandomVariable/Pareto set shape_ 1.5
 RandomVariable/ParetoII set avg_ 10.0
@@ -609,6 +613,7 @@ Simulator set McastAddr_ 0x80000000
 Simulator set AgentTrace_ ON
 Simulator set RouterTrace_ OFF
 Simulator set MacTrace_   OFF
+Simulator set PhyTrace_   OFF
 
 # use tagged traces or positional traces?
 Simulator set TaggedTrace_ OFF
@@ -667,6 +672,8 @@ LL set avoidReordering_ false ;	#not used
 
 Snoop set debug_ false
 
+
+
 #change wrt Mike's code
  # 802.11 MIB parameters
  #
@@ -692,6 +699,23 @@ Mac/802_11 set bugFix_timer_ true;         # fix for when RTS/CTS not used
  Mac/802_11 set MinChannelTime_ 0.005		; # 5 ms
  Mac/802_11 set ChannelTime_ 0.12		;# 120 ms
 
+
+
+Mac/802_11Ext set HeaderDuration_   0.000020  ;# (SERVICE) 16bits last of PLCP header are not included
+Mac/802_11Ext set SymbolDuration_   0.000004  ;# (SERVICE) 16bits last of PLCP header are not included
+Mac/802_11Ext set BasicModulationScheme_ 0 ;# BPSK and coding rate 1/2 is the basic modulation scheme for header and ctrl packets
+Mac/802_11Ext set use_802_11a_flag_	true
+
+Mac/802_11Ext set CWMin_            15
+Mac/802_11Ext set CWMax_            1023
+Mac/802_11Ext set SlotTime_         0.000009
+Mac/802_11Ext set SIFS_             0.000016
+
+Mac/802_11Ext set RTSThreshold_     3000
+Mac/802_11Ext set ShortRetryLimit_  7
+Mac/802_11Ext set LongRetryLimit_   4
+
+Mac/802_11Ext set MAC_DBG           0
 
 
 # 
@@ -735,6 +759,23 @@ Phy/WirelessPhy set Pt_ 0.28183815
 Phy/WirelessPhy set freq_ 914e+6
 Phy/WirelessPhy set L_ 1.0  
 
+Phy/WirelessPhyExt set CSThresh_ 6.30957e-12             ;#-82 dBm
+Phy/WirelessPhyExt set noise_floor_ 7.96159e-14           ;#-101 dBm
+Phy/WirelessPhyExt set PowerMonitorThresh_ 2.653e-14     ;#-105.7 dBm (noise_floor_ / 3)
+Phy/WirelessPhyExt set Pt_  0.1
+Phy/WirelessPhyExt set freq_ 5.18e+9                    ;#5.18 GHz
+Phy/WirelessPhyExt set HeaderDuration_   0.000020       ;#20 us
+Phy/WirelessPhyExt set BasicModulationScheme_ 0        ;# BPSK
+Phy/WirelessPhyExt set L_ 1.0                          ;#default
+Phy/WirelessPhyExt set PreambleCaptureSwitch_ 1
+Phy/WirelessPhyExt set DataCaptureSwitch_ 0
+Phy/WirelessPhyExt set SINR_PreambleCapture_ 2.5118;   ;# 4 dB
+Phy/WirelessPhyExt set SINR_DataCapture_ 100.0;        ;# 10 dB
+Phy/WirelessPhyExt set trace_dist_  1e6                ;# trace until distance of 1 Mio. km ("infinty")
+Phy/WirelessPhyExt set PHY_DBG_ 0
+Phy/WirelessPhyExt set CPThresh_ 0 ;# not used by WirelessPhyExt, but available to be compabile with WirelessPhy
+Phy/WirelessPhyExt set RXThresh_ 0 ;# not used by WirelessPhyExt, but available to be compabile with WirelessPhy
+
 Phy/WiredPhy set bandwidth_ 10e6
 
 # Shadowing propagation model
@@ -742,6 +783,22 @@ Propagation/Shadowing set pathlossExp_ 2.0
 Propagation/Shadowing set std_db_ 4.0
 Propagation/Shadowing set dist0_ 1.0
 Propagation/Shadowing set seed_ 0
+
+Propagation/Nakagami set gamma0_ 1.9
+Propagation/Nakagami set gamma1_ 3.8
+Propagation/Nakagami set gamma2_ 3.8
+
+Propagation/Nakagami set d0_gamma_ 200
+Propagation/Nakagami set d1_gamma_ 500
+
+Propagation/Nakagami set use_nakagami_dist_ false
+
+Propagation/Nakagami set m0_  1.5
+Propagation/Nakagami set m1_  0.75
+Propagation/Nakagami set m2_  0.75
+
+Propagation/Nakagami set d0_m_ 80
+Propagation/Nakagami set d1_m_ 200
 
 # Turning on/off sleep-wakeup cycles for SMAC
 Mac/SMAC set syncFlag_ 0
@@ -1397,4 +1454,8 @@ Agent/TCP/Linux set ts_resetRTO_ true
 Agent/TCP/Linux set next_pkts_in_flight_ 0
 Agent/TCP/Linux set delay_growth_ false
 
+Agent/PBC set payloadSize 200
+Agent/PBC set periodicBroadcastInterval 1
+Agent/PBC set periodicBroadcastVariance 0.1
+Agent/PBC set modulationScheme 0
 

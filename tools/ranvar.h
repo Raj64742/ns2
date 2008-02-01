@@ -38,7 +38,7 @@
  * this exception also makes it possible to release a modified version
  * which carries forward this exception.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.h,v 1.17 2006/02/02 18:19:44 mweigle Exp $ (Xerox)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.h,v 1.18 2008/02/01 21:39:43 tom_henderson Exp $ (Xerox)
  */
 
 #ifndef ns_ranvar_h
@@ -92,6 +92,30 @@ class ExponentialRandomVariable : public RandomVariable {
  private:
 	double avg_;
 };
+
+class ErlangRandomVariable : public RandomVariable {
+ public:
+	virtual double value();
+	ErlangRandomVariable();
+	ErlangRandomVariable(double, int);
+	virtual inline double avg() { return k_/lambda_; };
+ private:
+	double lambda_;
+	int    k_;
+};
+
+
+class GammaRandomVariable : public RandomVariable {
+ public:
+	virtual double value();
+	GammaRandomVariable();
+	GammaRandomVariable(double, double);
+	virtual inline double avg() { return alpha_*beta_; };
+ private:
+	double alpha_;
+	double beta_;
+};
+
 
 class ParetoRandomVariable : public RandomVariable {
  public:

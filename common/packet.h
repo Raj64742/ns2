@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.100 2006/02/22 13:32:23 mahrenho Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.101 2008/02/01 21:39:39 tom_henderson Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -127,6 +127,8 @@ enum packet_t {
 	PT_TFRC,
 	PT_TFRC_ACK,
 	PT_PING,
+
+	PT_PBC,
 
 	// Diffusion packets - Chalermek
 	PT_DIFF,
@@ -226,6 +228,8 @@ public:
  		name_[PT_TFRC]= "tcpFriend";
 		name_[PT_TFRC_ACK]= "tcpFriendCtl";
 		name_[PT_PING]="ping";
+	
+		name_[PT_PBC] = "PBC";
 
 	 	/* For diffusion : Chalermek */
  		name_[PT_DIFF] = "diffusion";
@@ -451,6 +455,8 @@ static const iface_literal ANY_IFACE(iface_literal::ANY_IFACE, "*");
  */
 enum ns_af_enum { NS_AF_NONE, NS_AF_ILINK, NS_AF_INET };
 
+enum ModulationScheme {BPSK = 0, QPSK = 1, QAM16 = 2, QAM64 = 3};
+
 struct hdr_cmn {
 	enum dir_t { DOWN= -1, NONE= 0, UP= 1 };
 	packet_t ptype_;	// packet type (see above)
@@ -517,6 +523,9 @@ struct hdr_cmn {
 	inline int& num_forwards() { return (num_forwards_); }
 	inline int& opt_num_forwards() { return (opt_num_forwards_); }
         //monarch_end
+
+	ModulationScheme mod_scheme_;
+	inline ModulationScheme& mod_scheme() { return (mod_scheme_); }
 };
 
 

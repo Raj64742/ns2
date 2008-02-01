@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.h,v 1.25 2005/07/27 01:13:45 tomh Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.h,v 1.26 2008/02/01 21:39:43 tom_henderson Exp $
  */
 
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
@@ -63,6 +63,8 @@
 #define TR_MAC		0x02
 #define TR_IFQ		0x04
 #define TR_AGENT	0x08
+
+#define TR_PHY		0x10
 
 #define DROP_END_OF_SIMULATION		"END"
 #define	DROP_MAC_COLLISION		"COL"
@@ -118,6 +120,8 @@ private:
 
         void    nam_format(Packet *p, int offset);
 
+	void	format_phy(Packet *p, int offset);
+	
 	void	format_mac_common(Packet *p, const char *why, int offset);
 	void    format_mac(Packet *p, int offset);
 	void    format_smac(Packet *p, int offset);
