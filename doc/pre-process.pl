@@ -141,7 +141,7 @@ sub pre_process_file
 	    $_ = rewrite_code_line($_);
 	};
         # can't read the alist in nsdoc.sty 
-        s/alist/\\par\\tabular{\\textwidth}{rX}/g;
+        s/\{alist\}/\{\\par\\tabular{\\textwidth}{rX}\}/g;
         # latex2html does not read \def macros; therefore, we must
         # remap them here to normal latex commands
         s/\\nsf/\\textasciitilde\\emph{ns}\//g;

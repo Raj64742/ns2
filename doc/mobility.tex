@@ -383,14 +383,12 @@ docuentation from CMU shall be available in the future.
   a specified destination address. See \nsf{priqueue.\{cc,h\}} for 
   interface queue implementation.
 
-\item[{\bf Mac Layer}] The IEEE 802.11 distributed coordination 
-  function (DCF) Mac protocol has been implemented by CMU. It uses a 
-  RTS/CTS/DATA/ACK pattern for all unicast packets and simply sends out
-  DATA for all broadcast packets. The implementation uses both 
-  physical and virtual carrier sense. The
-  \clsref{Mac802\_11}{../ns-2/mac-802\_11.h} is implemented in
-  \nsf{mac-802\_11.\{cc,h\}}.
-  
+\item[{\bf Mac Layer}] Historically, ns-2 (prior to release ns-2.33)
+  has used the implementation of IEEE 802.11 distributed coordination 
+  function (DCF) from CMU. Starting with ns-2.33, several 802.11 
+  implementations are available.  See section \ref{sec:802_11} for
+  more information.
+
 \item[{\bf Tap Agents}] \code{Agents} that subclass themselves as
   \clsref{Tap}{../ns-2/mac.h} defined in mac.h can register themselves
   with the mac object using method installTap(). If the particular Mac
@@ -436,7 +434,80 @@ In this section
 \subsubsection{802.11 MAC protocol}
 \label{sec:802_11}
 
-See \nsf{mac-802\_11.\{cc,h\}} for implementation details.
+Prior to release ns-2.33, there was only one main-tree 802.11 model,
+although other researchers were maintaining third-party patches
+on the web.  Starting with ns-2.33, there are multiple choices in
+the main distribution.
+
+The first extension described below (infrastructure mode) extends
+the legacy model to include infrastructure mode.  However, the last
+two items (802.11Ext and dei802mr) are complete replacements for the
+legacy model.
+
+Therefore, researchers now have a choice of 802.11 models, and
+should carefully read the documentation and code of each one to
+understand which is the best fit for the job. 
+
+\begin{description}
+\item[{\bf 802.11 DCF from CMU}] 
+  This model has been the only model available in the main \ns source
+  tree prior to release ns-2.33.  See \nsf{mac-802\_11.\{cc,h\}} for 
+  implementation details.  It uses a 
+  RTS/CTS/DATA/ACK pattern for all unicast packets and simply sends out
+  DATA for all broadcast packets. The implementation uses both 
+  physical and virtual carrier sense. The
+  \clsref{Mac802\_11}{../ns-2/mac-802\_11.h} is implemented in
+  \nsf{mac-802\_11.\{cc,h\}}.
+\item[{\bf 802.11 infrastructure extensions}] 
+  Ilango Purushothaman from the University of Washington has implemented
+  infrastructure extensions to the above 802.11 model, and fixed some bugs
+  along the way.  The extensions include passive and active scanning,
+  authentication, association, inter-AP communications, and mobility
+  support (handoff).  Please note that this model still supports
+  single-channel scenarios only. 
+\begin{itemize}
+\item {\bf Documentation:} http://ee.washington.edu/research/funlab/802\_11/report\_80211\_IM.pdf
+\item {\bf Example script:} tcl/ex/infra.tcl 
+\item {\bf Test suite:} tcl/test/test-suite-wireless-infra-mobility.tcl tcl/test/test-suite-wireless-infra.tcl
+\end{itemize}
+\item[{\bf 802.11Ext}]  
+  A team from Mercedes-Benz Research and Development North America and
+  from University of Karlsruhe have collaborated to develop a completely
+  new 802.11 Mac and Phy model, called Mac802\_11Ext and WirelessPhyExt,
+  respectively.  The new model contains the following features:
+\begin{itemize}
+\item Structured design of MAC functionality modules:  transmission, 
+reception, transmission coordination, reception coordination, backoff
+manager, and channel state monitor
+\item Cumulative SINR computation
+\item MAC frame capture capabbilities
+\item Multiple modulation scheme support
+\item Packet drop tracing at the PHY layer
+\item Nakagami fading model
+\end{itemize}
+This model should be used as a replacement for the existing models.  The
+example scripts show how to do this.
+\begin{itemize}
+\item {\bf Key files:}  apps/pbc.\{cc,h\}, mac/mac-802\_11Ext.\{cc,h\}, mac/wireless-phyExt.\{cc,h\}, mobile/nakagami.\{cc,h\}
+\item {\bf Documentation:}  http://dsn.tm.uni-karlsruhe.de/Overhaul\_NS-2.php
+\item {\bf Example scripts:}  tcl/ex/802.11/ directory:  IEEE802-11a.tcl IEEE802-11p.tcl broadcast\_validation.tcl unicast\_validation.tcl
+\item {\bf Test suite:}  tcl/test/test-suite-wireless-lan-newnode-80211Ext.tcl
+\end{itemize}
+\end{description}
+  
+In addition, a  patch (relating to the CMU implementation) improving ns-2 
+802.11 wireless support is available at http://www.telematica.polito.it/fiore/.
+The patch introduces realistic channel propagation, concurrent multiple 
+data transmission rates among stations and ARF mechanisms, has been 
+tested with ns-2.29, and features the following contributions:
+\begin{itemize}
+\item channel propagation improvements by Wu Xiuchao
+\item ricean propagation model by Ratish J. Punnoose
+\item SNOOPy calendar scheduler by David X. Wei
+\item 802.11 bug fixes by Felix Schmidt-Eisenlohr
+\item multiple data transmission rates support by Marco Fiore
+\item Adaptive Auto Rate Fallback (AARF) by Marco Fiore. 
+\end{itemize}
 
 \subsubsection{Preamble based TDMA protocol}
 \label{sec:tdma}
