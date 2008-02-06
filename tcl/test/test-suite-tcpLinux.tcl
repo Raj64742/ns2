@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpLinux.tcl,v 1.1 2007/12/04 19:59:32 seashadow Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpLinux.tcl,v 1.2 2008/02/06 09:45:17 seashadow Exp $
 #
 
 
@@ -154,6 +154,7 @@ Test/tcpLinuxBase instproc run {} {
     set ftp1 [$tcp1 attach-app FTP]
     $self enable_tracecwnd $ns_ $tcp1
     $ns_ at 0.0 "$tcp1 select_ca $cc_"
+    $ns_ at 0.0 "$tcp1 set_ca_default_param linux debug_level 2"
     $ns_ at 0.1 "$ftp1 start"
     $ns_ at $stopTime0 "$ftp1 stop"
 

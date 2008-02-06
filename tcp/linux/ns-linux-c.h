@@ -159,7 +159,7 @@ extern int fls64(__u64 x);
 
 #define jiffies tcp_time_stamp
 
-#define pr_debug(args...) printf(args)
+#define pr_debug(args...) {if ((debug_level+'0') <= KERN_NOTICE[1]) printf(args);}
 
 #define __read_mostly 
 
