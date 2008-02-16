@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.52 2008/01/24 01:53:19 tom_henderson Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.53 2008/02/16 00:09:27 tom_henderson Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  * Contributions by:
@@ -208,6 +208,9 @@ Mac802_11::Mac802_11() :
 	pktBEACON_ = 0;
 	pktASSOCREP_ = 0;
 	pktASSOCREQ_ = 0;
+	pktAUTHENTICATE_ = 0;
+	pktPROBEREQ_ = 0;
+	pktPROBEREP_ = 0;
 	BeaconTxtime_ = 0;
 	infra_mode_ = 0;	
 	cw_ = phymib_.getCWMin();
