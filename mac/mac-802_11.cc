@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.53 2008/02/16 00:09:27 tom_henderson Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.54 2008/02/17 05:29:10 tom_henderson Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  * Contributions by:
@@ -234,6 +234,7 @@ Mac802_11::Mac802_11() :
 	Recv_Busy_ = 0;
 	handoff= 0;
 //	ssid_ = "0";
+        memset(priority_queue, 0, sizeof(priority_queue));
 	
 	// chk if basic/data rates are set
 	// otherwise use bandwidth_ as default;
