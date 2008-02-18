@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.275 2008/02/01 21:39:42 tom_henderson Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.276 2008/02/18 03:39:02 tom_henderson Exp $
 
 
 #
@@ -378,6 +378,11 @@ Simulator instproc satNodeType {val} {$self set satNodeType_ $val}
 Simulator instproc downlinkBW {val} {$self set downlinkBW_ $val}
 Simulator instproc stopTime {val} {$self set stopTime_ $val}
 
+# This method is needed so that new Routing Agents can be implemented in a dynamic
+# library and used without having to modify Simulator::create-wireless-node
+Simulator instproc rtAgentFunction {val} {$self set rtAgentFunction_ $val}
+
+
 # change wrt Mike's code
 Simulator instproc eotTrace  {val} { $self set eotTrace_  $val }
 Simulator instproc diffusionFilter {val} {$self set diffFilter_ $val}
@@ -601,7 +606,7 @@ Simulator instproc create-wireless-node args {
 	    macType_ ifqType_ ifqlen_ phyType_ chan antType_ \
 	    energyModel_ initialEnergy_ txPower_ rxPower_ \
 	    idlePower_ sleepPower_ sleepTime_ transitionPower_ transitionTime_ \
-	    topoInstance_ level1_ level2_ inerrProc_ outerrProc_ FECProc_
+	    topoInstance_ level1_ level2_ inerrProc_ outerrProc_ FECProc_ rtAgentFunction_
 
 	Simulator set IMEPFlag_ OFF
 
@@ -612,51 +617,55 @@ Simulator instproc create-wireless-node args {
         if { [info exist wiredRouting_] && $wiredRouting_ == "ON" } {
 		$node base-station [AddrParams addr2id [$node node-addr]]
     	}
-        switch -exact $routingAgent_ {
-	    DSDV {
-		    set ragent [$self create-dsdv-agent $node]
-	    }
-	    DSR {
-		    $self at 0.0 "$node start-dsr"
-	    }
-	    AODV {
-		    set ragent [$self create-aodv-agent $node]
-	    }
-	    TORA {
-		    Simulator set IMEPFlag_ ON
-		    set ragent [$self create-tora-agent $node]
-	    }
-	    DIFFUSION/RATE {
-		    eval $node addr $args
-		    set ragent [$self create-diffusion-rate-agent $node]
-	    }
-	    DIFFUSION/PROB {
-		    eval $node addr $args
-		    set ragent [$self create-diffusion-probability-agent $node]
-	    }
-	    Directed_Diffusion {
-		    eval $node addr $args
-		    set ragent [$self create-core-diffusion-rtg-agent $node]
-	    }
-	    FLOODING {
-		    eval $node addr $args
-		    set ragent [$self create-flooding-agent $node]
-	    }
-	    OMNIMCAST {
-		    eval $node addr $args
-		    set ragent [$self create-omnimcast-agent $node]
-	    }
-	    DumbAgent {
-		    set ragent [$self create-dumb-agent $node]
-	    }
-	    ManualRtg {
-		    set ragent [$self create-manual-rtg-agent $node]
-	    }
-	    default {
-		    eval $node addr $args
-		    puts "Wrong node routing agent!"
-		    exit
-	    }
+        if {$rtAgentFunction_ != ""} {
+		set ragent [$self $rtAgentFunction_ $node]
+	} else {
+		switch -exact $routingAgent_ {
+		    DSDV {
+			    set ragent [$self create-dsdv-agent $node]
+		    }
+		    DSR {
+			    $self at 0.0 "$node start-dsr"
+		    }
+		    AODV {
+			    set ragent [$self create-aodv-agent $node]
+		    }
+		    TORA {
+			    Simulator set IMEPFlag_ ON
+			    set ragent [$self create-tora-agent $node]
+		    }
+		    DIFFUSION/RATE {
+			    eval $node addr $args
+			    set ragent [$self create-diffusion-rate-agent $node]
+		    }
+		    DIFFUSION/PROB {
+			    eval $node addr $args
+			    set ragent [$self create-diffusion-probability-agent $node]
+		    }
+		    Directed_Diffusion {
+			    eval $node addr $args
+			    set ragent [$self create-core-diffusion-rtg-agent $node]
+		    }
+		    FLOODING {
+			    eval $node addr $args
+			    set ragent [$self create-flooding-agent $node]
+		    }
+		    OMNIMCAST {
+			    eval $node addr $args
+			    set ragent [$self create-omnimcast-agent $node]
+		    }
+		    DumbAgent {
+			    set ragent [$self create-dumb-agent $node]
+		    }
+		    ManualRtg {
+			    set ragent [$self create-manual-rtg-agent $node]
+		    }
+		    default {
+			    eval $node addr $args
+			    puts "Wrong node routing agent!"
+			    exit
+		    }
+		}
 	}
 
 	# errProc_ and FECProc_ are an option unlike other 

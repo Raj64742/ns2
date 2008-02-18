@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.101 2008/02/01 21:39:39 tom_henderson Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.102 2008/02/18 03:39:02 tom_henderson Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -72,113 +72,217 @@
 
 /* --------------------------------------------------------------------*/
 
-enum packet_t {
-	PT_TCP,
-	PT_UDP,
-	PT_CBR,
-	PT_AUDIO,
-	PT_VIDEO,
-	PT_ACK,
-	PT_START,
-	PT_STOP,
-	PT_PRUNE,
-	PT_GRAFT,
-	PT_GRAFTACK,
-	PT_JOIN,
-	PT_ASSERT,
-	PT_MESSAGE,
-	PT_RTCP,
-	PT_RTP,
-	PT_RTPROTO_DV,
-	PT_CtrMcast_Encap,
-	PT_CtrMcast_Decap,
-	PT_SRM,
-	/* simple signalling messages */
-	PT_REQUEST,	
-	PT_ACCEPT,	
-	PT_CONFIRM,	
-	PT_TEARDOWN,	
-	PT_LIVE,	// packet from live network
-	PT_REJECT,
+/*
+ * modified ns-2.33, adding support for dynamic libraries
+ * 
+ * packet_t is changed from enum to unsigned int in order to allow
+ * dynamic definition of  new packet types within dynamic libraries.
+ * Pre-defined packet types are implemented as static const.
+ * 
+ */
 
-	PT_TELNET,	// not needed: telnet use TCP
-	PT_FTP,
-	PT_PARETO,
-	PT_EXP,
-	PT_INVAL,
-	PT_HTTP,
+typedef unsigned int packet_t;
 
-	/* new encapsulator */
-	PT_ENCAPSULATED,
-	PT_MFTP,
+static const packet_t PT_TCP = 0;
+static const packet_t PT_UDP = 1;
+static const packet_t PT_CBR = 2;
+static const packet_t PT_AUDIO = 3;
+static const packet_t PT_VIDEO = 4;
+static const packet_t PT_ACK = 5;
+static const packet_t PT_START = 6;
+static const packet_t PT_STOP = 7;
+static const packet_t PT_PRUNE = 8;
+static const packet_t PT_GRAFT = 9;
+static const packet_t PT_GRAFTACK = 10;
+static const packet_t PT_JOIN = 11;
+static const packet_t PT_ASSERT = 12;
+static const packet_t PT_MESSAGE = 13;
+static const packet_t PT_RTCP = 14;
+static const packet_t PT_RTP = 15;
+static const packet_t PT_RTPROTO_DV = 16;
+static const packet_t PT_CtrMcast_Encap = 17;
+static const packet_t PT_CtrMcast_Decap = 18;
+static const packet_t PT_SRM = 19;
+        /* simple signalling messages */
+static const packet_t PT_REQUEST = 20;
+static const packet_t PT_ACCEPT = 21;
+static const packet_t PT_CONFIRM = 22;
+static const packet_t PT_TEARDOWN = 23;
+static const packet_t PT_LIVE = 24;   // packet from live network
+static const packet_t PT_REJECT = 25;
 
-	/* CMU/Monarch's extnsions */
-	PT_ARP,
-	PT_MAC,
-	PT_TORA,
-	PT_DSR,
-	PT_AODV,
-	PT_IMEP,
+static const packet_t PT_TELNET = 26; // not needed: telnet use TCP
+static const packet_t PT_FTP = 27;
+static const packet_t PT_PARETO = 28;
+static const packet_t PT_EXP = 29;
+static const packet_t PT_INVAL = 30;
+static const packet_t PT_HTTP = 31;
 
-	// RAP packets
-	PT_RAP_DATA,
-	PT_RAP_ACK,
+        /* new encapsulator */
+static const packet_t PT_ENCAPSULATED = 32;
+static const packet_t PT_MFTP = 33;
 
-	PT_TFRC,
-	PT_TFRC_ACK,
-	PT_PING,
+        /* CMU/Monarch's extnsions */
+static const packet_t PT_ARP = 34;
+static const packet_t PT_MAC = 35;
+static const packet_t PT_TORA = 36;
+static const packet_t PT_DSR = 37;
+static const packet_t PT_AODV = 38;
+static const packet_t PT_IMEP = 39;
+        
+        // RAP packets
+static const packet_t PT_RAP_DATA = 40;
+static const packet_t PT_RAP_ACK = 41;
+  
+static const packet_t PT_TFRC = 42;
+static const packet_t PT_TFRC_ACK = 43;
+static const packet_t PT_PING = 44;
+        
+static const packet_t PT_PBC = 45;
+        // Diffusion packets - Chalermek
+static const packet_t PT_DIFF = 46;
+        
+        // LinkState routing update packets
+static const packet_t PT_RTPROTO_LS = 47;
+        
+        // MPLS LDP header
+static const packet_t PT_LDP = 48;
+        
+        // GAF packet
+static const packet_t PT_GAF = 49;
+        
+        // ReadAudio traffic
+static const packet_t PT_REALAUDIO = 50;
+        
+        // Pushback Messages
+static const packet_t PT_PUSHBACK = 51;
+  
+  #ifdef HAVE_STL
+        // Pragmatic General Multicast
+static const packet_t PT_PGM = 52;
+  #endif //STL
+        // LMS packets
+static const packet_t PT_LMS = 53;
+static const packet_t PT_LMS_SETUP = 54;
 
-	PT_PBC,
+static const packet_t PT_SCTP = 55;
+static const packet_t PT_SCTP_APP1 = 56;
 
-	// Diffusion packets - Chalermek
-	PT_DIFF,
+        // SMAC packet
+static const packet_t PT_SMAC = 57;
+        // XCP packet
+static const packet_t PT_XCP = 58;
 
-	// LinkState routing update packets
-	PT_RTPROTO_LS,
+        // HDLC packet
+static const packet_t PT_HDLC = 59;
 
-	// MPLS LDP header
-	PT_LDP,
+        // Bell Labs Traffic Trace Type (PackMime OL)
+static const packet_t PT_BLTRACE = 60;
 
-	// GAF packet
-        PT_GAF,  
+        // insert new packet types here
+static packet_t       PT_NTYPE = 61; // This MUST be the LAST one
 
-	// ReadAudio traffic
-	PT_REALAUDIO,
+enum packetClass
+{
+	UNCLASSIFIED,
+	ROUTING,
+	DATApkt
+  };
 
-	// Pushback Messages
-	PT_PUSHBACK,
 
-#ifdef HAVE_STL
-	// Pragmatic General Multicast
-	PT_PGM,
-#endif //STL
+/*
+ * ns-2.33 adding support for dynamic libraries
+ * 
+ * The PacketClassifier class is needed to make
+ * p_info::data_packet(packet_t) work also with dynamically defined
+ * packet types.
+ * 
+ */
+class PacketClassifier
+{
+	public:
+		PacketClassifier(): next_(0){}
+		virtual ~PacketClassifier() {}
+		void setNext(PacketClassifier *next){next_ = next;}
+		PacketClassifier *getNext(){return next_;}
+		packetClass classify(packet_t type) 
+		{
+		        packetClass c = getClass(type);
+		        if(c == UNCLASSIFIED && next_)
+		                c = next_->classify(type);
+		        return c;
+		}
 
-	// LMS packets
-	PT_LMS,
-	PT_LMS_SETUP,
-
-	PT_SCTP,
-	PT_SCTP_APP1,
-
-	// SMAC packet
-	PT_SMAC,
-
-	// XCP packet
-	PT_XCP,
-	
-	// HDLC packet
-	PT_HDLC,
-
-	// Bell Labs Traffic Trace Type (PackMime OL)
-	PT_BLTRACE, 
-
-	// insert new packet types here
-	PT_NTYPE // This MUST be the LAST one
+	protected:
+		//return 0 if the packet is unknown
+		virtual packetClass getClass(packet_t type) = 0;        
+		PacketClassifier *next_;
 };
 
 class p_info {
 public:
-	p_info() {
+	p_info()
+	{
+		initName();
+	}
+	const char* name(packet_t p) const { 
+		if ( p <= p_info::nPkt_ ) return name_[p];
+		return 0;
+	}
+	static bool data_packet(packet_t type) {
+		return ( (type) == PT_TCP || \
+		         (type) == PT_TELNET || \
+		         (type) == PT_CBR || \
+		         (type) == PT_AUDIO || \
+		         (type) == PT_VIDEO || \
+		         (type) == PT_ACK || \
+		         (type) == PT_SCTP || \
+		         (type) == PT_SCTP_APP1 || \
+		         (type) == PT_HDLC \
+		        );
+	}
+	static packetClass classify(packet_t type) {		
+		if (type == PT_DSR || 
+		    type == PT_MESSAGE || 
+		    type == PT_TORA || 
+		    type == PT_AODV)
+			return ROUTING;		
+		if (type == PT_TCP || 
+		    type == PT_TELNET || 
+		    type == PT_CBR || 
+		    type == PT_AUDIO || 
+		    type == PT_VIDEO || 
+		    type == PT_ACK || 
+		    type == PT_SCTP || 
+		    type == PT_SCTP_APP1 || 
+		    type == PT_HDLC)
+			return DATApkt;
+		if (pc_)
+			return pc_->classify(type);
+		return UNCLASSIFIED;
+	}
+	static void addPacketClassifier(PacketClassifier *pc)
+	{
+		if(!pc)
+		        return;
+		pc->setNext(pc_);
+		pc_ = pc;
+	}       
+	static void initName()
+	{
+		if(nPkt_ >= PT_NTYPE+1)
+		        return;
+		char **nameNew = new char*[PT_NTYPE+1];
+		for(unsigned int i = (unsigned int)PT_SMAC+1; i < nPkt_; i++)
+		{
+		        nameNew[i] = name_[i];
+		}
+		if(!nPkt_)
+		        delete [] name_;
+		name_ = nameNew;
+		nPkt_ = PT_NTYPE+1;
+		
+
 		name_[PT_TCP]= "tcp";
 		name_[PT_UDP]= "udp";
 		name_[PT_CBR]= "cbr";
@@ -199,14 +303,14 @@ public:
 		name_[PT_CtrMcast_Encap]= "CtrMcast_Encap";
 		name_[PT_CtrMcast_Decap]= "CtrMcast_Decap";
 		name_[PT_SRM]= "SRM";
-
+	
 		name_[PT_REQUEST]= "sa_req";	
 		name_[PT_ACCEPT]= "sa_accept";
 		name_[PT_CONFIRM]= "sa_conf";
 		name_[PT_TEARDOWN]= "sa_teardown";
 		name_[PT_LIVE]= "live"; 
 		name_[PT_REJECT]= "sa_reject";
-
+	
 		name_[PT_TELNET]= "telnet";
 		name_[PT_FTP]= "ftp";
 		name_[PT_PARETO]= "pareto";
@@ -275,28 +379,24 @@ public:
 		
 		name_[PT_NTYPE]= "undefined";
 	}
-	const char* name(packet_t p) const { 
-		if ( p <= PT_NTYPE ) return name_[p];
-		return 0;
-	}
-	static bool data_packet(packet_t type) {
-		return ( (type) == PT_TCP || \
-			 (type) == PT_TELNET || \
-			 (type) == PT_CBR || \
-			 (type) == PT_AUDIO || \
-			 (type) == PT_VIDEO || \
-			 (type) == PT_ACK || \
-			 (type) == PT_SCTP || \
-			 (type) == PT_SCTP_APP1 || \
-			 (type) == PT_HDLC \
-			);
+	static int addPacket(char *name);
+	static packet_t getType(const char *name)
+	{
+		for(unsigned int i = 0; i < nPkt_; i++)
+		{
+		        if(strcmp(name, name_[i]) == 0)
+		                return i;
+		}
+		return PT_NTYPE;
+
 	}
 private:
-	static char* name_[PT_NTYPE+1];
+	static char** name_;
+	static unsigned int nPkt_;
+	static PacketClassifier *pc_;
 };
 extern p_info packet_info; /* map PT_* to string name */
 //extern char* p_info::name_[];
-
 
 #define DATA_PACKET(type) ( (type) == PT_TCP || \
                             (type) == PT_TELNET || \
@@ -307,7 +407,6 @@ extern p_info packet_info; /* map PT_* to string name */
                             (type) == PT_SCTP || \
                             (type) == PT_SCTP_APP1 \
                             )
-
 
 //#define OFFSET(type, field)	((long) &((type *)0)->field)
 #define OFFSET(type, field) ( (char *)&( ((type *)256)->field )  - (char *)256)

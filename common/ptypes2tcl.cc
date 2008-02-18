@@ -10,7 +10,20 @@
 #define TCL2C_INT
 #endif
 
-char* p_info::name_[PT_NTYPE+1];
+char** p_info::name_;
+unsigned int p_info::nPkt_ = 0;
+PacketClassifier *p_info::pc_ = 0;
+int p_info::addPacket(char *name)
+{
+	if(!nPkt_)
+		initName();
+	
+	int newID = nPkt_-1;
+	PT_NTYPE = nPkt_;
+	initName();
+	name_[newID] = name;
+	return newID;
+}
 
 void
 printLine(char *s) {
@@ -48,7 +61,7 @@ int main() {
 	printLine("set ptype(error) -1");
 	printLine("set pvals(-1) error");
 	char strbuf[512];
-	for (int i = 0; i < PT_NTYPE; i++) {
+	for (unsigned int i = 0; i < PT_NTYPE; i++) {
 		sprintf(strbuf, "set ptype(%s) %d", lcase(pinfo.name(packet_t(i))), i);
 		printLine(strbuf);
 		sprintf(strbuf, "set pvals(%d) %s", i, pinfo.name(packet_t(i)));

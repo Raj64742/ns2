@@ -36,6 +36,7 @@ BLANK	= # make a blank space.  DO NOT add anything to this line
 CC	= @CC@
 CPP	= @CXX@
 LINK	= $(CPP)
+LINK_SHLIB = @SHLIB_LD@
 MKDEP	= ./conf/mkdep
 TCLSH	= @V_TCLSH@
 TCL2C	= @V_TCL2CPP@
@@ -55,12 +56,13 @@ PERL	= @PERL@
 CCOPT	= @V_CCOPT@ 
 STATIC	= @V_STATIC@
 #LDFLAGS	= $(STATIC)
-LDFLAGS	= @LDFLAGS@
+LDFLAGS	= @LDFLAGS@ 
 LDOUT	= -o $(BLANK)
 
 DEFINE	= -DTCP_DELAY_BIND_ALL -DNO_TK @V_DEFINE@ @V_DEFINES@ @DEFS@ -DNS_DIFFUSION -DSMAC_NO_SYNC -DCPP_NAMESPACE=@CPP_NAMESPACE@ -DUSE_SINGLE_ADDRESS_SPACE -Drng_test
 
 INCLUDES = \
+	-I. @V_INCLUDE_X11@ \
 	-I. \
 	@V_INCLUDES@ \
 	-I./tcp -I./sctp -I./common -I./link -I./queue \
@@ -75,11 +77,12 @@ INCLUDES = \
 
 LIB	= \
 	@V_LIBS@ \
+	@V_LIB_X11@ \
 	@V_LIB@ \
 	-lm @LIBS@
 #	-L@libdir@ \
 
-CFLAGS	+= $(CCOPT) $(DEFINE)
+CFLAGS	+= $(CCOPT) $(DEFINE) 
 
 # Explicitly define compilation rules since SunOS 4's make doesn't like gcc.
 # Also, gcc does not remove the .o before forking 'as', which can be a
@@ -98,8 +101,10 @@ CFLAGS	+= $(CCOPT) $(DEFINE)
 GEN_DIR	= gen/
 LIB_DIR	= lib/
 NS	= ns
+NSLIB   = @NSLIB@
 NSX	= nsx
 NSE	= nse
+NSTK = nstk
 
 # To allow conf/makefile.win overwrite this macro
 # We will set these two macros to empty in conf/makefile.win since VC6.0
@@ -350,6 +355,7 @@ OBJ =	$(OBJ_C) $(OBJ_CC) $(OBJ_GEN) $(OBJ_COMPAT)
 
 CLEANFILES = ns nse nsx ns.dyn $(OBJ) $(OBJ_EMULATE_CC) \
 	$(OBJ_EMULATE_C) common/tclAppInit.o \
+	common/tkAppInit.o nstk \
 	$(GEN_DIR)* $(NS).core core core.$(NS) core.$(NSX) core.$(NSE) \
 	common/ptypes2tcl.exe common/ptypes2tcl.o 
 
@@ -362,29 +368,59 @@ SUBDIRS=\
 
 BUILD_NSE = @build_nse@
 
-all: $(NS) $(BUILD_NSE) all-recursive
+all: $(NS) $(BUILD_NSE) $(NSTK) all-recursive Makefile
 
 
 all-recursive:
 	for i in $(SUBDIRS); do ( cd $$i; $(MAKE) all; ) done
 
-$(NS): $(OBJ) common/tclAppInit.o
-	$(LINK) $(LDFLAGS) $(LDOUT)$@ \
-		common/tclAppInit.o $(OBJ) $(LIB)
 
-$(NSE): $(OBJ) common/tclAppInit.o $(OBJ_EMULATE_CC) $(OBJ_EMULATE_C)
-	$(LINK) $(LDFLAGS) $(LDOUT)$@ \
-		common/tclAppInit.o $(OBJ) \
-		$(OBJ_EMULATE_CC) $(OBJ_EMULATE_C)  $(LIB) 
 
-ns.dyn: $(OBJ) common/tclAppInit.o
-	$(LINK) $(LDFLAGS) -o $@ \
-		common/tclAppInit.o $(OBJ) $(LIB)
+
+NS_LDFLAGS = -Wl,-export-dynamic  $(LDFLAGS)
+
+ifeq ($(NSLIB),libns.dll)
+
+# This is for cygwin
+
+NS_CPPFLAGS = -DNSLIBNAME=\"$(NSLIB)\" 
+NS_LIBS =  @DL_LIBS@
+
+$(NSLIB): $(OBJ) common/tclAppInit.o 
+	$(LINK) -shared $(LDFLAGS) \
+		$(LDOUT)$@  \
+		-Wl,--export-all-symbols \
+		-Wl,--enable-auto-import \
+		-Wl,--out-implib=$@.a \
+		-Wl,--whole-archive $^ \
+		-Wl,--no-whole-archive @V_IMPORT_LIBS@ 
+
+$(NS): $(NSLIB) common/main-modular.cc 
+	$(LINK) $(NS_CPPFLAGS) $(NS_LDFLAGS) $(LDOUT)$@ common/main-modular.cc $(NS_LIBS)
+
+else 
+
+# default for all systems but cygwin
+
+$(NS): $(OBJ) common/tclAppInit.o common/main-monolithic.o
+	$(LINK) $(NS_LDFLAGS) $(LDOUT)$@ $^ $(LIB)
+
+endif 
+
+
+
+$(NSE): $(OBJ) common/tclAppInit.o common/main-monolithic.o $(OBJ_EMULATE_CC) $(OBJ_EMULATE_C)
+	$(LINK) $(LDFLAGS) $(LDOUT)$@ $^ $(LIB) 
+
+$(NSTK): $(OBJ) common/tkAppInit.o 
+	$(LINK) $(LDFLAGS) $(LDOUT)$@ $^ $(LIB)
+
+ns.dyn: $(OBJ) common/tclAppInit.o common/main-monolithic.o 
+	$(LINK) $(LDFLAGS) -o $@ $^ $(LIB)
 
 PURIFY	= purify -cache-dir=/tmp
-ns-pure: $(OBJ) common/tclAppInit.o
-	$(PURIFY) $(LINK) $(LDFLAGS) -o $@ \
-		common/tclAppInit.o $(OBJ) $(LIB)
+ns-pure: $(OBJ) common/tclAppInit.o common/main-monolithic.o 
+	$(PURIFY) $(LINK) $(LDFLAGS) -o $@ $^ $(LIB)
 
 NS_TCL_LIB = \
 	tcl/lib/ns-compat.tcl \
@@ -525,7 +561,7 @@ tcl/lib/TAGS:	force
 	)
 
 depend: $(SRC)
-	$(MKDEP) -- $(CFLAGS) $(INCLUDES) -- -Y $(SRC) >& /dev/null
+	$(MKDEP) $(CFLAGS) $(INCLUDES) -- $(SRC) >& /dev/null
 
 srctar:
 	@cwd=`pwd` ; dir=`basename $$cwd` ; \
@@ -537,8 +573,8 @@ srctar:
 	    "(rm -f $$tar; cd .. ; ln -s $$dir $$name)" ; \
 	     (rm -f $$tar; cd .. ; ln -s $$dir $$name) ; \
 	    echo \
-	    "(cd .. ; tar cfh $$tar [lots of files])" ; \
-	     (cd .. ; tar cfh - $$list) | gzip -c > $$tar ; \
+	    "(cd .. ; tar cfhz $$tar [lots of files])" ; \
+	     (cd .. ; tar cfhz - $$list) > $$tar ; \
 	    echo \
 	    "rm ../$$name; chmod 444 $$tar" ;  \
 	     rm ../$$name; chmod 444 $$tar

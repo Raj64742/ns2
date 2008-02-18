@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.h,v 1.26 2008/02/01 21:39:43 tom_henderson Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.h,v 1.27 2008/02/18 03:39:03 tom_henderson Exp $
  */
 
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
@@ -93,11 +93,33 @@
 #define MAX_ID_LEN	3
 #define MAX_NODE	4096
 
+/**
+ * This class allows a dynamic library to define the tracing format
+ * for newly defined packet types 
+ * 
+ */
+class PacketTracer
+{
+	public:
+		PacketTracer();
+        	virtual ~PacketTracer();
+		void setNext(PacketTracer *next);
+		PacketTracer *getNext();
+		int format_unknow(Packet *p, int offset, BaseTrace *pt_, int newtrace);
+	protected:
+		virtual int format(Packet *p, int offset, BaseTrace *pt_, int newtrace) = 0;	//return 0 if the packet is unknown
+		PacketTracer *next_;
+};
+
+
 class CMUTrace : public Trace {
 public:
 	CMUTrace(const char *s, char t);
 	void	recv(Packet *p, Handler *h);
 	void	recv(Packet *p, const char* why);
+
+	static void addPacketTracer(PacketTracer *pt);
+
 
 private:
 	char	tracename[MAX_ID_LEN + 1];
@@ -137,6 +159,10 @@ private:
 	void	format_tora(Packet *p, int offset);
         void    format_imep(Packet *p, int offset);
         void    format_aodv(Packet *p, int offset);
+
+	// This holds all the tracers added at run-time
+	static PacketTracer *pktTrc_;
+
 };
 
 #endif /* __cmu_trace__ */

@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.379 2008/02/01 21:39:41 tom_henderson Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.380 2008/02/18 03:39:02 tom_henderson Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -617,6 +617,9 @@ Simulator set PhyTrace_   OFF
 
 # use tagged traces or positional traces?
 Simulator set TaggedTrace_ OFF
+
+# this can be set to use custom Routing Agents implemented within dynamic libraries
+Simulator set rtAgentFunction_ ""
 
 SessionHelper set rc_ 0                      ;# just to eliminate warnings
 SessionHelper set debug_ false

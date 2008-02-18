@@ -138,6 +138,8 @@ common/ip.cc
 common/ip.h
 common/ivs.cc
 common/location.h
+common/main-monolithic.cc
+common/main-modular.cc
 common/message.cc
 common/message.h
 common/messpass.cc

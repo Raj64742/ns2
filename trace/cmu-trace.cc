@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.91 2008/02/01 21:39:43 tom_henderson Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.92 2008/02/18 03:39:03 tom_henderson Exp $
  */
 
 #include <packet.h>
@@ -61,6 +61,39 @@
 //</zheng: add for 802.15.4>
 
 #include "diffusion/diff_header.h" // DIFFUSION -- Chalermek
+
+
+PacketTracer::PacketTracer() : next_(0)
+{
+}
+void PacketTracer::setNext(PacketTracer *next)
+{
+	next_ = next;
+}
+
+PacketTracer::~PacketTracer()
+{
+}
+
+PacketTracer *PacketTracer::getNext()
+{
+	return next_;
+}
+
+int PacketTracer::format_unknow(Packet *p, int offset, BaseTrace *pt, int newtrace)
+{
+	return (format(p, offset, pt, newtrace) || (next_ && next_->format_unknow(p, offset, pt, newtrace)));
+}
+
+PacketTracer *CMUTrace::pktTrc_ = 0;
+
+void CMUTrace::addPacketTracer(PacketTracer *pt)
+{
+	if(!pt)
+		return;
+	pt->setNext(pktTrc_);
+	pktTrc_ = pt;
+}
 
 
 //#define LOG_POSITION
@@ -1207,6 +1240,10 @@ void CMUTrace::format(Packet* p, const char *why)
 		case PT_PING:
 			break;
 		default:
+
+			if(pktTrc_ && pktTrc_->format_unknow(p, offset, pt_, newtrace_))
+				break;
+
 		/*<zheng: del -- there are many more new packet types added, like PT_EXP (poisson traffic belongs to this type)>
 			fprintf(stderr, "%s - invalid packet type (%s).\n",
 				__PRETTY_FUNCTION__, packet_info.name(ch->ptype()));

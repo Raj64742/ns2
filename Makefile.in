@@ -36,6 +36,7 @@ BLANK	= # make a blank space.  DO NOT add anything to this line
 CC	= @CC@
 CPP	= @CXX@
 LINK	= $(CPP)
+LINK_SHLIB = @SHLIB_LD@
 MKDEP	= ./conf/mkdep
 TCLSH	= @V_TCLSH@
 TCL2C	= @V_TCL2CPP@
@@ -55,7 +56,7 @@ PERL	= @PERL@
 CCOPT	= @V_CCOPT@ 
 STATIC	= @V_STATIC@
 #LDFLAGS	= $(STATIC)
-LDFLAGS	= @LDFLAGS@
+LDFLAGS	= @LDFLAGS@ 
 LDOUT	= -o $(BLANK)
 
 DEFINE	= -DTCP_DELAY_BIND_ALL -DNO_TK @V_DEFINE@ @V_DEFINES@ @DEFS@ -DNS_DIFFUSION -DSMAC_NO_SYNC -DCPP_NAMESPACE=@CPP_NAMESPACE@ -DUSE_SINGLE_ADDRESS_SPACE -Drng_test
@@ -100,6 +101,7 @@ CFLAGS	+= $(CCOPT) $(DEFINE)
 GEN_DIR	= gen/
 LIB_DIR	= lib/
 NS	= ns
+NSLIB   = @NSLIB@
 NSX	= nsx
 NSE	= nse
 NSTK = nstk
@@ -377,38 +379,62 @@ SUBDIRS=\
 
 BUILD_NSE = @build_nse@
 
-all: $(NS) $(BUILD_NSE) $(NSTK) all-recursive
+all: $(NS) $(BUILD_NSE) $(NSTK) all-recursive Makefile
 
 
 all-recursive:
 	for i in $(SUBDIRS); do ( cd $$i; $(MAKE) all; ) done
 
-$(NS): $(OBJ) common/tclAppInit.o Makefile
-	$(LINK) $(LDFLAGS) $(LDOUT)$@ \
-		common/tclAppInit.o $(OBJ) $(LIB)
+
+
+
+ifeq ($(NSLIB),libns.dll)
+
+# This is for cygwin
+
+NS_CPPFLAGS = -DNSLIBNAME=\"$(NSLIB)\" 
+NS_LIBS =  @DL_LIBS@
+
+$(NSLIB): $(OBJ) common/tclAppInit.o 
+	$(LINK) -shared $(LDFLAGS) \
+		$(LDOUT)$@  \
+		-Wl,--export-all-symbols \
+		-Wl,--enable-auto-import \
+		-Wl,--out-implib=$@.a \
+		-Wl,--whole-archive $^ \
+		-Wl,--no-whole-archive @V_IMPORT_LIBS@ 
+
+$(NS): $(NSLIB) common/main-modular.cc 
+	$(LINK) $(NS_CPPFLAGS) $(LDFLAGS) $(LDOUT)$@ common/main-modular.cc $(NS_LIBS)
+
+else 
+
+# default for all systems but cygwin
+
+$(NS): $(OBJ) common/tclAppInit.o common/main-monolithic.o
+	$(LINK) $(LDFLAGS) $(LDOUT)$@ $^ $(LIB)
+
+endif 
+
+
 
 Makefile: Makefile.in
 	@echo "Makefile.in is newer than Makefile."
 	@echo "You need to re-run configure."
 	false
 
-$(NSE): $(OBJ) common/tclAppInit.o $(OBJ_EMULATE_CC) $(OBJ_EMULATE_C)
-	$(LINK) $(LDFLAGS) $(LDOUT)$@ \
-		common/tclAppInit.o $(OBJ) \
-		$(OBJ_EMULATE_CC) $(OBJ_EMULATE_C)  $(LIB) 
+$(NSE): $(OBJ) common/tclAppInit.o common/main-monolithic.o $(OBJ_EMULATE_CC) $(OBJ_EMULATE_C)
+	$(LINK) $(LDFLAGS) $(LDOUT)$@ $^ $(LIB) 
 
 $(NSTK): $(OBJ) common/tkAppInit.o 
-	$(LINK) $(LDFLAGS) $(LDOUT)$@ \
-		common/tkAppInit.o $(OBJ) $(LIB)
+	$(LINK) $(LDFLAGS) $(LDOUT)$@ $^ $(LIB)
 
-ns.dyn: $(OBJ) common/tclAppInit.o
-	$(LINK) $(LDFLAGS) -o $@ \
-		common/tclAppInit.o $(OBJ) $(LIB)
+ns.dyn: $(OBJ) common/tclAppInit.o common/main-monolithic.o 
+	$(LINK) $(LDFLAGS) -o $@ $^ $(LIB)
 
 PURIFY	= purify -cache-dir=/tmp
-ns-pure: $(OBJ) common/tclAppInit.o
-	$(PURIFY) $(LINK) $(LDFLAGS) -o $@ \
-		common/tclAppInit.o $(OBJ) $(LIB)
+ns-pure: $(OBJ) common/tclAppInit.o common/main-monolithic.o 
+	$(PURIFY) $(LINK) $(LDFLAGS) -o $@ $^ $(LIB)
 
 NS_TCL_LIB = \
 	tcl/lib/ns-compat.tcl \

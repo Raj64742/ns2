@@ -78,6 +78,18 @@ AC_CHECK_TYPE(u_int, unsigned int)
 
 builtin(include, ./conf/configure.in.int64_t)
 
+
+dnl dynamic library support
+builtin(include, ./conf/configure.in.dynamic)
+AC_CHECK_HEADER([dlfcn.h], , [ AC_MSG_ERROR([cannot find dlfcn.h]) ])
+AC_MSG_CHECKING([for ns library name])
+NSLIB=libns${SHLIB_SUFFIX}
+AC_MSG_RESULT([$NSLIB])
+AC_SUBST(NSLIB)
+
+
+
+
 dnl Look for emulation specific stuff
 builtin(include, ./conf/configure.in.nse)
 
