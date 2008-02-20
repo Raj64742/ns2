@@ -3,7 +3,7 @@
 /*
  * shadowing.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: shadowing.cc,v 1.4 2005/08/25 18:58:09 johnh Exp $
+ * $Id: shadowing.cc,v 1.5 2008/02/20 04:59:14 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -124,7 +124,12 @@ double Shadowing::Pr(PacketStamp *t, PacketStamp *r, WirelessPhy *ifp)
 	double Pr0 = Friis(t->getTxPr(), Gt, Gr, lambda, L, dist0_);
 
 	// calculate average power loss predicted by path loss model
-	double avg_db = -10.0 * pathlossExp_ * log10(dist/dist0_);
+	double avg_db;
+        if (dist > dist0_) {
+            avg_db = -10.0 * pathlossExp_ * log10(dist/dist0_);
+        } else {
+            avg_db = 0.0;
+        }
    
 	// get power loss by adding a log-normal random variable (shadowing)
 	// the power loss is relative to that at reference distance dist0_
