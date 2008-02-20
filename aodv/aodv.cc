@@ -1033,11 +1033,15 @@ struct hdr_ip *ih = HDR_IP(p);
 if (ih->daddr() == (nsaddr_t) IP_BROADCAST) {
  // If it is a broadcast packet
    assert(rt == 0);
-   /*
-    *  Jitter the sending of broadcast packets by 10ms
-    */
-   Scheduler::instance().schedule(target_, p,
+   if (ch->ptype() == PT_AODV) {
+     /*
+      *  Jitter the sending of AODV broadcast packets by 10ms
+      */
+     Scheduler::instance().schedule(target_, p,
       				   0.01 * Random::uniform());
+   } else {
+     Scheduler::instance().schedule(target_, p, 0.);  // No jitter
+   }
  }
  else { // Not a broadcast packet 
    if(delay > 0.0) {
