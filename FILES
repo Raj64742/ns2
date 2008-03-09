@@ -30,7 +30,6 @@ allinone/INSTALL.WIN32
 allinone/README
 aodv/aodv.cc
 aodv/aodv.h
-aodv/aodv.tcl
 aodv/aodv_logs.cc
 aodv/aodv_packet.h
 aodv/aodv_rqueue.cc
