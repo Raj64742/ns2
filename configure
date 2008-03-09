@@ -5848,6 +5848,7 @@ xlibdirs="\
 	/usr/X386/lib \
 	/usr/X11/lib \
 	/usr/unsupported/lib \
+	/Developer/SDKs/MacOSX10.4u.sdk/usr/X11R6/lib \
 	/import/X11R4/usr/lib"
 
 xincdirs="\
@@ -5863,6 +5864,7 @@ xincdirs="\
 	/usr/X11/include \
 	/usr/lpp/X11/include \
 	/usr/unsupported/include \
+	/Developer/SDKs/MacOSX10.4u.sdk/usr/X11R6/include \
 	/import/X11R4/include"
 
 
