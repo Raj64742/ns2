@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.54 2008/02/17 05:29:10 tom_henderson Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.55 2008/03/12 04:18:28 tom_henderson Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  * Contributions by:
@@ -1354,7 +1354,7 @@ Mac802_11::RetransmitDATA()
 
 
 
-	if (index_ == 4 && *rcount == 3 && handoff == 0) {
+	if (*rcount == 3 && handoff == 0) {
 		//start handoff process
 		printf("Client %d: Handoff Attempted\n",index_);
 		associated = 0;
