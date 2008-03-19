@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.57 2008/02/01 21:39:42 tom_henderson Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.58 2008/03/19 04:35:35 tom_henderson Exp $
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 #
@@ -555,7 +555,7 @@ Node/MobileNode instproc add-interface { channel pmodel lltype mactype qtype qle
             set sndPhyT [cmu-trace Send "PHY" $self]
         }
         $sndPhyT target $channel
-        $netif channel $sndPhyT
+        $netif down-target $sndPhyT
         if { $namfp != "" } {
             $sndPhyT namattach $namfp
         }

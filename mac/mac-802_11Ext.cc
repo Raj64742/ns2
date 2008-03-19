@@ -117,9 +117,6 @@ Mac802_11Ext::Mac802_11Ext() :
 	cw_ = macmib_.getCWMin();
 	bkmgr.setSlotTime(phymib_.getSlotTime());
 	csmgr.setIFS(eifs_);
-	sta_seqno_ = 1;
-	cache_ = 0;
-	cache_node_count_ = 0;
 	txConfirmCallback_=Callback_TXC;
 }
 
@@ -129,14 +126,6 @@ int Mac802_11Ext::command(int argc, const char*const* argv) {
 			logtarget_ = (NsObject*) TclObject::lookup(argv[2]);
 			if (logtarget_ == 0)
 				return TCL_ERROR;
-			return TCL_OK;
-		} else if (strcmp(argv[1], "nodes") == 0) {
-			if (cache_)
-				return TCL_ERROR;
-			cache_node_count_ = atoi(argv[2]);
-			cache_ = new Host[cache_node_count_ + 1];
-			assert(cache_);
-			bzero(cache_, sizeof(Host) * (cache_node_count_+1));
 			return TCL_OK;
 		}
 	}

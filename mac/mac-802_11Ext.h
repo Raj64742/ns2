@@ -560,7 +560,7 @@ private:
 	void dump(char* fname);
 
 	inline int initialized() {
-		return (cache_ && logtarget_ &&Mac::initialized());
+		return (logtarget_ &&Mac::initialized());
 	}
 
 	inline void mac_log(Packet *p) {
@@ -610,13 +610,7 @@ private:
 
 	NsObject* logtarget_;
 
-	/* ============================================================
-	 Duplicate Detection state
-	 ============================================================ */
-	u_int16_t sta_seqno_; // next seqno that I'll use
-	int cache_node_count_;
-	Host *cache_;
 };
 
-#endif /* __mac_80211_h__ */
+#endif /* ns_mac_80211Ext_h */
 

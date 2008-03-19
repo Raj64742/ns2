@@ -180,7 +180,7 @@ void WirelessPhyExt::sendDown(Packet *p) {
 	setState(TXing);
 	tX_Timer.sched(cmh->txtime());
 	powerMonitor->recordPowerLevel(Pt_, cmh->txtime());
-	channel_->recv(p, this);
+	downtarget_->recv(p, this);
 }
 
 int WirelessPhyExt::sendUp(Packet *p) {

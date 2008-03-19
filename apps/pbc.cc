@@ -163,7 +163,6 @@ PBCTimer::start(void)
   if(!started)
     {
       Scheduler &s = Scheduler::instance();
-      assert(busy_ == 0);
       started = 1;
       variance = agent->msgVariance;
       period = agent->msgInterval;

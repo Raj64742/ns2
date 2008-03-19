@@ -64,7 +64,7 @@ RateLimitStrategy::process(Packet *p, int mine, int lowDemand) {
   hdr_cmn* hdr = HDR_CMN(p);
     
   int dropped = 0;
-  if (hdr->ptype() == ptype_) {
+  if (hdr->ptype() == (u_int)ptype_) {
     ptypeRateEstimator_->estimateRate(p);
     dropped = ptypeRateLimiter_->rateLimit(p, ptypeRateEstimator_->estRate_, 
 					   target_rate_*ptype_share_, mine, lowDemand);
