@@ -342,8 +342,6 @@ void ScoreBoard1::MarkRetran (int retran_seqno, int snd_nxt)
 
 void ScoreBoard1::Dump()
 {
-       int i;
-
        if (head_ == NULL ) { printf("SB: No entry\n"); return; };
 
        printf("SB len:%d fack:%d sack_out:%d fack_out:%d acked_rtx_id:%d next_rtx_id:%d\n", 

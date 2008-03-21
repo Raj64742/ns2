@@ -1,3 +1,8 @@
+/* Modified Linux module source code from /home/weixl/linux-2.6.22.6 */
+#define NS_PROTOCOL "tcp_vegas.c"
+#include "../ns-linux-c.h"
+#include "../ns-linux-util.h"
+
 /*
  * TCP Vegas congestion control
  *
@@ -45,8 +50,6 @@
 
 #include <net/tcp.h>
 */
-#include "../ns-linux-c.h"
-#include "../ns-linux-util.h"
 /* Default values of the Vegas variables, in fixed-point representation
  * with V_PARAM_SHIFT bits to the right of the binary point.
  */
@@ -420,7 +423,7 @@ static void tcp_compound_get_info(struct sock *sk, u32 ext, struct sk_buff *skb)
 		info->tcpv_rttcnt = ca->cntRTT;
 		info->tcpv_rtt = ca->baseRTT;
 		info->tcpv_minrtt = ca->minRTT;
-	      rtattr_failure:;
+//	      rtattr_failure:;
 	}
 }
 

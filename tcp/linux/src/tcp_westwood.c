@@ -257,7 +257,7 @@ static void tcp_westwood_event(struct sock *sk, enum tcp_ca_event event)
 static void tcp_westwood_info(struct sock *sk, u32 ext,
 			      struct sk_buff *skb)
 {
-	const struct westwood *ca = inet_csk_ca(sk);
+/*	const struct westwood *ca = inet_csk_ca(sk);
 	if (ext & (1 << (INET_DIAG_VEGASINFO - 1))) {
 		struct tcpvegas_info info = {
 			.tcpv_enabled = 1,
@@ -267,6 +267,7 @@ static void tcp_westwood_info(struct sock *sk, u32 ext,
 
 		nla_put(skb, INET_DIAG_VEGASINFO, sizeof(info), &info);
 	}
+*/
 }
 
 

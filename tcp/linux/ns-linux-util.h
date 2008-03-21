@@ -17,7 +17,7 @@
 
 #ifndef NS_LINUX_UTIL_H
 #define NS_LINUX_UTIL_H
-
+#include <stdlib.h>
 #include "ns-linux-param.h"
 
 extern struct tcp_congestion_ops tcp_reno;
@@ -47,10 +47,8 @@ extern void tcp_cong_avoid_register(void);
 #define s32 long
 #define s64 long long
 
-#define u_int64_t u64
-#define u_int32_t u32
-#define uint32_t u32
 #define uint64_t u64
+#define uint32_t u32
 
 #define ktime_t s64
 extern ktime_t net_invalid_timestamp();
@@ -60,7 +58,7 @@ extern ktime_t net_timedelta(ktime_t t);
 
 #define inet_csk(sk) (sk)
 #define tcp_sk(sk) (sk)
-#define inet_csk_ca(sk) ((sk)->icsk_ca_priv)
+#define inet_csk_ca(sk) (void*)((sk)->icsk_ca_priv)
 
 
 //from kernel.h
@@ -161,7 +159,7 @@ struct tcp_congestion_ops {
 	/* return slow start threshold (required) */
 	u32 (*ssthresh)(struct sock *sk);
 	/* lower bound for congestion window (optional) */
-	u32 (*min_cwnd)(struct sock *sk);
+	u32 (*min_cwnd)(const struct sock *sk);
 	/* do new cwnd calculation (required) */
 	void (*cong_avoid)(struct sock *sk, u32 ack,
 			   u32 rtt, u32 in_flight, int good_ack);

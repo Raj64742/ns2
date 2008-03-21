@@ -13,8 +13,8 @@
 
 int sysctl_tcp_max_ssthresh = 0;
 
-static DEFINE_SPINLOCK(tcp_cong_list_lock);
-static LIST_HEAD(tcp_cong_list);
+//static DEFINE_SPINLOCK(tcp_cong_list_lock);
+//static LIST_HEAD(tcp_cong_list);
 
 /* Simple linear search, don't expect many entries! */
 static struct tcp_congestion_ops *tcp_ca_find(const char *name)
@@ -135,12 +135,14 @@ int tcp_set_default_congestion_control(const char *name)
 }
 
 /* Set default value from kernel configuration at bootup */
+
+/*
 static int __init tcp_congestion_default(void)
 {
 	return tcp_set_default_congestion_control(CONFIG_DEFAULT_TCP_CONG);
 }
 late_initcall(tcp_congestion_default);
-
+*/
 
 /* Build string with list of available congestion control values */
 void tcp_get_available_congestion_control(char *buf, size_t maxlen)

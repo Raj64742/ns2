@@ -41,7 +41,7 @@ u32 tcp_naive_reno_ssthresh(struct tcp_sock *tp)
 
 
 /* congestion window should be equal to the slow start threshold (after slow start threshold set to half of cwnd before loss). */
-u32 tcp_naive_reno_min_cwnd(struct tcp_sock *tp)
+u32 tcp_naive_reno_min_cwnd(const struct tcp_sock *tp)
 {
         return tp->snd_ssthresh;
 }

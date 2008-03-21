@@ -62,7 +62,12 @@
 
 class ScoreBoardNode1 {
 public:
-	ScoreBoardNode1(int start, int end, char flag):seq_(start),nxt_(end), flag_(flag), next_in_queue_(NULL){}
+	ScoreBoardNode1(int start, int end, char flag):
+		flag_(flag),
+		seq_(start),
+		nxt_(end),
+		next_in_queue_(NULL)
+	{}
 	inline char GetFlag() { return flag_; }
 
 	inline int GetStart() { return seq_; }

@@ -98,9 +98,9 @@ public:
 } class_linux;
 
 
-LinuxTcpAgent::LinuxTcpAgent() : 	
-	next_pkts_in_flight_(0),
-	initialized_(false)
+LinuxTcpAgent::LinuxTcpAgent() :
+	initialized_(false),
+	next_pkts_in_flight_(0)
 {
 	bind("next_pkts_in_flight_", &next_pkts_in_flight_);
 	scb_ = new ScoreBoard1();
@@ -170,7 +170,6 @@ void LinuxTcpAgent::time_processing(Packet* pkt, unsigned char flag, s32* seq_ur
 
 //update time:
 	double now = Scheduler::instance().clock();
-	double tao;
 	ts_peer_ = tcph->ts();          //record timestamp for echoing
 
 	/* 
@@ -220,7 +219,7 @@ void LinuxTcpAgent::time_processing(Packet* pkt, unsigned char flag, s32* seq_ur
 		}
 		rtt_active_ = 0;
 		if (!linux_.rx_opt.saw_tstamp)
-			rtt_update(now - rtt_ts_);
+			rtt_update(now - rtt_ts_, 0);
 	}
 	
 
@@ -315,7 +314,6 @@ void LinuxTcpAgent::recv(Packet *pkt, Handler*)
 	u32 ack = tcph->seqno()+1;	//in linux, the concept of unack is one packet ahead (first non-acked)
 	u32 prior_in_flight;
 	s32 seq_rtt;
-	s32 seq_usrtt = 0;
 	unsigned char flag=0;
 
 	tcp_time_stamp = (unsigned long) (trunc(Scheduler::instance().clock() * JIFFY_RATIO)); 
@@ -332,10 +330,10 @@ void LinuxTcpAgent::recv(Packet *pkt, Handler*)
 	++nackpack_;
 
 
-	if (ack > t_seqno_) return;	 // uninteresting_ack
+	if (ack > (unsigned long)t_seqno_) return;	 // uninteresting_ack
 	if (ack < prior_snd_una) return; // old_ack; only worth for D-SACK. but let's pass it.
 
-	DEBUG(5, "received an ack packet %d\n", ack);
+	DEBUG(5, "received an ack packet %lu\n", ack);
 
 	if (linux_.icsk_ca_ops) {
 		//This has to be done before the first call to linux_.icsk_ca_ops.
@@ -356,7 +354,7 @@ void LinuxTcpAgent::recv(Packet *pkt, Handler*)
 	};
 
 	flag |= ack_processing(pkt, flag);
-	DEBUG(5, "ack_processed prior_snd_una=%d ack=%d\n", prior_snd_una, ack);
+	DEBUG(5, "ack_processed prior_snd_una=%lu ack=%lu\n", prior_snd_una, ack);
 
 	if ((tcph->sa_length()> 0) || (FLAG_DATA_ACKED && (!scb_->IsEmpty()))) {
 		flag |= scb_->UpdateScoreBoard(highest_ack_, tcph);
@@ -603,7 +601,7 @@ int LinuxTcpAgent::packets_in_flight()
 
 bool LinuxTcpAgent::is_congestion() 
 {
-	return ( packets_in_flight() >= linux_.snd_cwnd);
+	return ( packets_in_flight() >= (int)linux_.snd_cwnd);
 }
 
 void LinuxTcpAgent::send_much(int force, int reason, int maxburst)
@@ -646,7 +644,7 @@ void LinuxTcpAgent::send_much(int force, int reason, int maxburst)
 				xmit_seqno = t_seqno_++;
 			} else {
 				found = 1;
-				DEBUG(5, "%lf (%p) : Retran %lu\n", Scheduler::instance().clock(), this, xmit_seqno);
+				DEBUG(5, "%lf (%p) : Retran %d\n", Scheduler::instance().clock(), this, xmit_seqno);
 				scb_->MarkRetran (xmit_seqno, t_seqno_);
 				win = window();
 			}
@@ -683,7 +681,7 @@ void LinuxTcpAgent::load_to_linux()
 	//TODO
 	linux_.snd_ssthresh = (int)ssthresh_;
 
-	if ((next_pkts_in_flight_ > linux_.snd_cwnd) && (cwnd_ >= linux_.snd_cwnd)) {
+	if ((next_pkts_in_flight_ > (int)linux_.snd_cwnd) && (cwnd_ >= (int)linux_.snd_cwnd)) {
 		//We are in the process of rate-halving and the traditional ns-2 does not ask for further reduction
 		next_pkts_in_flight_ = (int)(trunc(cwnd_));
 	} else {
@@ -715,7 +713,7 @@ void LinuxTcpAgent::save_from_linux()
 {
 
 	//TODO
-	if (next_pkts_in_flight_ > linux_.snd_cwnd) 
+	if (next_pkts_in_flight_ > (int)linux_.snd_cwnd) 
 		cwnd_ = next_pkts_in_flight_; 
 	else
 		cwnd_ = linux_.snd_cwnd;

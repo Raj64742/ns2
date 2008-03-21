@@ -288,7 +288,7 @@ static void tcp_lp_pkts_acked(struct sock *sk, u32 num_acked, ktime_t last)
 	else
 		lp->flag &= ~LP_WITHIN_THR;
 
-	pr_debug("TCP-LP: %05o|%5u|%5u|%15u|%15u|%15u\n", lp->flag,
+	pr_debug("TCP-LP: %05lo|%5lu|%5lu|%15lu|%15lu|%15lu\n", lp->flag,
 		 tp->snd_cwnd, lp->remote_hz, lp->owd_min, lp->owd_max,
 		 lp->sowd >> 3);
 

@@ -19,6 +19,7 @@
 #ifndef NS_LINUX_C_H
 #define NS_LINUX_C_H
 #include <string.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include "ns-linux-util.h"
 //For sharing Reno
@@ -59,6 +60,12 @@ extern void record_linux_param_description(const char*, const char*, const char*
 		set_linux_file_name(NS_PROTOCOL);\
 	};
 
+#define module_exit(x) \
+	static void module_unregister_fake(void) __attribute__((constructor));\
+	static void module_unregister_fake(void) {\
+		if (0) x();\
+	};
+
 #define module_param(name, type, mode) \
 	static void module_param_##name(void) __attribute__((constructor));\
 	static void module_param_##name(void) { record_linux_param(NS_PROTOCOL, #name, #type, &name); };
@@ -79,7 +86,6 @@ extern void record_linux_param_description(const char*, const char*, const char*
 #endif
 
 
-#define module_exit(x)
 #define module_put(x)
 #define try_module_get(x) 0
 #define MODULE_AUTHOR(x)
@@ -132,8 +138,9 @@ struct rtattr {};
 #define __RTA_PUT(skb, INFO_FLAG, size) NULL
 #define RTA_DATA(rta) NULL
 
+//#define DEFINE_SPINLOCK(x)
+//#define LIST_HEAD(name)
 #define DEFINE_SPINLOCK(x) int FAKED_LOCK_X
-
 #define LIST_HEAD(name) int FAKED_LIST_HEAD
 //The true list head is declared in ns-linux-util.h since it has to be accessible by TCP-Linux's cpp codes.
 
@@ -168,4 +175,7 @@ extern uint64_t div64_64(uint64_t dividend, uint64_t divisor);
 
 #define nla_put(skb, type, len, data)
 
+extern int tcp_register_congestion_control(struct tcp_congestion_ops *ca);
+extern void tcp_slow_start(struct tcp_sock *tp);
+extern void tcp_unregister_congestion_control(struct tcp_congestion_ops *ca);
 #endif
