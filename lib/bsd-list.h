@@ -31,13 +31,16 @@
  * SUCH DAMAGE.
  *
  *	@(#)queue.h	8.5 (Berkeley) 8/20/94
- * $Id: bsd-list.h,v 1.1 2000/08/17 00:04:21 haoboy Exp $
+ * $Id: bsd-list.h,v 1.2 2008/03/25 04:28:30 tom_henderson Exp $
  */
 
-#ifndef _NS_BSD_LIST_H_
+// Copied from sys/queue.h in FreeBSD
+// Include this only if _SYS_QUEUE_H_ has not already been defined
+#if !defined(_NS_BSD_LIST_H_) && !defined(_SYS_QUEUE_H_)
 #define	_NS_BSD_LIST_H_
 
-// Copied from sys/queue.h in FreeBSD
+// define _SYS_QUEUE_H_ so /usr/include/sys/queue.h does not redefine
+#define _SYS_QUEUE_H_
 
 /*
  * This file defines five types of data structures: singly-linked lists,
