@@ -17,8 +17,8 @@
 void PrintEntry_Text(FILE *out_file, TEntry *entry, int noURL);
 void PrintEntry_Squid(FILE *out_file, TEntry *entry, int swap);
 
-enum { ifNone = 0, ifDECV1_0, ifDECV1_2 } InputFormat = ifNone;
-enum { ofNone = 0, ofDECText, ofSquid, ofSquidSwapped } OutputFormat = ofNone;
+static enum { ifNone = 0, ifDECV1_0, ifDECV1_2 } InputFormat = ifNone;
+static enum { ofNone = 0, ofDECText, ofSquid, ofSquidSwapped } OutputFormat = ofNone;
 
 int getInputFormat(char* argv[]) {
 
