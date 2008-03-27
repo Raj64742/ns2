@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: tools.cc,v 1.16 2005/10/05 15:16:02 sfloyd Exp $
+// $Id: tools.cc,v 1.17 2008/03/27 05:24:46 tom_henderson Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -117,7 +117,7 @@ void DiffPrintWithTime(int msg_debug_level, const char *fmt, ...)
     GetTime(&tv);
 
     // Print Time
-    fprintf(stderr, "%ld.%06ld : ", tv.tv_sec, tv.tv_usec);
+    fprintf(stderr, "%ld.%06ld : ", tv.tv_sec, (long int) tv.tv_usec);
     // Print message
     vfprintf(stderr, fmt, ap);
     fflush(NULL);

@@ -3,7 +3,7 @@
 // authors       : Lewis Girod John Heidemann and Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: events.cc,v 1.9 2005/09/13 04:53:49 tomh Exp $
+// $Id: events.cc,v 1.10 2008/03/27 05:24:46 tom_henderson Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -186,7 +186,7 @@ void EventQueue::eqPrint()
 
   for (; (e); e = e->next_){
     fprintf(stderr, "time = %ld:%06ld, handle = %ld\n",
-	    e->tv_.tv_sec, e->tv_.tv_usec, e->handle_);
+	    e->tv_.tv_sec, (long int) e->tv_.tv_usec, e->handle_);
   }
 }
 

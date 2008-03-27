@@ -3,7 +3,7 @@
 // Authors       : Fabio Silva and Yutaka Mori
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: iolog.cc,v 1.3 2005/09/13 04:53:47 tomh Exp $
+// $Id: iolog.cc,v 1.4 2008/03/27 05:24:46 tom_henderson Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -102,12 +102,12 @@ DiffPacket IOLog::recvPacket(int fd)
       if (next_hop == BROADCAST_ADDR){
 	fprintf(stdout,
 		"Diffusion Log: Time %ld.%06ld Node %d received broadcast %d bytes from node %d message %s\n",
-		tv.tv_sec, tv.tv_usec, node_id_, packet_len, last_hop, msg_name);
+		tv.tv_sec, (long int) tv.tv_usec, node_id_, packet_len, last_hop, msg_name);
       }
       else{
 	fprintf(stdout,
 		"Diffusion Log: Time %ld.%06ld Node %d received unicast %d bytes from node %d message %s\n",
-		tv.tv_sec, tv.tv_usec, node_id_, packet_len, last_hop, msg_name);
+		tv.tv_sec, (long int) tv.tv_usec, node_id_, packet_len, last_hop, msg_name);
       }
       fflush(NULL);
     }
@@ -159,12 +159,12 @@ void IOLog::sendPacket(DiffPacket pkt, int len, int dst)
   if (dst == BROADCAST_ADDR){
     fprintf(stdout,
 	    "Diffusion Log: Time %ld.%06ld Node %d sending broadcast %d bytes to node %d message %s\n",
-	    tv.tv_sec, tv.tv_usec, node_id_, len, dst, msg_name);
+	    tv.tv_sec, (long int) tv.tv_usec, node_id_, len, dst, msg_name);
   }
   else{
     fprintf(stdout,
 	    "Diffusion Log: Time %ld.%06ld Node %d sending unicast %d bytes to node %d message %s\n",
-	    tv.tv_sec, tv.tv_usec, node_id_, len, dst, msg_name);
+	    tv.tv_sec, (long int) tv.tv_usec, node_id_, len, dst, msg_name);
   }
 
   fflush(NULL);
