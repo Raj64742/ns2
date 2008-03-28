@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.55 2008/03/12 04:18:28 tom_henderson Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.56 2008/03/28 04:43:06 tom_henderson Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  * Contributions by:
@@ -3080,9 +3080,6 @@ void
 Mac802_11::recvPROBEREP(Packet *p)
 {
 	struct proberep_frame *prrpf = (struct proberep_frame*)p->access(hdr_mac::offset_);
-
-	assert(pktPROBEREQ_);
-	mhSend_.stop();
 
 	u_int32_t bss_id, src;
 
