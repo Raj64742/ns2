@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.29 2007/09/29 01:09:23 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.30 2008/04/08 02:38:17 sallyfloyd Exp $
 #
 # To run all tests: test-all-ecn-ack
 set dir [pwd]
@@ -624,6 +624,45 @@ Test/synack1 instproc run {} {
         $ns_ run
 }
 
+# SYN/ACK packet not dropped or marked, FullTCP
+Class Test/synack0_fulltcp -superclass TestSuite
+Test/synack0_fulltcp instproc init {} {
+        $self instvar net_ test_ guide_ 
+        set net_        net2A-lossy
+        set test_       synack0_fulltcp_
+        set guide_      "SYN/ACK packet not dropped, FullTCP."
+        Agent/TCPSink set ecn_syn_ false
+        $self next pktTraceFile
+}
+Test/synack0_fulltcp instproc run {} {
+        global quiet wrap wrap1
+        $self instvar ns_ guide_ node_ guide_ testName_
+        puts "Guide: $guide_"
+        Agent/TCP set ecn_ 1
+        Agent/TCP set window_ 8
+        $self setTopo
+
+        # Set up forward TCP connection
+        set wrap $wrap1
+        set tcp1 [new Agent/TCP/FullTcp/Sack]
+        set sink [new Agent/TCP/FullTcp/Sack]
+        $ns_ attach-agent $node_(s1) $tcp1
+        $ns_ attach-agent $node_(s4) $sink
+        $tcp1 set fid_ 0
+        $sink set fid_ 0
+        $ns_ connect $tcp1 $sink
+        $sink listen ; # will figure out who its peer is
+        set ftp1 [$tcp1 attach-app FTP]
+        $ns_ at 0.00 "$ftp1 produce 5"
+        set ftp2 [$sink attach-app FTP]
+        $ns_ at 0.03 "$ftp2 produce 20"
+
+        $self drop_pkt 1000
+        $self tcpDump $tcp1 5.0
+        $ns_ at 5.0 "$self cleanupAll $testName_"
+        $ns_ run
+}
+
 # SYN/ACK packet dropped, FullTCP
 Class Test/synack1_fulltcp -superclass TestSuite
 Test/synack1_fulltcp instproc init {} {
@@ -669,7 +708,7 @@ Test/synack2 instproc init {} {
         $self instvar net_ test_ guide_ 
         set net_        net2A-lossy
         set test_       synack2_
-        set guide_      "SYN/ACK packet marked."
+        set guide_      "SYN/ACK packet marked, ECN+."
         Agent/TCPSink set ecn_syn_ true
         $self next pktTraceFile
 }
@@ -700,9 +739,9 @@ Test/synack2_fulltcp instproc init {} {
         $self instvar net_ test_ guide_ 
         set net_        net2A-lossy
         set test_       synack2_fulltcp_
-        set guide_      "SYN/ACK packet marked, FullTCP."
+        set guide_      "SYN/ACK packet marked, FullTCP, ECN+."
         Agent/TCPSink set ecn_syn_ true
-	Agent/TCP/FullTcp set ecn_syn_ true
+	Agent/TCP/FullTcp set ecn_syn_ true 
         $self next pktTraceFile
 }
 Test/synack2_fulltcp instproc run {} {
@@ -739,7 +778,7 @@ Test/synack2a_fulltcp instproc init {} {
         $self instvar net_ test_ guide_ 
         set net_        net2A-lossy
         set test_       synack2a_fulltcp_
-        set guide_      "SYN/ACK packet marked, FullTCP, wait."
+        set guide_      "SYN/ACK packet marked, FullTCP, ECN+/wait."
         Agent/TCPSink set ecn_syn_ true
 	Agent/TCP/FullTcp set ecn_syn_ true
 	Agent/TCP/FullTcp set ecn_syn_wait_ true
@@ -782,6 +821,125 @@ Test/synack2a_fulltcp instproc run {} {
 # time 0.112858: three data packets sent by A
 # time 0.146923: ACK packets sent by B
 # time 0.231832: data packets sent by B
+
+
+Class Test/synack3_fulltcp -superclass TestSuite
+Test/synack3_fulltcp instproc init {} {
+        $self instvar net_ test_ guide_ 
+        set net_        net2A-lossy
+        set test_       synack3_fulltcp_
+        set guide_      "SYN/ACK packet marked, FullTCP, ECN+."
+        Agent/TCPSink set ecn_syn_ true
+	Agent/TCP/FullTcp set ecn_syn_ true
+        $self next pktTraceFile
+}
+Test/synack3_fulltcp instproc run {} {
+        global quiet wrap wrap1
+        $self instvar ns_ guide_ node_ guide_ testName_
+        puts "Guide: $guide_"
+        Agent/TCP set ecn_ 1
+        $self setTopo
+
+        # Set up forward TCP connection
+        set wrap $wrap1
+        set tcp1 [new Agent/TCP/FullTcp/Sack]
+        set sink [new Agent/TCP/FullTcp/Sack]
+        $ns_ attach-agent $node_(s1) $tcp1
+        $ns_ attach-agent $node_(s4) $sink
+        $tcp1 set fid_ 0
+        $sink set fid_ 0
+        $ns_ connect $tcp1 $sink
+        $sink listen ; # will figure out who its peer is
+        set ftp1 [$tcp1 attach-app FTP]
+        $ns_ at 0.00 "$ftp1 produce 1"
+        set ftp2 [$sink attach-app FTP]
+        $ns_ at 0.03 "$ftp2 produce 20"
+
+        $self mark_pkt 1
+        # $self mark_pkt 10
+        $self tcpDump $tcp1 5.0
+        $ns_ at 2.0 "$self cleanupAll $testName_"
+        $ns_ run
+}
+
+Class Test/synack3b_fulltcp -superclass TestSuite
+Test/synack3b_fulltcp instproc init {} {
+        $self instvar net_ test_ guide_ 
+        set net_        net2A-lossy
+        set test_       synack3b_fulltcp_
+        set guide_      "SYN/ACK packet not marked, FullTCP."
+        Agent/TCPSink set ecn_syn_ true
+	Agent/TCP/FullTcp set ecn_syn_ true
+        $self next pktTraceFile
+}
+Test/synack3b_fulltcp instproc run {} {
+        global quiet wrap wrap1
+        $self instvar ns_ guide_ node_ guide_ testName_
+        puts "Guide: $guide_"
+        Agent/TCP set ecn_ 1
+        $self setTopo
+
+        # Set up forward TCP connection
+        set wrap $wrap1
+        set tcp1 [new Agent/TCP/FullTcp/Sack]
+        set sink [new Agent/TCP/FullTcp/Sack]
+        $ns_ attach-agent $node_(s1) $tcp1
+        $ns_ attach-agent $node_(s4) $sink
+        $tcp1 set fid_ 0
+        $sink set fid_ 0
+        $ns_ connect $tcp1 $sink
+        $sink listen ; # will figure out who its peer is
+        set ftp1 [$tcp1 attach-app FTP]
+        $ns_ at 0.00 "$ftp1 produce 1"
+        set ftp2 [$sink attach-app FTP]
+        $ns_ at 0.03 "$ftp2 produce 20"
+
+        # $self mark_pkt 1
+        $self mark_pkt 1000
+        $self tcpDump $tcp1 5.0
+        $ns_ at 2.0 "$self cleanupAll $testName_"
+        $ns_ run
+}
+
+Class Test/synack3a_fulltcp -superclass TestSuite
+Test/synack3a_fulltcp instproc init {} {
+        $self instvar net_ test_ guide_ 
+        set net_        net2A-lossy
+        set test_       synack3a_fulltcp_
+        set guide_      "SYN/ACK packet marked, FullTCP, ECN+/wait."
+        Agent/TCPSink set ecn_syn_ true
+	Agent/TCP/FullTcp set ecn_syn_ true
+	Agent/TCP/FullTcp set ecn_syn_wait_ true
+        $self next pktTraceFile
+}
+Test/synack3a_fulltcp instproc run {} {
+        global quiet wrap wrap1
+        $self instvar ns_ guide_ node_ guide_ testName_
+        puts "Guide: $guide_"
+        Agent/TCP set ecn_ 1
+        $self setTopo
+
+        # Set up forward TCP connection
+        set wrap $wrap1
+        set tcp1 [new Agent/TCP/FullTcp/Sack]
+        set sink [new Agent/TCP/FullTcp/Sack]
+        $ns_ attach-agent $node_(s1) $tcp1
+        $ns_ attach-agent $node_(s4) $sink
+        $tcp1 set fid_ 0
+        $sink set fid_ 0
+        $ns_ connect $tcp1 $sink
+        $sink listen ; # will figure out who its peer is
+        set ftp1 [$tcp1 attach-app FTP]
+        $ns_ at 0.00 "$ftp1 produce 1"
+        set ftp2 [$sink attach-app FTP]
+        $ns_ at 0.03 "$ftp2 produce 20"
+
+        $self mark_pkt 1
+        # $self mark_pkt 10
+        $self tcpDump $tcp1 5.0
+        $ns_ at 2.0 "$self cleanupAll $testName_"
+        $ns_ run
+}
 
 TestSuite runTest
 
