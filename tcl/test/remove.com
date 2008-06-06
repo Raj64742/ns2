@@ -25,7 +25,7 @@ red-pd tcpReset LimTransmit pi adaptive-red gk rem vq sack-full \
 testReno-full testReno-bayfull source-routing snoop diffusion3 broken \
 tcpHighspeed smac quiescent example examples quickstart tcpOptions t \
 tagged-trace misc message jobs webtraf sctp xcp smac-multihop \
-rng wpan packmime delaybox oddBehaviors
+rng wpan packmime delaybox oddBehaviors wireless-infra
 do
 	echo test-output-$i
 	rm -f test-output-$i/*.test
