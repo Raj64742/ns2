@@ -49,6 +49,7 @@
  */
 
 /*
+ *
  * Full-TCP : A two-way TCP very similar to the 4.4BSD version of Reno TCP.
  * This version also includes variants Tahoe, NewReno, and SACK.
  *
@@ -108,7 +109,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.124 2007/09/16 20:30:44 sallyfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.125 2008/06/06 01:09:54 sallyfloyd Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -1095,14 +1096,23 @@ send:
                 pflags &= ~TH_CWR;
         }
 	else if (ecn_ && ect_ && cong_action_ && 
-	             (!is_retransmit || SetCWRonRetransmit_)) 
+	             (!is_retransmit || SetCWRonRetransmit_)) {
 		/* 
 		 * Don't set CWR for a retranmitted SYN+ACK (has ecn_ 
-		 * and cong_action_ set) or on any retransmits.
+		 * and cong_action_ set).
 		 * -M. Weigle 6/19/02
+                 *
+                 * SetCWRonRetransmit_ was changed to true,
+                 * allowing CWR on retransmitted data packets.  
+                 * See test ecn_burstyEcn_reno_full 
+                 * in test-suite-ecn-full.tcl.
+		 * - Sally Floyd, 6/5/08.
 		 */
 		/* set CWR if necessary */
 		pflags |= TH_CWR;
+		/* Turn cong_action_ off: Added 6/5/08, Sally Floyd. */
+		cong_action_ = FALSE;
+	}
 
 	/* moved from sendpacket()  -M. Weigle 6/19/02 */
 	//
@@ -1304,6 +1314,7 @@ FullTcpAgent::newack(Packet* pkt)
         /*
          * Update RTT only if it's OK to do so from info in the flags header.
          * This is needed for protocols in which intermediate agents
+
          * in the network intersperse acks (e.g., ack-reconstructors) for
          * various reasons (without violating e2e semantics).
          */
@@ -1328,7 +1339,6 @@ FullTcpAgent::newack(Packet* pkt)
 			rtt_active_ = FALSE;
 			rtt_update(now() - rtt_ts_);
                 }
-
 		if (!ect_ || !ecn_backoff_ ||
 		    !hdr_flags::access(pkt)->ecnecho()) {
 			/*
@@ -1339,6 +1349,7 @@ FullTcpAgent::newack(Packet* pkt)
 			t_backoff_ = 1;
 			ecn_backoff_ = 0;
 		}
+
         }
 	return;
 }
@@ -2075,7 +2086,7 @@ trimthenstep6:
                 if (ecn_) {
                         if (fh->ce() && fh->ect())
                                 recent_ce_ = TRUE;
-                        else if (fh->cwr())
+                        else if (fh->cwr()) 
                                 recent_ce_ = FALSE;
                 }
 
@@ -2238,9 +2249,10 @@ process_ACK:
                  */
 		if ((!delay_growth_ || (rcv_nxt_ > 0)) &&
 		    last_state_ == TCPS_ESTABLISHED) {
-			if (!partial || open_cwnd_on_pack_)
-			  if (!ect_ || !hdr_flags::access(pkt)->ecnecho())
+			if (!partial || open_cwnd_on_pack_) {
+                           if (!ect_ || !hdr_flags::access(pkt)->ecnecho()) 
 				opencwnd();
+                        }
 		}
 
 		if ((state_ >= TCPS_FIN_WAIT_1) && (ackno == maxseq_)) {
