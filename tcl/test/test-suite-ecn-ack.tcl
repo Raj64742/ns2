@@ -1,3 +1,5 @@
+# This has set_lossylink, but this procedure does not appear
+# in test-suite-ecn.tcl
 #
 # Copyright (c) 1995-1997 The Regents of the University of California.
 # All rights reserved.
@@ -30,7 +32,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.30 2008/04/08 02:38:17 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.31 2008/06/06 01:01:42 sallyfloyd Exp $
 #
 # To run all tests: test-all-ecn-ack
 set dir [pwd]
@@ -41,6 +43,8 @@ remove-all-packet-headers       ; # removes all except common
 add-packet-header Flags IP TCP RTP ; # hdrs reqd for validation test
  
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set SetCWRonRetransmit_ true
+# The default is being changed to true.
 
 # Agent/TCP/FullTcp set debug_ true;
 
@@ -130,21 +134,40 @@ TestSuite instproc finish file {
 	     $PERL ../../bin/raw2xg -aecx -s 0.01 -m $wrap -t $file > temp.rands
   	   exec $PERL ../../bin/getrc -s 3 -d 2 all.tr | \
 	     $PERL ../../bin/raw2xg -aefcx -s 0.01 -m $wrap -t $file > temp1.rands
+
+	   ## tracing reverse-path data packets
+           exec $PERL ../../bin/getrc -s 3 -d 2 all.tr | \
+	     $PERL ../../bin/raw2xg -aecx -s 0.01 -m $wrap -t $file > temp2.rands
+  	   exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
+	     $PERL ../../bin/raw2xg -aefcx -s 0.01 -m $wrap -t $file > temp3.rands
 	} elseif {$wrap == $wrap1} {
 	   ## tracing reverse-path data packets
            exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
 	     $PERL ../../bin/raw2xg -aefcx -s 0.01 -m $wrap -t $file > temp.rands
   	   exec $PERL ../../bin/getrc -s 3 -d 2 all.tr | \
 	     $PERL ../../bin/raw2xg -aecx -s 0.01 -m $wrap -t $file > temp1.rands
+	   ## tracing forward-path data packets
+           exec $PERL ../../bin/getrc -s 3 -d 2 all.tr | \
+	     $PERL ../../bin/raw2xg -aefcx -s 0.01 -m $wrap -t $file > temp2.rands
+  	   exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
+	     $PERL ../../bin/raw2xg -aecx -s 0.01 -m $wrap -t $file > temp3.rands
 	} else {
            exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
 	     $PERL ../../bin/raw2xg -aecx -s 0.01 -m $wrap -t $file > temp.rands
   	   exec $PERL ../../bin/getrc -s 3 -d 2 all.tr | \
 	     $PERL ../../bin/raw2xg -aecx -s 0.01 -m $wrap -t $file > temp1.rands
+
+	   ## tracing reverse-path data packets
+           exec $PERL ../../bin/getrc -s 3 -d 2 all.tr | \
+	     $PERL ../../bin/raw2xg -aefcx -s 0.01 -m $wrap -t $file > temp2.rands
+  	   exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
+	     $PERL ../../bin/raw2xg -aefcx -s 0.01 -m $wrap -t $file > temp3.rands
 	}
 	if {$quiet == "false"} {
+        	exec xgraph -bb -tk -nl -m -x time -y packets temp2.rands \
+                                    temp3.rands &
         	exec xgraph -bb -tk -nl -m -x time -y packets temp.rands \
-                     temp1.rands &
+                                    temp1.rands &
 	}
         ## now use default graphing tool to make a data file
         ## if so desired
@@ -320,11 +343,30 @@ TestSuite instproc set_lossylink {} {
         $lossylink_ errormodule $em
 }
 
+TestSuite instproc set_lossylink1 {} {
+        $self instvar lossylink_ ns_ node_
+        set lossylink_ [$ns_ link $node_(r2) $node_(r1)]
+        set em [new ErrorModule Fid]
+        set errmodel [new ErrorModel/Periodic]
+        $errmodel unit pkt
+        $lossylink_ errormodule $em
+}
+
 TestSuite instproc drop_pkts pkts {
+    $self instvar ns_ errmodel1
+    set emod [$self emod1]
+    set errmodel1 [new ErrorModel/List]
+    $errmodel1 droplist $pkts
+    $emod insert $errmodel1
+    $emod bind $errmodel1 0
+}
+
+TestSuite instproc mark_pkts pkts {
     $self instvar ns_
     set emod [$self emod1]
     set errmodel1 [new ErrorModel/List]
     $errmodel1 droplist $pkts
+    #$errmodel1 set markecn_ true
     $emod insert $errmodel1
     $emod bind $errmodel1 0
 }
@@ -935,6 +977,47 @@ Test/synack3a_fulltcp instproc run {} {
         $ns_ at 0.03 "$ftp2 produce 20"
 
         $self mark_pkt 1
+        # $self mark_pkt 10
+        $self tcpDump $tcp1 5.0
+        $ns_ at 2.0 "$self cleanupAll $testName_"
+        $ns_ run
+}
+
+Class Test/synack_many_fulltcp -superclass TestSuite
+Test/synack_many_fulltcp instproc init {} {
+        $self instvar net_ test_ guide_ 
+        set net_        net2
+        set test_       synack_many_fulltcp_
+        set guide_      "SYN/ACK and data packets marked, FullTCP, ECN+."
+        Agent/TCPSink set ecn_syn_ true
+	Agent/TCP/FullTcp set ecn_syn_ true
+        $self next pktTraceFile
+}
+Test/synack_many_fulltcp instproc run {} {
+        global quiet wrap wrap1
+        $self instvar ns_ guide_ node_ guide_ testName_ errmodel1
+        puts "Guide: $guide_"
+        Agent/TCP set ecn_ 1
+        $self setTopo
+        $self set_lossylink1
+
+        # Set up forward TCP connection
+        set wrap $wrap1
+        set tcp1 [new Agent/TCP/FullTcp/Sack]
+        set sink [new Agent/TCP/FullTcp/Sack]
+        $ns_ attach-agent $node_(s1) $tcp1
+        $ns_ attach-agent $node_(s4) $sink
+        $tcp1 set fid_ 0
+        $sink set fid_ 0
+        $ns_ connect $tcp1 $sink
+        $sink listen ; # will figure out who its peer is
+        set ftp1 [$tcp1 attach-app FTP]
+        $ns_ at 0.00 "$ftp1 produce 1"
+        set ftp2 [$sink attach-app FTP]
+        $ns_ at 0.03 "$ftp2 produce 20"
+
+        $self drop_pkts {0 1 2 3}
+        $errmodel1 set markecn_ true
         # $self mark_pkt 10
         $self tcpDump $tcp1 5.0
         $ns_ at 2.0 "$self cleanupAll $testName_"
