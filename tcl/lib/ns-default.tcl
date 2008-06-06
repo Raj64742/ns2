@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.380 2008/02/18 03:39:02 tom_henderson Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.381 2008/06/06 00:58:28 sallyfloyd Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -1020,7 +1020,8 @@ Agent/TCP set QOption_ 0
 Agent/TCP set EnblRTTCtr_ 0
 Agent/TCP set control_increase_ 0
 
-Agent/TCP set SetCWRonRetransmit_ false ; # added on 2005/06/19.
+Agent/TCP set SetCWRonRetransmit_ true ; # added on 2005/06/19.
+				 	 # default changed on 2008/06/05. 
 
 # XXX Generate nam trace or plain old text trace for variables. 
 # When it's true, generate nam trace.
