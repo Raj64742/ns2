@@ -14,6 +14,11 @@
 #  full-asymmetric - Full-TCP and delay only on the data path
 #*************************************************************************
 
+# FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set SetCWRonRetransmit_ false
+# The default is being changed to true.
+
+
 # Agent/TCP/FullTcp set debug_ true;
 
 source misc.tcl
