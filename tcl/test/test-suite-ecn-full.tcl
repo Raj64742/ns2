@@ -1,14 +1,4 @@
 #
-# Why does cwnd increase above the window 30 for one-way TCP?
-# June 2008.
-#
-# ecn_burstyEcn_tahoe_full is not right - no slow-start.
-# ecn_burstyEcn_reno_full is not right - no slow-start.
-# ecn_timeout1_reno_full
-# ecn_burstyEcn1_sack_full
-# ecn_timeout1_sack_full
-
-#
 # Copyright (c) 1995-1997 The Regents of the University of California.
 # All rights reserved.
 #
@@ -40,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-full.tcl,v 1.23 2008/06/04 05:03:20 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-full.tcl,v 1.24 2008/06/06 01:11:37 sallyfloyd Exp $
 #
 # To run all tests: test-all-ecn-full
 
@@ -83,6 +73,9 @@ Agent/TCP set singledup_ 0
 Agent/TCP set minrto_ 0
 Agent/TCP set syn_ false
 Agent/TCP set delay_growth_ false
+Agent/TCP set SetCWRonRetransmit_ true
+# The default is being changed to true.
+
 
 catch "cd $dir"
 set scale 0.00001
@@ -904,7 +897,7 @@ Test/ecn_burstyEcn_tahoe_full instproc init {} {
 	Agent/TCP set old_ecn_ 1
         set test_	ecn_burstyEcn_tahoe_full
 	Test/ecn_burstyEcn_tahoe_full instproc run {} [Test/ecn_bursty_tahoe_full info instbody run ]   
-        set guide_      "Tahoe, multiple dup acks and ECN, with bugFix _ BAD."
+        set guide_      "Tahoe, multiple dup acks and ECN, with bugFix."
         $self next pktTraceFile
 }
 
@@ -1385,6 +1378,8 @@ Test/ecn_bursty_reno_full instproc run {} {
 }
 
 # Multiple dup acks following ECN
+# Problem: when the retransmit timer expires, the sender 
+#   should enter slow-start.
 Class Test/ecn_burstyEcn_reno_full -superclass TestSuite
 Test/ecn_burstyEcn_reno_full instproc init {} {
         $self instvar net_ test_ guide_
@@ -1393,7 +1388,7 @@ Test/ecn_burstyEcn_reno_full instproc init {} {
 	Agent/TCP set bugFix_ true
         set test_	ecn_burstyEcn_reno_full
 	Test/ecn_burstyEcn_reno_full instproc run {} [Test/ecn_bursty_reno_full info instbody run ]   
-        set guide_      "Reno, multiple dup acks and ECN, with bugFix - BAD."
+        set guide_      "Reno, multiple dup acks and ECN, with bugFix."
         $self next pktTraceFile
 }
 
@@ -1443,7 +1438,7 @@ Test/ecn_timeout1_reno_full instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_timeout1_reno_full
-        set guide_      "Reno, drops and ECN followed by a timeout - BAD."
+        set guide_      "Reno, drops and ECN followed by a timeout."
         $self next pktTraceFile
 }
 Test/ecn_timeout1_reno_full instproc run {} {
@@ -1832,7 +1827,7 @@ Test/ecn_burstyEcn1_sack_full instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_burstyEcn1_sack_full
-        set guide_      "Sack, multiple dup acks and ECN, with bugFix - BAD."
+        set guide_      "Sack, multiple dup acks and ECN, with bugFix."
         $self next pktTraceFile
 }
 Test/ecn_burstyEcn1_sack_full instproc run {} {
@@ -1894,7 +1889,7 @@ Test/ecn_timeout1_sack_full instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_timeout1_sack_full
-        set guide_      "Sack, drops and ECN followed by a timeout - BAD."
+        set guide_      "Sack, drops and ECN followed by a timeout."
         $self next pktTraceFile
 }
 Test/ecn_timeout1_sack_full instproc run {} {
