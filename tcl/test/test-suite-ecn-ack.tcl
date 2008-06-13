@@ -32,7 +32,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.32 2008/06/13 06:08:41 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.33 2008/06/13 06:18:55 sallyfloyd Exp $
 #
 # To run all tests: test-all-ecn-ack
 set dir [pwd]
@@ -989,9 +989,8 @@ Test/synack3d_fulltcp instproc init {} {
         $self instvar net_ test_ guide_ 
         set net_        net2A-lossy
         set test_       synack3d_fulltcp_
-        set guide_      "SYN/ACK packet dropped, FullTCP."
-        Agent/TCPSink set ecn_syn_ false
-	Agent/TCP/FullTcp set ecn_syn_ false
+        set guide_      "SYN/ACK packet dropped, FullTCP, ECN+."
+	Agent/TCP/FullTcp set ecn_syn_ true
         $self next pktTraceFile
 }
 Test/synack3d_fulltcp instproc run {} {
@@ -1017,9 +1016,8 @@ Test/synack3d_fulltcp instproc run {} {
         $ns_ at 0.03 "$ftp2 produce 20"
 
         $self drop_pkt 1
-        # $self mark_pkt 10
         $self tcpDump $tcp1 5.0
-        $ns_ at 2.0 "$self cleanupAll $testName_"
+        $ns_ at 5.0 "$self cleanupAll $testName_"
         $ns_ run
 }
 
