@@ -32,7 +32,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.31 2008/06/06 01:01:42 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.32 2008/06/13 06:08:41 sallyfloyd Exp $
 #
 # To run all tests: test-all-ecn-ack
 set dir [pwd]
@@ -317,6 +317,7 @@ TestSuite instproc drop_pkt { number } {
     set lossmodel [$self setloss]
     $lossmodel set offset_ $number
     $lossmodel set period_ 10000
+    $lossmodel set markecn_ false
 }
 
 # Mark the specified packet.
@@ -977,6 +978,45 @@ Test/synack3a_fulltcp instproc run {} {
         $ns_ at 0.03 "$ftp2 produce 20"
 
         $self mark_pkt 1
+        # $self mark_pkt 10
+        $self tcpDump $tcp1 5.0
+        $ns_ at 2.0 "$self cleanupAll $testName_"
+        $ns_ run
+}
+
+Class Test/synack3d_fulltcp -superclass TestSuite
+Test/synack3d_fulltcp instproc init {} {
+        $self instvar net_ test_ guide_ 
+        set net_        net2A-lossy
+        set test_       synack3d_fulltcp_
+        set guide_      "SYN/ACK packet dropped, FullTCP."
+        Agent/TCPSink set ecn_syn_ false
+	Agent/TCP/FullTcp set ecn_syn_ false
+        $self next pktTraceFile
+}
+Test/synack3d_fulltcp instproc run {} {
+        global quiet wrap wrap1
+        $self instvar ns_ guide_ node_ guide_ testName_
+        puts "Guide: $guide_"
+        Agent/TCP set ecn_ 1
+        $self setTopo
+
+        # Set up forward TCP connection
+        set wrap $wrap1
+        set tcp1 [new Agent/TCP/FullTcp/Sack]
+        set sink [new Agent/TCP/FullTcp/Sack]
+        $ns_ attach-agent $node_(s1) $tcp1
+        $ns_ attach-agent $node_(s4) $sink
+        $tcp1 set fid_ 0
+        $sink set fid_ 0
+        $ns_ connect $tcp1 $sink
+        $sink listen ; # will figure out who its peer is
+        set ftp1 [$tcp1 attach-app FTP]
+        $ns_ at 0.00 "$ftp1 produce 1"
+        set ftp2 [$sink attach-app FTP]
+        $ns_ at 0.03 "$ftp2 produce 20"
+
+        $self drop_pkt 1
         # $self mark_pkt 10
         $self tcpDump $tcp1 5.0
         $ns_ at 2.0 "$self cleanupAll $testName_"
