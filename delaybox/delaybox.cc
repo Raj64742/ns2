@@ -601,7 +601,7 @@ void DelayBoxClassifier::recv (Packet* p, Handler* h)
 			*new_pair = pair;
 			
 			// add to flow table
-			flows_[*new_pair] = flow;
+			flows_[pair] = flow;
 			
 			// output to file, if required		
 			if (rttfp_ != NULL) {
@@ -643,7 +643,7 @@ void DelayBoxClassifier::recv (Packet* p, Handler* h)
 			*new_pair = pair;
 			
 			// add to flow table
-			flows_[*new_pair] = flow;
+			flows_[pair] = flow;
 			
 			// output to file, if required		
 			if (rttfp_ != NULL) {
