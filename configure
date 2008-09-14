@@ -3891,18 +3891,16 @@ fi
 if test "$enable_debug" = "yes" ; then
 	V_CCOPT="-g"
 	if test "$CC" = gcc ; then
-		V_CCOPT="$V_CCOPT -Wall -Werror"
+		V_CCOPT="$V_CCOPT -Wall -Wno-write-strings -Werror"
 		V_DEFINE="$V_DEFINE -fsigned-char -fno-inline"
 	fi
 else
 	V_CCOPT="$OonS"
 	V_DEFINE="$V_DEFINE -DNDEBUG"
+	if test "$CC" = gcc ; then
+		V_CCOPT="$V_CCOPT -Wall -Wno-write-strings"
+	fi
 fi
-
-if test "$CC" = gcc ; then
-      V_CCOPT="$V_CCOPT -Wall"
-fi
-
 
 # XXX Some stupid sh on solaris does not set PWD correctly, i.e.,
 # after chdir $PWD remains at the parent directory. :(
