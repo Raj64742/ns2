@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.381 2008/06/06 00:58:28 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.382 2008/10/02 21:01:35 sallyfloyd Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -1227,7 +1227,7 @@ if [TclObject is-class Agent/TCP/FullTcp] {
 	Agent/TCP/FullTcp set halfclose_ false; # do simplex closes (shutdown)?
 	Agent/TCP/FullTcp set nopredict_ false; # disable header prediction code?
         Agent/TCP/FullTcp set ecn_syn_ false; # Make SYN/ACK packet ECN-Capable?
-        Agent/TCP/FullTcp set ecn_syn_wait_ false; # Wait after marked SYN/ACK? 
+        Agent/TCP/FullTcp set ecn_syn_wait_ 0; # Wait after marked SYN/ACK? 
         Agent/TCP/FullTcp set debug_ false;  # Added Sept. 16, 2007.
 
 	Agent/TCP/FullTcp/Newreno set recov_maxburst_ 2; # max burst dur recov
