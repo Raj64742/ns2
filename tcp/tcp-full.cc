@@ -109,7 +109,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.125 2008/06/06 01:09:54 sallyfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.126 2008/10/02 21:06:12 sallyfloyd Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -227,7 +227,7 @@ FullTcpAgent::delay_bind_dispatch(const char *varName, const char *localName, Tc
         if (delay_bind_bool(varName, localName, "halfclose_", &halfclose_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "nopredict_", &nopredict_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "ecn_syn_", &ecn_syn_, tracer)) return TCL_OK;
-        if (delay_bind_bool(varName, localName, "ecn_syn_wait_", &ecn_syn_wait_, tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "ecn_syn_wait_", &ecn_syn_wait_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "debug_", &debug_, tracer)) return TCL_OK;
 
         return TcpAgent::delay_bind_dispatch(varName, localName, tracer);
@@ -860,7 +860,7 @@ FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int reas
 		fh->ect() = ect_;	// on after mutual agreement on ECT
         } else if (ecn_ && ecn_syn_ && (pflags & TH_SYN) && (pflags & TH_ACK)) {
                 // set ect on syn/ack packet, if syn packet was negotiating ECT
-                fh->ect() = ect_;
+               	fh->ect() = ect_;
 	} else {
 		/* Set ect() to 0.  -M. Weigle 1/19/05 */
 		fh->ect() = 0;
@@ -1755,6 +1755,27 @@ FullTcpAgent::recv(Packet *pkt, Handler*)
 		}
 
 		/* looks like an ok SYN or SYN+ACK */
+                // If ecn_syn_wait is set to 2:
+		// Check if CE-marked SYN/ACK packet, then just send an ACK
+                //  packet with ECE set, and drop the SYN/ACK packet.
+                //  Don't update TCP state. 
+		if (tiflags & TH_ACK) 
+		{
+                        if (ecn_ && fh->ecnecho() && !fh->cong_action() && ecn_syn_wait_ == 2) 
+                        // if SYN/ACK packet and ecn_syn_wait_ == 2
+			{
+	    		        if ( fh->ce() ) 
+                                // If SYN/ACK packet is CE-marked
+				{
+					//cancel_rtx_timer();
+					newack(pkt);
+					sendpacket(t_seqno_, rcv_nxt_, TH_ACK|TH_ECE, 0, 0);
+					goto drop;
+				}
+	    		}
+		}
+
+
 #ifdef notdef
 cancel_rtx_timer();	// cancel timer on our 1st SYN [does this belong!?]
 #endif
@@ -2027,6 +2048,34 @@ trimthenstep6:
                         }
 			goto dropwithreset;
 		}
+
+		if (ecn_ && ect_ && ecn_syn_ && fh->ecnecho() && ecn_syn_wait_ == 2) 
+		{
+		// The SYN/ACK packet was ECN-marked.
+		// Reset the rtx timer, send another SYN/ACK packet
+                //  immediately, and drop the ACK packet.
+                // Do not move to TCPS_ESTB state or update TCP variables.
+			cancel_rtx_timer();
+			ecn_syn_ = 0;
+			foutput(iss_, REASON_NORMAL);
+			wnd_init_option_ = 1;
+                        wnd_init_ = 1;
+			goto drop;
+		} 
+		if (ecn_ && ect_ && ecn_syn_ && fh->ecnecho() && ecn_syn_wait_ < 2) {
+		// The SYN/ACK packet was ECN-marked.
+			if (ecn_syn_wait_ == 1) {
+				// A timer will be called in ecn().
+				cwnd_ = 1;
+				use_rtt_ = 1; //KK, wait for timeout() period
+			} else {
+			        // Congestion window will be halved in ecn().
+				cwnd_ = 2;
+			}
+		} else  {
+			cwnd_ = initial_window();
+		}
+	
                 /*
                  * Make transitions:
                  *      SYN-RECEIVED  -> ESTABLISHED
@@ -2038,18 +2087,9 @@ trimthenstep6:
                 } else {
                         newstate(TCPS_ESTABLISHED);
                 }
-		if (ecn_ && ect_ && ecn_syn_ && fh->ecnecho() )
-			// The SYN/ACK packet was ECN-marked.
-			if (ecn_syn_wait_) {
-				// A timer will be called in ecn().
-				cwnd_ = 1;
-				use_rtt_ = 1;
-			} else
-			        // Congestion window will be halved in ecn().
-				cwnd_ = 2;
-		else 
-			cwnd_ = initial_window();
+
 		/* fall into ... */
+
 
         /*
          * In ESTABLISHED state: drop duplicate ACKs; ACK out of range
@@ -2250,7 +2290,7 @@ process_ACK:
 		if ((!delay_growth_ || (rcv_nxt_ > 0)) &&
 		    last_state_ == TCPS_ESTABLISHED) {
 			if (!partial || open_cwnd_on_pack_) {
-                           if (!ect_ || !hdr_flags::access(pkt)->ecnecho()) 
+                           if (!ect_ || !hdr_flags::access(pkt)->ecnecho())
 				opencwnd();
                         }
 		}
