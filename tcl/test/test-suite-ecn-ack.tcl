@@ -32,7 +32,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.34 2008/10/02 21:07:00 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.35 2008/10/03 03:55:42 sallyfloyd Exp $
 #
 # To run all tests: test-all-ecn-ack
 set dir [pwd]
@@ -43,9 +43,6 @@ remove-all-packet-headers       ; # removes all except common
 add-packet-header Flags IP TCP RTP ; # hdrs reqd for validation test
  
 # FOR UPDATING GLOBAL DEFAULTS:
-Agent/TCP set SetCWRonRetransmit_ true
-# The default is being changed to true.
-
 # Agent/TCP/FullTcp set debug_ true;
 
 set flowfile fairflow.tr; # file where flow data is written
@@ -330,7 +327,7 @@ TestSuite instproc mark_pkt { number } {
 }
 
 TestSuite instproc emod1 {} {
-        $self instvar lossylink_
+	$self instvar lossylink_
         set errmodule [$lossylink_ errormodule]
         return $errmodule
 }
@@ -358,16 +355,6 @@ TestSuite instproc drop_pkts pkts {
     set emod [$self emod1]
     set errmodel1 [new ErrorModel/List]
     $errmodel1 droplist $pkts
-    $emod insert $errmodel1
-    $emod bind $errmodel1 0
-}
-
-TestSuite instproc mark_pkts pkts {
-    $self instvar ns_
-    set emod [$self emod1]
-    set errmodel1 [new ErrorModel/List]
-    $errmodel1 droplist $pkts
-    #$errmodel1 set markecn_ true
     $emod insert $errmodel1
     $emod bind $errmodel1 0
 }
@@ -1055,6 +1042,18 @@ Test/synack3d_fulltcp instproc run {} {
         $ns_ run
 }
 
+Class Test/synack3f_fulltcp -superclass TestSuite
+Test/synack3f_fulltcp instproc init {} {
+        $self instvar net_ test_ guide_ action_
+        set net_        net2A-lossy
+        set test_       synack3f_fulltcp_
+        set guide_      "SYN/ACK packet dropped, FullTCP, ECN+/Adam."
+        set action_ 	drop
+	Agent/TCP/FullTcp set ecn_syn_ true
+        Agent/TCP/FullTcp set ecn_syn_wait_ 2
+        Test/synack3f_fulltcp instproc run {} [Test/synack3d_fulltcp info instbody run]
+        $self next pktTraceFile
+}
 
 Class Test/synack4c_fulltcp -superclass TestSuite
 Test/synack4c_fulltcp instproc init {} {
@@ -1071,22 +1070,28 @@ Test/synack4c_fulltcp instproc init {} {
         $self next pktTraceFile
 }
 
+#
+# With "$self drop_pkts {0 1 2 3}", the SYN/ACK and second SYN/ACK
+# are dropped, and it ends there.  
+# FullTCP gives up after two SYN/ACK packets are dropped.
+#
+# TODO: Change this to use net2, and drop_pkts
+#
 Class Test/synack_many_fulltcp -superclass TestSuite
 Test/synack_many_fulltcp instproc init {} {
         $self instvar net_ test_ guide_ 
         set net_        net2
         set test_       synack_many_fulltcp_
-        set guide_      "SYN/ACK and data packets marked, FullTCP, ECN+."
-        Agent/TCPSink set ecn_syn_ true
-	Agent/TCP/FullTcp set ecn_syn_ true
-	Agent/TCP/FullTcp set ecn_syn_wait_ 0
+        set guide_      "Two SYN/ACK packets dropped, FullTCP, no ECN."
+	Agent/TCP/FullTcp set ecn_syn_ false
+	# Agent/TCP/FullTcp set ecn_syn_wait_ 0
         $self next pktTraceFile
 }
 Test/synack_many_fulltcp instproc run {} {
         global quiet wrap wrap1
-        $self instvar ns_ guide_ node_ guide_ testName_ errmodel1
+        $self instvar ns_ guide_ node_ testName_ errmodel1
         puts "Guide: $guide_"
-        Agent/TCP set ecn_ 1
+        Agent/TCP set ecn_ 0
         $self setTopo
         $self set_lossylink1
 
@@ -1105,11 +1110,11 @@ Test/synack_many_fulltcp instproc run {} {
         set ftp2 [$sink attach-app FTP]
         $ns_ at 0.03 "$ftp2 produce 20"
 
-        $self drop_pkts {0 1 2 3}
-        $errmodel1 set markecn_ true
-        # $self mark_pkt 10
+        $self drop_pkts {0 1 2 3} 
+        # $self drop_pkt 1
+	# "drop_pkt" is used with net2A-lossy.
         $self tcpDump $tcp1 5.0
-        $ns_ at 2.0 "$self cleanupAll $testName_"
+        $ns_ at 5.0 "$self cleanupAll $testName_"
         $ns_ run
 }
 
