@@ -148,11 +148,14 @@ OBJ_STL = diffusion3/lib/nr/nr.o diffusion3/lib/dr.o \
 	delaybox/delaybox.o \
 	packmime/packmime_HTTP.o packmime/packmime_HTTP_rng.o \
 	packmime/packmime_OL.o packmime/packmime_OL_ranvar.o\
-	packmime/packmime_ranvar.o
+	packmime/packmime_ranvar.o \
+	tmix/tmix.o tmix/tmix_delaybox.o
 
 NS_TCL_LIB_STL = tcl/lib/ns-diffusion.tcl \
 	tcl/delaybox/delaybox.tcl \
-	tcl/packmime/packmime.tcl
+	tcl/packmime/packmime.tcl \
+	tcl/tmix/tmix.tcl \
+	tcl/tmix/tmix_delaybox.tcl
 
 
 # WIN32: uncomment the following line to include specific make for VC++

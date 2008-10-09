@@ -130,6 +130,7 @@ protected:
 
 class DelayBoxFlow {
 	friend struct DelayBoxClassifier;
+	friend struct Tmix_DelayBoxClassifier;
 public:
 	DelayBoxFlow(double delay, double loss, double linkspd, 
 		     DelayBoxQueue* q, DelayBoxTimer* timer) : delay_(delay), 
