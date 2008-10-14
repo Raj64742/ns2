@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.59 2008/10/02 21:01:35 sallyfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.60 2008/10/14 17:42:52 sallyfloyd Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -160,6 +160,8 @@ protected:
 	int halfclose_;	    // allow simplex closes?
 	int nopredict_;	    // disable header predication
 	int ecn_syn_;       // Make SYN/ACK packets ECN-Capable?
+	int ecn_syn_next_;  // Make next SYN/ACK packet ECN-Capable?
+				// This is used for ecn_syn_wait = 2.
 	int ecn_syn_wait_;  // 0: Window of one if SYN/ACK pkt is marked.
                             // 1: Wait if SYN/ACK packet is ECN-marked.
                             // 2: Retry if SYN/ACK packet is ECN-marked.

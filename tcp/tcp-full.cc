@@ -109,7 +109,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.126 2008/10/02 21:06:12 sallyfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.127 2008/10/14 17:42:52 sallyfloyd Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -630,6 +630,12 @@ FullTcpAgent::reset()
 
 	closed_ = 0;
 	close_on_empty_ = FALSE;
+
+        if (ecn_syn_)
+                ecn_syn_next_ = 1;
+        else
+                ecn_syn_next_ = 0;
+
 }
 
 /*
@@ -858,7 +864,7 @@ FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int reas
 	if (datalen > 0 && ecn_ ){
 	        // set ect on data packets 
 		fh->ect() = ect_;	// on after mutual agreement on ECT
-        } else if (ecn_ && ecn_syn_ && (pflags & TH_SYN) && (pflags & TH_ACK)) {
+        } else if (ecn_ && ecn_syn_ && ecn_syn_next_ && (pflags & TH_SYN) && (pflags & TH_ACK)) {
                 // set ect on syn/ack packet, if syn packet was negotiating ECT
                	fh->ect() = ect_;
 	} else {
@@ -2056,7 +2062,7 @@ trimthenstep6:
                 //  immediately, and drop the ACK packet.
                 // Do not move to TCPS_ESTB state or update TCP variables.
 			cancel_rtx_timer();
-			ecn_syn_ = 0;
+			ecn_syn_next_ = 0;
 			foutput(iss_, REASON_NORMAL);
 			wnd_init_option_ = 1;
                         wnd_init_ = 1;
