@@ -269,7 +269,7 @@ private:
 	ChannelStateMgr *csmgr;
 };
 
-typedef enum ChannelState {noCSnoNAV=0, noCSNAV=1, CSnoNAV=2, CSNAV=3, WIFS=4};
+enum ChannelState {noCSnoNAV=0, noCSNAV=1, CSnoNAV=2, CSNAV=3, WIFS=4};
 
 class ChannelStateMgr {
 	friend class Mac802_11Ext;
@@ -324,7 +324,7 @@ private:
 	double startTime;
 };
 
-typedef enum BackoffMgrState {noBackoff,BackoffRunning,BackoffPause};
+enum BackoffMgrState {noBackoff,BackoffRunning,BackoffPause};
 
 class BackoffMgr {
 	friend class Mac802_11Ext;
@@ -421,7 +421,7 @@ private:
 	TXC * txc_;
 };
 
-typedef enum TXCState {TXC_Idle,TXC_wait_RTSsent, TXC_wait_PDUsent, TXC_RTS_pending, TXC_DATA_pending,TXC_wait_CTS,TXC_wait_SIFS,TXC_wait_ACK};
+enum TXCState {TXC_Idle,TXC_wait_RTSsent, TXC_wait_PDUsent, TXC_RTS_pending, TXC_DATA_pending,TXC_wait_CTS,TXC_wait_SIFS,TXC_wait_ACK};
 
 class TXC {
 public:
@@ -481,7 +481,7 @@ private:
 	RXC * rxc_;
 };
 
-typedef enum RXCState {RXC_Idle,RXC_wait_SIFS,RXC_wait_sent};
+enum RXCState {RXC_Idle,RXC_wait_SIFS,RXC_wait_sent};
 
 class RXC {
 public:
@@ -503,7 +503,7 @@ private:
 /* ======================================================================
  6.0 The actual 802.11 MAC class.
  ====================================================================== */
-typedef enum TXConfirmCallback {Callback_TXC,Callback_RXC};
+enum TXConfirmCallback {Callback_TXC,Callback_RXC};
 
 class TXC;
 class RXC;

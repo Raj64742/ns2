@@ -34,7 +34,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp-timestamp.h,v 1.4 2007/06/17 21:44:44 tom_henderson Exp $ (UD/PEL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp-timestamp.h,v 1.5 2008/11/03 05:34:48 tom_henderson Exp $ (UD/PEL)
  */
 
 /* Timestamp extension adds a TIMESTAMP chunk into every packet with DATA
@@ -53,7 +53,7 @@
 #define SCTP_TIMESTAMP_FLAG_TS    0x01  // indicates a timestamp in the chunk
 #define SCTP_TIMESTAMP_FLAG_ECHO  0x02  // indicates a timestamp echo in chunk
 
-typedef struct SctpTimestampChunk_S
+struct SctpTimestampChunk_S
 {
   SctpChunkHdr_S  sHdr;
   float           fTimestamp;

@@ -52,7 +52,7 @@
 
 /* CMT rtx policies
  */
-typedef enum CmtRtxPolicy_E
+enum CmtRtxPolicy_E
 {
   RTX_ASAP,
   RTX_TO_SAME,

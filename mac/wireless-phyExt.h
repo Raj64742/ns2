@@ -67,7 +67,7 @@
 #include <list>
 #include <packet.h>
 
-typedef enum PhyState {SEARCHING = 0, PreRXing = 1, RXing = 2, TXing = 3};
+enum PhyState {SEARCHING = 0, PreRXing = 1, RXing = 2, TXing = 3};
 
 typedef struct ModulationParam {
 	int schemeIndex;
@@ -246,7 +246,7 @@ private:
 typedef PowerTimer* pTimer;
 typedef std::list<PowerTimer *> PowerTimerList;
 
-typedef enum PowerMonitorState {IDLE = 0, BUSY = 1};
+enum PowerMonitorState {IDLE = 0, BUSY = 1};
 
 class PowerMonitor {
 public:

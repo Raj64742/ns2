@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.42 2005/09/26 09:12:46 lacage Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.43 2008/11/03 05:34:48 tom_henderson Exp $";
 #endif
 
 #include <stdlib.h>
@@ -81,6 +81,7 @@ void Classifier::alloc(int slot)
 	NsObject** old = slot_;
 	int n = nslot_;
 	if (old == 0) 
+	    {	
 		if (nsize_ != 0) {
 			//printf("classifier %x set to %d....%dth visit\n", this, nsize_, i++);
 			nslot_ = nsize_;
@@ -89,6 +90,7 @@ void Classifier::alloc(int slot)
 			//printf("classifier %x set to 32....%dth visit\n", this, j++);
 			nslot_ = 32;
 		}
+	    }
 	while (nslot_ <= slot) 
 		nslot_ <<= 1;
 	slot_ = new NsObject*[nslot_];

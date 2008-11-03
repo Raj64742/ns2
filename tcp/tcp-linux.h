@@ -66,7 +66,7 @@
 /* A list to store the parameters */
 class ParamList {
 private:
-	typedef struct paramNode {
+	struct paramNode {
 		int* addr;
 		int value;
 		int default_value;
