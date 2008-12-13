@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.56 2008/03/28 04:43:06 tom_henderson Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.57 2008/12/13 23:22:58 tom_henderson Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  * Contributions by:
@@ -223,10 +223,11 @@ Mac802_11::Mac802_11() :
 	cache_node_count_ = 0;
 	client_list = NULL;
 	ap_list = NULL;
+	queue_head = NULL;
 	Pr = 0;
 	ap_temp = -1;
-	head = 0;
 	ap_addr = -1;
+	tx_mgmt_ = 0;
 	associated = 0;
 	authenticated = 0;
 	OnMinChannelTime = 0;
@@ -234,7 +235,6 @@ Mac802_11::Mac802_11() :
 	Recv_Busy_ = 0;
 	handoff= 0;
 //	ssid_ = "0";
-        memset(priority_queue, 0, sizeof(priority_queue));
 	
 	// chk if basic/data rates are set
 	// otherwise use bandwidth_ as default;
@@ -282,8 +282,8 @@ Mac802_11::command(int argc, const char*const* argv)
 			if (strcmp(argv[2], "ACTIVE") == 0) {
 				ScanType_ = ACTIVE;
 				infra_mode_ = 1;
-				ap_list = NULL;
 				mhProbe_.start(macmib_.getProbeDelay());
+				probe_delay = 1;
 			} else if (strcmp(argv[2], "PASSIVE") == 0) {
 				ScanType_ = PASSIVE;
 				mhProbe_.start(macmib_.getChannelTime());
@@ -400,23 +400,22 @@ Mac802_11::hdr_dst(char* hdr, int dst )
 		} else if ( addr() == bss_id_) {
 			if ( find_client(dst) == 1 || (u_int32_t) dst == MAC_BROADCAST) {
 				STORE4BYTE(&dst, (dh->dh_ra));
+				dh->dh_fc.fc_to_ds      = 0;
+				dh->dh_fc.fc_from_ds    = 1;
 			} else {
 				int dst_broadcast;
 				dst_broadcast = MAC_BROADCAST;
-	
+				
 				STORE4BYTE(&dst_broadcast, (dh->dh_ra));
 				STORE4BYTE(&dst, (dh->dh_3a));
 				dh->dh_fc.fc_to_ds      = 1;
 				dh->dh_fc.fc_from_ds    = 1;		
 			}
-
 		} else {
-
 			STORE4BYTE(&bss_id_, (dh->dh_ra));
                         STORE4BYTE(&dst, (dh->dh_3a));
 		}
 	}
-
        return (u_int32_t)ETHER_ADDR(dh->dh_ra);
 }
 
@@ -477,8 +476,7 @@ Mac802_11::discard(Packet *p, const char* why)
 				return;
 			}
 			break;
-//		drop(p, why);
-//		return;
+
 		case MAC_Subtype_AssocReq:
 			if((u_int32_t)ETHER_ADDR(mh->dh_ra) == (u_int32_t)index_) {
 				drop(p, why);
@@ -673,17 +671,17 @@ Mac802_11::backoffHandler()
 	}
 
 	if ( addr() == bss_id_ ) {
-		if (pktPROBEREP_ && priority_queue[head] == 1) {
+		if (pktPROBEREP_ && queue_head->frame_priority == 1) {
 			if (check_pktPROBEREP() == 0) 
 				return;
-		} else if (pktBEACON_ && priority_queue[head] == 2) {
+		} else if (pktBEACON_ && queue_head->frame_priority == 2) {
 			if (check_pktBEACON() == 0) {
 				return;
 			}
-		} else if (pktAUTHENTICATE_ && priority_queue[head] == 3) { 
+		} else if (pktAUTHENTICATE_ && queue_head->frame_priority == 3) { 
 			if (check_pktAUTHENTICATE() == 0)
 				return;
-		} else if(pktASSOCREP_ && priority_queue[head] == 4) {
+		} else if(pktASSOCREP_ && queue_head->frame_priority == 4) {
 			if (check_pktASSOCREP() == 0)
 				return;
 		}
@@ -716,8 +714,10 @@ Mac802_11::ProbeHandler()
 {
 	if (ScanType_ == ACTIVE) {
 		if ( (bss_id_ == (int)IBSS_ID || handoff == 1) && OnMinChannelTime == 0 && Recv_Busy_ == 0 && OnMaxChannelTime == 0) {
-			if (strongest_ap() < 0) {   // Probe delay over - Active Scan starts here, when the ap_table has not been built yet
+			
+			if (probe_delay == 1) {   // Probe delay over - Active Scan starts here, when the ap_table has not been built yet
 				sendPROBEREQ(MAC_BROADCAST); 
+				probe_delay = 0;
 				return;
 			} else {
 				checkAssocAuthStatus();	 // MaxChannelTime Over - Handoff is taking place and ap_table is built, complete authentication and (re)association
@@ -725,7 +725,7 @@ Mac802_11::ProbeHandler()
 			}
 		}
 		else if (OnMinChannelTime == 1 && Recv_Busy_ == 1 && OnMaxChannelTime == 0) {
-			// MinChannelTime Over - receiver indicated busy before timer expiry, hence Probe timer should be continued for MaxChannelTime, to reeive all probe responses
+			// MinChannelTime Over - receiver indicated busy before timer expiry, hence Probe timer should be continued for MaxChannelTime, to receive all probe responses
 			OnMinChannelTime = 0;
 			OnMaxChannelTime = 1;
 			mhProbe_.start(macmib_.getMaxChannelTime()); 
@@ -744,7 +744,7 @@ Mac802_11::ProbeHandler()
 		else if (OnMinChannelTime == 1 && Recv_Busy_ == 0 && OnMaxChannelTime == 0) {
 			//printf("Out of range of any Access Point or channel without APs\n");
 			OnMinChannelTime = 0;
-			deletelist();	//  MinChannelTime Over - Delete ap_table
+			//  MinChannelTime Over 
 			return;
 		}				
 	} else {
@@ -816,19 +816,25 @@ Mac802_11::send_timer()
 	
 	case MAC_MGMT:
 		if (pktAUTHENTICATE_) {
-			assert(pktAUTHENTICATE_);
-			Packet::free(pktAUTHENTICATE_);
-			pktAUTHENTICATE_ = 0;
-			if(addr() == bss_id_) {
-				if (end() > (head + 1)) {
+				
+			if(addr() == bss_id_ ) {
+				if (tx_mgmt_ == 3) {
+					assert(pktAUTHENTICATE_);
+					Packet::free(pktAUTHENTICATE_);
+					pktAUTHENTICATE_ = 0;
 					shift_priority_queue();
 					assert(mhBackoff_.busy() == 0);
 					mhBackoff_.start(cw_, is_idle());
-				} else 
-					priority_queue[head] = 0;
-			} else
+					break;
+				}
+			} else {
+				assert(pktAUTHENTICATE_);
+				Packet::free(pktAUTHENTICATE_);
+				pktAUTHENTICATE_ = 0;
 				checkAssocAuthStatus();
-			break;
+				break;
+			}
+		
 		}
  		if (pktASSOCREQ_) {
 			assert(pktASSOCREQ_);
@@ -838,16 +844,17 @@ Mac802_11::send_timer()
 			break;
  		}
 		if (pktASSOCREP_) {
-			assert(pktASSOCREP_);
-			Packet::free(pktASSOCREP_);
-			pktASSOCREP_ = 0;
-			if (end() > (head + 1)) {
+
+			if (tx_mgmt_ == 4) {
+				assert(pktASSOCREP_);
+				Packet::free(pktASSOCREP_);
+				pktASSOCREP_ = 0;
 				shift_priority_queue();
 				assert(mhBackoff_.busy() == 0);
 				mhBackoff_.start(cw_, is_idle());
-			} else 
-				priority_queue[head] = 0;
-			break;
+				update_client_table(associating_node_,1,2);
+				break;
+			}
 		}
 		if (pktPROBEREQ_) {
 			assert(pktPROBEREQ_);
@@ -856,27 +863,24 @@ Mac802_11::send_timer()
 			break;
  		}
 		if (pktPROBEREP_) {
-			assert(pktPROBEREP_);
-			Packet::free(pktPROBEREP_);
-			pktPROBEREP_ = 0;
-			if (end() > (head + 1)) {
+			if (tx_mgmt_ == 1) {
+				assert(pktPROBEREP_);
+				Packet::free(pktPROBEREP_);
+				pktPROBEREP_ = 0;
+			
 				shift_priority_queue();
 				assert(mhBackoff_.busy() == 0);
 				mhBackoff_.start(cw_, is_idle());
-			} else 
-				priority_queue[head] = 0;
-			break;
+				break;
+			}
 		}
 	case MAC_BCN:
 		assert(pktBEACON_);
 		Packet::free(pktBEACON_);
 		pktBEACON_ = 0;
-		if (end() > (head + 1)) {
-			shift_priority_queue();
-			assert(mhBackoff_.busy() == 0);
-			mhBackoff_.start(cw_, is_idle());
-		} else 
-			priority_queue[head] = 0;
+		shift_priority_queue();
+		assert(mhBackoff_.busy() == 0);
+		mhBackoff_.start(cw_, is_idle());
 		break;
 
 	case MAC_RTS:
@@ -1221,14 +1225,7 @@ Mac802_11::sendDATA(Packet *p)
 	dh->dh_fc.fc_type       = MAC_Type_Data;
 	dh->dh_fc.fc_subtype    = MAC_Subtype_Data;
 	if ( bss_id_ != (int)IBSS_ID ) {
-		if ( index_ == ap_addr ) {
-			if (dh->dh_fc.fc_to_ds == 0) {
-				if (find_client(dst) == 1 || dst == MAC_BROADCAST) {
- 					dh->dh_fc.fc_to_ds      = 0;
-					dh->dh_fc.fc_from_ds    = 1;
-					}
-			} 
-		} else {
+		if ( index_ != ap_addr ) {
 		dh->dh_fc.fc_to_ds	= 1;
 		dh->dh_fc.fc_from_ds	= 0;
 		}
@@ -1352,9 +1349,9 @@ Mac802_11::RetransmitDATA()
 
 	(*rcount)++;
 
+// Bug reported by Mayur - Handoff triggered in Ad-hoc mode too. Bug resolved by checking if it is infrastructure mode before handoff trigger.
 
-
-	if (*rcount == 3 && handoff == 0) {
+	if (bss_id_ != (int)IBSS_ID && *rcount == 3 && handoff == 0) {
 		//start handoff process
 		printf("Client %d: Handoff Attempted\n",index_);
 		associated = 0;
@@ -1410,7 +1407,6 @@ double rTime;
 				if (bugFix_timer_) {
 				 	mhBackoff_.start(cw_, is_idle(), 
 							  phymib_.getDIFS());
-					priority_queue[head] = 1;
 				}
 				else {
 					rTime = (Random::random() % cw_)
@@ -1425,13 +1421,11 @@ double rTime;
 			 * the backoff timer.
 			 */
 			mhBackoff_.start(cw_, is_idle());
-			priority_queue[head] = 1;
+
 			
 		}
 		
-	} else {
-		priority_queue[end()] = 1;
-	}
+	} 
 
 }
 
@@ -1450,7 +1444,6 @@ double rTime;
 				if (bugFix_timer_) {
 				 	mhBackoff_.start(cw_, is_idle(), 
 							  phymib_.getDIFS());
-					priority_queue[head] = 3;
 				}
 				else {
 					rTime = (Random::random() % cw_)
@@ -1465,13 +1458,11 @@ double rTime;
 			 * the backoff timer.
 			 */
 			mhBackoff_.start(cw_, is_idle());
-			priority_queue[head] = 3;
+			
 			
 		}
 		
-	} else {
-		priority_queue[end()] = 3;	
-	}
+	} 
 
 }
 
@@ -1490,7 +1481,7 @@ double rTime;
 				if (bugFix_timer_) {
 				 	mhBackoff_.start(cw_, is_idle(), 
 							  phymib_.getDIFS());
-					priority_queue[head] = 4;
+					
 				}
 				else {
 					rTime = (Random::random() % cw_)
@@ -1505,13 +1496,10 @@ double rTime;
 			 * the backoff timer.
 			 */
 			mhBackoff_.start(cw_, is_idle());
-			priority_queue[head] = 4;
 			
 		}
 		
-	} else {
-		priority_queue[end()] = 4;	
-	}
+	} 
 
 }
 /* ======================================================================
@@ -1728,6 +1716,20 @@ Mac802_11::recv_timer()
 		}
  	}
 	
+	
+	if ( addr() == bss_id_ && subtype == MAC_Subtype_80211_Beacon) {
+		discard(pktRx_, "---");
+ 			goto done;
+	}
+
+	
+	if ( addr() == bss_id_ && subtype == MAC_Subtype_80211_Beacon) {
+		discard(pktRx_, "---");
+ 			goto done;
+	}
+
+
+
 	if ( addr() != bss_id_ && subtype == MAC_Subtype_ProbeReq) {
 		discard(pktRx_, "---");
  			goto done;
@@ -1736,7 +1738,6 @@ Mac802_11::recv_timer()
 	switch(type) {
 
 	case MAC_Type_Management:
-		//discard(pktRx_, DROP_MAC_PACKET_ERROR);
 		switch(subtype) {
 		case MAC_Subtype_80211_Beacon:
 			recvBEACON(pktRx_);
@@ -1989,7 +1990,8 @@ Mac802_11::recvDATA(Packet *p)
 	 * LL to be added back to my queue - accomplish this
 	 * by reversing the direction!*/
 	
-	
+
+
 		
 	if ((bss_id() == addr()) && ((u_int32_t)ETHER_ADDR(dh->dh_ra)!= MAC_BROADCAST) && ((u_int32_t)ETHER_ADDR(dh->dh_3a) != ((u_int32_t)addr())) && dh->dh_fc.fc_from_ds == 0) {
 		struct hdr_cmn *ch = HDR_CMN(p);
@@ -2010,22 +2012,24 @@ Mac802_11::recvDATA(Packet *p)
 		if (find_client(dst) == 1 || dst == MAC_BROADCAST) {
 			STORE4BYTE(&src, (dh->dh_3a));
 		} else {
-			STORE4BYTE(&src, (dh->dh_4a));			
+			STORE4BYTE(&src, (dh->dh_4a));	
 		}
 
 		ch->addr_type() = NS_AF_ILINK;
 		ch->direction() = hdr_cmn::DOWN;
 		
 	}
-	
+
  	if ((bss_id() == addr()) && dh->dh_fc.fc_to_ds == 1 && dh->dh_fc.fc_from_ds == 1) {
  		u_int32_t dst = ETHER_ADDR(dh->dh_3a);
  		u_int32_t src = ETHER_ADDR(dh->dh_4a);
-		if (find_client(src)) { 
+		/*if (find_client(src)) { 
 			update_client_table(src,0,0);   // If the source is from another BSS and it is found in this AP's table, delete the node from the table
-		}	
+		}*/	
+
  		ch->next_hop() = dst;
  		STORE4BYTE(&src, (dh->dh_3a));
+
  		ch->addr_type() = NS_AF_ILINK;
  		ch->direction() = hdr_cmn::DOWN;
  	}
@@ -2041,20 +2045,23 @@ Mac802_11::recvACK(Packet *p)
 	if (tx_state_ == MAC_MGMT) {
 		mhSend_.stop();
 		if (addr() == bss_id_) {
-			if (pktASSOCREP_ && priority_queue[head] == 4) {
+			if (pktASSOCREP_ && tx_mgmt_ == 4) {
 				Packet::free(pktASSOCREP_);
 				pktASSOCREP_ = 0;
 				update_client_table(associating_node_,1,1);
 			} 
-			if (pktPROBEREP_ && priority_queue[head] == 1) {
+			if (pktPROBEREP_ && tx_mgmt_ == 1) {
 				Packet::free(pktPROBEREP_);
 				pktPROBEREP_ = 0;
 			}
-			if (pktAUTHENTICATE_ && priority_queue[head] == 3) {
+			if (pktAUTHENTICATE_ && tx_mgmt_ == 3) {
 				Packet::free(pktAUTHENTICATE_);
 				pktAUTHENTICATE_ = 0;
 				update_client_table(authenticating_node_,1,0);
 			}
+			shift_priority_queue();
+			assert(mhBackoff_.busy() == 0);
+			mhBackoff_.start(cw_, is_idle());
 		}
 		goto done;
 	}
@@ -2089,14 +2096,6 @@ Mac802_11::recvACK(Packet *p)
 	assert(mhBackoff_.busy() == 0);
 	mhBackoff_.start(cw_, is_idle());
 done:
-	if (addr() == bss_id_) {
-		if (end() > (head + 1)) {
-			shift_priority_queue();
-			assert(mhBackoff_.busy() == 0);
-			mhBackoff_.start(cw_, is_idle());
-		} else 
-			priority_queue[head] = 0;
-	}
 
 	tx_resume();
 
@@ -2107,72 +2106,57 @@ done:
 /* AP's association table funtions
 */
 void Mac802_11::update_client_table(int num, int auth_status, int assoc_status) {
-	if (client_list == NULL) {
+
+	std::list<client_table>::iterator it;
+	for (it=client_list1.begin(); it != client_list1.end(); it++) {
+		if ((*it).client_id == num) {
+			(*it).auth_status = auth_status;
+			(*it).assoc_status = assoc_status;
+			break;
+		}
+;
+	}
+	
+	if (it == client_list1.end()) {
 		client_list = (struct client_table*)malloc(sizeof(struct client_table));
 		client_list->client_id=num;
 		client_list->auth_status=auth_status;
 		client_list->assoc_status=assoc_status;
-		client_list->next=NULL;
+		
+		client_list1.push_front(*client_list);
+
+		free(client_list);
+
 	}
-	else {
-		push(num, auth_status, assoc_status);
-	}
-// 	printf("Client List for AP %d\n",index_);
-// 	struct client_table *temp;
-// 	temp = client_list;
-// 		
-// 	while (temp != NULL) {
-// 		printf("Client %d: Authenticated = %d Associated = %d\n", temp->client_id,temp->auth_status,temp->assoc_status,NOW);
-// 		temp=temp->next;
-// 	}
-// 	printf("\n");
+
+//	printf("Client List for AP %d at %f\n",index_,NOW);
+
+
+
+//	for (it=client_list1.begin(); it != client_list1.end(); it++) {
+//		printf("Client %d: Authenticated = %d Associated = %d at %f\n", (*it).client_id,(*it).auth_status,(*it).assoc_status,NOW);
+//		temp=temp->next;
+//	}
+//	printf("\n");
 	
 }
 
-void Mac802_11::push(int num, int auth_status, int assoc_status) {
-	struct client_table *temp;
-	temp = client_list;
-	while (temp != NULL) {
-		if (temp->client_id == num) {
-			temp->auth_status=auth_status;
-			temp->assoc_status=assoc_status;
-			return;
-		}
-		temp=temp->next;
-			
-		if (temp == NULL) {
-			break; 
-		}
-	}
-			
-	temp = client_list;
-	while (temp->next != NULL) {
-		temp=temp->next;
-	}
-	temp->next = (struct client_table*)malloc(sizeof(struct client_table));
-	temp->next->client_id = num;
-	temp->next->auth_status=auth_status;
-	temp->next->assoc_status=assoc_status;
-	temp->next->next = NULL; 
-}
 
 int Mac802_11::find_client(int num) {
-	struct client_table *temp;
-	temp = client_list;
-	while (temp != NULL) {
-		if (temp->client_id == num && temp->auth_status == 1 && temp->assoc_status == 1) {
+	std::list<client_table>::iterator it;
+
+	for (it=client_list1.begin(); it != client_list1.end(); it++) {
+		if ((*it).client_id == num) {
 			return 1;
-			break;
 		}
 
-		temp=temp->next;
-			
-		if (temp == NULL) {
-			return 0; 
-		}
 	}
-	return 0;
+
+	if (it == client_list1.end()) {
+		return 0;
+	}
 }
+
 
 /* Beacon send and Receive functions
 */
@@ -2229,6 +2213,8 @@ Mac802_11::sendBEACON(int src)
 	pktBEACON_ = p;
 	
 	BeaconTxtime_ = txtime(phymib_.getBEACONlen(), basicRate_);
+
+	add_priority_queue(2);
 	
 	if(mhBackoff_.busy() == 0) {
 		if(is_idle()) {
@@ -2237,7 +2223,6 @@ Mac802_11::sendBEACON(int src)
 				if (bugFix_timer_) {
 				 	mhBackoff_.start(cw_, is_idle(), 
 							  phymib_.getDIFS());
-					priority_queue[head] = 2;
 				}
 				else {
 					rTime = (Random::random() % cw_)
@@ -2253,11 +2238,9 @@ Mac802_11::sendBEACON(int src)
 			 */
 			
 			mhBackoff_.start(cw_, is_idle());
-			priority_queue[head] = 2;
+
 		}
-	} else {
-		priority_queue[end()] = 2;
-	}			
+	} 		
 
 }
 
@@ -2307,11 +2290,10 @@ Mac802_11::recvBEACON(Packet *p)
 	}
 	u_int32_t bss_id, src;
 
-	//double timestamp, beaconint;
 	bss_id = ETHER_ADDR(bf->bf_3a);
  	src = ETHER_ADDR(bf->bf_ta);
 	infra_mode_ = 1;
-	//timestamp = bf->bf_timestamp;
+
 	Pr = p->txinfo_.RxPr;
 	if ( addr() != ap_addr && ScanType_ == PASSIVE) {
 		if (authenticated == 0 && associated == 0) {
@@ -2501,6 +2483,9 @@ Mac802_11::sendASSOCREP(int dst)
 	
  	pktASSOCREP_ = p;
 
+
+	add_priority_queue(4);
+
 	if(mhBackoff_.busy() == 0) {
 		if(is_idle()) {
 			if (mhDefer_.busy() == 0) {
@@ -2511,7 +2496,6 @@ Mac802_11::sendASSOCREP(int dst)
 				if (bugFix_timer_) {
 				 	mhBackoff_.start(cw_, is_idle(), 
 							  phymib_.getDIFS());
-					priority_queue[head] = 4;
 				}
 				else {
 					rTime = (Random::random() % cw_)
@@ -2526,15 +2510,11 @@ Mac802_11::sendASSOCREP(int dst)
 			 * the backoff timer.
 			 */
 			mhBackoff_.start(cw_, is_idle());
-			priority_queue[head] = 4;
 			
 		} 
 			
 	
-	} else {
-		priority_queue[end()] = 4;
-	}
-
+	} 
 }
 
 int
@@ -2556,6 +2536,7 @@ Mac802_11::check_pktASSOCREP()
  		}
 		
  		setTxState(MAC_MGMT);
+		tx_mgmt_ = 4;
  		timeout = txtime(phymib_.getASSOCREPlen(), basicRate_)
 			+ DSSS_MaxPropagationDelay
 			+ phymib_.getSIFS()
@@ -2675,9 +2656,9 @@ Mac802_11::sendAUTHENTICATE(int dst)
 	authf->authf_algono = 0; //Open system authentication
 
 	if (addr() != bss_id_) {
-		authf->authf_seqno = 1;  // 
+		authf->authf_seqno = 1;   
 	} else {
-		authf->authf_seqno = 2;  //
+		authf->authf_seqno = 2;  
 		authf->authf_statuscode = 0;
 	}
 	
@@ -2692,6 +2673,11 @@ Mac802_11::sendAUTHENTICATE(int dst)
 	
 	pktAUTHENTICATE_ = p;
 
+	if (addr() == bss_id_) {
+		add_priority_queue(3);
+	}
+	
+
 	if(mhBackoff_.busy() == 0) {
 		if(is_idle()) {
 			if (mhDefer_.busy() == 0) {
@@ -2702,7 +2688,6 @@ Mac802_11::sendAUTHENTICATE(int dst)
 				if (bugFix_timer_) {
 				 	mhBackoff_.start(cw_, is_idle(), 
 							  phymib_.getDIFS());
-					priority_queue[head] = 3;
 				}
 				else {
 					rTime = (Random::random() % cw_)
@@ -2717,12 +2702,9 @@ Mac802_11::sendAUTHENTICATE(int dst)
 			 * the backoff timer.
 			 */
 			mhBackoff_.start(cw_, is_idle());
-			priority_queue[head] = 3;
 			
 		}
-	} else {
-		priority_queue[end()] = 3;
-	}
+	} 
 
 }
 
@@ -2758,6 +2740,7 @@ Mac802_11::check_pktAUTHENTICATE()
 				+ phymib_.getSIFS()
 				+ txtime(phymib_.getACKlen(), basicRate_)
 				+ DSSS_MaxPropagationDelay;
+			tx_mgmt_ = 3;
 		}
 		break;
 	default:
@@ -2967,13 +2950,14 @@ Mac802_11::sendPROBEREP(int dst)
 	STORE4BYTE(&index_, (prrpf->prrpf_ta));
 	STORE4BYTE(&index_, (prrpf->prrpf_3a));
 	
-//	prrpf->prrpf_timestamp = Scheduler::instance().clock();
 	prrpf->prrpf_bcninterval = phymib_.getBeaconInterval();
 
 	ch->txtime() = txtime(ch->size(), basicRate_);
  	prrpf->prrpf_duration = 0;
 	
 	pktPROBEREP_ = p;
+
+	add_priority_queue(1);
 
 	if(mhBackoff_.busy() == 0) {
 		if(is_idle()) {
@@ -2985,7 +2969,6 @@ Mac802_11::sendPROBEREP(int dst)
 				if (bugFix_timer_) {
 				 	mhBackoff_.start(cw_, is_idle(), 
 							  phymib_.getDIFS());
-					priority_queue[head] = 1;
 				}
 				else {
 					rTime = (Random::random() % cw_)
@@ -3000,13 +2983,10 @@ Mac802_11::sendPROBEREP(int dst)
 			 * the backoff timer.
 			 */
 			mhBackoff_.start(cw_, is_idle());
-			priority_queue[head] = 1;
 			
 		}
 		
-	} else {
-		priority_queue[end()] = 1;
-	}
+	} 
 
 }
 
@@ -3033,6 +3013,7 @@ Mac802_11::check_pktPROBEREP()
 			return 0;
 		}
 		setTxState(MAC_MGMT);
+		tx_mgmt_ = 1;
 		timeout = txtime(phymib_.getPROBEREPlen(), basicRate_)
 			+ DSSS_MaxPropagationDelay                     // XXX
 			+ phymib_.getSIFS()
@@ -3115,99 +3096,143 @@ void Mac802_11::checkAssocAuthStatus() {
 /* STA's beacon power table funtions
 */
 void Mac802_11::update_ap_table(int num, double power) {
-	if (ap_list == NULL) {
+	
+	std::list<ap_table>::iterator it;
+
 		ap_list = (struct ap_table*)malloc(sizeof(struct ap_table));
 		ap_list->ap_id=num;
-		ap_list->ap_power = power;
-		ap_list->next=NULL;
-	}
-	else {
-		push_ap(num, power);
-	}
-	struct ap_table *temp;
-	temp = ap_list;
-// 	while (temp != NULL) {
-// 		printf("Client %d: AP %d and %f\t", index_, temp->ap_id,temp->ap_power);
-// 		temp=temp->next;
-// 	}
-// 	printf("\n");
+		ap_list->ap_power =power;
+		
+		ap_list1.push_front(*ap_list);
+
+		free(ap_list);
+
+
 }
 
-void Mac802_11::push_ap(int num, double power) {
-	struct ap_table *temp;
-	temp = ap_list;
-	while (temp->next != NULL) {
-		temp=temp->next;
+
+int Mac802_11::strongest_ap() {
+
+	std::list<ap_table>::iterator it;
+	it=ap_list1.begin();
+	double max_power;
+	int ap;
+	max_power = 0;
+	if (it == ap_list1.end()) {
+		return -1;
+		
 	}
-	temp->next = (struct ap_table*)malloc(sizeof(struct ap_table));
-	temp->next->ap_id = num;
-	temp->next->ap_power= power;
-	temp->next->next = NULL; 
+
+	for (it=ap_list1.begin(); it != ap_list1.end(); it++) {
+		if ((*it).ap_power > max_power) {
+			max_power = (*it).ap_power;
+			ap = (*it).ap_id;	
+		}
+
+
+
+	}
+	
+	return ap;
+
+	
+}
+
+
+int Mac802_11::find_ap(int num, double power) {
+
+	std::list<ap_table>::iterator it;
+
+	for (it=ap_list1.begin(); it != ap_list1.end(); it++) {
+		if ((*it).ap_id  ==  num) {
+			if ((*it).ap_power != power) {
+				(*it).ap_power = power;
+			}
+			return 1;
+		}
+
+	}
+
+	if (it == ap_list1.end()) {
+		return 0;
+	}
+	 
+
 }
 
 void Mac802_11::deletelist() {
-	struct ap_table *temp;
-	while (ap_list != NULL) {
+	ap_list1.clear();
+	
+}
 
-		temp = ap_list;
-		ap_list = ap_list->next;
-		free(temp);
+
+void Mac802_11::add_priority_queue(int num)
+{
+	if (queue_head == NULL) {
+		queue_head = (struct priority_queue*)malloc(sizeof(struct priority_queue));
+		queue_head->frame_priority = num;
+		queue_head->next = NULL;
+	} else if (queue_head->next == NULL && queue_head->frame_priority == 0) {
+		 queue_head->frame_priority = num;
+	} else {
+		push_priority(num);
 	}
+
 
 }
 
-int Mac802_11::strongest_ap() {
-	struct ap_table *temp;
-	double max_power;
-	int ap;
-	temp = ap_list;
-	if (ap_list == NULL)
-		return -1;
-	max_power = 0;
-	while (temp != NULL) {
-		if (temp->ap_power > max_power) {
-			max_power = temp->ap_power;
-			ap = temp->ap_id;	
-		}
+void Mac802_11::push_priority(int num) {
+	struct priority_queue *temp;
+	temp = queue_head;
+	while (temp->next != NULL) {
+		temp=temp->next;
+	}
+	temp->next = (struct priority_queue*)malloc(sizeof(struct priority_queue));
+	temp->next->frame_priority = num;
+	temp->next->next = NULL;
+}
+
+void Mac802_11::delete_lastnode() {
+	struct priority_queue *temp;
+	temp = queue_head;
+	if (queue_head == NULL) {
+		return;
+	}
+	if (queue_head->next == NULL) {
+		return;
+	}
+
+	while (temp->next->next != NULL) {
+	
 		temp = temp->next;
 	}
 	
-	return ap;	
-}
-
-int Mac802_11::find_ap(int num, double power) {
-	struct ap_table *temp;
-	temp = ap_list;
-	while (temp != NULL) {
-		if (temp->ap_id == num && temp->ap_power == power) {
-			return 1;
-		} 
-
-		temp=temp->next;
-			
-		if (temp == NULL) {
-			return 0; 
-		}
-	}
-	return 0;
-}
-
-int Mac802_11::end() 
-{
-	int end;
-	end = head;
-	while (priority_queue[end] != 0) {
-		end = end + 1;
-	}
-	return end;
+	temp->next = NULL;
+	free(temp->next);
 }
 
 void Mac802_11::shift_priority_queue()
 {
-	int i;
-	i = head;
-	while (priority_queue[i] != 0) {
-		priority_queue[i] = priority_queue[i+1];
-		i = i + 1;
-	}		
+	struct priority_queue *temp;
+	
+	if (queue_head == NULL) {
+		return;
+	}
+	if (queue_head->next == NULL) {
+		queue_head->frame_priority = 0;
+		goto done;
+	}
+	
+	temp =  queue_head;
+	while(temp->next != NULL) {
+		temp->frame_priority = temp->next->frame_priority;
+		temp = temp->next;
+	}
+
+	delete_lastnode();
+
+done:	
+	temp = queue_head;
+	
 }
+

@@ -16,10 +16,17 @@ with the most recent changes coming first.
 <hr>
 <h3>ns-2.34 pending</h3>
 <ul>
-<p><li><b>[mweigle]</b>Thu Oct 09 11:40:00  EDT 2008:
+<p><li><b>[tomh]</b> Sat Dec 13 15:20:00  PST 2008:
+<br> Bug fixes for 802.11 infrastructure code, posted by Ilango Purushothaman.  <ul>
+<li> Patches for better memory management - use standard C++ lists to maintain AP and client tables, memory leaks fixed in AP scheduling queue </li>
+<li> Triggering of handoff in Ad-hoc mode - Bug reported by Mayur - Resolved by adding an if condition for checking the 802.11 mode.</li>
+<li> Note:  The following traces changed as a result of this, but were verified by Ilango: ./test-all-wireless-infra ./test-all-wireless-infra-mobility ./test-all-wireless-shadowing ./test-all-wireless-lan-aodv ./test-all-wireless-gridkeeper ./test-all-wireless-lan-newnode
+</ul>
+</li>
+<p><li><b>[mweigle]</b> Thu Oct 09 11:40:00  EDT 2008:
 <br> Import Tmix synthetic Internet traffic generation tool
 </li>
-<p><li><b>[tomh]</b>Sun Sep 14 10:49:00  PST 2008:
+<p><li><b>[tomh]</b> Sun Sep 14 10:49:00  PST 2008:
 <br> Disable string literal warning for gcc version > 4.2
 </li>
 </ul>

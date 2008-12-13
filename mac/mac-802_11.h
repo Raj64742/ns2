@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.h,v 1.28 2008/01/24 01:53:19 tom_henderson Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.h,v 1.29 2008/12/13 23:22:58 tom_henderson Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  * wireless-mac-802_11.h
@@ -48,6 +48,7 @@
 #include "marshall.h"
 #include <math.h>
 #include <stddef.h>
+#include <list>
 
 class EventTrace;
 
@@ -204,16 +205,17 @@ struct client_table {
 	int client_id;
 	int auth_status;
 	int assoc_status;
-	struct client_table *next;
 };
 
 struct ap_table {
 	int ap_id;
 	double ap_power;
-	struct ap_table *next;
 };
 
-
+struct priority_queue {
+	int frame_priority;
+	struct priority_queue *next;
+};
 /* ======================================================================
    Definitions
    ====================================================================== */
@@ -386,21 +388,25 @@ protected:
 	void	txHandler(void);
 
 private:
-	void	update_client_table(int num, int auth_status, int assoc_status);	
-	void 	push(int num, int auth_status, int assoc_status);		
+	void	update_client_table(int num, int auth_status, int assoc_status);			
 	int	find_client(int num);	
 	void	update_ap_table(int num, double power);	
-	void 	push_ap(int num, double power);	
 	int 	strongest_ap();
 	int	find_ap(int num, double power);
 	void 	deletelist();
 	void	passive_scan();	
 	void	active_scan();
-	int	end();
-	void	shift_priority_queue();
 	void	checkAssocAuthStatus();
 	int	command(int argc, const char*const* argv);
 	
+
+	void 	add_priority_queue(int num);
+	void 	push_priority(int num);
+	void 	delete_lastnode();
+	void	shift_priority_queue();
+
+
+
 	/* In support of bug fix described at
 	 * http://www.dei.unipd.it/wdyn/?IDsezione=2435	 
 	 */
@@ -413,12 +419,14 @@ private:
 	double Pr;
 	int ap_temp;
 	int ap_addr;
+	int tx_mgmt_;
 	int associating_node_;
 	int authenticating_node_;
 	int ScanType_;
 	int OnMinChannelTime;
 	int OnMaxChannelTime;
 	int Recv_Busy_;
+	int probe_delay;
 	/*
 	 * Called by the timers.
 	 */
@@ -546,8 +554,8 @@ private:
  	double		dataRate_;
 	struct client_table	*client_list;	
 	struct ap_table	*ap_list;
-	int priority_queue[4];
-	int head;
+	struct priority_queue *queue_head;
+
 	/*
 	 * Mac Timers
 	 */
@@ -597,6 +605,12 @@ private:
 	u_int16_t	sta_seqno_;	// next seqno that I'll use
 	int		cache_node_count_;
 	Host		*cache_;
+
+
+	std::list<struct client_table> client_list1;
+	std::list<struct ap_table> ap_list1;
+
+
 };
 
 #endif /* __mac_80211_h__ */
