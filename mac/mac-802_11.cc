@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.57 2008/12/13 23:22:58 tom_henderson Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.58 2008/12/14 14:31:59 tom_henderson Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  * Contributions by:
@@ -1244,7 +1244,7 @@ Mac802_11::sendDATA(Packet *p)
 	/* store data tx time */
  	ch->txtime() = txtime(ch->size(), dataRate_);
 
-	if((u_int32_t)ETHER_ADDR(dh->dh_ra) != MAC_BROADCAST) {
+	if(dst != MAC_BROADCAST) {
 		/* store data tx time for unicast packets */
 		ch->txtime() = txtime(ch->size(), dataRate_);
 		
@@ -2152,9 +2152,7 @@ int Mac802_11::find_client(int num) {
 
 	}
 
-	if (it == client_list1.end()) {
-		return 0;
-	}
+	return 0;
 }
 
 
@@ -3153,10 +3151,7 @@ int Mac802_11::find_ap(int num, double power) {
 
 	}
 
-	if (it == ap_list1.end()) {
-		return 0;
-	}
-	 
+	return 0;
 
 }
 
