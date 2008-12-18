@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.179 2007/12/04 19:59:35 seashadow Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.180 2008/12/18 05:15:40 sallyfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -484,6 +484,7 @@ TcpAgent::reset()
 	necnresponses_ = 0;
 	ncwndcuts_ = 0;
 	ncwndcuts1_ = 0;
+        cancel_timers();      // suggested by P. Anelli.
 
 	if (control_increase_) {
 		prev_highest_ack_ = highest_ack_ ; 
