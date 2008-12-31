@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.92 2008/02/18 03:39:03 tom_henderson Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.93 2008/12/31 19:04:36 tom_henderson Exp $
  */
 
 #include <packet.h>
@@ -361,6 +361,16 @@ void
 CMUTrace::format_mac(Packet *p, int offset)
 {
 	struct hdr_mac802_11 *mh = HDR_MAC802_11(p);
+	struct hdr_cmn *ch = HDR_CMN(p);
+	// This function assumes in some places that mh->dh_body points
+	// to an ethertype, which may not be true and causes some portability
+	// problems, so we zero the printing of this field in some cases
+	bool print_ether_type = true;
+	if ( (ch->ptype() == PT_MAC) && 
+	     ( (mh->dh_fc.fc_type == MAC_Type_Control) ||
+	       (mh->dh_fc.fc_type == MAC_Type_Management))) {
+		print_ether_type = false;
+	} 
 	
 	if (pt_->tagged()) {
 		sprintf(pt_->buffer() + offset,
@@ -374,7 +384,7 @@ CMUTrace::format_mac(Packet *p, int offset)
                        ETHER_ADDR(mh->dh_ta),          // MAC: destination
 
 
-			GET_ETHER_TYPE(mh->dh_body));	// MAC: type
+			print_ether_type ? GET_ETHER_TYPE(mh->dh_body) : 0);	// MAC: type
 	} else if (newtrace_) {
 		sprintf(pt_->buffer() + offset, 
 			"-Ma %x -Md %x -Ms %x -Mt %x ",
@@ -387,7 +397,7 @@ CMUTrace::format_mac(Packet *p, int offset)
 	   		ETHER_ADDR(mh->dh_ra),
 	                   ETHER_ADDR(mh->dh_ta),
 
-			GET_ETHER_TYPE(mh->dh_body));
+			print_ether_type ? GET_ETHER_TYPE(mh->dh_body) : 0);
 	} else {
 		sprintf(pt_->buffer() + offset,
 			" [%x %x %x %x] ",
@@ -399,9 +409,7 @@ CMUTrace::format_mac(Packet *p, int offset)
 			//ETHER_ADDR(mh->dh_sa),
 			ETHER_ADDR(mh->dh_ra),
                         ETHER_ADDR(mh->dh_ta),
-
-
-			GET_ETHER_TYPE(mh->dh_body));
+			print_ether_type ? GET_ETHER_TYPE(mh->dh_body) : 0);
 	}
 }
 
