@@ -41,7 +41,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.cc,v 1.22 2008/02/01 21:39:43 tom_henderson Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.cc,v 1.23 2008/12/31 20:44:04 tom_henderson Exp $ (Xerox)";
 #endif
 
 #include <stdio.h>
@@ -178,6 +178,7 @@ double ErlangRandomVariable::value()
 		for (int i=0; i < k_; i++){
 			result += expRV->value();
 		}
+		delete expRV;
 		return result;
 }
 
