@@ -576,12 +576,17 @@ struct hdr_ip *ih = HDR_IP(p);
   */
 if((ih->saddr() == index) && (ch->num_forwards() == 0)) {
  /*
-  * Add the IP Header
+  * Add the IP Header.  
+  * TCP adds the IP header too, so to avoid setting it twice, we check if
+  * this packet is not a TCP or ACK segment.
   */
-   ch->size() += IP_HDR_LEN;
+  if (ch->ptype() != PT_TCP && ch->ptype() != PT_ACK) {
+    ch->size() += IP_HDR_LEN;
+  }
    // Added by Parag Dadhania && John Novatnack to handle broadcasting
-   if ( (u_int32_t)ih->daddr() != IP_BROADCAST)
-     ih->ttl_ = NETWORK_DIAMETER;
+  if ( (u_int32_t)ih->daddr() != IP_BROADCAST) {
+    ih->ttl_ = NETWORK_DIAMETER;
+  }
 }
  /*
   *  I received a packet that I sent.  Probably
