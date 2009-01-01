@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.75 2007/12/04 19:59:31 seashadow Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.76 2009/01/01 03:42:13 tom_henderson Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.75 2007/12/04 19:59:31 seashadow Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.76 2009/01/01 03:42:13 tom_henderson Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -86,7 +86,7 @@ Scheduler::schedule(Handler* h, Event* e, double delay)
 	if (!h) {
 		fprintf(stderr,
 			"Scheduler: attempt to schedule an event with a NULL handler."
-			"  Don't DO that.\n");
+			"  Don't DO that at time %f\n", clock_);
 		abort();
 	};
 	
