@@ -751,12 +751,12 @@ Below is a simple example for setting up variable tracing in Tcl:
 
 \begin{small}
 \begin{verbatim}
-        # \$tcp tracing its own variable cwnd_
-        \$tcp trace cwnd_
+        # $tcp tracing its own variable cwnd_
+        $tcp trace cwnd_
 
-        # the variable ssthresh_ of \$tcp is traced by a generic \$tracer
+        # the variable ssthresh_ of $tcp is traced by a generic $tracer
         set tracer [new Trace/Var]
-        \$tcp trace ssthresh_ \$tracer
+        $tcp trace ssthresh_ $tracer
 \end{verbatim}
 \end{small}
 
