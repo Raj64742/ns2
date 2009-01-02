@@ -117,6 +117,9 @@ Mac802_11Ext::Mac802_11Ext() :
 	cw_ = macmib_.getCWMin();
 	bkmgr.setSlotTime(phymib_.getSlotTime());
 	csmgr.setIFS(eifs_);
+	sta_seqno_ = 1;
+	cache_ = 0;
+	cache_node_count_ = 0;	
 	txConfirmCallback_=Callback_TXC;
 }
 
@@ -127,7 +130,16 @@ int Mac802_11Ext::command(int argc, const char*const* argv) {
 			if (logtarget_ == 0)
 				return TCL_ERROR;
 			return TCL_OK;
+		} else if (strcmp(argv[1], "nodes") == 0) {
+			if (cache_)
+				return TCL_ERROR;
+			cache_node_count_ = atoi(argv[2]);
+			cache_ = new Host[cache_node_count_ + 1];
+			assert(cache_);
+			bzero(cache_, sizeof(Host) * (cache_node_count_+1));
+			return TCL_OK;
 		}
+
 	}
 	return Mac::command(argc, argv);
 }
@@ -341,24 +353,23 @@ void ChannelStateMgr::handleSetNAV(double t) {
 	}
 	switch (channel_state_) {
 	case noCSnoNAV:
-		navTimer_->sched(t);
+		navTimer_->update_and_sched(t);
 		mac_->bkmgr.handleCSBUSY();
 		setChannelState(noCSNAV);
 		break;
 	case CSnoNAV:
-		navTimer_->sched(t);
+		navTimer_->update_and_sched(t);
 		setChannelState(CSNAV);
 		break;
 	case noCSNAV:
-		navTimer_->cancel();
-		navTimer_->sched(t);
-		break;
 	case CSNAV:
-		navTimer_->cancel();
-		navTimer_->sched(t);
+		if (t > navTimer_->remaining()) {
+			navTimer_->cancel();
+			navTimer_->update_and_sched(t);
+		}
 		break;
 	case WIFS:
-		navTimer_->sched(t);
+		navTimer_->update_and_sched(t);
 		if (ifsTimer_->status()==TIMER_PENDING)
 			ifsTimer_->cancel();
 		setChannelState(noCSNAV);
@@ -683,6 +694,29 @@ void Mac802_11Ext::recvDATA(Packet *p) {
 	ch->size() -= phymib_.getHdrLen11();
 	ch->num_forwards() += 1;
 
+	if (dst != MAC_BROADCAST) {
+		if (src < (u_int32_t) cache_node_count_) {
+			Host *h = &cache_[src];
+
+			if (h->seqno && h->seqno == dh->dh_scontrol) {
+				if (MAC_DBG)
+					log("DUPLICATE", "");
+				discard(p, DROP_MAC_DUPLICATE);
+				return;
+			}
+			h->seqno = dh->dh_scontrol;
+		} else {
+			if (MAC_DBG) {
+				static int count = 0;
+				if (++count <= 10) {
+					log("DUPLICATE", "Accessing MAC CacheArray out of range");
+					if (count == 10)
+						log("DUPLICATE", "Suppressing additional MAC Cache warnings");
+				}
+			}
+		}
+	}
+
 	if (MAC_DBG)
 		log("SEND_UP", "");
 	uptarget_->recv(p, (Handler*) 0);
@@ -791,12 +825,12 @@ void TXC::handleMsgFromUp(Packet *p) {
 		} else {
 			if (mac_->MAC_DBG)
 				mac_->log("TXC", "msgFromUp, Backoff started");
-			mac_->bkmgr.handleBKStart(mac_->cw_);
 			if (pRTS!=0) {
 				setTXCState(TXC_RTS_pending);
 			} else {
 				setTXCState(TXC_DATA_pending);
 			}
+			mac_->bkmgr.handleBKStart(mac_->cw_);
 		}
 	} else {
 		if (mac_->MAC_DBG)
@@ -825,7 +859,8 @@ void TXC::prepareMPDU(Packet *p) {
 	dh->dh_fc.fc_more_data = 0;
 	dh->dh_fc.fc_wep = 0;
 	dh->dh_fc.fc_order = 0;
-
+	dh->dh_scontrol = mac_->sta_seqno_++;
+	
 	ch->txtime() = mac_->txtime(ch->size(), ch->mod_scheme_);
 
 	if ((u_int32_t)ETHER_ADDR(dh->dh_ra) != MAC_BROADCAST) {
@@ -872,6 +907,8 @@ void TXC::handleTXConfirm() {
 					+ DSSS_MaxPropagationDelay);
 			setTXCState(TXC_wait_ACK);
 		} else {
+			Packet::free(pDATA);
+			pDATA = 0;
 			mac_->bkmgr.handleBKStart(mac_->cw_);
 			checkQueue();
 		}
@@ -928,6 +965,13 @@ void TXC::handleTCTStimeout() {
 				mac_->log("TXC", "CTS timeout, limit reached");
 			mac_->discard(pRTS, DROP_MAC_RETRY_COUNT_EXCEEDED);
 			pRTS = 0;
+			
+			// higher layers feedback support
+			struct hdr_cmn *ch = HDR_CMN(pDATA);
+			if (ch->xmit_failure_) {
+				ch->xmit_reason_ = XMIT_REASON_RTS;
+			    ch->xmit_failure_(pDATA->copy(), ch->xmit_failure_data_);
+			}
 			mac_->discard(pDATA, DROP_MAC_RETRY_COUNT_EXCEEDED);
 			pDATA = 0;
 
@@ -979,6 +1023,14 @@ void TXC::handleTACKtimeout() {
 		if (*counter >= limit) {
 			if (mac_->MAC_DBG)
 				mac_->log("TXC", "ACK timeout, limit reached");
+
+			// higher layers feedback support
+			struct hdr_cmn *ch = HDR_CMN(pDATA);
+			if (ch->xmit_failure_) {
+				ch->xmit_reason_ = XMIT_REASON_RTS;
+			    ch->xmit_failure_(pDATA->copy(), ch->xmit_failure_data_);
+			}
+
 			mac_->discard(pDATA, DROP_MAC_RETRY_COUNT_EXCEEDED);
 			pDATA = 0;
 
@@ -1182,6 +1234,7 @@ void RXC::generateACKFrame(Packet *p) {
 	ch->size() = mac_->phymib_.getACKlen();
 	ch->iface() = -2;
 	ch->error() = 0;
+	ch->mod_scheme_= (ModulationScheme)mac_->phymib_.getBasicModulationScheme();
 	bzero(af, MAC_HDR_LEN);
 
 	af->af_fc.fc_protocol_version = MAC_ProtocolVersion;

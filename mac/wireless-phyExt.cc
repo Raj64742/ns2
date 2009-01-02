@@ -66,6 +66,7 @@
 #include <map>
 #include <iostream>
 #include <ranvar.h>
+#include <float.h>
 
 /* ======================================================================
  WirelessPhyExt Interface
@@ -212,12 +213,12 @@ int WirelessPhyExt::sendUp(Packet *p) {
 
 		switch (state) {
 		case TXing:
-			//case 12		
+			//case 12
 			pkt_recvd = discard(p, Pr, "TXB");
 			setState(TXing);
 			break;
 		case SEARCHING:
-			if ((Pr >= CSThresh_) && (powerMonitor->SINR(Pr)
+			if ((powerMonitor->SINR(Pr)
 					>= modulation_table[BasicModulationScheme_].SINR_ratio)) {
 				power_RX = Pr;
 				pkt_RX=p->copy();
@@ -414,7 +415,7 @@ int WirelessPhyExt::discard(Packet *p, double power, char* reason) {
 	if (d < trace_dist_) {
 		if (power < modulation_SINR * noise_floor_)
 			reason = "DND";
-		if (power < CSThresh_ )
+		if (power < modulation_table[BasicModulationScheme_].SINR_ratio * noise_floor_ )
 			reason = "PND";
 		drop(p, reason);
 	} else {
@@ -438,7 +439,25 @@ void WirelessPhyExt::setState(int newstate) {
 		sprintf(msg, "%d -> %d", state, newstate);
 		log("PHYState", msg);
 	}
+
+	if ( state == SEARCHING && newstate != SEARCHING ) {
+		// indicate MAC busy since we are either receiving or sending
+        // only if we have not been busy already
+        if (powerMonitor->getPowerLevel() < CSThresh_) {
+        	sendCSBusyIndication();
+        }
+    } else if ( state != SEARCHING && newstate == SEARCHING) {
+        // if we are idle AND powerLevel is below CSthresh, indicate MAC idle
+        if (powerMonitor->getPowerLevel() < CSThresh_) {
+        	sendCSIdleIndication();
+        }
+	}
+
 	state = newstate;
+}
+
+int WirelessPhyExt::getState() {
+	return state;
 }
 
 void TX_Timer::expire(Event *e) {
@@ -456,53 +475,6 @@ void PreRX_Timer::expire(Event *e) {
 	return;
 }
 
-//***************************************************************
-
-PowerTimer::PowerTimer(double power, double duration, PowerMonitor * pMonitor) :
-	TimerHandler() {
-	powerMonitor = pMonitor;
-	signalPower = power;
-	sched(duration);
-}
-
-void PowerTimer::expire(Event *e) {
-	// when the entry timer expires, subtract the power from the additive_noise,
-	// because the tranmission of that MAC frame is over,
-	double pre_power = powerMonitor->getPowerLevel();
-	double post_power = powerMonitor->getPowerLevel() - signalPower;
-
-	char msg[1000];
-	sprintf(msg, "Power: %f -> %f", pre_power*1e9, post_power*1e9);
-	(powerMonitor->wirelessPhyExt)->log("PMX", msg);
-
-	powerMonitor->setPowerLevel(post_power);
-
-	// check if the channel becomes idle ( busy -> idle )
-	if (powerMonitor->state == BUSY && post_power < powerMonitor->CS_Thresh) {
-		powerMonitor->state = IDLE;
-		(powerMonitor->wirelessPhyExt)->sendCSIdleIndication();
-	}
-
-	//remove the PowerTimerEntry in the powerTimerList
-	PowerTimerList * plist = &(powerMonitor->powerTimerList);
-	PowerTimerList::iterator it;
-	if (!(powerMonitor->powerTimerList).empty() ) {
-		it = plist->begin();
-		int found = 0;
-		while (it!= plist->end() ) {
-			if (*it == this) {
-				found = 1;
-				break;
-			}
-			it++;
-		}
-		if (found) {
-			plist->erase(it);
-		}
-	}
-	delete this;
-}
-
 //**************************************************************
 PowerMonitor::PowerMonitor(WirelessPhyExt * phy) {
 	// initialize, the NOISE is the environmental noise
@@ -510,28 +482,31 @@ PowerMonitor::PowerMonitor(WirelessPhyExt * phy) {
 	CS_Thresh = wirelessPhyExt->CSThresh_; //  monitor_Thresh = CS_Thresh;
 	monitor_Thresh = wirelessPhyExt->PowerMonitorThresh_;
 	powerLevel = wirelessPhyExt->noise_floor_; // noise floor is -99dbm
-	state = IDLE;
+	expiration = DBL_MAX;
 }
 
 void PowerMonitor::recordPowerLevel(double signalPower, double duration) {
-	// to reduce the number of entries recorded in the powerTimerList
+	// to reduce the number of entries recorded in the interfList
 	if (signalPower < monitor_Thresh )
 		return;
-	PowerTimer * pTimer;
 
-	// create a powerTimer according to the duration and record the power level
-	// insert to the powerTimerList
-	if (duration > 0) {
-		pTimer = new PowerTimer(signalPower,duration,this);
-	}
-	powerLevel += signalPower; // update the powerLevel
-	powerTimerList.push_back(pTimer); // record the pointer to the powerTimer
-	// when this Powertimer expires, this portion of power will be substracted from the total power level;
+	interf timerEntry;
+    timerEntry.Pt  = signalPower;
+    timerEntry.end = Scheduler::instance().clock() + duration;
 
-	if (state == IDLE && powerLevel >= CS_Thresh) {
+    list<interf>:: iterator i;
+    for (i=interfList_.begin();  i != interfList_.end() && i->end <= timerEntry.end; i++) { }
+    interfList_.insert(i, timerEntry);
+
+    if (timerEntry.end < expiration) {
+    	resched(duration);
+    }
+
+    powerLevel += signalPower; // update the powerLevel
+
+    if (wirelessPhyExt->getState() == SEARCHING && powerLevel >= CS_Thresh) {
 		wirelessPhyExt->sendCSBusyIndication();
-		state = BUSY;
-	}
+    }
 }
 
 double PowerMonitor::getPowerLevel() {
@@ -565,4 +540,28 @@ double WirelessPhyExt::getDist(double Pr, double Pt, double Gt, double Gr,
 					     lambda);
 	}
 	return 0;
+}
+
+void PowerMonitor::expire(Event *) {
+	double pre_power = powerLevel;
+	double time = Scheduler::instance().clock();
+
+   	list<interf>:: iterator i;
+   	i=interfList_.begin();
+   	while(i != interfList_.end() && i->end <= time) {
+       	powerLevel -= i->Pt;
+       	interfList_.erase(i++);
+   	}
+   	if (i != interfList_.end()) {
+   		resched(i->end - time);
+   	}
+
+    	char msg[1000];
+	sprintf(msg, "Power: %f -> %f", pre_power*1e9, powerLevel*1e9);
+	wirelessPhyExt->log("PMX", msg);
+
+	// check if the channel becomes idle ( busy -> idle )
+	if (wirelessPhyExt->getState() == SEARCHING && powerLevel < CS_Thresh) {
+		wirelessPhyExt->sendCSIdleIndication();
+	}
 }

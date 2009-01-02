@@ -79,8 +79,8 @@ typedef struct ModulationParam {
 
 const struct ModulationParam modulation_table[4] = {
 //  mod  name  SINRdB   SINR  NDBPS bit
-		{ 0, "BPSK", 4, 2.5118, 24 }, { 1, "QPSK", 7, 5.0118, 48 }, { 2,
-				"QAM16", 12, 15.848, 96 }, { 3, "QAM64", 20, 100.00, 216 } };
+               	{ 0, "BPSK", 5, 3.1623, 24 }, { 1, "QPSK", 8, 6.3096, 48 }, { 2,
+                               	"QAM16", 15, 31.6228, 96 }, { 3, "QAM64", 25, 316.2278, 192 } };
 
 class Phy;
 class WirelessPhyExt;
@@ -151,6 +151,7 @@ public:
 		return node_;
 	}
 	void setState(int newstate);
+	int getState();
 
 	virtual int command(int argc, const char*const* argv);
 	virtual void dump(void) const;
@@ -169,9 +170,12 @@ public:
 	int sendUp(Packet *p);
 
 	int discard(Packet *p, double power, char* reason);
-	double getDist(double Pr, double Pt, double Gt, double Gr, 
-			double hr, double ht, double L, double lambda);
+	double getDist(double Pr, double Pt, double Gt, double Gr,
+	double hr, double ht, double L, double lambda);
     inline double getAntennaZ() { return ant_->getZ(); }
+    inline double getAntennaRxGain() { return ant_->getRxGain(ant_->getX(), ant_->getY(), ant_->getZ(), lambda_); }
+    inline double getAntennaTxGain() { return ant_->getTxGain(ant_->getX(), ant_->getY(), ant_->getZ(), lambda_); }
+    inline double getPowerMonitorThresh() { return PowerMonitorThresh_; }
 
 
 private:
@@ -217,7 +221,6 @@ private:
 	friend class RX_Timer;
 	friend class PreRX_Timer;
 	friend class PowerMonitor;
-	friend class PowerTimer;
 };
 
 //**************************************************************/
@@ -228,42 +231,29 @@ private:
  The power monitor module keeps track of all the noise and interferences experienced by the node individually for their respective durations. Whenever the cumulative interference and noise level rises crosses the carrier sense threshold, it signals the MAC on physical carrier sense status changes. It should be noted that a node's own transmission is treated as carrier sense busy through this signaling interface as well.
  */
 //**************************************************************/
-class PowerTimer : public TimerHandler {
-public:
-	PowerTimer(double power, double duration, PowerMonitor *);
-	inline double getPower() {
-		return signalPower;
-	}
-	void expire(Event *); //virtual function, which must be implemented
-protected:
-	double signalPower;
-
-private:
-	PowerMonitor * powerMonitor;
-};
-
-//**************************************************************/
-typedef PowerTimer* pTimer;
-typedef std::list<PowerTimer *> PowerTimerList;
-
 enum PowerMonitorState {IDLE = 0, BUSY = 1};
 
-class PowerMonitor {
+struct interf {
+      double Pt;
+      double end;
+};
+
+class PowerMonitor : public TimerHandler {
 public:
 	PowerMonitor(WirelessPhyExt *);
 	void recordPowerLevel(double power, double duration);
 	double getPowerLevel();
 	void setPowerLevel(double);
 	double SINR(double Pr);
+	void expire(Event *); //virtual function, which must be implemented
 
 private:
 	double CS_Thresh;
 	double monitor_Thresh;//packet with power > monitor_thresh will be recorded in the monitor
 	double powerLevel;
 	WirelessPhyExt * wirelessPhyExt;
-	PowerTimerList powerTimerList;
-	int state;
-	friend class PowerTimer;
+	double expiration;
+	list<interf> interfList_;
 };
 
 #endif /* !ns_WirelessPhyExt_h */

@@ -37,7 +37,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.46 2008/02/01 21:39:39 tom_henderson Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.47 2009/01/02 21:50:24 tom_henderson Exp $ (UCB)";
 #endif
 
 // Time interval for updating a position of a node in the X-List
@@ -632,23 +632,23 @@ WirelessChannel::calcHighestAntennaZ(Phy *tifp)
     			   highestZ = ((WirelessPhy *)n)->getAntennaZ();
     	   } else highestZ = 0;
        }
- 
+
        highestAntennaZ_ = highestZ;
 
        if (dynamic_cast<WirelessPhyExt*>(tifp)) {
     	   WirelessPhyExt *wifp = (WirelessPhyExt *)tifp;
-    	   distCST_ = wifp->getDist(wifp->getCSThresh(), wifp->getPt(), 1.0, 1.0, 
+    	   distCST_ = wifp->getDist(wifp->getPowerMonitorThresh(), wifp->getPt(), wifp->getAntennaRxGain(), wifp->getAntennaTxGain(),
 			   highestZ , highestZ, wifp->getL(),
 			   wifp->getLambda());
        } else if (dynamic_cast<WirelessPhy*>(tifp)) {
     	   WirelessPhy *wifp = (WirelessPhy *)tifp;
     	   distCST_ = wifp->getDist(wifp->getCSThresh(), wifp->getPt(), 1.0, 1.0,
     			   highestZ , highestZ, wifp->getL(),
-    			   wifp->getLambda());       
+    			   wifp->getLambda());
        } else distCST_ = DBL_MAX;
 }
 
-	
+
 double
 WirelessChannel::get_pdelay(Node* tnode, Node* rnode)
 {

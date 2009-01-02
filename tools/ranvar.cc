@@ -41,7 +41,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.cc,v 1.23 2008/12/31 20:44:04 tom_henderson Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.cc,v 1.24 2009/01/02 21:50:24 tom_henderson Exp $ (Xerox)";
 #endif
 
 #include <stdio.h>
@@ -173,13 +173,12 @@ ErlangRandomVariable::ErlangRandomVariable(double lambda, int k)
 
 double ErlangRandomVariable::value()
 {
-		ExponentialRandomVariable * expRV = new ExponentialRandomVariable(lambda_);
-		double result=0;
-		for (int i=0; i < k_; i++){
-			result += expRV->value();
-		}
-		delete expRV;
-		return result;
+	double result = 0;
+	for (int i = 0; i < k_; i++) {
+		result += rng_->exponential(lambda_);
+	}
+	return result;
+
 }
 
 

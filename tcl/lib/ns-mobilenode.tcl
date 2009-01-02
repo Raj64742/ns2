@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.58 2008/03/19 04:35:35 tom_henderson Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.59 2009/01/02 21:50:24 tom_henderson Exp $
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 #
@@ -487,7 +487,10 @@ Node/MobileNode instproc add-interface { channel pmodel lltype mactype qtype qle
 	}
 
 	set god_ [God instance]
-        if {$mactype == "Mac/802_11"} {
+    if {$mactype == "Mac/802_11Ext"} {
+		$mac nodes [$god_ num_nodes]
+	}
+    if {$mactype == "Mac/802_11"} {
 		$mac nodes [$god_ num_nodes]
 	}
 	#

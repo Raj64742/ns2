@@ -16,6 +16,28 @@ with the most recent changes coming first.
 <hr>
 <h3>ns-2.34 pending</h3>
 <ul>
+<p><li><b>[tomh]</b> Fri Jan 2 13:50:00  PST 2009:
+<br> Collection of bug fixes for 802.11Ext model.
+<ul>
+<li> mac/mac-802.11Ext:
+<ul>
+<li> feedback to higher layers on transmission failure: xmit_failure_data_ is delivered when a unicast packet was finally not sent successfully- corrected NAV update: in case a NAV is active and a new NAV is advertised an updated only occurs in case the new NAV takes longer than the one already running  - bugfix: corrected backoff handling when 0 backoff slots are selected:- bugfix: resolved memory leak on broadcast packet transmission- duplicate suppression support: reactivate the feature of duplicate detection on MAC layer as it was done in earlier versions
+<li> code cleanup: removed TxTimer_t class
+<li> bugfix: ACK frames: explicitly set basic modulation scheme
+</ul>
+<li>mac/wirelessPhyExt:
+<ul>
+<li> update of modulation table: new threshold values are taken for the different modulation schemes due to newer measurements
+<li> bugfix: resched() instead of sched() in PowerMonitor::expire()
+<li> code cleanup: removed friend class PowerTimer
+<li> code cleanup: updated comment in recordPowerLevel()
+<li> new implementation of PowerMonitor (PowerTimer class now obsolete)
+<li> clarification of CSThresh variable (see below)
+</ul>
+<li> mac/channel.cc: for wirelessPhyExt only: correct calculation of distCST, using PowerMonitorThresh_ as the critical borderline power and including antenna gains.
+<li> tools/ranvar.cc: - bugfix: resolved memory leak in Erlang distribution
+</ul>
+</li>
 <p><li><b>[tomh]</b> Sat Dec 13 15:20:00  PST 2008:
 <br> Bug fixes for 802.11 infrastructure code, posted by Ilango Purushothaman.  <ul>
 <li> Patches for better memory management - use standard C++ lists to maintain AP and client tables, memory leaks fixed in AP scheduling queue </li>

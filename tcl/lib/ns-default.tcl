@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.382 2008/10/02 21:01:35 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.383 2009/01/02 21:50:24 tom_henderson Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -706,7 +706,7 @@ Mac/802_11 set bugFix_timer_ true;         # fix for when RTS/CTS not used
 
 Mac/802_11Ext set HeaderDuration_   0.000020  ;# (SERVICE) 16bits last of PLCP header are not included
 Mac/802_11Ext set SymbolDuration_   0.000004  ;# (SERVICE) 16bits last of PLCP header are not included
-Mac/802_11Ext set BasicModulationScheme_ 0 ;# BPSK and coding rate 1/2 is the basic modulation scheme for header and ctrl packets
+Mac/802_11Ext set BasicModulationScheme_ 0    ;# BPSK and coding rate 1/2 is the basic modulation scheme for header and ctrl packets
 Mac/802_11Ext set use_802_11a_flag_	true
 
 Mac/802_11Ext set CWMin_            15
@@ -762,19 +762,19 @@ Phy/WirelessPhy set Pt_ 0.28183815
 Phy/WirelessPhy set freq_ 914e+6
 Phy/WirelessPhy set L_ 1.0  
 
-Phy/WirelessPhyExt set CSThresh_ 6.30957e-12             ;#-82 dBm
-Phy/WirelessPhyExt set noise_floor_ 7.96159e-14           ;#-101 dBm
-Phy/WirelessPhyExt set PowerMonitorThresh_ 2.653e-14     ;#-105.7 dBm (noise_floor_ / 3)
+Phy/WirelessPhyExt set CSThresh_ 6.30957e-12           ;# -82 dBm
+Phy/WirelessPhyExt set noise_floor_ 7.96159e-14        ;# -101 dBm
+Phy/WirelessPhyExt set PowerMonitorThresh_ 2.653e-14   ;# -105.7 dBm (noise_floor_ / 3)
 Phy/WirelessPhyExt set Pt_  0.1
-Phy/WirelessPhyExt set freq_ 5.18e+9                    ;#5.18 GHz
-Phy/WirelessPhyExt set HeaderDuration_   0.000020       ;#20 us
+Phy/WirelessPhyExt set freq_ 5.18e+9                   ;# 5.18 GHz
+Phy/WirelessPhyExt set HeaderDuration_   0.000020      ;# 20 us
 Phy/WirelessPhyExt set BasicModulationScheme_ 0        ;# BPSK
-Phy/WirelessPhyExt set L_ 1.0                          ;#default
+Phy/WirelessPhyExt set L_ 1.0                          ;# default
 Phy/WirelessPhyExt set PreambleCaptureSwitch_ 1
 Phy/WirelessPhyExt set DataCaptureSwitch_ 0
-Phy/WirelessPhyExt set SINR_PreambleCapture_ 2.5118;   ;# 4 dB
-Phy/WirelessPhyExt set SINR_DataCapture_ 100.0;        ;# 10 dB
-Phy/WirelessPhyExt set trace_dist_  1e6                ;# trace until distance of 1 Mio. km ("infinty")
+Phy/WirelessPhyExt set SINR_PreambleCapture_ 3.1623;   ;# 5 dB
+Phy/WirelessPhyExt set SINR_DataCapture_ 10.0;         ;# 10 dB
+Phy/WirelessPhyExt set trace_dist_ 1e6                 ;# trace until distance of 1 Mio. km ("infinty")
 Phy/WirelessPhyExt set PHY_DBG_ 0
 Phy/WirelessPhyExt set CPThresh_ 0 ;# not used by WirelessPhyExt, but available to be compabile with WirelessPhy
 Phy/WirelessPhyExt set RXThresh_ 0 ;# not used by WirelessPhyExt, but available to be compabile with WirelessPhy

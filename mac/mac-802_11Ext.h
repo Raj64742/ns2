@@ -262,11 +262,23 @@ public:
 	NAVTimer(ChannelStateMgr *c) :
 		TimerHandler() {
 		csmgr = c;
+		expiration = 0;
 	}
+	
+	void update_and_sched(double delay) {
+		expiration = delay + Scheduler::instance().clock();
+		sched(delay);
+	}
+	
+	double remaining() {
+		return (expiration - Scheduler::instance().clock());
+	}
+	
 protected:
 	void expire(Event *e);
 private:
 	ChannelStateMgr *csmgr;
+	double expiration;
 };
 
 enum ChannelState {noCSnoNAV=0, noCSNAV=1, CSnoNAV=2, CSNAV=3, WIFS=4};
@@ -349,21 +361,6 @@ private:
 	void setBackoffMgrState(BackoffMgrState newState);
 };
 
-/* ======================================================================
- 3.0 TxTimer for transmission
- ====================================================================== */
-class Mac802_11Ext;
-class TxTimer_t : public TimerHandler {
-public:
-	TxTimer_t(Mac802_11Ext * m) :
-		TimerHandler() {
-		mac_ = m;
-	}
-protected:
-	void expire(Event *e);
-private:
-	Mac802_11Ext * mac_;
-};
 
 /* ======================================================================
  4.0 TX_Coordination
@@ -508,7 +505,6 @@ enum TXConfirmCallback {Callback_TXC,Callback_RXC};
 class TXC;
 class RXC;
 class Mac802_11Ext : public Mac {
-	friend class TxTimer_t;
 	friend class TxTimeout;
 	friend class ChannelStateMgr;
 	friend class BackoffMgr;
@@ -560,7 +556,7 @@ private:
 	void dump(char* fname);
 
 	inline int initialized() {
-		return (logtarget_ &&Mac::initialized());
+		return (cache_ && logtarget_ &&Mac::initialized());
 	}
 
 	inline void mac_log(Packet *p) {
@@ -610,6 +606,13 @@ private:
 
 	NsObject* logtarget_;
 
+	/* ============================================================
+	 Duplicate Detection state
+	 ============================================================ */
+	u_int16_t sta_seqno_; // next seqno that I'll use
+	int cache_node_count_;
+	Host *cache_;
+	
 };
 
 #endif /* ns_mac_80211Ext_h */
