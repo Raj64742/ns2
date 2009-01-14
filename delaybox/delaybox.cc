@@ -596,17 +596,13 @@ void DelayBoxClassifier::recv (Packet* p, Handler* h)
 			// create new flow table entry
 			flow = new DelayBoxFlow(delay, loss, linkspd, q, timer);
 
-			// create new pair
-			DelayBoxPair *new_pair = new DelayBoxPair();
-			*new_pair = pair;
-			
-			// add to flow table
+			// add to flow table (creates a copy)
 			flows_[pair] = flow;
 			
 			// output to file, if required		
 			if (rttfp_ != NULL) {
 				char str[50] = "";
-				new_pair->format_short(str);
+				pair.format_short(str);
 				fprintf (rttfp_, "%s", str);
 				flow->format_delay(str);
 				fprintf (rttfp_, " %s ms\n", str);
@@ -638,17 +634,13 @@ void DelayBoxClassifier::recv (Packet* p, Handler* h)
 						flow_iter->second->linkspd_, q, 
 						timer);
 
-			// create new pair
-			DelayBoxPair *new_pair = new DelayBoxPair();
-			*new_pair = pair;
-			
-			// add to flow table
+			// add to flow table (creates a copy)
 			flows_[pair] = flow;
 			
 			// output to file, if required		
 			if (rttfp_ != NULL) {
 				char str[50] = "";
-				new_pair->format_short(str);
+				pair.format_short(str);
 				fprintf (rttfp_, "%s", str);
 				flow->format_delay(str);
 				fprintf (rttfp_, " %s ms\n", str);
