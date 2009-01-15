@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.48 2004/10/28 23:35:39 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.49 2009/01/15 06:14:27 tom_henderson Exp $
 #
 
 Class Link
@@ -558,12 +558,8 @@ SimpleLink instproc errormodule args {
 #
 # Insert a loss module AFTER the queue. 
 #
-# Must be inserted *RIGHT AFTER* the deqT_ (if present) or queue_, because
-# nam can only visualize a packet drop if and only if it is on the link or 
-# in the queue
-#
 SimpleLink instproc insert-linkloss args { 
-	$self instvar link_errmodule_ queue_ drophead_ deqT_ 
+	$self instvar link_errmodule_ queue_ drophead_ link_ 
 	if { $args == "" } {
 		return $link_errmodule_
 	}
@@ -574,13 +570,8 @@ SimpleLink instproc insert-linkloss args {
 	}
 	set link_errmodule_ $em
 
-        if [info exists deqT_] {
-                $em target [$deqT_ target]
-                $deqT_ target $em
-        } else {
-                $em target [$queue_ target]
-                $queue_ target $em
-        }
+	$em target [$link_ target]
+	$link_ target $em
 
 	$em drop-target $drophead_
 }
