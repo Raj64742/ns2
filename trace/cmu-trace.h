@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.h,v 1.27 2008/02/18 03:39:03 tom_henderson Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.h,v 1.28 2009/01/15 06:23:49 tom_henderson Exp $
  */
 
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
@@ -159,6 +159,7 @@ private:
 	void	format_tora(Packet *p, int offset);
         void    format_imep(Packet *p, int offset);
         void    format_aodv(Packet *p, int offset);
+	void    format_aomdv(Packet *p, int offset);
 
 	// This holds all the tracers added at run-time
 	static PacketTracer *pktTrc_;

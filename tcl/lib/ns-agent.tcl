@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.24 2001/08/17 19:00:42 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.25 2009/01/15 06:23:49 tom_henderson Exp $
 #
 
 #
@@ -192,3 +192,8 @@ Agent/AODV instproc init args {
 Agent/AODV set sport_   0
 Agent/AODV set dport_   0
 
+# AOMDV patch
+Agent/AOMDV set sport_   0
+Agent/AOMDV set dport_   0
+Agent/AOMDV set aomdv_prim_alt_path_len_diff_ 1
+Agent/AOMDV set aomdv_max_paths_ 3

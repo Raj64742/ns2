@@ -37,7 +37,7 @@
    priqueue.cc
    
    A simple priority queue with a remove packet function
-   $Id: priqueue.cc,v 1.7 2004/10/07 17:56:03 haldar Exp $
+   $Id: priqueue.cc,v 1.8 2009/01/15 06:23:49 tom_henderson Exp $
    */
 
 #include <object.h>
@@ -90,7 +90,9 @@ PriQueue::recv(Packet *p, Handler *h)
 		case PT_MESSAGE:
                 case PT_TORA:
                 case PT_AODV:
-                        recvHighPriority(p, h);
+                // AOMDV patch
+		case PT_AOMDV:
+			recvHighPriority(p, h);
                         break;
 
                 default:

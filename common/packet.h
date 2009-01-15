@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.102 2008/02/18 03:39:02 tom_henderson Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.103 2009/01/15 06:23:49 tom_henderson Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -179,8 +179,11 @@ static const packet_t PT_HDLC = 59;
         // Bell Labs Traffic Trace Type (PackMime OL)
 static const packet_t PT_BLTRACE = 60;
 
+	// AOMDV packet
+static const packet_t PT_AOMDV = 61;
+
         // insert new packet types here
-static packet_t       PT_NTYPE = 61; // This MUST be the LAST one
+static packet_t       PT_NTYPE = 62; // This MUST be the LAST one
 
 enum packetClass
 {
@@ -377,6 +380,9 @@ public:
 		// Bell Labs (PackMime OL)
 		name_[PT_BLTRACE]="BellLabsTrace";
 		
+		// AOMDV patch
+		name_[PT_AOMDV]= "AOMDV";
+
 		name_[PT_NTYPE]= "undefined";
 	}
 	static int addPacket(char *name);
@@ -576,7 +582,10 @@ struct hdr_cmn {
 	nsaddr_t next_hop_;	// next hop for this packet
 	int      addr_type_;    // type of next_hop_ addr
 	nsaddr_t last_hop_;     // for tracing on multi-user channels
-
+	
+	// AOMDV patch
+	int aomdv_salvage_count_;
+	
         // called if pkt can't obtain media or isn't ack'd. not called if
         // droped by a queue
         FailureCallback xmit_failure_; 

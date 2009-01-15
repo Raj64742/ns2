@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.59 2009/01/02 21:50:24 tom_henderson Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.60 2009/01/15 06:23:49 tom_henderson Exp $
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 #
@@ -184,6 +184,12 @@ Node/MobileNode instproc add-target { agent port } {
 		#
 		$agent imep-agent [$self set imep_(0)]
 		[$self set imep_(0)] rtagent $agent
+	}
+	
+	# Special processing for AOMDV
+	set aomdvonly [string first "AOMDV" [$agent info class]] 
+	if {$aomdvonly != -1 } {
+		$agent if-queue [$self set ifq_(0)]   ;# ifq between LL and MAC
 	}
 	
 	# Special processing for AODV
