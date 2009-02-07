@@ -39,9 +39,8 @@ NS RELEASE
 1.1. make sure test suites all pass
 1.2. make sure that FILES is up-to-date
 	diff "bin/gen-files" aginst FILES
-	Remove files that are no longer needed and add the
-        new ones
-        don't add files which are generated
+	Edit FILES:  remove files that are no longer needed and add the
+        new ones; don't add files which are auto-generated
 2.1.  update CHANGES.html to show when the release happens
     (like the last time it was released)
 2.2. make sure makefile.vc(WINDOWS) is up to date. If not, do 
