@@ -28,9 +28,9 @@ sub listdir {
 	} else {
 	    # Print a plain file to console
 	    if ($curdir ne ".") {
-		printf "ns-2.33/$curdir/$f\n";
+		printf "$curdir/$f\n";
 	    } else {
-		printf "ns-2.33/$f\n";
+		printf "$f\n";
 	    }
 	}
     }
