@@ -6194,7 +6194,7 @@ fi
 if test "${with_tcl_ver+set}" = set; then
   withval=$with_tcl_ver; TCL_VERS=$withval
 else
-  TCL_VERS=8.5.3
+  TCL_VERS=8.4.14
 fi
 
 
@@ -6203,7 +6203,7 @@ TCL_HI_VERS=`echo $TCL_VERS | sed 's/^\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)/\1.\2/'
 TCL_MAJOR_VERS=`echo $TCL_VERS | sed 's/^\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)/\1/'`
 TCL_ALT_VERS=`echo $TCL_HI_VERS | sed 's/\.//'`
 
-TCL_OLD_VERS=8.4.14
+TCL_OLD_VERS=8.3.5
 TCL_OLD_ALT_VERS=`echo $TCL_OLD_VERS | sed 's/\.//'`
 
 TCL_TCL_PLACES_D="$d \
@@ -6661,7 +6661,7 @@ fi
 if test "${with_tk_ver+set}" = set; then
   withval=$with_tk_ver; TK_VERS=$withval
 else
-  TK_VERS=8.5.3
+  TK_VERS=8.4.14
 fi
 
 
@@ -6671,7 +6671,7 @@ TK_HI_VERS=`echo $TK_VERS | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)/\1.\2/'`
 TK_MAJOR_VERS=`echo $TK_VERS | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)/\1/'`
 TK_ALT_VERS=`echo $TK_VERS | sed 's/\.//'`
 
-TK_OLD_VERS=8.4.14
+TK_OLD_VERS=8.3.5
 TK_OLD_ALT_VERS=`echo $TK_OLD_VERS | sed 's/\.//'`
 
 TK_TCL_PLACES_D="$d \
