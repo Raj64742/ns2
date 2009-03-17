@@ -32,7 +32,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.35 2008/10/03 03:55:42 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.36 2009/03/17 23:16:03 sallyfloyd Exp $
 #
 # To run all tests: test-all-ecn-ack
 set dir [pwd]
@@ -120,6 +120,33 @@ Topology/net2A-lossy instproc init ns {
     $em insert $errmodel
     $em bind $errmodel 0
     $em default pass
+}
+
+Class Topology/net2B-lossy -superclass Topology
+Topology/net2B-lossy instproc init ns {
+    $self instvar node_
+    $self makenodes $ns
+    $self createlinks $ns
+
+    $self instvar lossylink_
+    set lossylink_ [$ns link $node_(r2) $node_(r1)]
+    set em [new ErrorModule Fid]
+    set errmodel [new ErrorModel/Periodic]
+    $errmodel unit pkt
+    $lossylink_ errormodule $em
+    $em insert $errmodel
+    $em bind $errmodel 0
+    $em default pass
+
+    $self instvar lossylink1_
+    set lossylink1_ [$ns link $node_(s4) $node_(r2)]
+    set em1 [new ErrorModule Fid]
+    set errmodel1 [new ErrorModel/Periodic]
+    $errmodel1 unit pkt
+    $lossylink1_ errormodule $em1
+    $em1 insert $errmodel1
+    $em1 bind $errmodel1 0
+    $em1 default pass
 }
 
 TestSuite instproc finish file {
@@ -257,6 +284,18 @@ TestSuite instproc setloss {} {
 	return $errmodel
 }
 
+TestSuite instproc setloss1 {} {
+	$self instvar topo_
+	$topo_ instvar lossylink1_
+        set errmodule [$lossylink1_ errormodule]
+        set errmodel [$errmodule errormodels]
+        if { [llength $errmodel] > 1 } {
+                puts "droppedfin: confused by >1 err models..abort"
+                exit 1
+        }
+	return $errmodel
+}
+
 TestSuite instproc ecnsetup { tcptype { tcp1fid 0 } } {
     $self instvar ns_ node_ testName_ net_
     global wrap wrap1
@@ -310,7 +349,7 @@ TestSuite instproc ecnsetup { tcptype { tcp1fid 0 } } {
 
 # Drop the specified packet.
 TestSuite instproc drop_pkt { number } {
-    $self instvar ns_ lossmodel
+    $self instvar ns_ 
     set lossmodel [$self setloss]
     $lossmodel set offset_ $number
     $lossmodel set period_ 10000
@@ -319,11 +358,19 @@ TestSuite instproc drop_pkt { number } {
 
 # Mark the specified packet.
 TestSuite instproc mark_pkt { number } {
-    $self instvar ns_ lossmodel
+    $self instvar ns_ 
     set lossmodel [$self setloss]
     $lossmodel set offset_ $number
     $lossmodel set period_ 10000
     $lossmodel set markecn_ true
+}
+
+TestSuite instproc drop_more_pkts { number period } {
+    $self instvar ns_ 
+    set lossmodel [$self setloss1]
+    $lossmodel set offset_ $number
+    $lossmodel set period_ 1
+    $lossmodel set markecn_ false
 }
 
 TestSuite instproc emod1 {} {
@@ -365,15 +412,17 @@ TestSuite instproc drop_pkts pkts {
 
 Class Test/ecn_ack -superclass TestSuite
 Test/ecn_ack instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
+	set guide_      "One-way TCP, Sack, drops and marks."
 	Agent/TCP set bugFix_ true
         set test_	ecn_ack
         $self next
 }
 Test/ecn_ack instproc run {} {
-	$self instvar ns_
+	$self instvar ns_ guide_
+	puts "Guide: $guide_"
 	$self setTopo
 	$self ecnsetup Sack1
 	$self drop_pkt 20000
@@ -382,16 +431,18 @@ Test/ecn_ack instproc run {} {
 
 Class Test/ecn_ack_fulltcp -superclass TestSuite
 Test/ecn_ack_fulltcp instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
+	set guide_      "FullTCP, marked packet."
 	Agent/TCP set bugFix_ true
         set test_	ecn_ack_fulltcp
         $self next
 }
 Test/ecn_ack_fulltcp instproc run {} {
         global quiet wrap wrap1
-	$self instvar ns_
+	$self instvar ns_ guide_
+	puts "Guide: $guide_"
 	$self setTopo
         set wrap $wrap1
 	$self ecnsetup FullTcpSack1
@@ -415,7 +466,7 @@ Test/synack instproc init {} {
 }
 Test/synack instproc run {} {
         global quiet
-        $self instvar ns_ guide_ node_ guide_ testName_ 
+        $self instvar ns_ guide_ node_ testName_ 
         puts "Guide: $guide_"
         Agent/TCP set ecn_ 1
 	Agent/TCP set window_ 8
@@ -445,7 +496,7 @@ Test/synack_fulltcp instproc init {} {
 }
 Test/synack_fulltcp instproc run {} {
         global quiet wrap wrap1
-        $self instvar ns_ guide_ node_ guide_ testName_ 
+        $self instvar ns_ guide_ node_ testName_ 
         puts "Guide: $guide_"
         Agent/TCP set ecn_ 1
 	Agent/TCP set window_ 8
@@ -479,13 +530,13 @@ Test/synack0 instproc init {} {
         $self instvar net_ test_ guide_ 
         set net_        net2-lossy
         set test_       synack0_
-        set guide_      "SYN packet dropped."
+        set guide_      "One-way TCP, SYN packet dropped, retransmitted."
         Agent/TCPSink set ecn_syn_ false
         $self next pktTraceFile
 }
 Test/synack0 instproc run {} {
         global quiet
-        $self instvar ns_ guide_ node_ guide_ testName_ 
+        $self instvar ns_ guide_ node_ testName_ 
         puts "Guide: $guide_"
         Agent/TCP set ecn_ 1
 	Agent/TCP set window_ 8
@@ -509,7 +560,7 @@ Test/synack0A instproc init {} {
         $self instvar net_ test_ guide_ 
         set net_        net2-lossy
         set test_       synack0A_
-        set guide_      "SYN packet dropped, old parameters for RTO."
+        set guide_      "One-way TCP, SYN packet dropped, old parameters for RTO."
         Agent/TCPSink set ecn_syn_ false
 	Agent/TCP set rtxcur_init_ 6.0 
 	Agent/TCP set updated_rttvar_ false 
@@ -523,14 +574,14 @@ Test/synack-4 instproc init {} {
         $self instvar net_ test_ guide_ 
         set net_        net2
         set test_       synack-4_
-        set guide_      "Four SYN packets dropped, max_connects_ not used."
+        set guide_      "One-way TCP, four SYN packets dropped, max_connects_ not used."
         Agent/TCPSink set ecn_syn_ false
         Agent/TCP set max_connects_ -1;
         $self next pktTraceFile
 }
 Test/synack-4 instproc run {} {
         global quiet
-        $self instvar ns_ guide_ node_ guide_ testName_ 
+        $self instvar ns_ guide_ node_ testName_ 
         puts "Guide: $guide_"
         Agent/TCP set ecn_ 1
 	Agent/TCP set window_ 8
@@ -554,7 +605,7 @@ Test/synack-4-maxconnect instproc init {} {
         $self instvar net_ test_ guide_ 
         set net_        net2
         set test_       synack-4-maxconnect_
-        set guide_      "Four SYN packets dropped, max_connects_ 5."
+        set guide_      "One-way TCP, four SYN packets dropped, max_connects_ 5."
         Agent/TCPSink set ecn_syn_ false
         Agent/TCP set max_connects_ 5;
 	Test/synack-4-maxconnect instproc run {} [Test/synack-4 info instbody run ]
@@ -567,14 +618,14 @@ Test/synack-5-maxconnect instproc init {} {
         $self instvar net_ test_ guide_ 
         set net_        net2
         set test_       synack-5-maxconnect_
-        set guide_      "Five SYN packets dropped, max_connects_ 5."
+        set guide_      "One-way TCP, five SYN packets dropped, max_connects_ 5."
         Agent/TCPSink set ecn_syn_ false
         Agent/TCP set max_connects_ 5;
         $self next pktTraceFile
 }
 Test/synack-5-maxconnect instproc run {} {
         global quiet
-        $self instvar ns_ guide_ node_ guide_ testName_ 
+        $self instvar ns_ guide_ node_ testName_ 
         puts "Guide: $guide_"
         Agent/TCP set ecn_ 1
 	Agent/TCP set window_ 8
@@ -599,14 +650,14 @@ Test/synack-15 instproc init {} {
         $self instvar net_ test_ guide_ 
         set net_        net2
         set test_       synack-15_
-        set guide_      "Fifteen SYN packets dropped, max_connects not used."
+        set guide_      "One-way TCP, fifteen SYN packets dropped, max_connects not used."
         Agent/TCPSink set ecn_syn_ false
         Agent/TCP set max_connects_ -1;
         $self next pktTraceFile
 }
 Test/synack-15 instproc run {} {
         global quiet
-        $self instvar ns_ guide_ node_ guide_ testName_ 
+        $self instvar ns_ guide_ node_ testName_ 
         puts "Guide: $guide_"
         Agent/TCP set ecn_ 1
 	Agent/TCP set window_ 8
@@ -631,13 +682,13 @@ Test/synack1 instproc init {} {
         $self instvar net_ test_ guide_ 
         set net_        net2A-lossy
         set test_       synack1_
-        set guide_      "SYN/ACK packet dropped."
+        set guide_      "One-way TCP, SYN/ACK packet dropped."
         Agent/TCPSink set ecn_syn_ false
         $self next pktTraceFile
 }
 Test/synack1 instproc run {} {
         global quiet
-        $self instvar ns_ guide_ node_ guide_ testName_
+        $self instvar ns_ guide_ node_ testName_
         puts "Guide: $guide_"
         Agent/TCP set ecn_ 1
         $self setTopo
@@ -666,7 +717,7 @@ Test/synack0_fulltcp instproc init {} {
 }
 Test/synack0_fulltcp instproc run {} {
         global quiet wrap wrap1
-        $self instvar ns_ guide_ node_ guide_ testName_
+        $self instvar ns_ guide_ node_ testName_
         puts "Guide: $guide_"
         Agent/TCP set ecn_ 1
         Agent/TCP set window_ 8
@@ -705,7 +756,7 @@ Test/synack1_fulltcp instproc init {} {
 }
 Test/synack1_fulltcp instproc run {} {
         global quiet wrap wrap1
-        $self instvar ns_ guide_ node_ guide_ testName_
+        $self instvar ns_ guide_ node_ testName_
         puts "Guide: $guide_"
         Agent/TCP set ecn_ 1
         Agent/TCP set window_ 8
@@ -738,14 +789,14 @@ Test/synack2 instproc init {} {
         $self instvar net_ test_ guide_ 
         set net_        net2A-lossy
         set test_       synack2_
-        set guide_      "SYN/ACK packet marked, ECN+."
+        set guide_      "One-way TCP, SYN/ACK packet marked, ECN+."
         Agent/TCPSink set ecn_syn_ true
 	Agent/TCP/FullTcp set ecn_syn_wait_ 0
         $self next pktTraceFile
 }
 Test/synack2 instproc run {} {
         global quiet
-        $self instvar ns_ guide_ node_ guide_ testName_
+        $self instvar ns_ guide_ node_ testName_
         puts "Guide: $guide_"
         Agent/TCP set ecn_ 1
 	Agent/TCP set window_ 8
@@ -778,7 +829,7 @@ Test/synack2_fulltcp instproc init {} {
 }
 Test/synack2_fulltcp instproc run {} {
         global quiet wrap wrap1
-        $self instvar ns_ guide_ node_ guide_ testName_
+        $self instvar ns_ guide_ node_ testName_
         puts "Guide: $guide_"
         Agent/TCP set ecn_ 1
         $self setTopo
@@ -818,7 +869,7 @@ Test/synack2a_fulltcp instproc init {} {
 }
 Test/synack2a_fulltcp instproc run {} {
         global quiet wrap wrap1
-        $self instvar ns_ guide_ node_ guide_ testName_
+        $self instvar ns_ guide_ node_ testName_
         puts "Guide: $guide_"
         Agent/TCP set ecn_ 1
         $self setTopo
@@ -867,7 +918,7 @@ Test/synack2b_fulltcp instproc init {} {
 }
 Test/synack2b_fulltcp instproc run {} {
         global quiet wrap wrap1
-        $self instvar ns_ guide_ node_ guide_ testName_
+        $self instvar ns_ guide_ node_ testName_
         puts "Guide: $guide_"
         Agent/TCP set ecn_ 1
         $self setTopo
@@ -1055,6 +1106,65 @@ Test/synack3f_fulltcp instproc init {} {
         $self next pktTraceFile
 }
 
+Class Test/synack3g_fulltcp -superclass TestSuite
+Test/synack3g_fulltcp instproc init {} {
+        $self instvar net_ test_ guide_ action_
+        set net_        net2B-lossy
+        set test_       synack3g_fulltcp_
+        set guide_      "SYN/ACK marked, next ones dropped, FullTCP, ECN+/TryOnce."
+        set action_     markdrop
+        Agent/TCPSink set ecn_syn_ true
+        Agent/TCP/FullTcp set ecn_syn_ true
+        Agent/TCP/FullTcp set ecn_syn_wait_ 2
+        $self next pktTraceFile
+}
+Test/synack3g_fulltcp instproc run {} {
+        global quiet wrap wrap1
+        $self instvar ns_ guide_ node_ testName_ action_
+        puts "Guide: $guide_"
+        Agent/TCP set ecn_ 1
+        $self setTopo
+
+        # Set up forward TCP connection
+        set wrap $wrap1
+        set tcp1 [new Agent/TCP/FullTcp/Sack]
+        set sink [new Agent/TCP/FullTcp/Sack]
+        $ns_ attach-agent $node_(s1) $tcp1
+        $ns_ attach-agent $node_(s4) $sink
+        $tcp1 set fid_ 0
+        $sink set fid_ 0
+        $ns_ connect $tcp1 $sink
+        $sink listen ; # will figure out who its peer is
+        set ftp1 [$tcp1 attach-app FTP]
+        $ns_ at 0.00 "$ftp1 produce 1"
+        set ftp2 [$sink attach-app FTP]
+        $ns_ at 0.03 "$ftp2 produce 20"
+
+        if {$action_ == "mark"} {
+                # SYN/ACK marked
+                $self mark_pkt 1
+                puts "marking packet"
+        } elseif {$action_ == "marktwo"} {
+                $self mark_pkt 1
+                $self mark_pkt 7
+                puts "marking two packets"
+        } elseif {$action_ == "drop"} {
+                $self drop_pkt 1
+                 puts "dropping packet"
+        } elseif {$action_ == "markdrop"} {
+                $self mark_pkt 1
+                $self drop_more_pkts 2 1
+                 puts "marking one packet, dropping others"
+        } elseif {$action_ == "none"} {
+                $self mark_pkt 1000
+                puts "not marking or dropping packet"
+        }
+        $self tcpDump $tcp1 5.0
+        $ns_ at 20.0 "$self cleanupAll $testName_"
+        $ns_ run
+}
+
+
 Class Test/synack4c_fulltcp -superclass TestSuite
 Test/synack4c_fulltcp instproc init {} {
         $self instvar net_ test_ guide_ action_
@@ -1071,10 +1181,6 @@ Test/synack4c_fulltcp instproc init {} {
 }
 
 #
-# With "$self drop_pkts {0 1 2 3}", the SYN/ACK and second SYN/ACK
-# are dropped, and it ends there.  
-# FullTCP gives up after two SYN/ACK packets are dropped.
-#
 # TODO: Change this to use net2, and drop_pkts
 #
 Class Test/synack_many_fulltcp -superclass TestSuite
@@ -1082,9 +1188,8 @@ Test/synack_many_fulltcp instproc init {} {
         $self instvar net_ test_ guide_ 
         set net_        net2
         set test_       synack_many_fulltcp_
-        set guide_      "Two SYN/ACK packets dropped, FullTCP, no ECN."
+        set guide_      "All SYN/ACK packets dropped, FullTCP, no ECN."
 	Agent/TCP/FullTcp set ecn_syn_ false
-	# Agent/TCP/FullTcp set ecn_syn_wait_ 0
         $self next pktTraceFile
 }
 Test/synack_many_fulltcp instproc run {} {
@@ -1114,7 +1219,7 @@ Test/synack_many_fulltcp instproc run {} {
         # $self drop_pkt 1
 	# "drop_pkt" is used with net2A-lossy.
         $self tcpDump $tcp1 5.0
-        $ns_ at 5.0 "$self cleanupAll $testName_"
+        $ns_ at 20.0 "$self cleanupAll $testName_"
         $ns_ run
 }
 
