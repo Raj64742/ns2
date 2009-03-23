@@ -32,7 +32,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.37 2009/03/20 01:42:10 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.38 2009/03/23 22:48:43 sallyfloyd Exp $
 #
 # To run all tests: test-all-ecn-ack
 set dir [pwd]
@@ -359,8 +359,8 @@ TestSuite instproc drop_pkt { number } {
 # Mark the specified packet.
 TestSuite instproc mark_pkt { number { period 10000 } } {
     $self instvar ns_ 
-    #set lossmodel [$self setloss]
-    set lossmodel [$self setloss1]
+    set lossmodel [$self setloss]
+    #set lossmodel [$self setloss1]
     $lossmodel set offset_ $number
     $lossmodel set period_ $period
     $lossmodel set markecn_ true
