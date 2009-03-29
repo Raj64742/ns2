@@ -109,7 +109,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.127 2008/10/14 17:42:52 sallyfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.128 2009/03/29 20:59:41 sallyfloyd Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -1774,7 +1774,8 @@ FullTcpAgent::recv(Packet *pkt, Handler*)
                                 // If SYN/ACK packet is CE-marked
 				{
 					//cancel_rtx_timer();
-					newack(pkt);
+					//newack(pkt);
+					set_rtx_timer();
 					sendpacket(t_seqno_, rcv_nxt_, TH_ACK|TH_ECE, 0, 0);
 					goto drop;
 				}
