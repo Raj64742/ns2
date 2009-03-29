@@ -32,7 +32,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.38 2009/03/23 22:48:43 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.39 2009/03/29 21:01:05 sallyfloyd Exp $
 #
 # To run all tests: test-all-ecn-ack
 set dir [pwd]
@@ -379,7 +379,7 @@ TestSuite instproc drop_more_pkts { number period } {
     $self instvar ns_ 
     set lossmodel [$self setloss1]
     $lossmodel set offset_ $number
-    $lossmodel set period_ 1
+    $lossmodel set period_ $period
     $lossmodel set markecn_ false
 }
 
@@ -952,11 +952,12 @@ Test/synack2b_fulltcp instproc run {} {
 #   produces only one packet, instead of five.
 Class Test/synack3_fulltcp -superclass TestSuite
 Test/synack3_fulltcp instproc init {} {
-        $self instvar net_ test_ guide_ action_
+        $self instvar net_ test_ guide_ action_ stoptime_
         set net_        net2A-lossy
         set test_       synack3_fulltcp_
         set guide_      "SYN/ACK packet marked, FullTCP, ECN+."
         set action_ 	mark1
+        set stoptime_   2.0
         Agent/TCPSink set ecn_syn_ true
 	Agent/TCP/FullTcp set ecn_syn_ true
 	Agent/TCP/FullTcp set ecn_syn_wait_ 0
@@ -964,7 +965,7 @@ Test/synack3_fulltcp instproc init {} {
 }
 Test/synack3_fulltcp instproc run {} {
         global quiet wrap wrap1 
-        $self instvar ns_ guide_ node_ testName_ action_
+        $self instvar ns_ guide_ node_ testName_ action_ stoptime_
         puts "Guide: $guide_"
         Agent/TCP set ecn_ 1
         $self setTopo
@@ -997,6 +998,14 @@ Test/synack3_fulltcp instproc run {} {
         } elseif {$action_ == "drop"} {
 		$self drop_pkt 1
                  puts "dropping packet"
+        } elseif {$action_ == "markdrop"} {
+                $self mark_pkt 1
+                $self drop_more_pkts 2 1
+                 puts "marking one packet, dropping others"
+        } elseif {$action_ == "markdropone"} {
+                $self mark_pkt 1
+                $self drop_more_pkts 2 1000
+                 puts "marking one packet, dropping one other"
         } elseif {$action_ == "none"} {
 		$self mark_pkt 1000
                 puts "not marking or dropping packet"
@@ -1005,17 +1014,18 @@ Test/synack3_fulltcp instproc run {} {
                 puts "not marking or dropping packet"
         } 
         $self tcpDump $tcp1 5.0
-        $ns_ at 2.0 "$self cleanupAll $testName_"
+        $ns_ at $stoptime_ "$self cleanupAll $testName_"
         $ns_ run
 }
 
 Class Test/synack3b_fulltcp -superclass TestSuite
 Test/synack3b_fulltcp instproc init {} {
-        $self instvar net_ test_ guide_ action_
+        $self instvar net_ test_ guide_ action_ stoptime_
         set net_        net2A-lossy
         set test_       synack3b_fulltcp_
         set guide_      "SYN/ACK packet not marked, FullTCP."
         set action_	none1
+        set stoptime_   2.0
         Agent/TCPSink set ecn_syn_ true
 	Agent/TCP/FullTcp set ecn_syn_ true
         Test/synack3b_fulltcp instproc run {} [Test/synack3_fulltcp info instbody run]
@@ -1024,11 +1034,12 @@ Test/synack3b_fulltcp instproc init {} {
 
 Class Test/synack3a_fulltcp -superclass TestSuite
 Test/synack3a_fulltcp instproc init {} {
-        $self instvar net_ test_ guide_ action_
+        $self instvar net_ test_ guide_ action_ stoptime_
         set net_        net2A-lossy
         set test_       synack3a_fulltcp_
         set guide_      "SYN/ACK packet marked, FullTCP, ECN+/wait."
         set action_ 	mark1
+        set stoptime_   2.0
         Agent/TCPSink set ecn_syn_ true
 	Agent/TCP/FullTcp set ecn_syn_ true
 	Agent/TCP/FullTcp set ecn_syn_wait_ 1
@@ -1038,11 +1049,12 @@ Test/synack3a_fulltcp instproc init {} {
 
 Class Test/synack3c_fulltcp -superclass TestSuite
 Test/synack3c_fulltcp instproc init {} {
-        $self instvar net_ test_ guide_ action_
+        $self instvar net_ test_ guide_ action_ stoptime_
         set net_        net2A-lossy
         set test_       synack3c_fulltcp_
         set guide_      "SYN/ACK packet marked, FullTCP, ECN+/wait2."
         set action_ 	mark1
+        set stoptime_   2.0
         Agent/TCPSink set ecn_syn_ true
 	Agent/TCP/FullTcp set ecn_syn_ true
 	Agent/TCP/FullTcp set ecn_syn_wait_ 2
@@ -1067,11 +1079,12 @@ Test/synack3c_fulltcp instproc init {} {
 
 Class Test/synack3d_fulltcp -superclass TestSuite
 Test/synack3d_fulltcp instproc init {} {
-        $self instvar net_ test_ guide_ action_
+        $self instvar net_ test_ guide_ action_ stoptime_
         set net_        net2A-lossy
         set test_       synack3d_fulltcp_
         set guide_      "SYN/ACK packet dropped, FullTCP, ECN+."
         set action_ 	drop
+        set stoptime_   2.0
 	Agent/TCP/FullTcp set ecn_syn_ true
  	# Why doesn't the line below work?
         #Test/synack3d_fulltcp instproc run {} [Test/synack3_fulltcp info instbody run]
@@ -1120,72 +1133,41 @@ Test/synack3f_fulltcp instproc init {} {
 
 Class Test/synack3g_fulltcp -superclass TestSuite
 Test/synack3g_fulltcp instproc init {} {
-        $self instvar net_ test_ guide_ action_
+        $self instvar net_ test_ guide_ action_ stoptime_
         set net_        net2B-lossy
         set test_       synack3g_fulltcp_
         set guide_      "SYN/ACK marked, next ones dropped, FullTCP, ECN+/wait2."
         set action_     markdrop
+        set stoptime_   20.0
         Agent/TCPSink set ecn_syn_ true
         Agent/TCP/FullTcp set ecn_syn_ true
         Agent/TCP/FullTcp set ecn_syn_wait_ 2
+        Test/synack3g_fulltcp instproc run {} [Test/synack3_fulltcp info instbody run]
         $self next pktTraceFile
 }
-Test/synack3g_fulltcp instproc run {} {
-        global quiet wrap wrap1
-        $self instvar ns_ guide_ node_ testName_ action_
-        puts "Guide: $guide_"
-        Agent/TCP set ecn_ 1
-        $self setTopo
 
-        # Set up forward TCP connection
-        set wrap $wrap1
-        set tcp1 [new Agent/TCP/FullTcp/Sack]
-        set sink [new Agent/TCP/FullTcp/Sack]
-        $ns_ attach-agent $node_(s1) $tcp1
-        $ns_ attach-agent $node_(s4) $sink
-        $tcp1 set fid_ 0
-        $sink set fid_ 0
-        $ns_ connect $tcp1 $sink
-        $sink listen ; # will figure out who its peer is
-        set ftp1 [$tcp1 attach-app FTP]
-        $ns_ at 0.00 "$ftp1 produce 1"
-        set ftp2 [$sink attach-app FTP]
-        $ns_ at 0.03 "$ftp2 produce 20"
-
-        if {$action_ == "mark"} {
-                # SYN/ACK marked
-                $self mark_pkt 1
-                puts "marking packet"
-        } elseif {$action_ == "marktwo"} {
-                $self mark_pkt 1 7
-                puts "marking every seven packets"
-        } elseif {$action_ == "drop"} {
-                $self drop_pkt 1
-                 puts "dropping packet"
-        } elseif {$action_ == "markdrop"} {
-                $self mark_pkt 1
-                $self drop_more_pkts 2 1
-                 puts "marking one packet, dropping others"
-        } elseif {$action_ == "none"} {
-                $self mark_pkt 1000
-                puts "not marking or dropping packet"
-        } elseif {$action_ == "none1"} {
-                $self mark_pkt1 1000
-                puts "not marking or dropping packet"
-        }
-        $self tcpDump $tcp1 5.0
-        $ns_ at 20.0 "$self cleanupAll $testName_"
-        $ns_ run
+Class Test/synack3h_fulltcp -superclass TestSuite
+Test/synack3h_fulltcp instproc init {} {
+        $self instvar net_ test_ guide_ action_ stoptime_
+        set net_        net2B-lossy
+        set test_       synack3h_fulltcp_
+        set guide_      "SYN/ACK marked, next one dropped, FullTCP, ECN+/wait2."
+        set action_     markdropone
+        set stoptime_   20.0
+        Agent/TCPSink set ecn_syn_ true
+        Agent/TCP/FullTcp set ecn_syn_ true
+        Agent/TCP/FullTcp set ecn_syn_wait_ 2
+        Test/synack3h_fulltcp instproc run {} [Test/synack3_fulltcp info instbody run]
+        $self next pktTraceFile
 }
-
-
 Class Test/synack4c_fulltcp -superclass TestSuite
 Test/synack4c_fulltcp instproc init {} {
-        $self instvar net_ test_ guide_ action_
+        $self instvar net_ test_ guide_ action_ stoptime_
         set net_        net2A-lossy
         set test_       synack4c_fulltcp_
         set guide_      "SYN/ACK packet marked, FullTCP, ECN+/wait2, large initial windows."
         set action_ 	mark1
+        set stoptime_   2.0
         Agent/TCPSink set ecn_syn_ true
 	Agent/TCP/FullTcp set ecn_syn_ true
 	Agent/TCP/FullTcp set ecn_syn_wait_ 2
