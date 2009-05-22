@@ -6194,7 +6194,7 @@ fi
 if test "${with_tcl_ver+set}" = set; then
   withval=$with_tcl_ver; TCL_VERS=$withval
 else
-  TCL_VERS=8.4.14
+  TCL_VERS=8.4.18
 fi
 
 
@@ -6207,6 +6207,10 @@ TCL_OLD_VERS=8.3.5
 TCL_OLD_ALT_VERS=`echo $TCL_OLD_VERS | sed 's/\.//'`
 
 TCL_TCL_PLACES_D="$d \
+		$d/lib64/tcl$TCL_HI_VERS \
+		$d/lib64/tcl$TCL_VERS \
+		$d/lib64/tcl$TCL_ALT_VERS \
+		$d/lib64/tcl \
 		$d/lib/tcl$TCL_HI_VERS \
 		$d/lib/tcl$TCL_VERS \
 		$d/lib/tcl$TCL_ALT_VERS \
@@ -6218,8 +6222,11 @@ TCL_TCL_PLACES_D="$d \
 		$d/lib/tcl$TCL_OLD_ALT_VERS \
 		$d/../lib/tcl$TCL_OLD_VERS \
 		$d/../lib/tcl$TCL_OLD_ALT_VERS \
+		/usr/local/lib/tcl$TCL_HI_VERS \
+		/usr/local/lib/tcl$TCL_VERS \
+		/usr/local/lib/tcl$TCL_ALT_VERS \
+		$d/lib64 \
 		$d/lib \
-		/System/Library/Frameworks/Tcl.framework/Versions/8.4/Resources/Scripts \
 		$d/library \
 		"
 TCL_TCL_PLACES="../lib/tcl$TCL_HI_VERS \
@@ -6229,6 +6236,10 @@ TCL_TCL_PLACES="../lib/tcl$TCL_HI_VERS \
 		../tcl$TCL_HI_VERS/library \
 		../tcl$TCL_VERS/library \
                 ../tcl$TCL_ALT_VERS/library \
+		/usr/lib64/tcl$TCL_VERS \
+		/usr/lib64/tcl$TCL_HI_VERS \
+		/usr/lib64/tcl$TCL_ALT_VERS \
+		/usr/lib64/tcl \
 		/usr/lib/tcl$TCL_VERS \
 		/usr/lib/tcl$TCL_HI_VERS \
 		/usr/lib/tcl$TCL_ALT_VERS \
@@ -6236,6 +6247,9 @@ TCL_TCL_PLACES="../lib/tcl$TCL_HI_VERS \
 		/usr/share/tcl$TCL_VERS \
 		/usr/share/tcl$TCL_HI_VERS \
 		/usr/share/tcl$TCL_ALT_VERS \
+		/usr/local/src/tcl$TCL_VERS \
+		/usr/local/src/tcl$TCL_HI_VERS \
+		/usr/local/src/tcl$TCL_ALT_VERS \
 		/usr/share/tcl \
 		/lib/tcl$TCL_VERS \
 		/lib/tcl$TCL_HI_VERS \
@@ -6275,6 +6289,7 @@ TCL_H_PLACES_D="$d/generic \
 		$d/include/tcl$TCL_VERS \
 		$d/include/tcl$TCL_ALT_VERS \
 		$d/include \
+		/usr/local/include \
 		"
 TCL_H_PLACES=" \
 		../include \
@@ -6286,6 +6301,9 @@ TCL_H_PLACES=" \
 		/usr/src/local/tcl$TCL_VERS/generic \
 		/usr/src/local/tcl$TCL_HI_VERS/generic \
 		/usr/src/local/tcl$TCL_ALT_VERS/generic \
+		/usr/local/src/tcl$TCL_VERS/generic \
+		/usr/local/src/tcl$TCL_HI_VERS/generic \
+		/usr/local/src/tcl$TCL_ALT_VERS/generic \
 		/usr/src/local/tcl$TCL_VERS/unix \
 		/usr/src/local/tcl$TCL_HI_VERS/unix \
 		/usr/src/local/tcl$TCL_ALT_VERS/unix \
@@ -6318,6 +6336,10 @@ TCL_H_PLACES=" \
 		$x_includes/tk \
 		$x_includes \
 		/usr/include \
+		/usr/include/tcl$TCL_VERS/tcl-private/generic \
+		/usr/include/tcl$TCL_HI_VERS/tcl-private/generic \
+		/usr/include/tcl$TCL_ALT_VERS/tcl-private/generic \
+		/usr/include/tcl-private/generic \
 		/usr/include/tcl$TCL_VERS \
 		/usr/include/tcl$TCL_HI_VERS \
 		/usr/include/tcl$TCL_ALT_VERS \
@@ -6333,10 +6355,16 @@ TCL_LIB_PLACES=" \
                 /usr/src/local/tcl$TCL_VERS/unix \
                 /usr/src/local/tcl$TCL_HI_VERS/unix \
                 /usr/src/local/tcl$TCL_ALT_VERS/unix \
+                /usr/local/src/tcl$TCL_VERS/unix \
+                /usr/local/src/tcl$TCL_HI_VERS/unix \
+                /usr/local/src/tcl$TCL_ALT_VERS/unix \
                 /usr/contrib/lib \
                 /usr/local/lib/tcl$TCL_VERS \
                 /usr/local/lib/tcl$TCL_HI_VERS \
                 /usr/local/lib/tcl$TCL_ALT_VERS \
+		/usr/lib64/tcl$TCL_VERS \
+		/usr/lib64/tcl$TCL_HI_VERS \
+		/usr/lib64/tcl$TCL_ALT_VERS \
 		/usr/lib/tcl$TCL_VERS \
 		/usr/lib/tcl$TCL_HI_VERS \
 		/usr/lib/tcl$TCL_ALT_VERS \
@@ -6352,14 +6380,9 @@ TCL_LIB_PLACES=" \
                 $prefix/lib \
                 $x_libs/tk \
                 $x_libs \
+                /usr/lib64 \
                 /usr/lib \
 		"
-
-
-
-V_TCL_LIBRARY_FILES="\$(TCL_`echo $TCL_ALT_VERS`_LIBRARY_FILES)"
-test "x$TCL_VERS" = x8.3.5 && V_TCL_LIBRARY_FILES="\$(TCL_835_LIBRARY_FILES)"
-
 
 
 
@@ -6411,6 +6434,65 @@ $as_echo "no" >&6; }
 	else
 
 				  ac_tr_hdr=HAVE_`echo tcl.h | sed 'y%abcdefghijklmnopqrstuvwxyz./-%ABCDEFGHIJKLMNOPQRSTUVWXYZ___%'`
+		                cat >>confdefs.h <<_ACEOF
+#define $ac_tr_hdr 1
+_ACEOF
+
+
+		V_INCLUDES="$V_INCLUDE_TCL $V_INCLUDES"
+		V_DEFINES="-D$ac_tr_hdr $V_DEFINES"
+
+		NS_PACKAGE_tcl_UNDERWAY=true
+
+		{ $as_echo "$as_me:$LINENO: result: $V_INCLUDE_TCL" >&5
+$as_echo "$V_INCLUDE_TCL" >&6; }
+	fi
+fi
+
+
+{ $as_echo "$as_me:$LINENO: checking for tclInt.h" >&5
+$as_echo_n "checking for tclInt.h... " >&6; }
+if test "x$d" = "xno"; then
+	: disable header
+	V_INCLUDE_TCL=FAIL
+
+NS_PACKAGE_tcl_COMPLETE=false
+
+	{ $as_echo "$as_me:$LINENO: result: no" >&5
+$as_echo "no" >&6; }
+
+else
+	places="$TCL_H_PLACES"
+	if test "x$d" != "x" -a "x$d" != xyes; then
+		if test ! -d $d; then
+			{ { $as_echo "$as_me:$LINENO: error: $d is not a directory" >&5
+$as_echo "$as_me: error: $d is not a directory" >&2;}
+   { (exit 1); exit 1; }; }
+		fi
+		places="$TCL_H_PLACES_D"
+	fi
+
+	V_INCLUDE_TCL=""
+	found=""
+	for dir in $places; do
+		if test -r $dir/tclInt.h; then
+                        found="$dir"
+                        if test "$CC" != "icc" ||
+                                test "$dir" != "/usr/include"; then
+                                V_INCLUDE_TCL="-I$dir"
+                        fi
+			break
+		fi
+	done
+	if test "FAIL$found" = "FAIL" ; then
+
+NS_PACKAGE_tcl_COMPLETE=false
+
+		{ $as_echo "$as_me:$LINENO: result: no" >&5
+$as_echo "no" >&6; }
+	else
+
+				  ac_tr_hdr=HAVE_`echo tclInt.h | sed 'y%abcdefghijklmnopqrstuvwxyz./-%ABCDEFGHIJKLMNOPQRSTUVWXYZ___%'`
 		                cat >>confdefs.h <<_ACEOF
 #define $ac_tr_hdr 1
 _ACEOF
@@ -6542,6 +6624,77 @@ $as_echo "$V_LIBRARY_TCL" >&6; }
 fi
 
 
+tcl_http_library_dir=/dev/null
+tcl_http_places=" \
+	$V_LIBRARY_TCL \
+	$V_LIBRARY_TCL/http \
+	$V_LIBRARY_TCL/http2.4 \
+	$V_LIBRARY_TCL/http2.3 \
+	$V_LIBRARY_TCL/http2.1 \
+	$V_LIBRARY_TCL/http2.0 \
+	$V_LIBRARY_TCL/http1.0 \
+	"
+
+{ $as_echo "$as_me:$LINENO: checking for http.tcl" >&5
+$as_echo_n "checking for http.tcl... " >&6; }
+if test "x""" = "xno"; then
+	: disable header
+	tcl_http_library_dir=FAIL
+
+NS_PACKAGE_tcl_COMPLETE=false
+
+	{ $as_echo "$as_me:$LINENO: result: no" >&5
+$as_echo "no" >&6; }
+
+else
+	places="$tcl_http_places"
+	if test "x""" != "x" -a "x""" != xyes; then
+		if test ! -d ""; then
+			{ { $as_echo "$as_me:$LINENO: error: \"\" is not a directory" >&5
+$as_echo "$as_me: error: \"\" is not a directory" >&2;}
+   { (exit 1); exit 1; }; }
+		fi
+		places=""""
+	fi
+
+	tcl_http_library_dir=""
+	for dir in $places; do
+		if test -r $dir/http.tcl; then
+			tcl_http_library_dir="$dir"
+			break
+		fi
+	done
+	if test "FAIL$tcl_http_library_dir" = "FAIL" ; then
+
+NS_PACKAGE_tcl_COMPLETE=false
+
+		{ $as_echo "$as_me:$LINENO: result: no" >&5
+$as_echo "no" >&6; }
+	else
+
+		NS_PACKAGE_tcl_UNDERWAY=true
+
+		{ $as_echo "$as_me:$LINENO: result: $tcl_http_library_dir" >&5
+$as_echo "$tcl_http_library_dir" >&6; }
+	fi
+fi
+
+{ $as_echo "$as_me:$LINENO: checking Tcl http.tcl library" >&5
+$as_echo_n "checking Tcl http.tcl library... " >&6; }
+if test -f $tcl_http_library_dir/http.tcl
+then
+	{ $as_echo "$as_me:$LINENO: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+	{ { $as_echo "$as_me:$LINENO: error: Couldn't find http.tcl in $tcl_http_places" >&5
+$as_echo "$as_me: error: Couldn't find http.tcl in $tcl_http_places" >&2;}
+   { (exit 1); exit 1; }; }
+fi
+
+
+V_TCL_LIBRARY_FILES="\$(TCL_BASE_LIBRARY_FILES) $tcl_http_library_dir/http.tcl"
+
+
 #
 # check for tclsh
 #
@@ -6648,6 +6801,7 @@ fi
 
 
 
+
 # Check whether --with-tk was given.
 if test "${with_tk+set}" = set; then
   withval=$with_tk; d=$withval
@@ -6661,7 +6815,7 @@ fi
 if test "${with_tk_ver+set}" = set; then
   withval=$with_tk_ver; TK_VERS=$withval
 else
-  TK_VERS=8.4.14
+  TK_VERS=8.4.18
 fi
 
 
@@ -6675,7 +6829,9 @@ TK_OLD_VERS=8.3.5
 TK_OLD_ALT_VERS=`echo $TK_OLD_VERS | sed 's/\.//'`
 
 TK_TCL_PLACES_D="$d \
-                $d/lib/tk$TK_VERS \
+                $d/lib64/tk$TK_VERS \
+                $d/lib64/tk$TK_ALT_VERS \
+                $d/lib64/tk$TK_VERS \
                 $d/lib/tk$TK_ALT_VERS \
 		$d/lib/tk$TK_HI_VERS \
                 $d/library \
@@ -6690,7 +6846,6 @@ TK_TCL_PLACES_D="$d \
                 $d/../lib/tk$TK_OLD_ALT_VERS \
                 $d/../lib/tk \
                 $d/lib \
-		/System/Library/Frameworks/Tk.framework/Versions/8.4/Resources/Scripts \
                 $d/library"
 TK_TCL_PLACES=" \
 		../lib/tk$TK_HI_VERS \
@@ -6711,6 +6866,10 @@ TK_TCL_PLACES=" \
                 /usr/local/include/tk$TK_ALT_VERS \
                 /usr/local/include/tk$TK_HI_VERS \
                 /usr/local/include \
+                /usr/lib64/tk$TK_VERS \
+                /usr/lib64/tk$TK_ALT_VERS \
+                /usr/lib64/tk$TK_HI_VERS \
+                /usr/lib64/tk \
                 /usr/lib/tk$TK_VERS \
                 /usr/lib/tk$TK_ALT_VERS \
                 /usr/lib/tk$TK_HI_VERS \
@@ -6779,7 +6938,8 @@ TK_H_PLACES=" \
                 /usr/include/tcl \
                 /usr/include/tcl$TK_VERS \
                 /usr/include/tcl$TK_ALT_VERS \
-                /usr/include/tcl$TK_HI_VERS"
+                /usr/include/tcl$TK_HI_VERS \
+                "
 TK_LIB_PLACES_D="$d \
                 $d/lib \
 		$d/unix"
@@ -6808,6 +6968,7 @@ TK_LIB_PLACES=" \
                 $prefix/lib \
                 $x_libs/tk \
                 $x_libs \
+                /usr/lib64 \
                 /usr/lib"
 
 
@@ -10537,12 +10698,12 @@ fi
 
 { $as_echo "$as_me:$LINENO: checking for __int64_t" >&5
 $as_echo_n "checking for __int64_t... " >&6; }
-if test "${int64_t_HAVE___INT64_T+set}" = set; then
+if test "${nsnam_cv_int64_t_HAVE___INT64_T+set}" = set; then
   $as_echo_n "(cached) " >&6
 else
 
 if test "$cross_compiling" = yes; then
-  int64_t_HAVE___INT64_T=cross
+  nsnam_cv_int64_t_HAVE___INT64_T=cross
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -10576,14 +10737,14 @@ $as_echo "$ac_try_echo") >&5
   ac_status=$?
   $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
-  int64_t_HAVE___INT64_T=yes
+  nsnam_cv_int64_t_HAVE___INT64_T=yes
 else
   $as_echo "$as_me: program exited with status $ac_status" >&5
 $as_echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 ( exit $ac_status )
-int64_t_HAVE___INT64_T=no
+nsnam_cv_int64_t_HAVE___INT64_T=no
 fi
 rm -rf conftest.dSYM
 rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
@@ -10591,20 +10752,20 @@ fi
 
 
 fi
-{ $as_echo "$as_me:$LINENO: result: $int64_t_HAVE___INT64_T" >&5
-$as_echo "$int64_t_HAVE___INT64_T" >&6; }
-if test x"$int64_t_HAVE___INT64_T" = x"yes" -a "x$INT64_T_ALTERNATIVE" = xnone; then
+{ $as_echo "$as_me:$LINENO: result: $nsnam_cv_int64_t_HAVE___INT64_T" >&5
+$as_echo "$nsnam_cv_int64_t_HAVE___INT64_T" >&6; }
+if test x"$nsnam_cv_int64_t_HAVE___INT64_T" = x"yes" -a "x$INT64_T_ALTERNATIVE" = xnone; then
 	INT64_T_ALTERNATIVE=__int64_t
 fi
 
 { $as_echo "$as_me:$LINENO: checking for long long" >&5
 $as_echo_n "checking for long long... " >&6; }
-if test "${int64_t_HAVE_LONG_LONG+set}" = set; then
+if test "${nsnam_cv_int64_t_HAVE_LONG_LONG+set}" = set; then
   $as_echo_n "(cached) " >&6
 else
 
 if test "$cross_compiling" = yes; then
-  int64_t_HAVE_LONG_LONG=cross
+  nsnam_cv_int64_t_HAVE_LONG_LONG=cross
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -10638,14 +10799,14 @@ $as_echo "$ac_try_echo") >&5
   ac_status=$?
   $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
-  int64_t_HAVE_LONG_LONG=yes
+  nsnam_cv_int64_t_HAVE_LONG_LONG=yes
 else
   $as_echo "$as_me: program exited with status $ac_status" >&5
 $as_echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 ( exit $ac_status )
-int64_t_HAVE_LONG_LONG=no
+nsnam_cv_int64_t_HAVE_LONG_LONG=no
 fi
 rm -rf conftest.dSYM
 rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
@@ -10653,9 +10814,9 @@ fi
 
 
 fi
-{ $as_echo "$as_me:$LINENO: result: $int64_t_HAVE_LONG_LONG" >&5
-$as_echo "$int64_t_HAVE_LONG_LONG" >&6; }
-if test x"$int64_t_HAVE_LONG_LONG" = x"yes" -a "x$INT64_T_ALTERNATIVE" = xnone; then
+{ $as_echo "$as_me:$LINENO: result: $nsnam_cv_int64_t_HAVE_LONG_LONG" >&5
+$as_echo "$nsnam_cv_int64_t_HAVE_LONG_LONG" >&6; }
+if test x"$nsnam_cv_int64_t_HAVE_LONG_LONG" = x"yes" -a "x$INT64_T_ALTERNATIVE" = xnone; then
 	INT64_T_ALTERNATIVE="long long"
 fi
 
@@ -10690,7 +10851,8 @@ fi
 { $as_echo "$as_me:$LINENO: result: $ac_cv_type_int64_t" >&5
 $as_echo "$ac_cv_type_int64_t" >&6; }
 if test $ac_cv_type_int64_t = no; then
-  cat >>confdefs.h <<_ACEOF
+
+cat >>confdefs.h <<_ACEOF
 #define int64_t $INT64_T_ALTERNATIVE
 _ACEOF
 
@@ -10703,7 +10865,8 @@ if test $ac_cv_type_int64_t = yes -o "$INT64_T_ALTERNATIVE" != none
 then
 	if test "$INT64_T_ALTERNATIVE" = long -o "$ac_cv_func_strtoq" = yes -o "$ac_cv_func_strtoll" = yes
 	then
-		cat >>confdefs.h <<\_ACEOF
+
+cat >>confdefs.h <<\_ACEOF
 #define HAVE_INT64 1
 _ACEOF
 
