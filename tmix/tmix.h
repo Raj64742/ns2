@@ -33,6 +33,9 @@
  * ACM Computer Communication Review, July 2006, Vol 36, No 3, pp. 67-76.
  * 
  * Contact: Michele Weigle (mweigle@cs.odu.edu)
+ * 
+ * For more information on Tmix and to obtain Tmix tools and 
+ * connection vectors, see http://netlab.cs.unc.edu/Tmix
  */
 
 #ifndef ns_tmix_h
