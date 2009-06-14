@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satnode.cc,v 1.8 2001/11/06 06:21:47 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satnode.cc,v 1.9 2009/06/14 17:34:14 tom_henderson Exp $";
 #endif
 
 #include "satnode.h"
@@ -152,7 +152,7 @@ int SatNode::addNode(int nodenum)
 {
 	if (maxsatnodelist_ == 0) {
 		satnodelist_ = new int[MAXSATNODELIST];
-		memset(satnodelist_, 0, MAXSATNODELIST * sizeof(satnodelist_));
+		memset(satnodelist_, 0, MAXSATNODELIST * sizeof(satnodelist_[0]));
 		maxsatnodelist_ = MAXSATNODELIST;
 	}
 	assert(nodenum < 2*maxsatnodelist_);
@@ -160,7 +160,7 @@ int SatNode::addNode(int nodenum)
 		// Double size of array
 		int i;
 		int* temp = new int[2 * maxsatnodelist_];
-		memset(temp, 0, 2 * maxsatnodelist_ * sizeof(temp));
+		memset(temp, 0, 2 * maxsatnodelist_ * sizeof(temp[0]));
 		for (i = 0; i < maxsatnodelist_; i++) {
 			temp[i] = satnodelist_[i];
 		}
