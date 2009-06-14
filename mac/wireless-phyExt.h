@@ -252,8 +252,7 @@ private:
 	double monitor_Thresh;//packet with power > monitor_thresh will be recorded in the monitor
 	double powerLevel;
 	WirelessPhyExt * wirelessPhyExt;
-	double expiration;
-	list<interf> interfList_;
+    list<interf> interfList_;
 };
 
 #endif /* !ns_WirelessPhyExt_h */

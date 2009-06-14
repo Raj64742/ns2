@@ -91,12 +91,12 @@ Phy/WirelessPhy set RXThresh_       3.652e-10
 Phy/WirelessPhy set bandwidth_      20e6
 Phy/WirelessPhy set CPThresh_       10.0
 
-Phy/WirelessPhyExt set CSThresh_           6.30957e-12
+Phy/WirelessPhyExt set CSThresh_           6.30957e-13
 Phy/WirelessPhyExt set Pt_                 0.001
 Phy/WirelessPhyExt set freq_               5.18e9
 Phy/WirelessPhyExt set noise_floor_        2.51189e-13
 Phy/WirelessPhyExt set L_                  1.0
-Phy/WirelessPhyExt set PowerMonitorThresh_ 2.10319e-12
+Phy/WirelessPhyExt set PowerMonitorThresh_ 0
 Phy/WirelessPhyExt set HeaderDuration_     0.000020
 Phy/WirelessPhyExt set BasicModulationScheme_ 0
 Phy/WirelessPhyExt set PreambleCaptureSwitch_ 1

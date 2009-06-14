@@ -482,7 +482,6 @@ PowerMonitor::PowerMonitor(WirelessPhyExt * phy) {
 	CS_Thresh = wirelessPhyExt->CSThresh_; //  monitor_Thresh = CS_Thresh;
 	monitor_Thresh = wirelessPhyExt->PowerMonitorThresh_;
 	powerLevel = wirelessPhyExt->noise_floor_; // noise floor is -99dbm
-	expiration = DBL_MAX;
 }
 
 void PowerMonitor::recordPowerLevel(double signalPower, double duration) {
@@ -498,9 +497,7 @@ void PowerMonitor::recordPowerLevel(double signalPower, double duration) {
     for (i=interfList_.begin();  i != interfList_.end() && i->end <= timerEntry.end; i++) { }
     interfList_.insert(i, timerEntry);
 
-    if (timerEntry.end < expiration) {
-    	resched(duration);
-    }
+	resched((interfList_.begin())->end - Scheduler::instance().clock());
 
     powerLevel += signalPower; // update the powerLevel
 
@@ -552,9 +549,8 @@ void PowerMonitor::expire(Event *) {
        	powerLevel -= i->Pt;
        	interfList_.erase(i++);
    	}
-   	if (i != interfList_.end()) {
-   		resched(i->end - time);
-   	}
+	if (!interfList_.empty())
+		resched((interfList_.begin())->end - Scheduler::instance().clock());
 
     	char msg[1000];
 	sprintf(msg, "Power: %f -> %f", pre_power*1e9, powerLevel*1e9);
