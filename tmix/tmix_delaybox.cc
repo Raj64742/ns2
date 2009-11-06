@@ -155,7 +155,8 @@ void Tmix_DelayBoxClassifier::create_flow_table (const char* src, const char *ds
     char cvec[100];
     int fid = 0;
     unsigned long us_delay;
-    double delay, fwdloss, revloss, linkspd; 
+    double delay, fwdloss, revloss;
+    double linkspd = 0; 
     DelayBoxPair* pair;
     DelayBoxQueue* q;
     DelayBoxTimer* timer;

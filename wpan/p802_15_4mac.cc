@@ -13,7 +13,7 @@
 // File:  p802_15_4mac.cc
 // Mode:  C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t
 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4mac.cc,v 1.4 2007/01/30 05:00:52 tom_henderson Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4mac.cc,v 1.5 2009/11/06 17:19:38 tom_henderson Exp $
 
 /*
  * Copyright (c) 2003-2004 Samsung Advanced Institute of Technology and
@@ -5349,7 +5349,7 @@ void Mac802_15_4::IFSHandler(void)
 	hdr_cmn* ch;
 	FrameCtrl frmCtrl;
 	Packet *pendPkt;
-	MACenum status;
+	MACenum status = m_UNDEFINED;
 	int i;
 
 	assert(rxData||rxCmd);
