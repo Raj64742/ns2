@@ -1,7 +1,7 @@
-sctp.README - README file for NS-2 SCTP module release 3.7
+sctp.README - README file for NS-2 SCTP module release 3.8
 
 ###############################################################################
-# Copyright (c) 2006-2007 by the Protocol Engineering Lab, U of Delaware      #
+# Copyright (c) 2006-2009 by the Protocol Engineering Lab, U of Delaware      #
 # All rights reserved.                                                        #
 #                                                                             #
 # Protocol Engineering Lab web page : http://pel.cis.udel.edu/                #
@@ -14,7 +14,7 @@ sctp.README - README file for NS-2 SCTP module release 3.7
 ###############################################################################
 
 Please submit bug reports to pel@@cis,udel,edu
-@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.README,v 1.2 2007/06/17 21:44:44 tom_henderson Exp $
+@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.README,v 1.3 2009/11/16 05:51:27 tom_henderson Exp $
 ------------------------------------------------------------------------------
 MODULE INFO:
 
@@ -426,13 +426,32 @@ CMT-PF variables:
        useCmtPF_
 
           This variable is used to turn the CMT-PF extension
-          ON/OFF. The default value is 0 (OFF).
+          ON/OFF. The default value is 1 (ON).
 
        cmtPFCwnd_
 
           This variable is used to set cwnd (in MTUs) after HB-ACK is
           received (PF->ACTIVE) at the sender. Two possible values for
           this variable are 1 or 2. The default value is 1.
+
+SCTP version 3.8 includes implementation of Non-Renegable Selective 
+Acknowledgements (NR-SACK). You can find the detailed description for
+NR-SACKs in the Internet-Draft [3] and a performance evaluation in [4]. 
+
+The SCTP module uses two variables for NR-SACK which can bebound from 
+within tcl. The corresponding variables used in tcl are (with 
+explanations):
+      
+       useNonRenegSacks_ 
+          
+          This variable is used to turn the NR-SACK extension ON/OFF. 
+          The default value is 0 (OFF).
+  
+       initialSwnd_
+	  
+          This variable is used to set the data sender's send buffer
+          size to a specified value. The default value is 0 which means
+          the send buffer is unlimited in size. 
 
 ------------------------------------------------------------------------------
 # EXAMPLE SCRIPT 1
@@ -1147,3 +1166,11 @@ Transactions on Networking, 14(5), 10/06.
 Policies using Potentially-failed Destination State", Technical
 Report: #2007-338, CIS Department, University of Delaware, February
 2007.
+
+[3] P. Natarajan, P. Amer, E. Yilmaz, R. Stewart, J. Iyengar.  
+"Non-Renegable Selective Acks (NR-SACKs) for SCTP", IETF Internet 
+Draft, draft-natarajan-tsvwg-sctp-nrsack 
+
+[4] P. Natarajan, N. Ekiz, E. Yilmaz, P. Amer, J. Iyengar, R. 
+Stewart. "Non-renegable selective acks (NR-SACKs) for SCTP", Int'l 
+Conf on Network Protocols (ICNP), Orlando, 10/08

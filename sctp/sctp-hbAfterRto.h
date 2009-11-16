@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2007 by the Protocol Engineering Lab, U of Delaware
+ * Copyright (c) 2006-2009 by the Protocol Engineering Lab, U of Delaware
  * All rights reserved.
  *
  * Protocol Engineering Lab web page : http://pel.cis.udel.edu/
@@ -34,7 +34,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp-hbAfterRto.h,v 1.3 2007/06/17 21:44:40 tom_henderson Exp $ (UD/PEL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp-hbAfterRto.h,v 1.4 2009/11/16 05:51:27 tom_henderson Exp $ (UD/PEL)
  */
 
 /* HbAfterRto extension sends a heartbeat immediately after timeout

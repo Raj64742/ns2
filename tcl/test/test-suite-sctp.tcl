@@ -54,8 +54,6 @@
 #  ns test-suite-sctp.tcl sctp-multihome2-1
 #  ns test-suite-sctp.tcl sctp-multihome2-2AMR-Exceeded
 #  ns test-suite-sctp.tcl sctp-multihome2-2Failover 
-#  ns test-suite-sctp.tcl sctp-multihome2-2Failover0
-#  ns test-suite-sctp.tcl sctp-multihome2-2Failover1
 #  ns test-suite-sctp.tcl sctp-multihome2-2Rtx1  
 #  ns test-suite-sctp.tcl sctp-multihome2-2Rtx3 
 #  ns test-suite-sctp.tcl sctp-multihome2-2Timeout
@@ -72,7 +70,8 @@
 #  ns test-suite-sctp.tcl sctp-multipleRtx-early 
 #  ns test-suite-sctp.tcl sctp-newReno
 #  ns test-suite-sctp.tcl sctp-noEarlyHBs
-#  ns test-suite-sctp.tcl sctp-smallRwnd 
+#  ns test-suite-sctp.tcl sctp-smallRwnd
+#  ns test-suite-sctp.tcl sctp-smallSwnd 
 #  ns test-suite-sctp.tcl sctp-zeroRtx 
 #  ns test-suite-sctp.tcl sctp-zeroRtx-burstLoss 
 #
@@ -107,7 +106,15 @@
 #  ns test-suite-sctp.tcl sctp-cmt-pf-Rtx-ssthresh
 #  ns test-suite-sctp.tcl sctp-cmt-pf-Rtx-cwnd
 #  ns test-suite-sctp.tcl sctp-cmt-pf-Timeout-pmr
-  
+
+#  ns test-suite-sctp.tcl sctp-non-renegable-ack-no-loss
+#  ns test-suite-sctp.tcl sctp-sack-with-loss
+#  ns test-suite-sctp.tcl sctp-non-renegable-ack-with-loss
+#  ns test-suite-sctp.tcl sctp-sack-with-loss-unordered  
+#  ns test-suite-sctp.tcl sctp-non-renegable-ack-with-loss-unordered
+#  ns test-suite-sctp.tcl sctp-non-renegable-ack-with-loss-multistream
+#  ns test-suite-sctp.tcl sctp-cmt-2paths-1path-fails-with-non-renegable-acks
+
 Class TestSuite
 
 # 2 packets get dropped and their fast rtx gets lost too.... forcing them
@@ -174,24 +181,11 @@ Class Test/sctp-multihome2-1 -superclass TestSuite
 # association!
 Class Test/sctp-multihome2-2AMR-Exceeded -superclass TestSuite
 
-# Demonstrates a failover with multihoming (using a heartbeat timer per
-# dest). Two endpoints with 2 interfaces with direct connections between
-# each pair. Eventually in the primary becomes active again and all
-# traffic moves back to the primary.
+# Demonstrates a failover with multihoming. Two endpoints with 2 
+# interfaces with direct connections between each pair. When primary 
+# becomes inactive, a failover to the secondary path occurs and
+# data transfer continues on this path. 
 Class Test/sctp-multihome2-2Failover -superclass TestSuite
-
-# Demonstrates a failover with multihoming, but this example has
-# heartbeating turned off. Two endpoints with 2 interfaces with direct
-# connections between each pair. Eventually in the primary becomes active
-# again, but since heartbeating is turned off, traffic never moves back to
-# the primary.
-Class Test/sctp-multihome2-2Failover0 -superclass TestSuite
-
-# Demonstrates a failover with multihoming (using one heartbeat timer for
-# all dests). Two endpoints with 2 interfaces with direct connections
-# between each pair. Eventually in the primary becomes active again and
-# all traffic moves back to the primary.
-Class Test/sctp-multihome2-2Failover1 -superclass TestSuite
 
 # Demonstrates retransmissions with multihoming. Two endpoints with 2
 # interfaces with direct connections between each pair. A packet gets
@@ -250,15 +244,15 @@ Class Test/sctp-multipleDropsSameWnd-3 -superclass TestSuite
 # One continuous burst loss.
 Class Test/sctp-multipleDropsTwoWnds-1-delayed -superclass TestSuite
 
-# This test drops TSN 15 (ns pkt 16) and the Fast Rtx of the same
-# (ns pkt 35).  According to the proposed Section 7.2.4.5, Fast Rtx
+# This test drops TSN 15 (ns pkt 17) and the Fast Rtx of the same
+# (ns pkt 36).  According to the proposed Section 7.2.4.5, Fast Rtx
 # happens only once for any TSN. This graph illustrates this point -
 # if Fast Rtx is enabled after the timeout rtx of the TSN, it can be
 # clearly seen that there WILL be a false Fast Rtx for the TSN.
 Class Test/sctp-multipleRtx -superclass TestSuite
 
-# This test drops TSN 3 (ns pkt 4) and the Fast Rtx of the same (ns
-# pkt 11).  According to the proposed Section 7.2.4.5, Fast Rtx
+# This test drops TSN 3 (ns pkt 5) and the Fast Rtx of the same (ns
+# pkt 12).  According to the proposed Section 7.2.4.5, Fast Rtx
 # happens only once for any TSN. This graph illustrates this point -
 # if Fast Rtx is enabled after the timeout rtx of the TSN, it can be
 # clearly seen that there WILL be a false Fast Rtx for the TSN. (Note:
@@ -276,6 +270,10 @@ Class Test/sctp-noEarlyHBs -superclass TestSuite
 # This script tests for proper behavior when using a small rwnd and
 # medium size chunks.
 Class Test/sctp-smallRwnd -superclass TestSuite
+
+# This script tests for proper behavior when using a small send buffer 
+# and medium size chunks.
+Class Test/sctp-smallSwnd -superclass TestSuite
 
 # tests unreliable stream with k-rtx value of 0 with one loss.
 Class Test/sctp-zeroRtx -superclass TestSuite
@@ -370,7 +368,7 @@ Class Test/sctp-cmt-packet-loss-dest-conf -superclass TestSuite
 
 # Demonstrates Concurrent Multipath Transfer (CMT) using multihoming and 
 # RTX_SSTHRESH retransmission policy. There are two endpoints with 2 
-# interfaces each. Four consecutive data packets from the first interface are 
+# interfaces each. Six consecutive data packets from the first interface are 
 # dropped to cause a Timeout. Retransmissions are sent to the destination with
 # the highest ssthresh value.
 Class Test/sctp-cmt-Rtx-ssthresh -superclass TestSuite
@@ -438,6 +436,76 @@ Class Test/sctp-cmt-pf-Rtx-cwnd -superclass TestSuite
 # INACTIVE destination becomes ACTIVE, data packets can be send to the all 
 # the destinations again.   
 Class Test/sctp-cmt-pf-Timeout-pmr -superclass TestSuite
+
+# This script tests for proper behavior when using Non-Renegable acknowlegments
+# with a small send buffer and medium size chunks. The data receiver sends
+# Non-Renegable acks (indicated with --------N in trace files) back to
+# the data sender. The test is similar to the sctp-smallRwnd except using 
+# Non-Renegable acknowlegments. Note that the size of a Non-Renegable ack
+# is 4 bytes more than a SACK which causes a slight difference in the 
+# trace files.
+Class Test/sctp-non-renegable-ack-no-loss -superclass TestSuite
+
+# This script shows the use of Selective Acks (SACK) with
+# some loss. The data sender has a small send buffer while the data
+# receiver has relatively large receiver buffer. When the data loss occurs
+# for data packets (TSNs: 19 and 20) and their retransmissions, the data
+# sender is blocked until the lost TSNs are recovered. The script uses
+# a multi-streamed data sender. Even though TSNs 21-24 are delivered
+# to the upper layer at the data receiver, send buffer of the data sender
+# cannot release those TSNs until the cumack is advanced beyond those TSNs.
+# This behavior blocks the data sender to put new data on the network.
+Class Test/sctp-sack-with-loss -superclass TestSuite
+
+# This script shows the use of Non-Renegable Selective Acks (NR-SACK)
+# with some loss. The test setup is same as above test where SACK is 
+# used. With the use of NR-SACKs, the data sender empties the send 
+# buffer for TSNs 21-24 when corresponding NR-SACKs are received and
+# sends new TSNs on the network. Note that the data sender is not blocked.
+Class Test/sctp-non-renegable-ack-with-loss -superclass TestSuite
+
+# This script shows a loss scenario with Selective Acks (SACK) 
+# in use. The TSN 32, and two consecutive retransmissions are lost. 
+# The send buffer of data sender is blocked and no new data can 
+# be send before the loss recovery. All the TSNs beyond the TSN 32,
+# are successfully received at data receiver and delivered to the
+# upper layer. The application used an unordered stream for the
+# data transfer. 
+Class Test/sctp-sack-with-loss-unordered -superclass TestSuite
+
+# This script shows a loss scenario with Non-Renegable Selective Acks
+# (NR-SACK) in use. The TSN 32, and two consecutive retransmissions are lost. 
+# The data receiver delivers all received TSNs to the upper layer and mark
+# delivered TSNs as Non-Renegable. The data sender deletes TSNs from
+# its send buffer which are marked as Non-Renegable. So, data sender reads
+# new data from application and sends them. Note that data sender sends
+# more data during the loss recovery period when NR-SACKs are used.  
+Class Test/sctp-non-renegable-ack-with-loss-unordered -superclass TestSuite
+
+# This script shows a loss scenario with Non-Renegable Selective Acks
+# (NR-SACK) in use. The TSN 32, and two consecutive retransmissions are lost. 
+# The application is multistreamed using 2 streams (0 and 1). 
+# The data receiver delivers all received TSNs from stream 0 to upper layer
+# and mark delivered TSNs as Non-Renegable. The data sender deletes TSNs from
+# its send buffer which are marked as Non-Renegable. Since the data loss is from
+# stream 1 those TSNs are marked as Renegable and are kept in data senders 
+# buffer until cumack advances. In this test case, less TSNs are send in the
+# loss recovery period since TSNs from stream 1 filled the send buffer and
+# blocks the data sender.     
+Class Test/sctp-non-renegable-ack-with-loss-multistream -superclass TestSuite
+
+# Demonstrates Concurrent Multipath Transfer (CMT) using multihoming and 
+# Non-Renegable Selective Acks (NR-SACK). 
+# There are two endpoints with 2 interfaces each. One of the independent paths
+# between end points becomes inactive(goes down) during the transfer. The 
+# transfer is completed using the other path. The application in this test
+# is unordered as opposed to same test above with SACKs 
+# (sctp-cmt-2paths-1path-fails). When NR-SACKs are used along the unordered 
+# application, the data sender is not blocked and data transfer continues 
+# without interrupt on the active path. The same can be achieved for the multi-
+# streamed applications if TSNs from the same stream are always send to the 
+# same path.
+Class Test/sctp-cmt-2paths-1path-fails-with-non-renegable-acks -superclass TestSuite
 
 proc usage {} {
     global argv0
@@ -534,7 +602,7 @@ Test/sctp-AMR-Exceeded instproc init {} {
 
 
     set err [new ErrorModel/List]
-    $err droplist {15 16 17 18 19 20 21 22 23 24 32 33 34 35 36 37 38 39 40 41 42 43 44}
+    $err droplist {15 16 17 18 19 20 21 22 23 32 33 34 35 36 37 38 39 40 41 42 43 44 45}
     $ns lossmodel $err $n0 $n1
 
     set sctp0 [new Agent/SCTP]
@@ -772,7 +840,7 @@ Test/sctp-cwndFreeze instproc init {} {
     $ns duplex-link-op $n0 $n1 orient right
     
     set err [new ErrorModel/List]
-    $err droplist {16}
+    $err droplist {11}
     $ns lossmodel $err $n0 $n1
     
     set sctp0 [new Agent/SCTP]
@@ -1159,7 +1227,7 @@ Test/sctp-multihome2-2AMR-Exceeded instproc init {} {
     $ns lossmodel $err0 $host0_if0 $host1_if0
 
     set err1 [new ErrorModel/List]
-    $err1 droplist {1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16}
+    $err1 droplist {1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17}
     $ns lossmodel $err1 $host0_if1 $host1_if1
 
     set sctp0 [new Agent/SCTP]
@@ -1238,7 +1306,7 @@ Test/sctp-multihome2-2Failover instproc init {} {
     $ns duplex-link $host0_if1 $host1_if1 .5Mb 200ms DropTail
     
     set err0 [new ErrorModel/List]
-    $err0 droplist {16 17 18 19 20 21 22 23 24 25 26 27 29 28 31 32}
+    $err0 droplist {16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 32 33}
     $ns lossmodel $err0 $host0_if0 $host1_if0
     
     set sctp0 [new Agent/SCTP]
@@ -1281,155 +1349,6 @@ Test/sctp-multihome2-2Failover instproc run {} {
     $self instvar ns ftp0
     $ns at 0.5 "$ftp0 start"
     $ns at 180.0 "$self finish"
-    $ns run
-}
-
-Test/sctp-multihome2-2Failover0 instproc init {} {
-    $self instvar ns testName ftp0
-    global quiet
-    set testName multihome2-2Failover0
-    $self next
-
-    set host0_core [$ns node]
-    set host0_if0 [$ns node]
-    set host0_if1 [$ns node]
-    $host0_core color Red
-    $host0_if0 color Red
-    $host0_if1 color Red
-    $ns multihome-add-interface $host0_core $host0_if0
-    $ns multihome-add-interface $host0_core $host0_if1
-
-    set host1_core [$ns node]
-    set host1_if0 [$ns node]
-    set host1_if1 [$ns node]
-    $host1_core color Blue
-    $host1_if0 color Blue
-    $host1_if1 color Blue
-    $ns multihome-add-interface $host1_core $host1_if0
-    $ns multihome-add-interface $host1_core $host1_if1
-
-    $ns duplex-link $host0_if0 $host1_if0 .5Mb 200ms DropTail
-    $ns duplex-link $host0_if1 $host1_if1 .5Mb 200ms DropTail
-
-    set err0 [new ErrorModel/List]
-    $err0 droplist {16 17 18 19 20 21 22 23 24 25 26 27 28 29 31 32} 
-    $ns lossmodel $err0 $host0_if0 $host1_if0
-
-    set sctp0 [new Agent/SCTP]
-    $ns multihome-attach-agent $host0_core $sctp0
-    $sctp0 set mtu_ 1500
-    $sctp0 set dataChunkSize_ 1468
-    $sctp0 set numOutStreams_ 1
-    $sctp0 set heartbeatInterval_ 0
-
-    if {$quiet == 0} {
-	$sctp0 set debugMask_ -1 
-	$sctp0 set debugFileIndex_ 0
-
-	set trace_ch [open trace.sctp w]
-	$sctp0 set trace_all_ 1
-	$sctp0 trace cwnd_
-	$sctp0 trace rto_
-	$sctp0 trace errorCount_
-	$sctp0 attach $trace_ch
-    }
-
-    set sctp1 [new Agent/SCTP]
-    $ns multihome-attach-agent $host1_core $sctp1
-    $sctp1 set mtu_ 1500
-    $sctp1 set initialRwnd_ 131072 
-    $sctp1 set useDelayedSacks_ 1
-    
-    if {$quiet == 0} {
-	$sctp1 set debugMask_ -1
-	$sctp1 set debugFileIndex_ 1
-    }
-
-    $ns connect $sctp0 $sctp1
-    $sctp0 set-primary-destination $host1_if0
-
-    set ftp0 [new Application/FTP]
-    $ftp0 attach-agent $sctp0
-}
-
-Test/sctp-multihome2-2Failover0 instproc run {} {
-    $self instvar ns ftp0
-    $ns at 0.5 "$ftp0 start"
-    $ns at 195.0 "$self finish"
-    $ns run
-}
-
-Test/sctp-multihome2-2Failover1 instproc init {} {
-    $self instvar ns testName ftp0
-    global quiet
-    set testName multihome2-2Failover1
-    $self next
-
-    set host0_core [$ns node]
-    set host0_if0 [$ns node]
-    set host0_if1 [$ns node]
-    $host0_core color Red
-    $host0_if0 color Red
-    $host0_if1 color Red
-    $ns multihome-add-interface $host0_core $host0_if0
-    $ns multihome-add-interface $host0_core $host0_if1
-
-    set host1_core [$ns node]
-    set host1_if0 [$ns node]
-    set host1_if1 [$ns node]
-    $host1_core color Blue
-    $host1_if0 color Blue
-    $host1_if1 color Blue
-    $ns multihome-add-interface $host1_core $host1_if0
-    $ns multihome-add-interface $host1_core $host1_if1
-
-    $ns duplex-link $host0_if0 $host1_if0 .5Mb 200ms DropTail
-    $ns duplex-link $host0_if1 $host1_if1 .5Mb 200ms DropTail
-
-    set err0 [new ErrorModel/List]
-    $err0 droplist {16 17 18 19 20 21 22 23 24 25 26 27 28 29 31 32} 
-    $ns lossmodel $err0 $host0_if0 $host1_if0
-
-    set sctp0 [new Agent/SCTP]
-    $ns multihome-attach-agent $host0_core $sctp0
-    $sctp0 set mtu_ 1500
-    $sctp0 set dataChunkSize_ 1468
-    $sctp0 set numOutStreams_ 1
-
-    if {$quiet == 0} {
-	$sctp0 set debugMask_ -1 
-	$sctp0 set debugFileIndex_ 0
-
-	set trace_ch [open trace.sctp w]
-	$sctp0 set trace_all_ 1
-	$sctp0 trace cwnd_
-	$sctp0 trace rto_
-	$sctp0 trace errorCount_
-	$sctp0 attach $trace_ch
-    }
-
-    set sctp1 [new Agent/SCTP]
-    $ns multihome-attach-agent $host1_core $sctp1
-    $sctp1 set mtu_ 1500
-    $sctp1 set initialRwnd_ 131072 
-    $sctp1 set useDelayedSacks_ 1
-    
-    if {$quiet == 0} {
-	$sctp1 set debugMask_ -1
-	$sctp1 set debugFileIndex_ 1
-    }
-
-    $ns connect $sctp0 $sctp1
-    $sctp0 set-primary-destination $host1_if0
-
-    set ftp0 [new Application/FTP]
-    $ftp0 attach-agent $sctp0
-}
-
-Test/sctp-multihome2-2Failover1 instproc run {} {
-    $self instvar ns ftp0
-    $ns at 0.5 "$ftp0 start"
-    $ns at 195.0 "$self finish"
     $ns run
 }
 
@@ -2001,7 +1920,7 @@ Test/sctp-multipleDropsSameWnd-1 instproc init {} {
     $ns duplex-link-op $n0 $n1 orient right
     
     set err [new ErrorModel/List]
-    $err droplist {13 14 16}
+    $err droplist {20 21 23}
     $ns lossmodel $err $n0 $n1
 
     set sctp0 [new Agent/SCTP]
@@ -2117,7 +2036,7 @@ Test/sctp-multipleDropsSameWnd-2 instproc init {} {
     $ns duplex-link-op $n0 $n1 orient right
     
     set err [new ErrorModel/List]
-    $err droplist {13 14 15 16}
+    $err droplist {20 21 22 23}
     $ns lossmodel $err $n0 $n1
     
     set sctp0 [new Agent/SCTP]
@@ -2175,7 +2094,7 @@ Test/sctp-multipleDropsSameWnd-3 instproc init {} {
     $ns duplex-link-op $n0 $n1 orient right
     
     set err [new ErrorModel/List]
-    $err droplist {12 13 15 16}
+    $err droplist {19 20 22 23}
     $ns lossmodel $err $n0 $n1
     
     set sctp0 [new Agent/SCTP]
@@ -2562,6 +2481,63 @@ Test/sctp-smallRwnd instproc run {} {
     $ns run
 }
 
+Test/sctp-smallSwnd instproc init {} {
+    $self instvar ns testName ftp0
+    global quiet
+    set testName smallSwnd
+    $self next
+
+    set n0 [$ns node]
+    set n1 [$ns node]
+    $ns duplex-link $n0 $n1 .5Mb 300ms DropTail
+    $ns duplex-link-op $n0 $n1 orient right
+    $ns queue-limit $n0 $n1 10000
+    
+    set err [new ErrorModel/List]
+    
+    set sctp0 [new Agent/SCTP]
+    $ns attach-agent $n0 $sctp0
+    $sctp0 set mtu_ 1500
+    $sctp0 set dataChunkSize_ 724
+    $sctp0 set numOutStreams_ 1
+    $sctp0 set initialSwnd_ 8192
+   
+    if {$quiet == 0} {
+	$sctp0 set debugMask_ -1 
+	$sctp0 set debugFileIndex_ 0
+
+	set trace_ch [open trace.sctp w]
+	$sctp0 set trace_all_ 1
+	$sctp0 trace cwnd_
+	$sctp0 trace rto_
+	$sctp0 trace errorCount_
+	$sctp0 attach $trace_ch
+    }
+    
+    set sctp1 [new Agent/SCTP]
+    $ns attach-agent $n1 $sctp1
+    $sctp1 set mtu_ 1500
+    $sctp1 set initialRwnd_ 65536
+    $sctp1 set useDelayedSacks_ 0
+   
+    if {$quiet == 0} {
+	$sctp1 set debugMask_ -1 
+	$sctp1 set debugFileIndex_ 1
+    }
+    
+    $ns connect $sctp0 $sctp1
+    
+    set ftp0 [new Application/FTP]
+    $ftp0 attach-agent $sctp0
+}
+
+Test/sctp-smallSwnd instproc run {} {
+    $self instvar ns ftp0
+    $ns at 0.5 "$ftp0 start"
+    $ns at 10.0 "$self finish"
+    $ns run
+}
+
 Test/sctp-zeroRtx instproc init {} {
     $self instvar ns testName ftp0
     global quiet
@@ -2732,7 +2708,7 @@ Test/sctp-hbAfterRto-2packetsTimeout instproc init {} {
 Test/sctp-hbAfterRto-2packetsTimeout instproc run {} {
     $self instvar ns ftp0
     $ns at 0.5 "$ftp0 start"
-    $ns at 4.5 "$ftp0 stop"
+    $ns at 4.6 "$ftp0 stop"
     $ns at 10.0 "$self finish"
     $ns run
 }
@@ -2981,7 +2957,7 @@ Test/sctp-mfrHbAfterRto-Rta2-2FRsTimeout instproc init {} {
     $ns duplex-link $host0_if1 $host1_if1 .5Mb 200ms DropTail
 
     set err0 [new ErrorModel/List]
-    $err0 droplist {16 29 37 38 39 40 41}
+    $err0 droplist {16 29 37 38 39 40 41 42}
     $ns lossmodel $err0 $host0_if0 $host1_if0
 
     set sctp0 [new Agent/SCTP/MultipleFastRtx]
@@ -3310,6 +3286,7 @@ Test/sctp-cmt-2paths-64K instproc init {} {
     $cmt_snd set useCmtCwnd_ 1
     $cmt_snd set useCmtDelAck_ 1
     $cmt_snd set eCmtRtxPolicy_ 2 ; #RTX-SSTHRESH
+    $cmt_snd set useCmtPF_ 0; # turn off CMT-PF
 
     if {$quiet == 0} {
 	$cmt_snd set debugMask_ -1 
@@ -3379,7 +3356,7 @@ Test/sctp-cmt-2paths-64K-withloss instproc init {} {
     [[$ns link $host0_if1 $host1_if1] queue] set limit_ 50
     
     set err [new ErrorModel/List]
-    $err droplist {16 17 18}
+    $err droplist {14 15 16}
     $ns lossmodel $err $host0_if0 $host1_if0
 
     set cmt_snd [new Agent/SCTP/CMT] 
@@ -3392,6 +3369,7 @@ Test/sctp-cmt-2paths-64K-withloss instproc init {} {
     $cmt_snd set useCmtCwnd_ 1
     $cmt_snd set useCmtDelAck_ 1
     $cmt_snd set eCmtRtxPolicy_ 2 ; #RTX-SSTHRESH
+    $cmt_snd set useCmtPF_ 0; # turn off CMT-PF
 
     if {$quiet == 0} {
 	$cmt_snd set debugMask_ -1 
@@ -3478,6 +3456,7 @@ Test/sctp-cmt-3paths-64K instproc init {} {
     $cmt_snd set useCmtCwnd_ 1
     $cmt_snd set useCmtDelAck_ 1
     $cmt_snd set eCmtRtxPolicy_ 2 ; #RTX-SSTHRESH
+    $cmt_snd set useCmtPF_ 0; # turn off CMT-PF
 
     if {$quiet == 0} {
 	$cmt_snd set debugMask_ -1 
@@ -3560,6 +3539,7 @@ Test/sctp-cmt-2paths-1path-fails instproc init {} {
     $cmt_snd set useCmtCwnd_ 1
     $cmt_snd set useCmtDelAck_ 1
     $cmt_snd set eCmtRtxPolicy_ 2 ; #RTX-SSTHRESH
+    $cmt_snd set useCmtPF_ 0; # turn off CMT-PF
 
     if {$quiet == 0} {
 	$cmt_snd set debugMask_ -1 
@@ -3652,6 +3632,7 @@ Test/sctp-cmt-3paths-1path-fails instproc init {} {
     $cmt_snd set useCmtCwnd_ 1
     $cmt_snd set useCmtDelAck_ 1
     $cmt_snd set eCmtRtxPolicy_ 2 ; #RTX-SSTHRESH
+    $cmt_snd set useCmtPF_ 0; # turn off CMT-PF
 
     if {$quiet == 0} {
 	$cmt_snd set debugMask_ -1 
@@ -3735,6 +3716,7 @@ Test/sctp-cmt-packet-loss-dest-conf instproc init {} {
     $cmt_snd set useCmtCwnd_ 1
     $cmt_snd set useCmtDelAck_ 1
     $cmt_snd set eCmtRtxPolicy_ 2  #RTX-SSTHRESH
+    $cmt_snd set useCmtPF_ 0; # turn off CMT-PF
 
     if {$quiet == 0} {
 	$cmt_snd set debugMask_ -1 
@@ -3805,7 +3787,7 @@ Test/sctp-cmt-Rtx-ssthresh instproc init {} {
     [[$ns link $host0_if1 $host1_if1] queue] set limit_ 50
     
     set err [new ErrorModel/List]
-    $err droplist {5 6 7 8}
+    $err droplist {6 7 8 9 10 11}
     $ns lossmodel $err $host0_if0 $host1_if0
 
     set cmt_snd [new Agent/SCTP/CMT] 
@@ -3818,6 +3800,7 @@ Test/sctp-cmt-Rtx-ssthresh instproc init {} {
     $cmt_snd set useCmtCwnd_ 1
     $cmt_snd set useCmtDelAck_ 1
     $cmt_snd set eCmtRtxPolicy_ 2  #RTX-SSTHRESH
+    $cmt_snd set useCmtPF_ 0; # turn off CMT-PF
 
     if {$quiet == 0} {
 	$cmt_snd set debugMask_ -1 
@@ -3901,6 +3884,7 @@ Test/sctp-cmt-Rtx-cwnd instproc init {} {
     $cmt_snd set useCmtCwnd_ 1
     $cmt_snd set useCmtDelAck_ 1
     $cmt_snd set eCmtRtxPolicy_ 4  #RTX-CWND
+    $cmt_snd set useCmtPF_ 0; # turn off CMT-PF
 
     if {$quiet == 0} {
 	$cmt_snd set debugMask_ -1 
@@ -3971,7 +3955,7 @@ Test/sctp-cmt-Timeout-pmr instproc init {} {
     [[$ns link $host0_if1 $host1_if1] queue] set limit_ 50
     
     set err [new ErrorModel/List]
-    $err droplist {3 4 5 6 7 8 9 10}
+    $err droplist {3 4 5 6 7 8 9 10 11}
     $ns lossmodel $err $host0_if0 $host1_if0
 
     set cmt_snd [new Agent/SCTP/CMT] 
@@ -3984,6 +3968,7 @@ Test/sctp-cmt-Timeout-pmr instproc init {} {
     $cmt_snd set useCmtCwnd_ 1
     $cmt_snd set useCmtDelAck_ 1
     $cmt_snd set eCmtRtxPolicy_ 2  #RTX-SSTHRESH
+    $cmt_snd set useCmtPF_ 0; # turn off CMT-PF
 
     if {$quiet == 0} {
 	$cmt_snd set debugMask_ -1 
@@ -4060,7 +4045,7 @@ Test/sctp-cmt-multihome2-2Timeout instproc init {} {
     $ns lossmodel $err0 $host0_if0 $host1_if0
     
     set err1 [new ErrorModel/List]
-    $err1 droplist {16}
+    $err1 droplist {12}
     $ns lossmodel $err1 $host0_if1 $host1_if1
     
     set sctp0 [new Agent/SCTP/CMT]
@@ -4073,6 +4058,7 @@ Test/sctp-cmt-multihome2-2Timeout instproc init {} {
     $sctp0 set useCmtCwnd_ 1
     $sctp0 set useCmtDelAck_ 1
     $sctp0 set eCmtRtxPolicy_ 2 ; #RTX-SSTHRESH
+    $sctp0 set useCmtPF_ 0; # turn off CMT-PF
 
     if {$quiet == 0} {
 	$sctp0 set debugMask_ -1 
@@ -4156,8 +4142,6 @@ Test/sctp-cmt-pf-2paths-1path-fails instproc init {} {
     $cmt_snd set useCmtCwnd_ 1
     $cmt_snd set useCmtDelAck_ 1
     $cmt_snd set eCmtRtxPolicy_ 2 ; #RTX-SSTHRESH
-    $cmt_snd set useCmtPF_ 1
-    $cmt_snd set cmtPFCwnd 2
 
     if {$quiet == 0} {
 	$cmt_snd set debugMask_ -1 
@@ -4250,8 +4234,6 @@ Test/sctp-cmt-pf-3paths-1path-fails instproc init {} {
     $cmt_snd set useCmtCwnd_ 1
     $cmt_snd set useCmtDelAck_ 1
     $cmt_snd set eCmtRtxPolicy_ 2 ; #RTX-SSTHRESH
-    $cmt_snd set useCmtPF_ 1
-    $cmt_snd set cmtPFCwnd 2
 
     if {$quiet == 0} {
 	$cmt_snd set debugMask_ -1 
@@ -4340,8 +4322,6 @@ Test/sctp-cmt-pf-packet-loss-dest-conf instproc init {} {
     $cmt_snd set useCmtCwnd_ 1
     $cmt_snd set useCmtDelAck_ 1
     $cmt_snd set eCmtRtxPolicy_ 2 ; #RTX-SSTHRESH
-    $cmt_snd set useCmtPF_ 1
-    $cmt_snd set cmtPFCwnd 2
 
     if {$quiet == 0} {
 	$cmt_snd set debugMask_ -1 
@@ -4428,8 +4408,6 @@ Test/sctp-cmt-pf-Rtx-ssthresh instproc init {} {
     $cmt_snd set useCmtCwnd_ 1
     $cmt_snd set useCmtDelAck_ 1
     $cmt_snd set eCmtRtxPolicy_ 2 ; #RTX-SSTHRESH
-    $cmt_snd set useCmtPF_ 1
-    $cmt_snd set cmtPFCwnd 2
 
     if {$quiet == 0} {
 	$cmt_snd set debugMask_ -1 
@@ -4516,8 +4494,6 @@ Test/sctp-cmt-pf-Rtx-cwnd instproc init {} {
     $cmt_snd set useCmtCwnd_ 1
     $cmt_snd set useCmtDelAck_ 1
     $cmt_snd set eCmtRtxPolicy_ 4 ; #RTX-CWND
-    $cmt_snd set useCmtPF_ 1
-    $cmt_snd set cmtPFCwnd 2
 
     if {$quiet == 0} {
 	$cmt_snd set debugMask_ -1 
@@ -4587,7 +4563,7 @@ Test/sctp-cmt-pf-Timeout-pmr instproc init {} {
     [[$ns link $host0_if1 $host1_if1] queue] set limit_ 50
     
     set err [new ErrorModel/List]
-    $err droplist {3 4 5 6 7 8 9}
+    $err droplist {3 4 5 6 7 8 9 10}
     $ns lossmodel $err $host0_if0 $host1_if0
 
     set cmt_snd [new Agent/SCTP/CMT] 
@@ -4600,8 +4576,6 @@ Test/sctp-cmt-pf-Timeout-pmr instproc init {} {
     $cmt_snd set useCmtCwnd_ 1
     $cmt_snd set useCmtDelAck_ 1
     $cmt_snd set eCmtRtxPolicy_ 2  #RTX-SSTHRESH
-    $cmt_snd set useCmtPF_ 1
-    $cmt_snd set cmtPFCwnd 2
 
     if {$quiet == 0} {
 	$cmt_snd set debugMask_ -1 
@@ -4642,6 +4616,455 @@ Test/sctp-cmt-pf-Timeout-pmr instproc run {} {
     $ns run
 }
 
+Test/sctp-non-renegable-ack-no-loss instproc init {} {
+    $self instvar ns testName ftp0
+    global quiet
+    set testName non-renegable-ack-no-loss
+    $self next
+
+    set n0 [$ns node]
+    set n1 [$ns node]
+    $ns duplex-link $n0 $n1 .5Mb 300ms DropTail
+    $ns duplex-link-op $n0 $n1 orient right
+    $ns queue-limit $n0 $n1 10000
+    
+    set err [new ErrorModel/List]
+    
+    set sctp0 [new Agent/SCTP]
+    $ns attach-agent $n0 $sctp0
+    $sctp0 set mtu_ 1500
+    $sctp0 set dataChunkSize_ 724
+    $sctp0 set numOutStreams_ 1
+    $sctp0 set useNonRenegSacks_ 1 #ENABLE NR-SACKS
+   
+    if {$quiet == 0} {
+	$sctp0 set debugMask_ -1 
+	$sctp0 set debugFileIndex_ 0
+
+	set trace_ch [open trace.sctp w]
+	$sctp0 set trace_all_ 1
+	$sctp0 trace cwnd_
+	$sctp0 trace rto_
+	$sctp0 trace errorCount_
+	$sctp0 attach $trace_ch
+    }
+    
+    set sctp1 [new Agent/SCTP]
+    $ns attach-agent $n1 $sctp1
+    $sctp1 set mtu_ 1500
+    $sctp1 set initialRwnd_ 4096
+    $sctp1 set useDelayedSacks_ 0
+    $sctp1 set useNonRenegSacks_ 1 #ENABLE NR-SACKS
+   
+    if {$quiet == 0} {
+	$sctp1 set debugMask_ -1 
+	$sctp1 set debugFileIndex_ 1
+    }
+    
+    $ns connect $sctp0 $sctp1
+    
+    set ftp0 [new Application/FTP]
+    $ftp0 attach-agent $sctp0
+}
+
+Test/sctp-non-renegable-ack-no-loss instproc run {} {
+    $self instvar ns ftp0
+    $ns at 0.5 "$ftp0 start"
+    $ns at 10.0 "$self finish"
+    $ns run
+}
+
+Test/sctp-sack-with-loss instproc init {} {
+    $self instvar ns testName ftp0
+    global quiet
+    set testName sack-with-loss
+    $self next
+
+    set n0 [$ns node]
+    set n1 [$ns node]
+    $ns duplex-link $n0 $n1 .5Mb 300ms DropTail
+    $ns duplex-link-op $n0 $n1 orient right
+    $ns queue-limit $n0 $n1 10000
+    
+    set err [new ErrorModel/List]
+    $err droplist {12 15}
+    $ns lossmodel $err $n0 $n1
+    
+    set sctp0 [new Agent/SCTP]
+    $ns attach-agent $n0 $sctp0
+    $sctp0 set mtu_ 1500
+    $sctp0 set dataChunkSize_ 724
+    $sctp0 set numOutStreams_ 10
+    $sctp0 set initialSwnd_ 4096
+   
+    if {$quiet == 0} {
+	$sctp0 set debugMask_ -1 
+	$sctp0 set debugFileIndex_ 0
+
+	set trace_ch [open trace.sctp w]
+	$sctp0 set trace_all_ 1
+	$sctp0 trace cwnd_
+	$sctp0 trace rto_
+	$sctp0 trace errorCount_
+	$sctp0 attach $trace_ch
+    }
+    
+    set sctp1 [new Agent/SCTP]
+    $ns attach-agent $n1 $sctp1
+    $sctp1 set mtu_ 1500
+    $sctp1 set initialRwnd_ 65536
+    $sctp1 set useDelayedSacks_ 0
+   
+    if {$quiet == 0} {
+	$sctp1 set debugMask_ -1 
+	$sctp1 set debugFileIndex_ 1
+    }
+    
+    $ns connect $sctp0 $sctp1
+    
+    set ftp0 [new Application/FTP]
+    $ftp0 attach-agent $sctp0
+}
+
+Test/sctp-sack-with-loss instproc run {} {
+    $self instvar ns ftp0
+    $ns at 0.5 "$ftp0 start"
+    $ns at 10.0 "$self finish"
+    $ns run
+}
+
+Test/sctp-non-renegable-ack-with-loss instproc init {} {
+    $self instvar ns testName ftp0
+    global quiet
+    set testName non-renegable-ack-with-loss
+    $self next
+
+    set n0 [$ns node]
+    set n1 [$ns node]
+    $ns duplex-link $n0 $n1 .5Mb 300ms DropTail
+    $ns duplex-link-op $n0 $n1 orient right
+    $ns queue-limit $n0 $n1 10000
+    
+    set err [new ErrorModel/List]
+    $err droplist {12 17}
+    $ns lossmodel $err $n0 $n1
+    
+    set sctp0 [new Agent/SCTP]
+    $ns attach-agent $n0 $sctp0
+    $sctp0 set mtu_ 1500
+    $sctp0 set dataChunkSize_ 724
+    $sctp0 set numOutStreams_ 10
+    $sctp0 set initialSwnd_ 4096
+    $sctp0 set useNonRenegSacks_ 1 #ENABLE NR-SACKS
+
+    if {$quiet == 0} {
+	$sctp0 set debugMask_ -1 
+	$sctp0 set debugFileIndex_ 0
+
+	set trace_ch [open trace.sctp w]
+	$sctp0 set trace_all_ 1
+	$sctp0 trace cwnd_
+	$sctp0 trace rto_
+	$sctp0 trace errorCount_
+	$sctp0 attach $trace_ch
+    }
+    
+    set sctp1 [new Agent/SCTP]
+    $ns attach-agent $n1 $sctp1
+    $sctp1 set mtu_ 1500
+    $sctp1 set initialRwnd_ 65536
+    $sctp1 set useDelayedSacks_ 0
+    $sctp1 set useNonRenegSacks_ 1 #ENABLE NR-SACKS
+   
+    if {$quiet == 0} {
+	$sctp1 set debugMask_ -1 
+	$sctp1 set debugFileIndex_ 1
+    }
+    
+    $ns connect $sctp0 $sctp1
+    
+    set ftp0 [new Application/FTP]
+    $ftp0 attach-agent $sctp0
+}
+
+Test/sctp-non-renegable-ack-with-loss instproc run {} {
+    $self instvar ns ftp0
+    $ns at 0.5 "$ftp0 start"
+    $ns at 10.0 "$self finish"
+    $ns run
+}
+
+Test/sctp-sack-with-loss-unordered instproc init {} {
+    $self instvar ns testName ftp0
+    global quiet
+    set testName sack-with-loss-unordered
+    $self next
+
+    set n0 [$ns node]
+    set n1 [$ns node]
+    $ns duplex-link $n0 $n1 .5Mb 300ms DropTail
+    $ns duplex-link-op $n0 $n1 orient right
+    $ns queue-limit $n0 $n1 10000
+    
+    set err [new ErrorModel/List]
+    $err droplist {34 45 46}
+    $ns lossmodel $err $n0 $n1
+    
+    set sctp0 [new Agent/SCTP]
+    $ns attach-agent $n0 $sctp0
+    $sctp0 set mtu_ 1500
+    $sctp0 set dataChunkSize_ 1468
+    $sctp0 set numOutStreams_ 1
+    $sctp0 set unordered_ 1
+    $sctp0 set initialSwnd_ 16384
+   
+    if {$quiet == 0} {
+	$sctp0 set debugMask_ -1 
+	$sctp0 set debugFileIndex_ 0
+
+	set trace_ch [open trace.sctp w]
+	$sctp0 set trace_all_ 1
+	$sctp0 trace cwnd_
+	$sctp0 trace rto_
+	$sctp0 trace errorCount_
+	$sctp0 attach $trace_ch
+    }
+    
+    set sctp1 [new Agent/SCTP]
+    $ns attach-agent $n1 $sctp1
+    $sctp1 set mtu_ 1500
+    $sctp1 set initialRwnd_ 65536
+    $sctp1 set useDelayedSacks_ 0
+   
+    if {$quiet == 0} {
+	$sctp1 set debugMask_ -1 
+	$sctp1 set debugFileIndex_ 1
+    }
+    
+    $ns connect $sctp0 $sctp1
+    
+    set ftp0 [new Application/FTP]
+    $ftp0 attach-agent $sctp0
+}
+
+Test/sctp-sack-with-loss-unordered instproc run {} {
+    $self instvar ns ftp0
+    $ns at 0.5 "$ftp0 start"
+    $ns at 30.0 "$self finish"
+    $ns run
+}
+
+Test/sctp-non-renegable-ack-with-loss-unordered instproc init {} {
+    $self instvar ns testName ftp0
+    global quiet
+    set testName non-renegable-ack-with-loss-unordered
+    $self next
+
+    set n0 [$ns node]
+    set n1 [$ns node]
+    $ns duplex-link $n0 $n1 .5Mb 300ms DropTail
+    $ns duplex-link-op $n0 $n1 orient right
+    $ns queue-limit $n0 $n1 10000
+    
+    set err [new ErrorModel/List]
+    $err droplist {34 47 56}
+    $ns lossmodel $err $n0 $n1
+    
+    set sctp0 [new Agent/SCTP]
+    $ns attach-agent $n0 $sctp0
+    $sctp0 set mtu_ 1500
+    $sctp0 set dataChunkSize_ 1468
+    $sctp0 set numOutStreams_ 1
+    $sctp0 set unordered_ 1
+    $sctp0 set initialSwnd_ 16384
+    $sctp0 set useNonRenegSacks_ 1 #ENABLE NR-SACKS
+   
+    if {$quiet == 0} {
+	$sctp0 set debugMask_ -1 
+	$sctp0 set debugFileIndex_ 0
+
+	set trace_ch [open trace.sctp w]
+	$sctp0 set trace_all_ 1
+	$sctp0 trace cwnd_
+	$sctp0 trace rto_
+	$sctp0 trace errorCount_
+	$sctp0 attach $trace_ch
+    }
+    
+    set sctp1 [new Agent/SCTP]
+    $ns attach-agent $n1 $sctp1
+    $sctp1 set mtu_ 1500
+    $sctp1 set initialRwnd_ 65536
+    $sctp1 set useDelayedSacks_ 0
+    $sctp1 set useNonRenegSacks_ 1 #ENABLE NR-SACKS
+   
+    if {$quiet == 0} {
+	$sctp1 set debugMask_ -1 
+	$sctp1 set debugFileIndex_ 1
+    }
+    
+    $ns connect $sctp0 $sctp1
+    
+    set ftp0 [new Application/FTP]
+    $ftp0 attach-agent $sctp0
+}
+
+Test/sctp-non-renegable-ack-with-loss-unordered instproc run {} {
+    $self instvar ns ftp0
+    $ns at 0.5 "$ftp0 start"
+    $ns at 30.0 "$self finish"
+    $ns run
+}
+
+Test/sctp-non-renegable-ack-with-loss-multistream instproc init {} {
+    $self instvar ns testName ftp0
+    global quiet
+    set testName non-renegable-ack-with-loss-multistream
+    $self next
+
+    set n0 [$ns node]
+    set n1 [$ns node]
+    $ns duplex-link $n0 $n1 .5Mb 300ms DropTail
+    $ns duplex-link-op $n0 $n1 orient right
+    $ns queue-limit $n0 $n1 10000
+    
+    set err [new ErrorModel/List]
+    $err droplist {34 46 54}
+    $ns lossmodel $err $n0 $n1
+    
+    set sctp0 [new Agent/SCTP]
+    $ns attach-agent $n0 $sctp0
+    $sctp0 set mtu_ 1500
+    $sctp0 set dataChunkSize_ 1468
+    $sctp0 set numOutStreams_ 2
+    $sctp0 set initialSwnd_ 16384
+    $sctp0 set useNonRenegSacks_ 1 #ENABLE NR-SACKS
+   
+    if {$quiet == 0} {
+	$sctp0 set debugMask_ -1 
+	$sctp0 set debugFileIndex_ 0
+
+	set trace_ch [open trace.sctp w]
+	$sctp0 set trace_all_ 1
+	$sctp0 trace cwnd_
+	$sctp0 trace rto_
+	$sctp0 trace errorCount_
+	$sctp0 attach $trace_ch
+    }
+    
+    set sctp1 [new Agent/SCTP]
+    $ns attach-agent $n1 $sctp1
+    $sctp1 set mtu_ 1500
+    $sctp1 set initialRwnd_ 65536
+    $sctp1 set useDelayedSacks_ 0
+    $sctp1 set useNonRenegSacks_ 1 #ENABLE NR-SACKS
+   
+    if {$quiet == 0} {
+	$sctp1 set debugMask_ -1 
+	$sctp1 set debugFileIndex_ 1
+    }
+    
+    $ns connect $sctp0 $sctp1
+    
+    set ftp0 [new Application/FTP]
+    $ftp0 attach-agent $sctp0
+}
+
+Test/sctp-non-renegable-ack-with-loss-multistream instproc run {} {
+    $self instvar ns ftp0
+    $ns at 0.5 "$ftp0 start"
+    $ns at 30.0 "$self finish"
+    $ns run
+}
+
+Test/sctp-cmt-2paths-1path-fails-with-non-renegable-acks instproc init {} {
+    $self instvar ns testName ftp0
+    global quiet
+    set testName cmt-2paths-1path-fails-with-non-renegable-acks
+    $self next
+
+    set host0_core [$ns node]
+    set host0_if0 [$ns node]
+    set host0_if1 [$ns node]
+
+    $host0_core color Red
+    $host0_if0 color Red
+    $host0_if1 color Red
+
+    $ns multihome-add-interface $host0_core $host0_if0
+    $ns multihome-add-interface $host0_core $host0_if1
+
+    set host1_core [$ns node]
+    set host1_if0 [$ns node]
+    set host1_if1 [$ns node]
+
+    $host1_core color Blue
+    $host1_if0 color Blue
+    $host1_if1 color Blue
+
+    $ns multihome-add-interface $host1_core $host1_if0
+    $ns multihome-add-interface $host1_core $host1_if1
+    
+    $ns duplex-link $host0_if0 $host1_if0 10Mb 45ms DropTail
+    [[$ns link $host0_if0 $host1_if0] queue] set limit_ 50
+    $ns duplex-link $host0_if1 $host1_if1 10Mb 45ms DropTail
+    [[$ns link $host0_if1 $host1_if1] queue] set limit_ 50
+    
+    set cmt_snd [new Agent/SCTP/CMT] 
+    $ns multihome-attach-agent $host0_core $cmt_snd
+    $cmt_snd set initialSsthresh_ 16000
+    $cmt_snd set mtu_ 1500
+    $cmt_snd set dataChunkSize_ 1468
+    $cmt_snd set numOutStreams_ 1
+    $cmt_snd set useCmtReordering_ 1
+    $cmt_snd set useCmtCwnd_ 1
+    $cmt_snd set useCmtDelAck_ 1
+    $cmt_snd set eCmtRtxPolicy_ 2 ; #RTX-SSTHRESH
+    $cmt_snd set useNonRenegSacks_ 1 #ENABLE NR-SACKS
+    $cmt_snd set unordered_ 1
+    $cmt_snd set useCmtPF_ 0; # turn off CMT-PF
+
+    if {$quiet == 0} {
+	$cmt_snd set debugMask_ -1 
+	$cmt_snd set debugFileIndex_ 0
+
+	set trace_ch [open trace.sctp w]
+	$cmt_snd set trace_all_ 1
+	$cmt_snd trace cwnd_
+	$cmt_snd trace rto_
+	$cmt_snd trace errorCount_
+	$cmt_snd attach $trace_ch
+    }
+
+    set cmt_rcv [new Agent/SCTP/CMT]
+    $ns multihome-attach-agent $host1_core $cmt_rcv
+    # MTU of 1500 = 1452 data bytes
+    $cmt_rcv set mtu_ 1500
+    $cmt_rcv set initialRwnd_ 65536
+    $cmt_rcv set useDelayedSacks_ 1
+    $cmt_rcv set useCmtDelAck_ 1
+    $cmt_rcv set useNonRenegSacks_ 1 #ENABLE NR-SACKS
+
+    if {$quiet == 0} {
+	$cmt_rcv set debugMask_ -1 
+	$cmt_rcv set debugFileIndex_ 1
+    }
+
+    $ns connect $cmt_snd $cmt_rcv
+    set ftp0 [new Application/FTP]
+    $ftp0 attach-agent $cmt_snd
+    $cmt_snd set-primary-destination $host1_if0
+
+    $ns rtmodel-at 10.0 down $host0_if1 $host1_if1
+}
+
+Test/sctp-cmt-2paths-1path-fails-with-non-renegable-acks instproc run {} {
+    $self instvar ns ftp0
+    $ns at 0.0 "$ftp0 send 14520000"
+    $ns at 120.0 "$self finish"
+    $ns run
+}
+
 proc runtest {arg} {
     global quiet
     set quiet 0
@@ -4671,8 +5094,6 @@ proc runtest {arg} {
 	sctp-multihome2-1 -
 	sctp-multihome2-2AMR-Exceeded -
 	sctp-multihome2-2Failover  -
-	sctp-multihome2-2Failover0 -
-	sctp-multihome2-2Failover1 -
 	sctp-multihome2-2Rtx1   -
 	sctp-multihome2-2Rtx3  -
 	sctp-multihome2-2Timeout -
@@ -4690,6 +5111,7 @@ proc runtest {arg} {
 	sctp-newReno -
 	sctp-noEarlyHBs -
 	sctp-smallRwnd  -
+	sctp-smallSwnd -
 	sctp-zeroRtx  -
 	sctp-zeroRtx-burstLoss -
 	sctp-hbAfterRto-2packetsTimeout -
@@ -4715,7 +5137,14 @@ proc runtest {arg} {
 	sctp-cmt-pf-packet-loss-dest-conf -
 	sctp-cmt-pf-Rtx-ssthresh - 
 	sctp-cmt-pf-Rtx-cwnd - 
-	sctp-cmt-pf-Timeout-pmr {
+	sctp-cmt-pf-Timeout-pmr -
+	sctp-non-renegable-ack-no-loss -
+	sctp-sack-with-loss -
+	sctp-non-renegable-ack-with-loss -
+	sctp-sack-with-loss-unordered - 
+	sctp-non-renegable-ack-with-loss-unordered - 
+	sctp-non-renegable-ack-with-loss-multistream -
+	sctp-cmt-2paths-1path-fails-with-non-renegable-acks {
 	    set t [new Test/$test]
 	}
 	default {

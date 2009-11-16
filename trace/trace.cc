@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.81 2005/07/13 03:51:33 tomh Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.82 2009/11/16 05:51:27 tom_henderson Exp $ (LBL)
  */
 
 #include <stdio.h>
@@ -319,6 +319,11 @@ void Trace::format(int tt, int s, int d, Packet* p)
 			case SCTP_CHUNK_HB_ACK:
 				flags[7] = 'B';
 				break;
+		
+			case SCTP_CHUNK_NRSACK:
+				flags[7] = 'N';
+				break;
+	     
 			default:
 				assert (false);
 			}

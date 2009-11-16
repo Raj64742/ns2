@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.383 2009/01/02 21:50:24 tom_henderson Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.384 2009/11/16 05:51:27 tom_henderson Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -847,7 +847,7 @@ Agent/SCTP set initialCwnd_ 2           ;# default cwnd = 2 * MTU
 Agent/SCTP set initialRto_ 3.0          ;# default initial RTO = 3 secs       
 Agent/SCTP set minRto_ 1.0              ;# default min RTO = 1 sec            
 Agent/SCTP set maxRto_ 60.0             ;# default max RTO = 60 secs          
-Agent/SCTP set fastRtxTrigger_ 4        ;# 4 missing reports trigger fast rtx
+Agent/SCTP set fastRtxTrigger_ 3        ;# 3 missing reports trigger fast rtx
 Agent/SCTP set numOutStreams_ 1         ;# single stream default
 Agent/SCTP set numUnrelStreams_ 0       ;# by default all streams are reliable
 Agent/SCTP set reliability_ 0           ;# by default unrel streams have 0 rtx's
@@ -859,6 +859,10 @@ Agent/SCTP set sackDelay_ 0.200         ;# rfc2960 recommends 200 ms
 Agent/SCTP set useMaxBurst_ 1           ;# sctp implementors guide adds this var
 Agent/SCTP set rtxToAlt_ 1              ;# by default rtxs go to alternate dest
 Agent/SCTP set dormantAction_ 0		;# 0 = change dest, 1 = use primary, 2 = use last dest before dormant;
+
+## PN: 5/2007. NR-Sacks & send window simulation 
+Agent/SCTP set initialSwnd_ 0          ;# initial send window; 0=No Send window
+Agent/SCTP set useNonRenegSacks_ 0     ;# turn off non-renegable sack option
                                                                              
 ## These variables are for simulating reactive routing overheads (for         
 ## MANETs, etc). This feature is turned off is delay is 0. The cache lifetime 
@@ -888,7 +892,7 @@ Agent/SCTP/CMT set useCmtCwnd_ 1        ;# Turn ON CMT cwnd growth algo
 Agent/SCTP/CMT set useCmtDelAck_ 1      ;# Turn ON CMT delayed ack algo
 Agent/SCTP/CMT set eCmtRtxPolicy_ 4     ;# Default policy = RTX_CWND
 ## CMT-PF variables
-Agent/SCTP/CMT set useCmtPF_ 0          ;# CMT-PF turned off
+Agent/SCTP/CMT set useCmtPF_ 1          ;# CMT-PF turned on
 Agent/SCTP/CMT set cmtPFCwnd_ 2	        ;# Cwnd in MTUs after HB-ACK (1 or 2)
 ## CMT-PF trace variables
 Agent/SCTP/CMT set countPFToActiveNewData_ 0 ;# count of PF->Active changes

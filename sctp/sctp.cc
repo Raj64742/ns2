@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2007 by the Protocol Engineering Lab, U of Delaware
+ * Copyright (c) 2006-2009 by the Protocol Engineering Lab, U of Delaware
  * All rights reserved.
  *
  * Protocol Engineering Lab web page : http://pel.cis.udel.edu/
@@ -40,7 +40,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.cc,v 1.14 2008/03/27 05:21:18 tom_henderson Exp $ (UD/PEL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.cc,v 1.15 2009/11/16 05:51:27 tom_henderson Exp $ (UD/PEL)";
 #endif
 
 #include "ip.h"
@@ -91,6 +91,11 @@ SctpAgent::SctpAgent() : Agent(PT_SCTP)
   memset(&sRecvTsnBlockList, 0, sizeof(List_S) );
   memset(&sDupTsnList, 0, sizeof(List_S) );
   spOutStreams = NULL;
+
+ /* PN: 5/2007. NR-Sacks */
+  memset(&sNonRenegTsnBlockList, 0, sizeof(List_S) );
+  memset(&sNonRenegTsnList, 0, sizeof(List_S) );
+
   opSackGenTimer = new SackGenTimer(this);
   spSctpTrace = NULL;
   opHeartbeatGenTimer = new HeartbeatGenTimer(this);
@@ -114,8 +119,9 @@ SctpAgent::~SctpAgent()
   delete opT1CookieTimer;
   opT1CookieTimer = NULL;
 
+  /* NE: 10/27/2008 Bug fix from Eduardo Ribeiro and Igor Gavriloff. */ 
   if(spOutStreams != NULL)
-    delete spOutStreams;
+    delete[] spOutStreams;
 
   for(spCurrNode = sInterfaceList.spHead;
       spCurrNode != NULL;
@@ -161,9 +167,10 @@ SctpAgent::~SctpAgent()
       spCurrNode->vpData = NULL;
     }
 
+  /* NE: 10/27/2008 Bug fix from Eduardo Ribeiro and Igor Gavriloff.*/
   if(spSctpTrace != NULL)
     {
-      delete spSctpTrace;
+      delete[] spSctpTrace;
       spSctpTrace = NULL;
     }
 }
@@ -198,6 +205,11 @@ void SctpAgent::delay_bind_init_all()
   delay_bind_init_one("dormantAction_");
   delay_bind_init_one("routeCacheLifetime_");
   delay_bind_init_one("routeCalcDelay_");
+
+  /* PN: 5/07. Simulate send window */
+  delay_bind_init_one("initialSwnd_");
+  /* PN: 5/07. NR-Sacks */
+  delay_bind_init_one("useNonRenegSacks_");
 
   delay_bind_init_one("trace_all_");
   delay_bind_init_one("cwnd_");
@@ -323,6 +335,16 @@ int SctpAgent::delay_bind_dispatch(const char *cpVarName,
 
   if(delay_bind(cpVarName, cpLocalName, 
 		"routeCalcDelay_", &dRouteCalcDelay, opTracer)) 
+    return TCL_OK;
+
+  /* PN: 5/07. Simulate send window */
+  if(delay_bind(cpVarName, cpLocalName, 
+		"initialSwnd_", &uiInitialSwnd, opTracer)) 
+    return TCL_OK;
+
+  /* PN: 5/07. NR-Sacks */
+  if(delay_bind(cpVarName, cpLocalName, 
+		"useNonRenegSacks_", (int *) &eUseNonRenegSacks, opTracer)) 
     return TCL_OK;
 
   if(delay_bind(cpVarName, cpLocalName, "cwnd_", &tiCwnd, opTracer)) 
@@ -603,6 +625,13 @@ void SctpAgent::Reset()
   DBG_PL(Reset, "uiReliability=%ld"), uiReliability DBG_PR;
   DBG_PL(Reset, "eUnordered=%s"), eUnordered ? "TRUE" : "FALSE" DBG_PR;
 
+  /* PN: 5/2007. NR-Sacks */
+  DBG_PL(Reset, "eUseNonRenegSacks=%s"), 
+	eUseNonRenegSacks ? "TRUE" : "FALSE" DBG_PR;
+  /* PN: 5/2007. Simulate send window */
+  DBG_PL(Reset, "uiInitialSwnd=%ld"), uiInitialSwnd DBG_PR;
+  uiAvailSwnd = uiInitialSwnd;
+
   switch(eRtxToAlt)
     {
     case RTX_TO_ALT_OFF:
@@ -738,8 +767,9 @@ void SctpAgent::Reset()
   /* if it's already allocated, let's delete and reallocate just in case user
    * has changed TCL bindable variables
    */
+  /* NE: 10/27/2008 Bug fix from Eduardo Ribeiro and Igor Gavriloff. */
   if(spOutStreams != NULL)
-    delete spOutStreams;
+    delete[] spOutStreams;
   spOutStreams = new SctpOutStream_S [uiNumOutStreams];
   memset(spOutStreams, 0, (uiNumOutStreams * sizeof(SctpOutStream_S)) );
 
@@ -762,6 +792,9 @@ void SctpAgent::Reset()
   memset(&sAppLayerBuffer, 0, sizeof(List_S) );
   memset(&sSendBuffer, 0, sizeof(List_S) );
 
+  /* NE: initialize the value for last TSN sent */
+  uiHighestTsnSent = 0;
+
   if(uiAssociationMaxRetrans > (sDestList.uiLength * uiPathMaxRetrans))
     {
       DBG_PL(Reset, 
@@ -775,8 +808,11 @@ void SctpAgent::Reset()
       spCurrNode = spCurrNode->spNext)
     {
       spCurrDest = (SctpDest_S *) spCurrNode->vpData;
-
-      spCurrDest->iCwnd = iInitialCwnd * uiMaxDataSize; 
+      
+      /* Lukasz Budzisz : 03/09/2006
+	 Section 7.2.1 of RFC4960 */
+      spCurrDest->iCwnd = 
+	MIN(4 * (int) uiMaxDataSize, MAX(4380, 2 * (int) uiMaxDataSize));
       spCurrDest->iSsthresh = iInitialSsthresh;
       spCurrDest->eFirstRttMeasurement = TRUE;
       spCurrDest->dRto = dInitialRto;
@@ -865,13 +901,20 @@ void SctpAgent::Reset()
   iDataPktCountSinceLastSack = 0;
   eSackChunkNeeded = FALSE;
 
+  /* PN: 5/2007. NR-Sacks */
+  ClearList(&sNonRenegTsnBlockList);
+  ClearList(&sNonRenegTsnList);
+  memset(&sNonRenegTsnBlockList, 0, sizeof(List_S) );
+  memset(&sNonRenegTsnList, 0, sizeof(List_S) );
+
   opSackGenTimer->force_cancel();
 
   /* if it's already allocated, let's delete and reallocate just in case user
    * has changed TCL bindable variables
    */
+  /* NE: 10/27/2008 Bug fix from Eduardo Ribeiro and Igor Gavriloff.*/
   if(spSctpTrace != NULL)
-    delete spSctpTrace;
+    delete[] spSctpTrace;
   
   /* We don't know how many chunks will be in a packet, so we assume the 
    * theoretical maximum... a packet full of only chunk headers.
@@ -1160,10 +1203,65 @@ void SctpAgent::DeleteNode(List_S *spList, Node_S *spNode)
        */
       spNode->vpData = NULL;
       break;
+
+    /* PN: NR-Sacks */
+    case NODE_TYPE_TSN:
+      delete (SctpTsn_S *) spNode->vpData;
+      spNode->vpData = NULL;
+      break;
+    
     }
 
   delete spNode;
   spList->uiLength--;
+}
+
+/* PN: 5/2007. NR-Sacks */
+/* Given params: spList, spNewNode... insert spNewNode in ascending order
+ * into spList. spNewNode will not be inserted if it contains duplicate data.
+ */
+void SctpAgent::InsertNodeInSortedList(List_S *spList, Node_S *spNewNode)
+{
+
+  Node_S *spCurrNode = spList->spHead;
+  Node_S *spPrevNode = NULL; // NE : Should be NULL?
+
+  while (spCurrNode != NULL)
+  {
+    switch(spNewNode->eType)
+    {
+      case NODE_TYPE_TSN:
+
+	/* Do not add Tsn if it already exists in the list */
+    	if ( ((SctpTsn_S *) spCurrNode->vpData)->uiTsn == 
+	     ((SctpTsn_S *)spNewNode->vpData)->uiTsn )
+	  return;
+
+    	if ( ((SctpTsn_S *)spCurrNode->vpData)->uiTsn >
+	     ((SctpTsn_S *)spNewNode->vpData)->uiTsn )
+        {
+    	  /* Insert new node between spPrevNode and spCurrNode */
+          InsertNode(spList, spPrevNode, spNewNode, spCurrNode);
+	    return;
+	}
+
+	/* break from switch case */
+	break;  
+
+      default:
+	/* new node inserted at tail */
+	break; 
+
+      } /* End switch */
+
+      spPrevNode = spCurrNode;
+      spCurrNode = spCurrNode->spNext;
+
+  } /* End of while */
+
+  /* Insert at tail */
+  InsertNode(spList, spList->spTail, spNewNode, NULL);
+
 }
 
 void SctpAgent::ClearList(List_S *spList)
@@ -1320,6 +1418,14 @@ int SctpAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
   double dCurrTime = Scheduler::instance().clock();
   AppData_S *spAppMessage = NULL;
   int iSize = 0;
+
+  /* NE: variables used for generation of disjoint Gap Ack and Non-Renegable 
+   Gap Ack Blocks */
+  u_short gapAckBlockStartTsn, gapAckBlockEndTsn; 
+  u_short dividedGapAckBlockStartTsn;
+  u_short nonRenegGapAckBlockStartTsn, nonRenegGapAckBlockEndTsn;
+  Node_S *spCurrGapFrag, *spCurrNonRenegGapFrag;
+  u_short usNumGapAckBlocks = 0; 
 
   DBG_PL(GenChunk, "spSctpTrace=%p"), spSctpTrace DBG_PR;
 
@@ -1603,6 +1709,318 @@ int SctpAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
       spSctpTrace[uiNumChunks].usStreamSeqNum = (u_short) -1;
       break;
 
+    /* PN: 6/17/2007. NR-Sacks */
+    case SCTP_CHUNK_NRSACK:
+      iSize = sizeof(SctpNonRenegSackChunk_S);
+      ((SctpNonRenegSackChunk_S *) ucpChunk)->sHdr.ucType = eType;
+      ((SctpNonRenegSackChunk_S *) ucpChunk)->uiCumAck = uiCumAck;
+      ((SctpNonRenegSackChunk_S *) ucpChunk)->uiArwnd = uiMyRwnd;
+      ((SctpNonRenegSackChunk_S *) ucpChunk)->usNumGapAckBlocks = 0;
+      ((SctpNonRenegSackChunk_S *) ucpChunk)->usNumNonRenegSackBlocks
+	  = sNonRenegTsnBlockList.uiLength;
+      ((SctpNonRenegSackChunk_S *) ucpChunk)->usNumDupTsns = 
+	sDupTsnList.uiLength;
+
+      DBG_PL(GenChunk, "NR-SACK: CumAck=%d arwnd=%d dCurrTime=%f"), 
+	uiCumAck, uiMyRwnd, dCurrTime  DBG_PR;
+
+      /* Append all the Gap Ack Blocks
+       */
+      /* NE: let's generate disjoint Gap Ack Blocks and Non-Renegable Gap 
+	 Ack Blocks, and add disjoint Gap Ack Blocks to the NR-SACK chunk */
+      spCurrGapFrag = sRecvTsnBlockList.spHead; 
+      spCurrNonRenegGapFrag = sNonRenegTsnBlockList.spHead;
+      
+      while (spCurrGapFrag != NULL && 
+	     (iSize + sizeof(SctpGapAckBlock_S) < uiMaxDataSize)) 
+	{  	  
+	  /* NE: current Gap Ack Block */
+	  gapAckBlockStartTsn = 
+	    ((SctpRecvTsnBlock_S *)spCurrGapFrag->vpData)->uiStartTsn;
+	  gapAckBlockEndTsn = 
+	    ((SctpRecvTsnBlock_S *)spCurrGapFrag->vpData)->uiEndTsn;
+	
+	  DBG_PL(GenChunk, "Current GapAckBlock StartTSN=%d EndTSN=%d"), 
+	    gapAckBlockStartTsn, gapAckBlockEndTsn DBG_PR;
+ 
+	  /* NE: check if still there are some Non-Renegable Gap Ack Blocks */
+	  if (spCurrNonRenegGapFrag != NULL) {
+	
+	    /* NE: current Non-Renegable Gap Ack Block */
+            nonRenegGapAckBlockStartTsn = 
+	      ((SctpRecvTsnBlock_S *)spCurrNonRenegGapFrag->vpData)->uiStartTsn;
+	    nonRenegGapAckBlockEndTsn = 
+	      ((SctpRecvTsnBlock_S *)spCurrNonRenegGapFrag->vpData)->uiEndTsn;
+
+	    DBG_PL(GenChunk, "Current NonRenegGapAckBlock StartTSN=%d EndTSN=%d"), 
+	      nonRenegGapAckBlockStartTsn, nonRenegGapAckBlockEndTsn DBG_PR;
+      
+	    /* NE: current Gap Ack Block does not contain any Non-Renegable TSNs */    
+            if (gapAckBlockEndTsn < nonRenegGapAckBlockStartTsn) {
+        
+	      /* add the Gap Ack Block to the NR-SACK chunk and advance to the next
+		 Gap Ack Block */
+              DBG_PL(GenChunk, "GapAckBlock StartTSN=%d EndTSN=%d"), 
+		gapAckBlockStartTsn, gapAckBlockEndTsn DBG_PR;
+	      
+	      usNumGapAckBlocks++; 
+	      
+	      DBG_PL(GenChunk, 
+		     "RenegSackBlock StartOffset=%d usNumSackBlocks=%d"), 
+		iSize, usNumGapAckBlocks DBG_PR;
+	      DBG_PL(GenChunk, 
+		     "RenegGapBlock StartOffset=%d EndOffset=%d"), 
+		(gapAckBlockStartTsn - uiCumAck), (gapAckBlockEndTsn - uiCumAck) DBG_PR;
+
+	      SctpGapAckBlock_S *spGapAckBlock = 
+		(SctpGapAckBlock_S *) (ucpChunk+iSize);
+	      
+	      spGapAckBlock->usStartOffset = gapAckBlockStartTsn - uiCumAck;
+	      spGapAckBlock->usEndOffset = gapAckBlockEndTsn - uiCumAck;
+	      iSize += sizeof(SctpGapAckBlock_S);
+	      
+	    } /* NE: current Gap Ack Block contains some Non-Renegable TSNs */
+	    else if ((gapAckBlockStartTsn <= nonRenegGapAckBlockStartTsn) && 
+		     (nonRenegGapAckBlockStartTsn <= gapAckBlockEndTsn)) {
+	      
+	      /* NE: current Gap Ack Blocks all TSNs are Non-Renegable, 
+		 so let's skip(do not add to NR-SACK chunk) the current Gap Ack Block */
+     	      if ((gapAckBlockStartTsn == nonRenegGapAckBlockStartTsn) && 
+		  (gapAckBlockEndTsn == nonRenegGapAckBlockEndTsn)) {
+		DBG_PL(GenChunk, "GapAckBlock Skipping StartTSN=%d EndTSN=%d"), 
+		  gapAckBlockStartTsn, gapAckBlockEndTsn DBG_PR;
+		
+		spCurrGapFrag = spCurrGapFrag->spNext;
+		spCurrNonRenegGapFrag = spCurrNonRenegGapFrag->spNext;
+		continue;
+	      }
+	      else {   /* NE: let's split the current Gap Ack Block into some 
+			  number of Gap Ack Blocks and Non-Renegable Gap Ack 
+			  Blocks which are disjoint */
+
+		dividedGapAckBlockStartTsn = gapAckBlockStartTsn;
+		
+		/* NE: current Gap Ack Block has some Non-Renegable TSNs */
+		while (dividedGapAckBlockStartTsn <= gapAckBlockEndTsn && 
+		       (iSize + sizeof(SctpGapAckBlock_S) < uiMaxDataSize)) {
+		  
+		  /* NE: First let's check if the current Non-Renegable Gap Ack
+		     Block is part of the current Gap Ack Block. If not add the 
+		     remaining part of the Gap Ack Block to NR-SACK chunk */
+		  if (spCurrNonRenegGapFrag == NULL || 
+		      nonRenegGapAckBlockStartTsn > gapAckBlockEndTsn) {
+		    DBG_PL(GenChunk, "GapAckBlock StartTSN=%d EndTSN=%d"), 
+		      dividedGapAckBlockStartTsn, gapAckBlockEndTsn DBG_PR;
+		    
+		    usNumGapAckBlocks++;
+		    
+		    /* NE: add the Gap Ack Block to the NR-SACK chunk */
+		    DBG_PL(GenChunk, 
+			   "RenegSackBlock StartOffset=%d usNumSackBlocks=%d"), 
+		      iSize, usNumGapAckBlocks DBG_PR;
+		    DBG_PL(GenChunk, 
+			   "RenegGapBlock StartOffset=%d EndOffset=%d"), 
+		      (dividedGapAckBlockStartTsn - uiCumAck), 
+		      (gapAckBlockEndTsn - uiCumAck) DBG_PR;
+		    
+		    SctpGapAckBlock_S *spGapAckBlock = 
+		      (SctpGapAckBlock_S *) (ucpChunk+iSize);
+	      
+		    spGapAckBlock->usStartOffset = 
+		      dividedGapAckBlockStartTsn - uiCumAck;
+		    spGapAckBlock->usEndOffset = gapAckBlockEndTsn - uiCumAck;
+		    iSize += sizeof(SctpGapAckBlock_S);
+
+		    break;
+		  }
+
+		  /* NE: Non-Renegable Gap Ack and Gap Ack Block blocks left 
+		     edges are same so let's skip the Non-Renegable TSNs from 
+		     the Gap Ack Block and continue with the remainder TSNs, 
+		     also advance to the next Non-Renegable Gap Ack Block */
+		  if (dividedGapAckBlockStartTsn == nonRenegGapAckBlockStartTsn) {
+		    
+		    DBG_PL(GenChunk, "GapAckBlock Skipping StartTSN=%d EndTSN=%d"), 
+		      nonRenegGapAckBlockStartTsn, nonRenegGapAckBlockEndTsn DBG_PR;
+
+		    dividedGapAckBlockStartTsn = nonRenegGapAckBlockEndTsn + 1;
+		    
+		    spCurrNonRenegGapFrag = spCurrNonRenegGapFrag->spNext;
+
+		    /* NE: If there is no more Non-Renegable Gap Ack Blocks left,
+		       add the remaining TSNs to the as Gap Ack Block and exit 
+		       loop */
+		    if (spCurrNonRenegGapFrag == NULL) {
+		      if (dividedGapAckBlockStartTsn <= gapAckBlockEndTsn) {
+			DBG_PL(GenChunk, "GapAckBlock StartTSN=%d EndTSN=%d"), 
+			  dividedGapAckBlockStartTsn, gapAckBlockEndTsn DBG_PR;
+			
+			usNumGapAckBlocks++;
+
+			/* NE: add the Gap Ack Block to the NR-SACK chunk */
+			DBG_PL(GenChunk, 
+			       "RenegSackBlock StartOffset=%d usNumSackBlocks=%d"), 
+			  iSize, usNumGapAckBlocks DBG_PR;
+			DBG_PL(GenChunk, 
+			       "RenegGapBlock StartOffset=%d EndOffset=%d"), 
+			  (dividedGapAckBlockStartTsn - uiCumAck), 
+			  (gapAckBlockEndTsn - uiCumAck) DBG_PR;
+
+			SctpGapAckBlock_S *spGapAckBlock = 
+			  (SctpGapAckBlock_S *) (ucpChunk+iSize);
+			
+			spGapAckBlock->usStartOffset = 
+			  dividedGapAckBlockStartTsn - uiCumAck;
+			spGapAckBlock->usEndOffset = gapAckBlockEndTsn - uiCumAck;
+			iSize += sizeof(SctpGapAckBlock_S);
+		      }
+		      break;
+		    }
+		    else {
+		      /* NE: current Non-Renegable Gap Ack Block */
+		      nonRenegGapAckBlockStartTsn = 
+			((SctpRecvTsnBlock_S *)spCurrNonRenegGapFrag->vpData)->uiStartTsn;
+		      nonRenegGapAckBlockEndTsn = 
+			((SctpRecvTsnBlock_S *)spCurrNonRenegGapFrag->vpData)->uiEndTsn;
+
+		      DBG_PL(GenChunk, 
+			     "Current NonRenegGapAckBlock StartTSN=%d EndTSN=%d"), 
+			nonRenegGapAckBlockStartTsn, 
+			nonRenegGapAckBlockEndTsn DBG_PR;
+		      
+		      continue;
+		    }
+
+		  } /* NE: let's add the disjoint Gap Ack Block to NR-SACK 
+		       chunk */
+		  else if (spCurrNonRenegGapFrag != NULL && 
+			   dividedGapAckBlockStartTsn < nonRenegGapAckBlockStartTsn) {
+		    
+		    DBG_PL(GenChunk, "GapAckBlock StartTSN=%d EndTSN=%d"), 
+		      dividedGapAckBlockStartTsn, 
+		      (nonRenegGapAckBlockStartTsn - 1) DBG_PR;
+		    
+		    usNumGapAckBlocks++;
+
+		    /* NE: add the Gap Ack Block to the NR-SACK chunk */
+		    DBG_PL(GenChunk, 
+			   "RenegSackBlock StartOffset=%d usNumSackBlocks=%d"), 
+		      iSize, usNumGapAckBlocks DBG_PR;
+		    DBG_PL(GenChunk, 
+			   "RenegGapBlock StartOffset=%d EndOffset=%d"), 
+		      (dividedGapAckBlockStartTsn - uiCumAck), 
+		      (nonRenegGapAckBlockStartTsn - 1 - uiCumAck) DBG_PR;
+		    
+		    SctpGapAckBlock_S *spGapAckBlock = 
+		      (SctpGapAckBlock_S *)(ucpChunk+iSize);
+		    
+		    spGapAckBlock->usStartOffset = 
+		      dividedGapAckBlockStartTsn - uiCumAck;
+		    spGapAckBlock->usEndOffset = 
+		      (nonRenegGapAckBlockStartTsn-1) - uiCumAck;
+		    iSize += sizeof(SctpGapAckBlock_S);
+
+		    dividedGapAckBlockStartTsn = nonRenegGapAckBlockStartTsn;
+		  }
+		}		
+	      }
+	    }
+	    else {
+	      DBG_PL(GenChunk, 
+		     "WARNING! This statement should not be reached!") DBG_PR;
+	    }
+	  }
+	  else { /* NE: No more Non-Renegable Gap Ack Blocks exists. So let's 
+		    add all remaining TSNs as Gap Ack Blocks. Let's add the 
+		    Gap Ack Block to the NR-SACK chunk and advance to the next
+		    Gap Ack Block */
+	    DBG_PL(GenChunk, "GapAckBlock StartTSN=%d EndTSN=%d"), 
+	      gapAckBlockStartTsn, gapAckBlockEndTsn DBG_PR;
+
+	    usNumGapAckBlocks++;
+	    
+	    /* NE: add the Gap Ack Block to the NR-SACK chunk */
+	    DBG_PL(GenChunk, 
+		   "RenegSackBlock StartOffset=%d usNumSackBlocks=%d"), 
+	      iSize, usNumGapAckBlocks DBG_PR;
+	    DBG_PL(GenChunk, 
+		   "RenegGapBlock StartOffset=%d EndOffset=%d"), 
+	      (gapAckBlockStartTsn - uiCumAck), 
+	      (gapAckBlockEndTsn - uiCumAck) DBG_PR;
+	    
+	    SctpGapAckBlock_S *spGapAckBlock = 
+	      (SctpGapAckBlock_S *)(ucpChunk+iSize);
+	    
+	    spGapAckBlock->usStartOffset = gapAckBlockStartTsn - uiCumAck;
+	    spGapAckBlock->usEndOffset = gapAckBlockEndTsn - uiCumAck;
+	    iSize += sizeof(SctpGapAckBlock_S);
+	  }
+
+	  /* NE: move to the next Gap Ack Block */
+	  spCurrGapFrag = spCurrGapFrag->spNext;
+	}
+      
+      DBG_PL(GenChunk, "usNumSackBlocks=%u"), usNumGapAckBlocks DBG_PR;
+      
+      /*NE: let's set the correct number of gap-ack blocks */
+      ((SctpNonRenegSackChunk_S *) ucpChunk)->usNumGapAckBlocks = 
+	usNumGapAckBlocks;
+      
+      /* PN: 5/2007. NR-Sacks */
+      /* Append all the NR-Sack Blocks
+       */
+      
+      DBG_PL(GenChunk, 
+	     "NonRenegSackBlock StartOffset=%d usNumNonRenegSackBlocks=%d"), 
+	iSize, sNonRenegTsnBlockList.uiLength DBG_PR;
+      
+      for(Node_S *spCurrFrag = sNonRenegTsnBlockList.spHead;
+	  (spCurrFrag != NULL) &&
+	    (iSize + sizeof(SctpGapAckBlock_S) < uiMaxDataSize); 
+	  spCurrFrag = spCurrFrag->spNext, iSize += sizeof(SctpGapAckBlock_S))
+	{
+	  SctpGapAckBlock_S *spGapAckBlock 
+	    = (SctpGapAckBlock_S *) (ucpChunk+iSize);
+	  
+	  spGapAckBlock->usStartOffset 
+	    = ((SctpRecvTsnBlock_S *)spCurrFrag->vpData)->uiStartTsn - uiCumAck;
+
+	  spGapAckBlock->usEndOffset
+	    = ((SctpRecvTsnBlock_S *)spCurrFrag->vpData)->uiEndTsn - uiCumAck;
+	  
+	  DBG_PL(GenChunk, "NonRenegGapBlock StartOffset=%d EndOffset=%d"), 
+	    spGapAckBlock->usStartOffset, spGapAckBlock->usEndOffset DBG_PR;
+	}
+      
+      /* Append all the Duplicate TSNs
+       */
+      for(Node_S *spPrevDup = NULL, *spCurrDup = sDupTsnList.spHead;
+	  (spCurrDup != NULL) &&
+	    (iSize + sizeof(SctpDupTsn_S) < uiMaxDataSize); 
+	  spPrevDup = spCurrDup, spCurrDup = spCurrDup->spNext, 
+	    DeleteNode(&sDupTsnList, spPrevDup), iSize += sizeof(SctpDupTsn_S))
+	{
+	  SctpDupTsn_S *spDupTsn = (SctpDupTsn_S *) (ucpChunk+iSize);
+
+	  spDupTsn->uiTsn = ((SctpDupTsn_S *) spCurrDup->vpData)->uiTsn;
+
+	  DBG_PL(GenChunk, "DupTsn=%d"), spDupTsn->uiTsn DBG_PR;
+	}
+
+      /* After all the dynamic appending, we can NOW fill in the chunk size!
+       */
+      ((SctpNonRenegSackChunk_S *) ucpChunk)->sHdr.usLength = iSize;
+      DBG_PL(GenChunk, "NR-SackChunkSize=%d"), iSize DBG_PR;
+
+      /* fill in tracing fields too
+       */
+      spSctpTrace[uiNumChunks].eType = eType;
+      spSctpTrace[uiNumChunks].uiTsn = 
+	((SctpNonRenegSackChunk_S *) ucpChunk)->uiCumAck;
+      spSctpTrace[uiNumChunks].usStreamId = (u_short) -1;
+      spSctpTrace[uiNumChunks].usStreamSeqNum = (u_short) -1;
+      break;
+
     case SCTP_CHUNK_FORWARD_TSN:
       iSize = SCTP_CHUNK_FORWARD_TSN_LENGTH;
       ((SctpForwardTsnChunk_S *) ucpChunk)->sHdr.ucType = eType;
@@ -1737,6 +2155,17 @@ int SctpAgent::GenOneDataChunk(u_char *ucpOutData)
 
   if(spNewTxDest->eRtxTimerIsRunning == FALSE)
     StartT3RtxTimer(spNewTxDest); //section 6.3.2.R1
+
+  /* PN: 5/2007. Simulating sendwindow */
+  if (uiInitialSwnd)
+  {
+    if(iChunkSize <= (int) uiAvailSwnd)
+      uiAvailSwnd -= iChunkSize;
+    else
+      uiAvailSwnd = 0;
+
+    DBG_PL(GenOneDataChunk, "AvailSendwindow=%ld"), uiAvailSwnd DBG_PR;
+  }
 
   DBG_X(GenOneDataChunk);
   return iChunkSize;
@@ -1912,6 +2341,9 @@ void SctpAgent::SendBufferDequeueUpTo(u_int uiTsn)
   Node_S *spCurrNode = sSendBuffer.spHead;
   SctpSendBufferNode_S *spCurrNodeData = NULL;
 
+  /* PN: 5/2007. Simulate send window */
+  u_short usChunkSize = 0;
+  char cpOutString[500];
   iAssocErrorCount = 0;
 
   while(spCurrNode != NULL &&
@@ -2019,11 +2451,26 @@ void SctpAgent::SendBufferDequeueUpTo(u_int uiTsn)
 	    }
 	}
 
+      /* PN: 5/2007. Simulate send window */
+      usChunkSize = spCurrNodeData->spChunk->sHdr.usLength;
+      
       spDeleteNode = spCurrNode;
       spCurrNode = spCurrNode->spNext;
       DeleteNode(&sSendBuffer, spDeleteNode);
       spDeleteNode = NULL;
+
+      /* PN: 5/2007. Simulate send window */
+      if (uiInitialSwnd) 
+      {
+        uiAvailSwnd += usChunkSize;
+	
+	DBG_PL(SendBufferDequeueUpTo, "AvailSendwindow=%ld"), uiAvailSwnd DBG_PR;
+      }
+
     }
+
+  if (channel_)
+        (void)Tcl_Write(channel_, cpOutString, strlen(cpOutString));
 
   DBG_X(SendBufferDequeueUpTo);
 }
@@ -2137,12 +2584,46 @@ u_int SctpAgent::GetHighestOutstandingTsn()
 	  break;
 	}
     }
-
+  
+  /* NE: update the value of uiHighestOutstandignTSN if it is less than the 
+     uiHighestTsnSent */
+  if (uiHighestOutstandingTsn < uiHighestTsnSent ) 
+    uiHighestOutstandingTsn = uiHighestTsnSent;
+  else
+    uiHighestTsnSent = uiHighestOutstandingTsn;
+  
   DBG_PL(GetHighestOutstandingTsn, "uiHighestOutstandingTsn=%d"), 
     uiHighestOutstandingTsn DBG_PR;
+  DBG_PL(GetHighestOutstandingTsn, "uiHighestTsnSent=%d"), 
+    uiHighestTsnSent DBG_PR;
   DBG_X(GetHighestOutstandingTsn);
 
   return uiHighestOutstandingTsn;
+}
+
+/* PN: 12/21/2007. NR-SACKs.
+ * New method to update last tsn sent.
+ * Used to update HighestOutstandingTsn.
+ */
+void SctpAgent::UpdateHighestTsnSent()
+{
+  DBG_I(UpdateHighestTsnSent);
+
+  /* start from the tail of the send buffer and search towards the head for the 
+   * last tsn sent on the destination... 
+   */
+  if (sSendBuffer.spTail != NULL && 
+	((SctpSendBufferNode_S *)sSendBuffer.spTail->vpData)->spChunk->uiTsn > 
+	uiHighestTsnSent ) {
+      uiHighestTsnSent = 
+	((SctpSendBufferNode_S *)sSendBuffer.spTail->vpData)->spChunk->uiTsn;
+    }
+
+  DBG_PL(UpdateHighestTsnSent, "uiHighestTsnSent=%d"),
+    uiHighestTsnSent DBG_PR;
+ 
+  DBG_X(UpdateHighestTsnSent);
+
 }
 
 /* This function is called as soon as we are done processing a SACK which 
@@ -2194,11 +2675,11 @@ void SctpAgent::FastRtx()
 	 spCurrBuffData->spChunk->uiTsn > uiRecover)
 	 
 	{ 
-	  /* section 7.2.3 of rfc2960 (w/ implementor's guide) 
+	  /* Lukasz Budzisz : 03/09/2006
+	     Section 7.2.3 of rfc4960 
 	   */
 	  spCurrBuffData->spDest->iSsthresh 
-	    = MAX(spCurrBuffData->spDest->iCwnd/2, 
-		  iInitialCwnd * (int) uiMaxDataSize);
+	    = MAX(spCurrBuffData->spDest->iCwnd/2, 4 * (int) uiMaxDataSize);
 	  spCurrBuffData->spDest->iCwnd = spCurrBuffData->spDest->iSsthresh;
 	  spCurrBuffData->spDest->iPartialBytesAcked = 0; //reset
 	  tiCwnd++; // trigger changes for trace to pick up
@@ -3074,11 +3555,26 @@ void SctpAgent::PassToStream(SctpDataChunkHdr_S *spChunk)
   DBG_I(PassToStream);
   DBG_PL(PassToStream, "uiMyRwnd=%d"), uiMyRwnd DBG_PR;
 
+  /* PN: 5/2007. NR-Sacks */
+  Node_S *spNewNode = NULL;
+
   SctpInStream_S *spStream = &(spInStreams[spChunk->usStreamId]);
 
   if(spChunk->sHdr.ucFlags & SCTP_DATA_FLAG_UNORDERED)
     {
       PassToUpperLayer(spChunk);
+
+      /* PN: 5/2007. NR-Sacks */
+      if ((eUseNonRenegSacks == TRUE) && (spChunk->uiTsn > uiCumAck))
+	{
+	  spNewNode = new Node_S;
+	  spNewNode->eType = NODE_TYPE_TSN;
+	  spNewNode->vpData = new SctpTsn_S;
+	  ((SctpTsn_S *)spNewNode->vpData)->uiTsn = spChunk->uiTsn;
+	  InsertNodeInSortedList(&sNonRenegTsnList, spNewNode);
+	  DBG_PL(PassToStream, "Chunk with TSN=%d added to NR-Sack List"), 
+	    spChunk->uiTsn DBG_PR;
+	}
     } 
   else 
     {
@@ -3107,6 +3603,9 @@ void SctpAgent::UpdateAllStreams()
   SctpDataChunkHdr_S *spBufferedChunk = NULL;
   SctpInStream_S *spStream = NULL;
   int i;
+
+  /* PN: 5/2007. NR-Sacks */
+  Node_S *spNewNode = NULL;
 
   for(i = 0; i < iNumInStreams; i++)
     {
@@ -3146,6 +3645,21 @@ void SctpAgent::UpdateAllStreams()
 	    {
 	      spStream->usNextStreamSeqNum++;
 	      PassToUpperLayer(spBufferedChunk);
+
+		/* PN: 5/2007. NR-Sacks */
+	      if ((eUseNonRenegSacks == TRUE) && 
+	        (spBufferedChunk->uiTsn > uiCumAck))
+	      {
+		  spNewNode = new Node_S;
+		  spNewNode->eType = NODE_TYPE_TSN;
+		  spNewNode->vpData = new SctpTsn_S;
+		  ((SctpTsn_S *)spNewNode->vpData)->uiTsn = 
+		    spBufferedChunk->uiTsn;
+
+		  InsertNodeInSortedList(&sNonRenegTsnList, spNewNode);
+
+	      }
+
 	      spDeleteNode = spCurrNode;
 	      spCurrNode = spCurrNode->spNext;
 	      DeleteNode( &(spStream->sBufferedChunkList), spDeleteNode );
@@ -3159,9 +3673,125 @@ void SctpAgent::UpdateAllStreams()
 	}
     }
 
+    /* PN: 5/2007. NR-Sacks */
+    if (eUseNonRenegSacks == TRUE)  
+    {
+	// Rebuild NR-Sack Block List 
+	BuildNonRenegTsnBlockList();
+
+    }
+
   DBG_PL(UpdateAllStreams, "uiMyRwnd=%d"), uiMyRwnd DBG_PR;
   DBG_X(UpdateAllStreams);
 } 
+
+/* PN: 5/2007. NR-Sacks */
+/* Helper function to build Non-Renegable Tsn Block list from a sorted (asc)
+ * list of non-renegable Tsns. This function assumes that global uiCumAck var
+ * reflects the correct receiver's cumAck. Tsns < cumAck are deleted from the 
+ * sorted list and are not be added to NR-Sack blocks(these Tsns are taken care
+ * of by uiCumAck in the Sack chunk.
+ */
+void SctpAgent::BuildNonRenegTsnBlockList()
+{
+
+  u_int uiStartTsn = 0, uiEndTsn = 0, uiCurrTsn;
+  Node_S *spCurrNode = NULL;
+  Node_S *spPrevNode = NULL;
+  Node_S *spNewNode = NULL;
+
+  // Rebuild TsnBlocks from the sorted Tsn list
+  // This is just simpler than adjusting the Sack Block list
+  // I plan to look at these optimizations later...
+  ClearList(&sNonRenegTsnBlockList);
+
+  spCurrNode = sNonRenegTsnList.spHead;
+  while (spCurrNode != NULL)
+  {
+    uiCurrTsn = ((SctpTsn_S *)spCurrNode->vpData)->uiTsn;
+    if (uiCurrTsn <= uiCumAck)
+    {
+      // Tsns < cumack should/need not be NR-Sacked. Delete these Tsns.
+      spPrevNode = spCurrNode;
+      spCurrNode = spCurrNode->spNext;
+      DeleteNode(&sNonRenegTsnList, spPrevNode);
+
+      // reset for next block
+      spPrevNode = NULL;
+      uiStartTsn = 0;
+      continue;
+    }
+
+    if (!uiStartTsn)
+    {
+      uiStartTsn = uiEndTsn = uiCurrTsn;
+      spPrevNode = spCurrNode;
+
+      /* NE: if single and last tsn block */
+      if (spCurrNode->spNext == NULL) {
+	
+	// Create and add this block
+	spNewNode = NULL;
+	spNewNode = new Node_S;
+	spNewNode->eType = NODE_TYPE_RECV_TSN_BLOCK;
+	spNewNode->vpData = new SctpRecvTsnBlock_S;
+	((SctpRecvTsnBlock_S *)spNewNode->vpData)->uiStartTsn = uiCurrTsn;
+	((SctpRecvTsnBlock_S *)spNewNode->vpData)->uiEndTsn = uiCurrTsn;
+	
+	InsertNode(&sNonRenegTsnBlockList, sNonRenegTsnBlockList.spTail,
+		   spNewNode, NULL);
+	break;
+      }
+    }
+    else
+    {
+      if (((SctpTsn_S *)spPrevNode->vpData)->uiTsn == (uiCurrTsn - 1)) 
+      {
+	// consecutive Tsns; They belong to the same block
+	uiEndTsn = uiCurrTsn;
+      }
+      
+      if (((SctpTsn_S *)spPrevNode->vpData)->uiTsn != (uiCurrTsn - 1)
+	  /* Non consecutive tsns */
+	  || (spCurrNode->spNext == NULL))
+	  /* last tsn in sNonRenegTsnList */
+	{ 
+	  // Create and add this block
+	  spNewNode = new Node_S;
+	  spNewNode->eType = NODE_TYPE_RECV_TSN_BLOCK;
+	  spNewNode->vpData = new SctpRecvTsnBlock_S;
+	  ((SctpRecvTsnBlock_S *)spNewNode->vpData)->uiStartTsn = uiStartTsn;
+	  ((SctpRecvTsnBlock_S *)spNewNode->vpData)->uiEndTsn = uiEndTsn;
+	
+	  InsertNode(&sNonRenegTsnBlockList, sNonRenegTsnBlockList.spTail,
+		     spNewNode, NULL);
+
+	  /* NE: last TSN which creates a gap block with single TSN in it */
+	  if ((spCurrNode->spNext == NULL) && (uiEndTsn != uiCurrTsn)) {
+	    
+ 	    // Create and add this block
+ 	    spNewNode = NULL;
+	    spNewNode = new Node_S;
+ 	    spNewNode->eType = NODE_TYPE_RECV_TSN_BLOCK;
+ 	    spNewNode->vpData = new SctpRecvTsnBlock_S;
+ 	    ((SctpRecvTsnBlock_S *)spNewNode->vpData)->uiStartTsn = uiCurrTsn;
+ 	    ((SctpRecvTsnBlock_S *)spNewNode->vpData)->uiEndTsn = uiCurrTsn;
+	    
+ 	    InsertNode(&sNonRenegTsnBlockList, sNonRenegTsnBlockList.spTail,
+		       spNewNode, NULL);
+ 	  }
+
+	  // initialize for next block
+	  uiStartTsn = uiEndTsn = uiCurrTsn;
+
+	}
+
+      spPrevNode = spCurrNode;
+    } 
+    spCurrNode = spCurrNode->spNext;
+  } // end of while
+
+}
 
 void SctpAgent::ProcessInitChunk(u_char *ucpInitChunk)
 {
@@ -3304,11 +3934,114 @@ Boolean_E SctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
   SctpSackChunk_S *spSackChunk = (SctpSackChunk_S *) ucpSackChunk;
 
   u_short usNumGapAcksProcessed = 0;
-  SctpGapAckBlock_S *spCurrGapAck 
-    = (SctpGapAckBlock_S *) (ucpSackChunk + sizeof(SctpSackChunk_S));
 
-  DBG_PL(ProcessGapAckBlocks,"CumAck=%d"), spSackChunk->uiCumAck DBG_PR;
+  /* NE: number of Non-Renegable Gap Ack Blocks processed */
+  u_short usNumNonRenegGapAcksProcessed = 0;
+ 
+  /* PN: 04/2008 */ 
+  SctpGapAckBlock_S *spCurrGapAck = NULL;
+  /* NE: 06/2009 */
+  SctpGapAckBlock_S *spCurrNonRenegGapAck = NULL;
 
+  Node_S *spPrevNode = sSendBuffer.spHead;
+  Boolean_E eDoNotChangeCurrNode = FALSE;
+  
+  u_short usNumGapAckBlocks = spSackChunk->usNumGapAckBlocks;
+  
+  /* NE: number of Non-Renegable Gap Ack Blocks reported */
+  u_short usNumNonRenegGapAckBlocks = 0;
+
+  /* NE: let's decide which block (Gap Ack or Non-Renegable Gap Ack) 
+     is used for the gap ack processing */
+  Boolean_E eUseGapAckBlock = FALSE;
+  Boolean_E eUseNonRenegGapAckBlock = FALSE;
+  u_int uiGapAckStartTsn;
+  u_int uiNonRenegGapAckStartTsn;
+  
+  /* NE: since the SctpSackChunk_S and SctpNonRenegSackChunk_S structure sizes 
+     are different, the offset to point first Gap Ack Block should be calculated
+     based on the chunk type */
+  if (!eUseNonRenegSacks) { /* SACK Chunk */  
+    spCurrGapAck  = 
+      (SctpGapAckBlock_S *) (ucpSackChunk + sizeof(SctpSackChunk_S));
+
+    DBG_PL(ProcessGapAckBlocks,"CumAck=%d, NumGapAckBlocks=%u"), 
+      spSackChunk->uiCumAck, usNumGapAckBlocks DBG_PR;
+  }
+  else {                    /* NR-SACK Chunk*/
+    usNumGapAckBlocks = 
+      ((SctpNonRenegSackChunk_S *)ucpSackChunk)->usNumGapAckBlocks;
+    usNumNonRenegGapAckBlocks = 
+      ((SctpNonRenegSackChunk_S *)ucpSackChunk)->usNumNonRenegSackBlocks;
+
+    DBG_PL(ProcessGapAckBlocks,
+	   "CumAck=%d, NumGapAckBlocks=%u NumNonRenegGapAckBlocks=%u"), 
+      spSackChunk->uiCumAck, usNumGapAckBlocks, usNumNonRenegGapAckBlocks DBG_PR;
+
+    /* NE: initial Gap Ack and Non-Renegable Gap Ack Block offsets */
+    spCurrGapAck  = 
+      (SctpGapAckBlock_S *) (ucpSackChunk + sizeof(SctpNonRenegSackChunk_S));
+    spCurrNonRenegGapAck = 
+      (SctpGapAckBlock_S *) (ucpSackChunk + sizeof(SctpNonRenegSackChunk_S) + 
+			     usNumGapAckBlocks * sizeof(SctpGapAckBlock_S));
+
+    /* NE: if there is no reported Gap Ack Blocks, just use Non-Renegable Gap 
+       Ack Blocks */
+    if ((usNumGapAckBlocks == 0) && (usNumNonRenegGapAckBlocks > 0)) {
+      spCurrGapAck = spCurrNonRenegGapAck; 
+      
+      eUseNonRenegGapAckBlock = TRUE;
+      eUseGapAckBlock = FALSE;
+      
+      uiNonRenegGapAckStartTsn = 
+	spSackChunk->uiCumAck + spCurrNonRenegGapAck->usStartOffset;
+      
+      DBG_PL(ProcessGapAckBlocks,"uiNonRenegGapAckStartTsn=%u"), 
+	uiNonRenegGapAckStartTsn DBG_PR;
+    } /* NE: if there is no reported Non-Renegable Gap Ack Blocks, 
+	 just use Gap Ack Blocks */
+    else if (usNumNonRenegGapAckBlocks == 0 && (usNumGapAckBlocks > 0)) {
+      eUseNonRenegGapAckBlock = FALSE;
+      eUseGapAckBlock = TRUE;
+
+      uiGapAckStartTsn = spSackChunk->uiCumAck + spCurrGapAck->usStartOffset;
+      
+      DBG_PL(ProcessGapAckBlocks,"uiGapAckStartTsn=%u"), 
+	uiGapAckStartTsn DBG_PR;
+    } /* NE: If there is both Gap Ack and Non-Renegable Gap Ack Blocks, use 
+	 the block with lower start TSN value*/
+    else if ((usNumGapAckBlocks > 0) && (usNumNonRenegGapAckBlocks > 0)) {
+      
+      uiGapAckStartTsn = spSackChunk->uiCumAck + spCurrGapAck->usStartOffset;
+      uiNonRenegGapAckStartTsn = 
+	spSackChunk->uiCumAck + spCurrNonRenegGapAck->usStartOffset;
+
+      if (uiGapAckStartTsn < uiNonRenegGapAckStartTsn) {
+	eUseNonRenegGapAckBlock = FALSE;
+	eUseGapAckBlock = TRUE;
+
+	DBG_PL(ProcessGapAckBlocks,"uiGapAckStartTsn=%u"), 
+	  uiGapAckStartTsn DBG_PR;
+      }
+      else if (uiNonRenegGapAckStartTsn < uiGapAckStartTsn) {
+	spCurrGapAck = spCurrNonRenegGapAck; 
+	eUseNonRenegGapAckBlock = TRUE;
+	eUseGapAckBlock = FALSE;
+	
+	DBG_PL(ProcessGapAckBlocks,"uiNonRenegGapAckStartTsn=%u"), 
+	  uiNonRenegGapAckStartTsn DBG_PR;
+      }
+      else {
+	DBG_PL(ProcessGapAckBlocks,
+	       "WARNING! This statement should not be reached!") DBG_PR;
+      }
+    }
+    else {
+      DBG_PL(ProcessGapAckBlocks,
+	     "WARNING! This statement should not be reached!") DBG_PR;
+    }
+  }
+  
   if(sSendBuffer.spHead == NULL) // do we have ANYTHING in the rtx buffer?
     {
       /* This COULD mean that this sack arrived late, and a previous one
@@ -3329,10 +4062,12 @@ Boolean_E SctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 	  spCurrDestNodeData->spFirstOutstanding = NULL;
 	}
 
+      /* NE: process all reported Gap Ack/Non-Renegable Ack Blocks */
       for(spCurrNode = sSendBuffer.spHead;
 	  (spCurrNode != NULL) &&
-	    (usNumGapAcksProcessed != spSackChunk->usNumGapAckBlocks);
-	  spCurrNode = spCurrNode->spNext)
+	    ((usNumGapAcksProcessed != usNumGapAckBlocks) ||
+	     (usNumNonRenegGapAcksProcessed != usNumNonRenegGapAckBlocks)); 
+	  spCurrNode = spCurrNode->spNext)                
 	{
 	  spCurrNodeData = (SctpSendBufferNode_S *) spCurrNode->vpData;
 
@@ -3372,6 +4107,13 @@ Boolean_E SctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 
 	  uiStartTsn = spSackChunk->uiCumAck + spCurrGapAck->usStartOffset;
 	  uiEndTsn = spSackChunk->uiCumAck + spCurrGapAck->usEndOffset;
+
+	  /* NE: Change the calculation of Highest TSN SACKed since the 
+	     previous calculation is using the TSNs from the send buffer and 
+	     with the introduction of NR-SACKs send buffer may not have
+	     the Highest TSN SACKed in the send buffer */
+	  if(uiHighestTsnSacked < uiEndTsn)
+	    uiHighestTsnSacked = uiEndTsn;
 	  
 	  DBG_PL(ProcessGapAckBlocks, "GapAckBlock StartTsn=%d EndTsn=%d"),
 	    uiStartTsn, uiEndTsn DBG_PR;
@@ -3544,26 +4286,145 @@ Boolean_E SctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 	      /* This point in the rtx buffer is already past the tsns which 
 	       * are being acked by this gap ack block.  
 	       */
-	      usNumGapAcksProcessed++; 
+	      
+	      /* NE: let's increment the number of Gap Ack/Non-Renegable Gap 
+		 Ack Blocks processed*/
+	      if (!eUseNonRenegSacks) {
+		usNumGapAcksProcessed++;
+	      }
+	      else {
+		if (eUseGapAckBlock) {
+		  usNumGapAcksProcessed++;
+		}
+		else {
+		  usNumNonRenegGapAcksProcessed++;
+		}
+	      }
 
 	      /* Did we process all the gap ack blocks?
 	       */
-	      if(usNumGapAcksProcessed != spSackChunk->usNumGapAckBlocks)
-		{
-		  DBG_PL(ProcessGapAckBlocks, "jump to next gap ack block") 
-		    DBG_PR;
+	      if((usNumGapAcksProcessed != usNumGapAckBlocks) || 
+		 (usNumNonRenegGapAcksProcessed != usNumNonRenegGapAckBlocks))
+		{ 
+		  /* NE: since the SctpSackChunk_S and SctpNonRenegSackChunk_S 
+		     structure sizes are different, the offset to point next 
+		     Gap Ack Block should be calculated based on the chunk type 
+		  */ 
+		  if (!eUseNonRenegSacks) 
+		    {
+		      spCurrGapAck 
+			= ((SctpGapAckBlock_S *)
+			   (ucpSackChunk + sizeof(SctpSackChunk_S) 
+			    +(usNumGapAcksProcessed * sizeof(SctpGapAckBlock_S))));
+		      
+		      DBG_PL(ProcessGapAckBlocks, "jump to next gap ack block") 
+			DBG_PR;
+		    }
+		  else 
+		    {
+		      spCurrGapAck 
+			= ((SctpGapAckBlock_S *)
+			   (ucpSackChunk + sizeof(SctpNonRenegSackChunk_S) + 
+			    (usNumGapAcksProcessed * sizeof(SctpGapAckBlock_S))));
+		      
+		      spCurrNonRenegGapAck 
+			= ((SctpGapAckBlock_S *)
+			   (ucpSackChunk + sizeof(SctpNonRenegSackChunk_S)
+			    +(usNumGapAckBlocks * sizeof(SctpGapAckBlock_S)) 
+			    +(usNumNonRenegGapAcksProcessed * sizeof(SctpGapAckBlock_S))));
+		      
+		      /* NE: Let's determine which block to use next. The next 
+			 Gap Ack Block or the next Non-Renegable Gap Ack Block.
+			 If all Gap Ack Blocks are processed let's use 
+			 Non-Renegable Gap Ack Blocks */
+		      if ((usNumGapAckBlocks == usNumGapAcksProcessed) && 
+			  (usNumNonRenegGapAckBlocks > usNumNonRenegGapAcksProcessed)) {
+			
+			spCurrGapAck = spCurrNonRenegGapAck; 
+			
+			eUseNonRenegGapAckBlock = TRUE;
+			eUseGapAckBlock = FALSE;
 
-		  spCurrGapAck 
-		    = ((SctpGapAckBlock_S *)
-		       (ucpSackChunk + sizeof(SctpSackChunk_S)
-			+(usNumGapAcksProcessed * sizeof(SctpGapAckBlock_S))));
+			uiNonRenegGapAckStartTsn = 
+			  spSackChunk->uiCumAck + spCurrNonRenegGapAck->usStartOffset;			
+			
+			DBG_PL(ProcessGapAckBlocks, "jump to next nr gap ack block") 
+			  DBG_PR;
+			
+			DBG_PL(ProcessGapAckBlocks,"uiNonRenegGapAckStartTsn=%u"), 
+			  uiNonRenegGapAckStartTsn DBG_PR;
+
+		      } /* NE: If all Non-Renegable Gap Ack Blocks are processed, let's 
+			   use Gap Ack Blocks */
+		      else if ((usNumNonRenegGapAckBlocks == usNumNonRenegGapAcksProcessed)
+			       && (usNumGapAckBlocks > usNumGapAcksProcessed)) {
+			
+			eUseNonRenegGapAckBlock = FALSE;
+			eUseGapAckBlock = TRUE;
+
+			uiGapAckStartTsn = 
+			  spSackChunk->uiCumAck + spCurrGapAck->usStartOffset;
+			
+			DBG_PL(ProcessGapAckBlocks, "jump to next gap ack block") 
+			  DBG_PR;
+			
+			DBG_PL(ProcessGapAckBlocks,"uiGapAckStartTsn=%u"), 
+			  uiGapAckStartTsn DBG_PR;
+
+		      } /* NE: If there is both Gap Ack and Non-Renegable Gap 
+			   Ack Blocks, use the block with lower start TSN value*/
+		      else if ((usNumGapAckBlocks > usNumGapAcksProcessed) && 
+			       (usNumNonRenegGapAckBlocks > usNumNonRenegGapAcksProcessed)){
+			
+			uiGapAckStartTsn = 
+			  spSackChunk->uiCumAck + spCurrGapAck->usStartOffset;
+			uiNonRenegGapAckStartTsn = 
+			  spSackChunk->uiCumAck + spCurrNonRenegGapAck->usStartOffset;
+			
+			if (uiGapAckStartTsn < uiNonRenegGapAckStartTsn) {
+			  
+			  eUseNonRenegGapAckBlock = FALSE;
+			  eUseGapAckBlock = TRUE;
+
+			  DBG_PL(ProcessGapAckBlocks, "jump to next gap ack block") 
+			    DBG_PR;
+
+			  DBG_PL(ProcessGapAckBlocks,"uiGapAckStartTsn=%u"), 
+			    uiGapAckStartTsn DBG_PR;
+			}
+			else if (uiNonRenegGapAckStartTsn < uiGapAckStartTsn) {
+			  
+			  spCurrGapAck = spCurrNonRenegGapAck; 
+			  
+			  eUseNonRenegGapAckBlock = TRUE;
+			  eUseGapAckBlock = FALSE;
+
+			  DBG_PL(ProcessGapAckBlocks, "jump to next nr gap ack block") 
+			    DBG_PR;
+
+			  DBG_PL(ProcessGapAckBlocks,"uiNonRenegGapAckStartTsn=%u"), 
+			    uiNonRenegGapAckStartTsn DBG_PR;
+			}
+			else {
+			  DBG_PL(ProcessGapAckBlocks,
+				 "WARNING! This statement should not be reached!") 
+			    DBG_PR;
+			}
+		      }
+		      
+		      eDoNotChangeCurrNode=TRUE;
+		    }
 		}
 
 	      /* If this chunk was GapAcked before, then either the
 	       * receiver has renegged the chunk (which our simulation
 	       * doesn't do) or this SACK is arriving out of order.
 	       */
-	      if(spCurrNodeData->eGapAcked == TRUE)
+	      /* NE: with the new implementation of NR-SACKs, Gap Ack Blocks and
+		 Non-Renegable Gap Ack Blocks are disjoint and may constitute 
+		 consecutive blocks which may cause a TSN to be seem like 
+		 RENEGED but it is not the case */
+	      if(spCurrNodeData->eGapAcked == TRUE && !eUseNonRenegSacks)
 		{
 		  DBG_PL(ProcessGapAckBlocks, 
 			 "out of order SACK? setting TSN=%d eGapAcked=FALSE"),
@@ -3581,6 +4442,17 @@ Boolean_E SctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 		   */
 		}
 	    }
+
+	  /* 04/18: PN: With NR-SACKS tsns can be missing in the send buffer,
+	   * Need to track previous sbuf node for correct gap ack processing
+	   */
+	  if (eDoNotChangeCurrNode == TRUE) {
+	    spCurrNode = spPrevNode; //spPrevNode remains unchanged 
+	  }
+	  else {
+	    spPrevNode = spCurrNode; 
+	  }
+	  eDoNotChangeCurrNode=FALSE;
 	}
 
       /* By this time, either we have run through the entire send buffer or we
@@ -3620,6 +4492,83 @@ Boolean_E SctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 	    }
 	}
 
+      /* NE : We need to process all Gap Ack Blocks since the uiHighestTsnSacked 
+	 variable is calculated using the Gap Ack Blocks instead of using TSNs 
+	 in the send buffer. So, if there are Gap Ack Blocks which are not 
+	 processed then use them to calculate uiHighestTsnSacked variable */ 
+      /* Did we process all the gap ack blocks?
+       */
+      while(usNumGapAcksProcessed != usNumGapAckBlocks)
+	{
+	  DBG_PL(ProcessGapAckBlocks, "jump to next gap ack block") 
+	    DBG_PR;
+	  
+	  /* NE: since the SctpSackChunk_S and SctpNonRenegSackChunk_S structure
+	     sizes are different, the offset to point first Gap Ack Block should
+	     be calculated based on the chunk type */
+	  if (!eUseNonRenegSacks) 
+	    {
+	      spCurrGapAck 
+		= ((SctpGapAckBlock_S *)
+		   (ucpSackChunk + sizeof(SctpSackChunk_S)
+		    +(usNumGapAcksProcessed * sizeof(SctpGapAckBlock_S))));
+	    }
+	  else {
+	    
+	    spCurrGapAck 
+	      = ((SctpGapAckBlock_S *)
+		 (ucpSackChunk + sizeof(SctpNonRenegSackChunk_S)
+		  +(usNumGapAcksProcessed * sizeof(SctpGapAckBlock_S))));
+	  }
+	  
+	  uiStartTsn = spSackChunk->uiCumAck + spCurrGapAck->usStartOffset;
+	  uiEndTsn = spSackChunk->uiCumAck + spCurrGapAck->usEndOffset;
+
+	  /* NE: Change the calculation of Highest TSN SACKed since the 
+	     previous calculation is using the TSNs from the send buffer and 
+	     with the introduction of NR-SACKs send buffer may not have
+	     the Highest TSN SACKed in the send buffer */
+	  if(uiHighestTsnSacked < uiEndTsn)
+	    uiHighestTsnSacked = uiEndTsn;
+	  
+	  usNumGapAcksProcessed++;
+	}
+
+      /* NE : We need to process also all Non-Renegable Gap Ack Blocks since the
+	 uiHighestTsnSacked variable is calculated using the Gap Ack Blocks 
+	 instead of using TSNs in the send buffer. So, if there are Gap Ack 
+	 Blocks which are not processed then use them to calculate 
+	 uiHighestTsnSacked variable */ 
+      /* Did we process all the non-renegable gap ack blocks?
+       */
+      if (eUseNonRenegSacks) 
+	{
+	  while(usNumNonRenegGapAcksProcessed != usNumNonRenegGapAckBlocks)
+	    {
+	      DBG_PL(ProcessGapAckBlocks, "jump to next nr-gap ack block") 
+		DBG_PR;
+	      
+	      spCurrGapAck 
+		= ((SctpGapAckBlock_S *)
+		   (ucpSackChunk + sizeof(SctpNonRenegSackChunk_S)
+		    +(usNumGapAckBlocks * sizeof(SctpGapAckBlock_S))
+		    +(usNumNonRenegGapAcksProcessed * sizeof(SctpGapAckBlock_S))));
+	      
+	      
+	      uiStartTsn = spSackChunk->uiCumAck + spCurrGapAck->usStartOffset;
+	      uiEndTsn = spSackChunk->uiCumAck + spCurrGapAck->usEndOffset;
+
+	      /* NE: Change the calculation of Highest TSN SACKed since the 
+		 previous calculation is using the TSNs from the send buffer and 
+		 with the introduction of NR-SACKs send buffer may not have
+		 the Highest TSN SACKed in the send buffer */
+	      if(uiHighestTsnSacked < uiEndTsn)
+		uiHighestTsnSacked = uiEndTsn;
+	      
+	      usNumNonRenegGapAcksProcessed++;
+	    }
+	}
+
       DBG_PL(ProcessGapAckBlocks,"now incrementing missing reports...") DBG_PR;
       DBG_PL(ProcessGapAckBlocks,"uiHighestTsnNewlyAcked=%d"), 
 	     uiHighestTsnNewlyAcked DBG_PR;
@@ -3649,6 +4598,12 @@ Boolean_E SctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 	       *    Recovery, the cum ack changes, and the new cum ack is less
 	       *    than recover.
 	       */
+	      
+	      DBG_PL(ProcessGapAckBlocks, 
+		     "eNewCumAck = %d uiHighestTsnNewlyAcked = %d uiHighestTsnSacked = %d uiRecover = %d"),
+		eNewCumAck, uiHighestTsnNewlyAcked, 
+		uiHighestTsnSacked, uiRecover DBG_PR;
+	      
 	      if( (spCurrNodeData->spChunk->uiTsn < uiHighestTsnNewlyAcked) ||
 		  (eNewCumAck == TRUE && 
 		   uiHighestTsnNewlyAcked <= uiRecover &&
@@ -3683,6 +4638,125 @@ Boolean_E SctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
     eFastRtxNeeded ? "TRUE" : "FALSE" DBG_PR;
   DBG_X(ProcessGapAckBlocks);
   return eFastRtxNeeded;
+}
+
+/* PN: 5/2007. NR-Sacks */
+/* Function to process NonReneg Gap Ack Blocks -- deque the TSNs from
+ * send buffer and free up send buffer.
+ * Assumes GapAckBlocks in the sack chunk have already been processed
+ */
+void SctpAgent::ProcessNonRenegSackBlocks(u_char *ucpNonRenegSackChunk)
+{
+
+  DBG_I(ProcessNonRenegSackBlocks);
+
+  SctpNonRenegSackChunk_S *spNonRenegSackChunk = 
+    (SctpNonRenegSackChunk_S *) ucpNonRenegSackChunk;
+  u_short usChunkSize = 0, 
+    usNumNonRenegSackBlocks = spNonRenegSackChunk->usNumNonRenegSackBlocks;
+  SctpGapAckBlock_S *spCurrNonRenegSack = NULL;
+  u_char *ucpNonRenegStartOffset = NULL;
+  Node_S *spCurrNode = sSendBuffer.spHead;
+  Node_S *spDeleteNode = NULL;
+  u_int uiStartTsn = 0, uiEndTsn = 0;
+  int i = 0; 
+
+  if ((eUseNonRenegSacks == FALSE) || (usNumNonRenegSackBlocks == 0))
+  {
+      /* Nothing to do */
+      return;
+  }
+
+  if(sSendBuffer.spHead == NULL) // do we have ANYTHING in the rtx buffer?
+  { 
+    /* This COULD mean that this sack arrived late, and a previous one
+     * already cum ack'd everything. ...so, what do we do? nothing??
+     */
+    return;
+  }
+    
+  else // we do have chunks in the rtx buffer
+  {
+    /* PN: 12/21/2007
+     * Update Highest Tsn last sent before deleting Tsns from send buffer.
+     * This information is needed to correctly update uiHighestOutstandingTsn
+     */
+    UpdateHighestTsnSent();
+
+    ucpNonRenegStartOffset =  (ucpNonRenegSackChunk
+      + sizeof(SctpNonRenegSackChunk_S)
+      + (spNonRenegSackChunk->usNumGapAckBlocks * sizeof(SctpGapAckBlock_S)));
+
+      DBG_PL(ProcessNonRenegSackBlocks,
+        "CumAck=%d NumNonRenegSackBlocks=%d NonRenegStartOffset=%d"), 
+	spNonRenegSackChunk->uiCumAck, usNumNonRenegSackBlocks, 
+	(int)(ucpNonRenegStartOffset - ucpNonRenegSackChunk) DBG_PR;
+
+      for (i = 0; i < usNumNonRenegSackBlocks; i++)
+      {
+ 	  spCurrNonRenegSack = (SctpGapAckBlock_S *) (ucpNonRenegStartOffset +
+				i * sizeof(SctpGapAckBlock_S));
+
+	  uiStartTsn = spNonRenegSackChunk->uiCumAck 
+	    + spCurrNonRenegSack->usStartOffset;
+	  uiEndTsn = spNonRenegSackChunk->uiCumAck 
+	    + spCurrNonRenegSack->usEndOffset;
+	
+	  DBG_PL(ProcessNonRenegSackBlocks, "StartTSN=%ld EndTSN=%ld"), 
+	    uiStartTsn, uiEndTsn DBG_PR;
+
+	  while (spCurrNode != NULL && ((SctpSendBufferNode_S *)
+	         spCurrNode->vpData)->spChunk->uiTsn < uiStartTsn) 
+	    {
+	      /* not yet reached uiStartTsn in send buffer */
+	    
+	      DBG_PL(ProcessNonRenegSackBlocks, "Skipping TSN=%ld"), 
+		((SctpSendBufferNode_S *)spCurrNode->vpData)->spChunk->uiTsn 
+		DBG_PR;
+	    
+	      spCurrNode = spCurrNode->spNext; 
+	      continue; 
+	    }
+
+	  while (spCurrNode != NULL && ((SctpSendBufferNode_S *)
+		 spCurrNode->vpData)->spChunk->uiTsn <= uiEndTsn) 
+	    {
+	      spDeleteNode = spCurrNode;
+	      spCurrNode = spCurrNode->spNext;
+	      usChunkSize = ((SctpSendBufferNode_S *)
+			     spDeleteNode->vpData)->spChunk->sHdr.usLength;
+	    
+	      DBG_PL(ProcessNonRenegSackBlocks, "Deleting TSN=%ld ChunkSize=%d"), 
+		((SctpSendBufferNode_S *)spDeleteNode->vpData)->spChunk->uiTsn,
+		usChunkSize 
+		DBG_PR;
+
+	      DeleteNode(&sSendBuffer, spDeleteNode);
+	      spDeleteNode = NULL;
+
+	      /* PN: 5/2007. Simulate send window */
+	      if (uiInitialSwnd) 
+		{
+		  
+		  uiAvailSwnd += usChunkSize;
+		  
+		  DBG_PL(ProcessNonRenegSackBlocks, "AvailSendwindow=%ld"), 
+		    uiAvailSwnd DBG_PR;
+		} 
+	    }
+	  
+	  if (spCurrNode == NULL)
+	    {
+	      /* Reached end of send buffer queue; break */
+	      break;
+	    }
+	  
+      } /* End for looping through NonRenegSackBlocks */
+    
+  } /* End else send buffer not empty */
+
+  DBG_X(ProcessNonRenegSackBlocks);
+
 }
 
 void SctpAgent::ProcessSackChunk(u_char *ucpSackChunk)
@@ -3836,6 +4910,183 @@ void SctpAgent::ProcessSackChunk(u_char *ucpSackChunk)
   DBG_PL(ProcessSackChunk, "uiPeerRwnd=%d, uiArwnd=%d"), uiPeerRwnd, 
     spSackChunk->uiArwnd DBG_PR;
   DBG_X(ProcessSackChunk);
+}
+
+/* PN: 6/17/07
+ * Chunk to process Non-Reneg Sack chunks.
+ * Most of the code is similar to ProcessSackChunk. 
+ * Is there a way to minimize code repetition here?
+ */
+void SctpAgent::ProcessNonRenegSackChunk(u_char *ucpNonRenegSackChunk)
+{
+  DBG_I(ProcessNonRenegSackChunk);
+
+  SctpNonRenegSackChunk_S *spNonRenegSackChunk 
+    = (SctpNonRenegSackChunk_S *) ucpNonRenegSackChunk;
+
+  u_short usNumGapAckBlocks = spNonRenegSackChunk->usNumGapAckBlocks;
+  u_short usNumNonRenegGapAckBlocks = 
+    spNonRenegSackChunk->usNumNonRenegSackBlocks;
+  
+  DBG_PL(ProcessNonRenegSackChunk, 
+	 "cum=%d arwnd=%d #gapacks=%d #nrgaps=%d #duptsns=%d"),
+    spNonRenegSackChunk->uiCumAck, spNonRenegSackChunk->uiArwnd, 
+    usNumGapAckBlocks, 
+    usNumNonRenegGapAckBlocks,
+    spNonRenegSackChunk->usNumDupTsns
+    DBG_PR;
+    
+  Boolean_E eFastRtxNeeded = FALSE;
+  Boolean_E eNewCumAck = FALSE;
+  Node_S *spCurrDestNode = NULL;
+  SctpDest_S *spCurrDestNodeData = NULL;
+  u_int uiTotalOutstanding = 0;
+  int i = 0;
+
+  /* make sure we clear all the iNumNewlyAckedBytes before using them!
+   */
+  for(spCurrDestNode = sDestList.spHead;
+      spCurrDestNode != NULL;
+      spCurrDestNode = spCurrDestNode->spNext)
+    {
+      spCurrDestNodeData = (SctpDest_S *) spCurrDestNode->vpData;
+      spCurrDestNodeData->iNumNewlyAckedBytes = 0;
+      spCurrDestNodeData->spFirstOutstanding = NULL;
+    }
+
+  if(spNonRenegSackChunk->uiCumAck < uiCumAckPoint) 
+    {
+      /* this cumAck's a previously cumAck'd tsn (ie, it's out of order!)
+       * ...so ignore!
+       */
+      DBG_PL(ProcessNonRenegSackChunk, "ignoring out of order NR-SACK!") DBG_PR;
+      DBG_X(ProcessNonRenegSackChunk);
+      return;
+    }
+  else if(spNonRenegSackChunk->uiCumAck > uiCumAckPoint)
+    {
+      eNewCumAck = TRUE; // incomding SACK's cum ack advances the cum ack point
+      SendBufferDequeueUpTo(spNonRenegSackChunk->uiCumAck);
+      uiCumAckPoint = spNonRenegSackChunk->uiCumAck; // Advance the cumAck pointer
+    }
+
+  /* NE: Are there any gap ack or non-renegable gap ack blocks?? */
+  if(usNumGapAckBlocks != 0 || usNumNonRenegGapAckBlocks != 0) 
+    {
+      eFastRtxNeeded = ProcessGapAckBlocks(ucpNonRenegSackChunk, eNewCumAck);
+
+      /* PN: 5/2007. NR-Sacks */
+      /* Process the NR-SACKed TSNs in the send buffer. 
+       */
+      if (usNumNonRenegGapAckBlocks != 0)
+
+	  /* NonRenegSackBlock processing assumes GapAck blocks in the
+	   * sack chunk have already been processed
+	   */
+	  ProcessNonRenegSackBlocks(ucpNonRenegSackChunk); 
+    }
+
+  for(spCurrDestNode = sDestList.spHead;
+      spCurrDestNode != NULL;
+      spCurrDestNode = spCurrDestNode->spNext)
+    {
+      spCurrDestNodeData = (SctpDest_S *) spCurrDestNode->vpData;
+
+      /* Only adjust cwnd if:
+       *    1. sack advanced the cum ack point 
+       *    2. this destination has newly acked bytes
+       *    3. the cum ack is at or beyond the recovery window
+       *
+       * Also, we MUST adjust our congestion window BEFORE we update the
+       * number of outstanding bytes to reflect the newly acked bytes in
+       * received SACK.
+       */
+      if(eNewCumAck == TRUE &&
+	 spCurrDestNodeData->iNumNewlyAckedBytes > 0 &&
+	 spNonRenegSackChunk->uiCumAck >= uiRecover)
+	{
+	  AdjustCwnd(spCurrDestNodeData);
+	}
+
+      /* The number of outstanding bytes is reduced by how many bytes this sack 
+       * acknowledges.
+       */
+      if(spCurrDestNodeData->iNumNewlyAckedBytes <=
+	 spCurrDestNodeData->iOutstandingBytes)
+	{
+	  spCurrDestNodeData->iOutstandingBytes 
+	    -= spCurrDestNodeData->iNumNewlyAckedBytes;
+	}
+      else
+	spCurrDestNodeData->iOutstandingBytes = 0;
+
+      DBG_PL(ProcessNonRenegSackChunk,"Dest #%d (%d:%d) (%p): outstanding=%d, cwnd=%d"),
+	++i, spCurrDestNodeData->iNsAddr, spCurrDestNodeData->iNsPort,
+	spCurrDestNodeData, spCurrDestNodeData->iOutstandingBytes, 
+	spCurrDestNodeData->iCwnd DBG_PR;
+
+      if(spCurrDestNodeData->iOutstandingBytes == 0)
+	{
+	  /* All outstanding data has been acked
+	   */
+	  spCurrDestNodeData->iPartialBytesAcked = 0;  // section 7.2.2
+
+	  /* section 6.3.2.R2
+	   */
+	  if(spCurrDestNodeData->eRtxTimerIsRunning == TRUE)
+	    {
+	      DBG_PL(ProcessNonRenegSackChunk, "Dest #%d (%p): stopping timer"), 
+		i, spCurrDestNodeData DBG_PR;
+	      StopT3RtxTimer(spCurrDestNodeData);
+	    }
+	}
+
+      /* section 6.3.2.R3 - Restart timers for destinations that have
+       * acknowledged their first outstanding (ie, no timer running) and
+       * still have outstanding data in flight.  
+       */
+      if(spCurrDestNodeData->iOutstandingBytes > 0 &&
+	 spCurrDestNodeData->eRtxTimerIsRunning == FALSE)
+	{
+	  StartT3RtxTimer(spCurrDestNodeData);
+	}
+    }
+
+  DBG_F(ProcessNonRenegSackChunk, DumpSendBuffer());
+
+  AdvancePeerAckPoint();
+
+  if(eFastRtxNeeded == TRUE)  // section 7.2.4
+    FastRtx();
+
+  /* Let's see if after process this sack, there are still any chunks
+   * pending... If so, rtx all allowed by cwnd.
+   */
+  else if( (eMarkedChunksPending = AnyMarkedChunks()) == TRUE)
+    {
+      /* section 6.1.C) When the time comes for the sender to
+       * transmit, before sending new DATA chunks, the sender MUST
+       * first transmit any outstanding DATA chunks which are marked
+       * for retransmission (limited by the current cwnd).  
+       */
+      RtxMarkedChunks(RTX_LIMIT_CWND);
+    }
+
+  /* (6.2.1.D.ii) Adjust PeerRwnd based on total oustanding bytes on all
+   * destinations. We need to this adjustment after any
+   * retransmissions. Otherwise the sender's view of the peer rwnd will be
+   * off, because the number outstanding increases again once a marked
+   * chunk gets retransmitted (when marked, outstanding is decreased).
+   */
+  uiTotalOutstanding = TotalOutstanding();
+  if(uiTotalOutstanding <= spNonRenegSackChunk->uiArwnd)
+    uiPeerRwnd = (spNonRenegSackChunk->uiArwnd  - uiTotalOutstanding);
+  else
+    uiPeerRwnd = 0;
+  
+  DBG_PL(ProcessNonRenegSackChunk, "uiPeerRwnd=%d, uiArwnd=%d"), uiPeerRwnd, 
+    spNonRenegSackChunk->uiArwnd DBG_PR;
+  DBG_X(ProcessNonRenegSackChunk);
 }
 
 void SctpAgent::ProcessForwardTsnChunk(SctpForwardTsnChunk_S *spForwardTsnChunk)
@@ -4060,7 +5311,13 @@ int SctpAgent::ProcessChunk(u_char *ucpInChunk, u_char **ucppOutData)
 	  DBG_PL(ProcessChunk, "got DATA (TSN=%d)!!"), 
 	    ((SctpDataChunkHdr_S *)ucpInChunk)->uiTsn DBG_PR;
 	  
-	  if(eUseDelayedSacks == FALSE) // are we doing delayed sacks?
+	  /* NE - 10/2/2007 :After the reception of the first DATA chunk in an 
+	   * association the endpoint MUST immediately respond with a SACK to 
+	   * acknowledge the DATA chunk. Section 5.1 RFC4960
+	   */
+	  // are we doing delayed sacks?
+	  if(eUseDelayedSacks == FALSE || 
+	     ((SctpDataChunkHdr_S *)ucpInChunk)->uiTsn == 1) 
 	    {
 	      /* NO, so generate sack immediately!
 	       */
@@ -4109,6 +5366,21 @@ int SctpAgent::ProcessChunk(u_char *ucpInChunk, u_char **ucppOutData)
 	    ((SctpSackChunk_S *)ucpInChunk)->uiCumAck DBG_PR;
 
 	  ProcessSackChunk(ucpInChunk);
+
+	  /* Do we need to transmit a FORWARD TSN chunk??
+	   */
+	  if(uiAdvancedPeerAckPoint > uiCumAckPoint)
+	    eForwardTsnNeeded = TRUE;
+
+	  eSendNewDataChunks = TRUE;
+	  break; // no state change
+
+	/* PN: 6/17/2007. NR-Sacks */
+	case SCTP_CHUNK_NRSACK:
+	  DBG_PL(ProcessChunk, "got NR-SACK (CumAck=%d)!!"),
+	    ((SctpNonRenegSackChunk_S *)ucpInChunk)->uiCumAck DBG_PR;
+
+	  ProcessNonRenegSackChunk(ucpInChunk);
 
 	  /* Do we need to transmit a FORWARD TSN chunk??
 	   */
@@ -4180,7 +5452,6 @@ int SctpAgent::ProcessChunk(u_char *ucpInChunk, u_char **ucppOutData)
 		    /* All dests have been confirmed */
 		    eSendNewDataChunks = TRUE;	
 		    
-
 		    /* Moved code from COOKIE ACK recvd */
       	            if(uiHeartbeatInterval != 0)
 		      {
@@ -4587,9 +5858,30 @@ void SctpAgent::recv(Packet *opInPkt, Handler*)
     {
       memset(ucpOutData, 0, uiMaxPayloadSize);
       iOutDataSize = BundleControlChunks(ucpOutData);
-      iOutDataSize += GenChunk(SCTP_CHUNK_SACK, ucpOutData+iOutDataSize);
+
+      /* PN: 6/17/2007
+       * Send NR-Sacks instead of Sacks?
+       */
+      if (eUseNonRenegSacks == TRUE) 
+	{
+	  iOutDataSize += GenChunk(SCTP_CHUNK_NRSACK, ucpOutData+iOutDataSize);
+	}
+      else
+	{
+	  iOutDataSize += GenChunk(SCTP_CHUNK_SACK, ucpOutData+iOutDataSize);
+	}
+
       SendPacket(ucpOutData, iOutDataSize, spReplyDest);
-      DBG_PL(recv, "SACK sent (%d bytes)"), iOutDataSize DBG_PR;
+
+      if (eUseNonRenegSacks == TRUE)
+	{
+	  DBG_PL(recv, "NR-SACK sent (%d bytes)"), iOutDataSize DBG_PR;
+	}
+      else
+	{
+	  DBG_PL(recv, "SACK sent (%d bytes)"), iOutDataSize DBG_PR;
+	}
+
       eSackChunkNeeded = FALSE;  // reset AFTER sent (o/w breaks dependencies)
     }
 
@@ -4662,6 +5954,9 @@ void SctpAgent::SendMuch()
   int iOutDataSize = 0;
   double dCurrTime = Scheduler::instance().clock();
 
+  /* PN: 5/2007. Send window simulation */
+  u_int uiChunkSize = 0;
+
   /* Keep sending out packets until our cwnd is full!  The proposed
    * correction to RFC2960 section 6.1.B says "The sender may exceed
    * cwnd by up to (PMTU-1) bytes on a new transmission if the cwnd is
@@ -4688,7 +5983,8 @@ void SctpAgent::SendMuch()
       DBG_PL(SendMuch, "eApplyMaxBurst=%s uiBurstLength=%d"),
 	eApplyMaxBurst ? "TRUE" : "FALSE", uiBurstLength DBG_PR;
 
-      if(GetNextDataChunkSize() <= uiPeerRwnd)
+      uiChunkSize = GetNextDataChunkSize(); 
+      if(uiChunkSize <= uiPeerRwnd)
 	{
 	  /* This addresses the proposed change to RFC2960 section 7.2.4,
 	   * regarding using of Max.Burst. We have an option which allows
@@ -4702,6 +5998,18 @@ void SctpAgent::SendMuch()
 		eApplyMaxBurst = FALSE;// reset before jumping out of loop
 		break;
 	      }
+
+	  /* PN: 5/2007. Simulating Sendwindow */ 
+	  if (uiInitialSwnd)
+	  {
+	    if (uiChunkSize > uiAvailSwnd) 
+	    {
+	      /* No send window space available to get application data */
+	      DBG_PL(SendMuch, "Data ChunkSize=%ld > AvailSwnd=%d"), 
+		uiChunkSize, uiAvailSwnd DBG_PR;
+	      break; // from loop
+	    }
+	  }
 
 	  memset(ucpOutData, 0, uiMaxPayloadSize); // reset
 	  iOutDataSize = BundleControlChunks(ucpOutData);
@@ -4843,7 +6151,7 @@ void SctpAgent::sendmsg(int iNumBytes, const char *cpFlags)
 		  spAppData->uiNumBytes);
 	  fprintf(stderr, "%s data chunk size (%d) > max (%d)\n",
 		  "SCTP ERROR:",
-		  (int) (spAppData->uiNumBytes + sizeof(SctpDataChunkHdr_S)), 
+		  spAppData->uiNumBytes + sizeof(SctpDataChunkHdr_S), 
 		  MAX_DATA_CHUNK_SIZE);
 	  DBG_PL(sendmsg, "ERROR: message size (%d) too big"),
 		 spAppData->uiNumBytes DBG_PR;
@@ -4862,7 +6170,7 @@ void SctpAgent::sendmsg(int iNumBytes, const char *cpFlags)
 	  fprintf(stderr, 
 		  "%s data chunk size (%d) + SCTP/IP header(%d) > MTU (%d)\n",
 		  "SCTP ERROR:",
-		  (int) (spAppData->uiNumBytes + sizeof(SctpDataChunkHdr_S)),
+		  spAppData->uiNumBytes + sizeof(SctpDataChunkHdr_S),
 		  SCTP_HDR_SIZE + uiIpHeaderSize, uiMtu);
 	  fprintf(stderr, "           %s\n",
 		  "...chunk fragmentation is not yet supported!");
@@ -4891,8 +6199,14 @@ void SctpAgent::sendmsg(int iNumBytes, const char *cpFlags)
       
     case SCTP_STATE_ESTABLISHED:
       if(eDataSource == DATA_SOURCE_APPLICATION) 
-	{
-	  SendMuch();	  
+	{ 
+	  /* NE: 10/12/2007 Check if all the destinations are confirmed (new
+	     data can be sent) or there are any marked chunks. */
+	  if(eSendNewDataChunks == TRUE && eMarkedChunksPending == FALSE) 
+	    {
+	      SendMuch();
+	      eSendNewDataChunks = FALSE;
+	    }
 	}
       else if(eDataSource == DATA_SOURCE_INFINITE)
 	{
@@ -5039,14 +6353,15 @@ void SctpAgent::Timeout(SctpChunkType_E eChunkType, SctpDest_S *spDest)
     {
       spDest->eRtxTimerIsRunning = FALSE;
       
-      /* section 7.2.3 of rfc2960 (w/ implementor's guide)
+      /* Lukasz Budzisz : 03/09/2006 
+       * Section 7.2.3 of rfc4960
        * NE: 4/29/2007 - This conditioal is used for some reason but for 
        * now we dont know why. 
        */
       if(spDest->iCwnd > 1 * (int) uiMaxDataSize)
 	{
 	  spDest->iSsthresh 
-	    = MAX(spDest->iCwnd/2, iInitialCwnd * (int) uiMaxDataSize);
+	    = MAX(spDest->iCwnd/2, 4 * (int) uiMaxDataSize);
 	  spDest->iCwnd = 1*uiMaxDataSize;
 	  spDest->iPartialBytesAcked = 0; // reset
 	  tiCwnd++; // trigger changes for trace to pick up
@@ -5168,7 +6483,10 @@ void SctpAgent::CwndDegradeTimerExpiration(SctpDest_S *spDest)
   DBG_PL(CwndDegradeTimerExpiration, "spDest=%p"), spDest DBG_PR;
   if(spDest->iCwnd > iInitialCwnd * (int) uiMaxDataSize)
     {
-      spDest->iCwnd = MAX(spDest->iCwnd/2, iInitialCwnd * (int) uiMaxDataSize);
+      /* Lukasz Budzisz : 03/09/2006
+       * Section : 7.2.1 and 7.2.2
+       */
+      spDest->iCwnd = MAX(spDest->iCwnd/2, 4 * (int) uiMaxDataSize);
       tiCwnd++; // trigger changes for trace to pick up
     }
   spDest->opCwndDegradeTimer->resched(spDest->dRto);
@@ -5273,9 +6591,25 @@ void SctpAgent::SackGenTimerExpiration() // section 6.2
   iDataPktCountSinceLastSack = 0; // reset 
 
   iOutDataSize = BundleControlChunks(ucpOutData);
-  iOutDataSize += GenChunk(SCTP_CHUNK_SACK, ucpOutData+iOutDataSize);
+
+  /* PN: 6/17/2007
+   * Send NR-Sacks instead of Sacks?
+   */
+  if (eUseNonRenegSacks == TRUE) 
+     iOutDataSize += GenChunk(SCTP_CHUNK_NRSACK, ucpOutData+iOutDataSize);
+  else
+     iOutDataSize += GenChunk(SCTP_CHUNK_SACK, ucpOutData+iOutDataSize);
+
   SendPacket(ucpOutData, iOutDataSize, spReplyDest); 
-  DBG_PL(SackGenTimerExpiration, "SACK sent (%d bytes)"), iOutDataSize DBG_PR;
+
+  if (eUseNonRenegSacks == TRUE) {
+    DBG_PL(SackGenTimerExpiration, "NR-SACK sent (%d bytes)"), 
+      iOutDataSize DBG_PR;
+  }
+  else {
+    DBG_PL(SackGenTimerExpiration, "SACK sent (%d bytes)"), 
+      iOutDataSize DBG_PR;
+  }
 
   DBG_X(SackGenTimerExpiration);
   delete [] ucpOutData;
@@ -5375,4 +6709,40 @@ void SctpAgent::DumpSendBuffer()
 
       DBG_X(DumpSendBuffer);
     }
+}
+
+/* PN: 12/21/2007. 
+ * This method goes through the send buffer and counts
+ * the number of bytes that have not been gap acked.
+ * While using NR-SACKs, all tsns with eGapAcked=FALSE, 
+ * are all tsns that are actually in flight (in the network).
+ * Since ns-2 does not reneg, in case of unordered transfer, all TSNs 
+ * with eGapAcked=TRUE are 
+ * delivered to app. With multistreamed and ordered transfer, this is not true.
+ */
+/* Need help from Nasif to change the variable names appropriately
+ * TODO
+ */
+int SctpAgent::CalculateBytesInFlight() 
+{
+  
+  Node_S *spCurrNode = NULL;
+  SctpSendBufferNode_S *spCurrNodeData = NULL;
+  int usChunkSize = 0;
+  int totalOutstanding = 0;
+
+  for(spCurrNode = sSendBuffer.spHead;
+      spCurrNode != NULL;
+      spCurrNode = spCurrNode->spNext)
+    {
+      spCurrNodeData = (SctpSendBufferNode_S *) spCurrNode->vpData;
+      
+      if(spCurrNodeData->eGapAcked == FALSE)
+	{
+	  usChunkSize = spCurrNodeData->spChunk->sHdr.usLength;
+	  totalOutstanding += usChunkSize;
+	}
+    }
+  
+  return totalOutstanding;
 }

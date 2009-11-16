@@ -1,3 +1,29 @@
+release 3.8 (2009-10-15)
+
+   - added support for Non-Renegable Selective Acknowledgements (NR-SACK). 
+     To enable NR-SACKs, set useNonRenegSacks_ tcl bindable variable to 1 at
+     both the data sender and the data receiver.  
+	
+   - Concurrent Multipath Transfer with Potentially Failed(CMT-PF) extension 
+     is default now. To use CMT, set useCmtPF tcl bindable variable to 0 
+     at the data sender. 
+	
+   - added new feature to support a limited size send buffer at the data
+     receiver. Send buffer size can be specified by setting initialSwnd_ tcl
+     bindable variable to desired value. By default, the variable is set to
+     0 which means there is no constraint on the send buffer.
+   
+   - congestion window (cwnd) updates are now done as specified at Section 7.2.1, 
+     7.2.2 and 7.2.3 of RFC4960. Also the number of missing reports to trigger
+     fast retransmits is reduced to three as specified in RFC4960.     
+   
+   - bug fix. A bug discovered by Eduardo Ribeiro and Igor Gavriloff regarding
+     to memory deallocation is fixed. 
+   	  
+   - new validation tests for NR-SACKs and limited send buffer size are added to
+     the test suite.
+
+-------------------------------------------------------------------------------
 release 3.7 (2007-06-15)
 
    - merged the Concurrent Multipath Transfer with Potentially Failed(CMT-PF)

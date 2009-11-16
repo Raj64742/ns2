@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2007 by the Protocol Engineering Lab, U of Delaware
+ * Copyright (c) 2006-2009 by the Protocol Engineering Lab, U of Delaware
  * All rights reserved.
  *
  * Protocol Engineering Lab web page : http://pel.cis.udel.edu/
@@ -37,7 +37,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctpDebug.h,v 1.5 2007/06/17 21:44:46 tom_henderson Exp $ (UD/PEL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctpDebug.h,v 1.6 2009/11/16 05:51:27 tom_henderson Exp $ (UD/PEL)
  */
 
 #ifndef ns_sctpDebug_h
@@ -103,6 +103,11 @@ void sctpDebugEmptyPrintf (char const *format, ...);
 #define __dbg_ProcessGapAckBlocks              0x00004000
 #define __dbg_ProcessSackChunk                 0x00004000
 
+/* PN: 5/2007. NR-Sacks */
+#define __dbg_ProcessNonRenegSackBlocks        0x00004000
+#define __dbg_ProcessNonRenegSackChunk         0x00004000
+#define __dbg_UpdateHighestTsnSent	       0x00004000
+
 #define __dbg_ProcessChunk                     0x00008000
 #define __dbg_ProcessOptionChunk               0x00008000
 
@@ -155,6 +160,7 @@ void sctpDebugEmptyPrintf (char const *format, ...);
 /* CMT-PF debugging
  */
 #define __dbg_SelectFromPFDests                0x10000000
+ 
 
 /**************************** DEBUGGING MACROS **************************/
 

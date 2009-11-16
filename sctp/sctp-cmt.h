@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2007 by the Protocol Engineering Lab, U of Delaware
+ * Copyright (c) 2006-2009 by the Protocol Engineering Lab, U of Delaware
  * All rights reserved.
  *
  * Protocol Engineering Lab web page : http://pel.cis.udel.edu/
@@ -105,6 +105,11 @@ protected:
   int         ProcessChunk(u_char *, u_char **);
   u_int       GetHighestOutstandingTsn(SctpDest_S *);
   void        HeartbeatGenTimerExpiration(double);
+
+  /* PN: 12/2007. NR-SACKs.
+   */
+  void       ProcessNonRenegSackChunk(u_char *);
+  void 	 UpdateHighestTsnSent();
 
   /* new CMT functions
    */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2007 by the Protocol Engineering Lab, U of Delaware
+ * Copyright (c) 2006-2009 by the Protocol Engineering Lab, U of Delaware
  * All rights reserved.
  *
  * Protocol Engineering Lab web page : http://pel.cis.udel.edu/
@@ -37,7 +37,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.h,v 1.10 2007/06/17 21:44:45 tom_henderson Exp $ (UD/PEL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.h,v 1.11 2009/11/16 05:51:27 tom_henderson Exp $ (UD/PEL)
  */
 
 #ifndef ns_sctp_h
@@ -154,7 +154,10 @@ enum SctpChunkType_E
 
   /* for timestamp option (sctp-timestamp.cc)
    */
-  SCTP_CHUNK_TIMESTAMP
+  SCTP_CHUNK_TIMESTAMP,
+
+  /* PN: 6/17/2007. NR-Sack chunk type */
+  SCTP_CHUNK_NRSACK
 };
 
 struct AppData_S 
@@ -284,6 +287,26 @@ struct SctpSackChunk_S
    */
 };
 
+/* PN: 5/2007. NR-Sack Chunk structure */
+struct SctpNonRenegSackChunk_S
+{
+  SctpChunkHdr_S  sHdr;
+  u_int           uiCumAck;
+  u_int           uiArwnd;
+  u_short         usNumGapAckBlocks;
+
+  /* PN: 5/2007. NR-Sack information */
+  u_short	  usNumNonRenegSackBlocks;
+
+  u_short         usNumDupTsns;
+
+
+  /* Gap Ack Blocks, NR Gap Ack Blocks and Duplicate TSNs are appended
+   * dynamically 
+   */
+
+};
+
 struct SctpGapAckBlock_S
 {
   u_short  usStartOffset;
@@ -291,6 +314,15 @@ struct SctpGapAckBlock_S
 };
 
 struct SctpDupTsn_S
+{
+  u_int  uiTsn;
+};
+
+/* PN: 5/2007. NR-Sacks */
+/* PN TODO: Use SctpTsn_S and NODE_TYPE_TSN instead of SctpDupTsn_S 
+ * and NODE_TYPE_DUP_TSN everywhere ?
+ */
+struct SctpTsn_S
 {
   u_int  uiTsn;
 };
@@ -463,7 +495,11 @@ enum NodeType_E
   NODE_TYPE_APP_LAYER_BUFFER,
   NODE_TYPE_INTERFACE_LIST,
   NODE_TYPE_DESTINATION_LIST,
-  NODE_TYPE_PACKET_BUFFER
+  NODE_TYPE_PACKET_BUFFER,
+
+  /* PN: 5/2007. NR-Sacks */
+  NODE_TYPE_TSN
+
 };
 
 struct Node_S
@@ -564,6 +600,9 @@ struct SctpDest_S
   Boolean_E eHBTimerIsRunning;   // CMT-PF: Track & stop HB timer when 
                                  // destination state changes from PF->Active 
   double dPFSince;               // CMT-PF: time when destination is marked PF
+
+  u_int uiHighestTsnSent;	// PN: 12/21/2007. NR-SACKs
+				// Track highest TSN sent on this destination
 
   /* End of CMT variables
    */
@@ -680,6 +719,9 @@ protected:
   void       DeleteNode(List_S *, Node_S *);
   void       ClearList(List_S *);
 
+  /* PN: 5/2007. NR-Sacks */
+  void 	 InsertNodeInSortedList(List_S *, Node_S *);
+
   /* multihome functions
    */
   void       AddInterface(int, int, NsObject *, NsObject *);
@@ -734,6 +776,10 @@ protected:
   void       InsertInStreamBuffer(List_S *, SctpDataChunkHdr_S *);
   void       PassToStream(SctpDataChunkHdr_S *);
   void       UpdateAllStreams();
+  
+  /* PN: 5/2007. NR-Sacks */
+  void	 BuildNonRenegTsnBlockList();
+  virtual void UpdateHighestTsnSent();
 
   /* processing functions
    */
@@ -744,11 +790,16 @@ protected:
   void               ProcessDataChunk(SctpDataChunkHdr_S *);
   virtual Boolean_E  ProcessGapAckBlocks(u_char *, Boolean_E);
   virtual void       ProcessSackChunk(u_char *);
+  
+  /* PN: 5/2007. NR-Sacks */
+  virtual void       ProcessNonRenegSackChunk(u_char *);
+  void       	     ProcessNonRenegSackBlocks(u_char *);
   void               ProcessForwardTsnChunk(SctpForwardTsnChunk_S *);  
   void               ProcessHeartbeatAckChunk(SctpHeartbeatChunk_S *);  
   virtual void       ProcessOptionChunk(u_char *);
   virtual int        ProcessChunk(u_char *, u_char **);
   void               NextChunk(u_char **, int *);
+  int    	     CalculateBytesInFlight();
 
   /* misc functions
    */
@@ -793,6 +844,7 @@ protected:
   u_int              uiCumAckPoint;  
   u_int              uiAdvancedPeerAckPoint;
   u_int              uiHighestTsnNewlyAcked; // global for HTNA
+  u_int              uiHighestTsnSent;       // NE : value of last TSN sent
   u_int              uiRecover;
   List_S             sSendBuffer;
   Boolean_E          eForwardTsnNeeded;  // is a FORWARD TSN chunk needed?
@@ -801,7 +853,7 @@ protected:
   Boolean_E          eApplyMaxBurst; 
   DataSource_E       eDataSource;
   u_int              uiBurstLength;  // tracks sending burst per SACK
-
+  
   /* receiving variables
    */
   u_int            uiMyRwnd;
@@ -810,12 +862,16 @@ protected:
   List_S           sRecvTsnBlockList;
   List_S           sDupTsnList;
   int              iNumInStreams;
+  
+  /* PN: 5/2007. NR-Sacks */
+  List_S	   sNonRenegTsnBlockList;
+  List_S	   sNonRenegTsnList;
   SctpInStream_S  *spInStreams;
   Boolean_E        eStartOfPacket;             // for delayed sack triggering
   int              iDataPktCountSinceLastSack; // for delayed sack triggering
   Boolean_E        eSackChunkNeeded; // do we need to transmit a sack chunk?
   SackGenTimer    *opSackGenTimer;    // sack generation timer
-
+  
   /* tcl bindable variables
    */
   u_int            uiDebugMask;     // 32 bits for fine level debugging
@@ -846,6 +902,19 @@ protected:
   DormantAction_E  eDormantAction;// behavior during dormant state
   double           dRouteCacheLifetime; 
   double           dRouteCalcDelay; 
+  
+  /* PN: 5/07. Send window simulation for Non-renegable Sacks.
+   * 0 = Do not use send window (infinite send buffer)
+   * else, simulate a finite send buffer.
+   */
+  /* ?? Swnd > 65535 bytes? */
+  u_int            uiInitialSwnd;
+  u_int            uiAvailSwnd;
+
+  /* PN: 5/07. Use Non-renegable Sacks? 
+   */
+  Boolean_E	   eUseNonRenegSacks;
+
   Boolean_E        eTraceAll;     // trace all variables on one line?
   TracedInt        tiCwnd;        // trace cwnd for all destinations
   TracedInt        tiRwnd;        // trace rwnd
