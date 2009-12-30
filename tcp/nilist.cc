@@ -67,10 +67,16 @@ void slist_base::remove(slink *a, slink *prev)
     if (last_ == NULL) 
 	return;
     if (prev == NULL)
+    {
 	if (last_->next_ == a)
+	{
 	    prev = last_;
+	}
 	else 
+	{
 	    return;
+	}
+    }
 
     prev->next_ = a->next_;
     if (last_ == a)		// a was last in list

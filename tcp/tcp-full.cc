@@ -109,7 +109,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.128 2009/03/29 20:59:41 sallyfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.129 2009/12/30 22:06:34 tom_henderson Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -3008,7 +3008,7 @@ SackFullTcpAgent::process_sack(hdr_tcp* tcph)
 	int slen = tcph->sa_length(), i;
 	for (i = 0; i < slen; ++i) {
 		/* Added check for FIN   -M. Weigle 5/21/02 */
-		if ((tcph->flags() & TH_FIN == 0) && 
+		if (((tcph->flags() & TH_FIN) == 0) && 
 		    tcph->sa_left(i) >= tcph->sa_right(i)) {
 			fprintf(stderr,
 			    "%f: FullTcpAgent(%s) warning: received illegal SACK block [%d,%d]\n",

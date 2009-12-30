@@ -13,7 +13,7 @@
 // File:  p802_15_4mac.cc
 // Mode:  C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t
 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4mac.cc,v 1.5 2009/11/06 17:19:38 tom_henderson Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4mac.cc,v 1.6 2009/12/30 22:06:34 tom_henderson Exp $
 
 /*
  * Copyright (c) 2003-2004 Samsung Advanced Institute of Technology and
@@ -100,9 +100,9 @@ void Mac802_15_4Handler::handle(Event* e)
 int hdr_lrwpan::offset_;
 static class LRWPANHeaderClass : public PacketHeaderClass
 {
-public:
-	LRWPANHeaderClass() : PacketHeaderClass("PacketHeader/LRWPAN",
-					     sizeof(hdr_lrwpan))
+	public:
+		LRWPANHeaderClass() : PacketHeaderClass("PacketHeader/LRWPAN",
+				sizeof(hdr_lrwpan))
 	{
 		bind_offset(&hdr_lrwpan::offset_);
 	}
@@ -110,14 +110,14 @@ public:
 
 static class Mac802_15_4Class : public TclClass
 {
-public:
-	Mac802_15_4Class() : TclClass("Mac/802_15_4") {}
-	TclObject* create(int, const char*const*)
-	{
-		return (new Mac802_15_4(&MPIB));
-	}
-	virtual void bind(void);
-	virtual int method(int argc, const char*const* argv);
+	public:
+		Mac802_15_4Class() : TclClass("Mac/802_15_4") {}
+		TclObject* create(int, const char*const*)
+		{
+			return (new Mac802_15_4(&MPIB));
+		}
+		virtual void bind(void);
+		virtual int method(int argc, const char*const* argv);
 } class_mac802_15_4;
 
 void Mac802_15_4Class::bind(void)
@@ -154,245 +154,248 @@ int Mac802_15_4Class::method(int ac, const char*const* av)
 	const char*const* argv = av + 2;
 
 	if (strcmp(argv[1], "wpanCmd") == 0)
-	if (argc == 3)   
 	{
-		if (strcmp(argv[2], "verbose") == 0)
+		if (argc == 3)   
 		{
-			if (!Mac802_15_4::verbose)
-				tcl.result("off");
-			else
-				tcl.result("on");
-			return (TCL_OK);
+			if (strcmp(argv[2], "verbose") == 0)
+			{
+				if (!Mac802_15_4::verbose)
+					tcl.result("off");
+				else
+					tcl.result("on");
+				return (TCL_OK);
+			}
+			else if (strcmp(argv[2], "txOption") == 0)
+			{
+				if (Mac802_15_4::txOption == 0x02)
+					tcl.result("GTS");
+				else if (Mac802_15_4::txOption == 0x04)
+					tcl.result("Indirect");
+				else
+					tcl.result("Direct");
+				return (TCL_OK);
+			}
+			else if (strcmp(argv[2], "ack4data") == 0)
+			{
+				if (!Mac802_15_4::ack4data)
+					tcl.result("off");
+				else
+					tcl.result("on");
+				return (TCL_OK);
+			}
+			else if (strcmp(argv[2], "callBack") == 0)
+			{
+				tcl.resultf("%u",Mac802_15_4::callBack);
+				return (TCL_OK);
+			}
 		}
-		else if (strcmp(argv[2], "txOption") == 0)
+		else if (argc == 4)
 		{
-			if (Mac802_15_4::txOption == 0x02)
-				tcl.result("GTS");
-			else if (Mac802_15_4::txOption == 0x04)
-				tcl.result("Indirect");
-			else
-				tcl.result("Direct");
-			return (TCL_OK);
+			if (strcmp(argv[2], "verbose") == 0)
+			{
+				if (strcmp(argv[3], "on") == 0)
+					Mac802_15_4::verbose = true;
+				else
+					Mac802_15_4::verbose = false;
+				return (TCL_OK);
+			}
+			else if (strcmp(argv[2], "txOption") == 0)
+			{
+				Mac802_15_4::txOption = atoi(argv[3]);
+				return (TCL_OK);
+			}
+			else if (strcmp(argv[2], "ack4data") == 0)
+			{
+				if (strcmp(argv[3], "on") == 0)
+					Mac802_15_4::ack4data = true;
+				else
+					Mac802_15_4::ack4data = false;
+				return (TCL_OK);
+			}
+			else if (strcmp(argv[2], "callBack") == 0)
+			{
+				Mac802_15_4::callBack = atoi(argv[3]);
+				return (TCL_OK);
+			}
 		}
-		else if (strcmp(argv[2], "ack4data") == 0)
+		else if  (argc == 5)
 		{
-			if (!Mac802_15_4::ack4data)
-				tcl.result("off");
-			else
-				tcl.result("on");
-			return (TCL_OK);
-		}
-		else if (strcmp(argv[2], "callBack") == 0)
-		{
-			tcl.resultf("%u",Mac802_15_4::callBack);
-			return (TCL_OK);
-		}
-	}
-	else if (argc == 4)
-	{
-		if (strcmp(argv[2], "verbose") == 0)
-		{
-			if (strcmp(argv[3], "on") == 0)
-				Mac802_15_4::verbose = true;
-			else
-				Mac802_15_4::verbose = false;
-			return (TCL_OK);
-		}
-		else if (strcmp(argv[2], "txOption") == 0)
-		{
-			Mac802_15_4::txOption = atoi(argv[3]);
-			return (TCL_OK);
-		}
-		else if (strcmp(argv[2], "ack4data") == 0)
-		{
-			if (strcmp(argv[3], "on") == 0)
-				Mac802_15_4::ack4data = true;
-			else
-				Mac802_15_4::ack4data = false;
-			return (TCL_OK);
-		}
-		else if (strcmp(argv[2], "callBack") == 0)
-		{
-			Mac802_15_4::callBack = atoi(argv[3]);
-			return (TCL_OK);
-		}
-	}
-	else if  (argc == 5)
-	{
-		if (strcmp(argv[2], "link-down") == 0)
-		{
-			chkAddLFailLink(atoi(argv[3]),atoi(argv[4]));
-			return (TCL_OK);
-		}
-		else if (strcmp(argv[2], "link-up") == 0)
-		{
-			updateLFailLink(fl_oper_del,atoi(argv[3]),atoi(argv[4]));
-			return (TCL_OK);
+			if (strcmp(argv[2], "link-down") == 0)
+			{
+				chkAddLFailLink(atoi(argv[3]),atoi(argv[4]));
+				return (TCL_OK);
+			}
+			else if (strcmp(argv[2], "link-up") == 0)
+			{
+				updateLFailLink(fl_oper_del,atoi(argv[3]),atoi(argv[4]));
+				return (TCL_OK);
+			}
 		}
 	}
 
 	if (strcmp(argv[1], "wpanNam") == 0)
-	if (strcmp(argv[2], "namStatus") == 0)
 	{
-		if (argc == 3)
+		if (strcmp(argv[2], "namStatus") == 0)
 		{
-			if (!Nam802_15_4::Nam_Status)
-				tcl.result("off");
-			else
-				tcl.result("on");
+			if (argc == 3)
+			{
+				if (!Nam802_15_4::Nam_Status)
+					tcl.result("off");
+				else
+					tcl.result("on");
+			}
+			else if (argc == 4)
+			{
+				if (strcmp(argv[3], "on") == 0)
+					Nam802_15_4::Nam_Status = true;
+				else
+					Nam802_15_4::Nam_Status = false;
+			}
+			return (TCL_OK);
 		}
-		else if (argc == 4)
+		else if (strcmp(argv[2], "emHandling") == 0)
 		{
-			if (strcmp(argv[3], "on") == 0)
-				Nam802_15_4::Nam_Status = true;
-			else
-				Nam802_15_4::Nam_Status = false;
+			if (argc == 3)
+			{
+				if (!Nam802_15_4::emHandling)
+					tcl.result("off");
+				else
+					tcl.result("on");
+			}
+			else if (argc == 4)
+			{
+				if (strcmp(argv[3], "on") == 0)
+					Nam802_15_4::emHandling = true;
+				else
+					Nam802_15_4::emHandling = false;
+			}
+			return (TCL_OK);
 		}
-		return (TCL_OK);
-	}
-	else if (strcmp(argv[2], "emHandling") == 0)
-	{
-		if (argc == 3)
+		else if (strcmp(argv[2], "PANCoorClr") == 0)
 		{
-			if (!Nam802_15_4::emHandling)
-				tcl.result("off");
-			else
-				tcl.result("on");
+			if (argc == 3)
+				tcl.result(Nam802_15_4::def_PANCoor_clr);
+			else if (argc >= 4)
+			{
+				strncpy(Nam802_15_4::def_PANCoor_clr,argv[3],20);
+				Nam802_15_4::def_PANCoor_clr[20] = 0;
+			}
+			return (TCL_OK);
 		}
-		else if (argc == 4)
+		else if (strcmp(argv[2], "CoorClr") == 0)
 		{
-			if (strcmp(argv[3], "on") == 0)
-				Nam802_15_4::emHandling = true;
-			else
-				Nam802_15_4::emHandling = false;
+			if (argc == 3)
+				tcl.result(Nam802_15_4::def_Coor_clr);
+			else if (argc >= 4)
+			{
+				strncpy(Nam802_15_4::def_Coor_clr,argv[3],20);
+				Nam802_15_4::def_Coor_clr[20] = 0;
+			}
+			return (TCL_OK);
 		}
-		return (TCL_OK);
-	}
-	else if (strcmp(argv[2], "PANCoorClr") == 0)
-	{
-		if (argc == 3)
-			tcl.result(Nam802_15_4::def_PANCoor_clr);
-		else if (argc >= 4)
+		else if (strcmp(argv[2], "DevClr") == 0)
 		{
-			strncpy(Nam802_15_4::def_PANCoor_clr,argv[3],20);
-			Nam802_15_4::def_PANCoor_clr[20] = 0;
+			if (argc == 3)
+				tcl.result(Nam802_15_4::def_Dev_clr);
+			else if (argc >= 4)
+			{
+				strncpy(Nam802_15_4::def_Dev_clr,argv[3],20);
+				Nam802_15_4::def_Dev_clr[20] = 0;
+			}
+			return (TCL_OK);
 		}
-		return (TCL_OK);
-	}
-	else if (strcmp(argv[2], "CoorClr") == 0)
-	{
-		if (argc == 3)
-			tcl.result(Nam802_15_4::def_Coor_clr);
-		else if (argc >= 4)
+		else if (strcmp(argv[2], "ColFlashClr") == 0)
 		{
-			strncpy(Nam802_15_4::def_Coor_clr,argv[3],20);
-			Nam802_15_4::def_Coor_clr[20] = 0;
+			if (argc == 3)
+				tcl.result(Nam802_15_4::def_ColFlash_clr);
+			else if (argc >= 4)
+			{
+				strncpy(Nam802_15_4::def_ColFlash_clr,argv[3],20);
+				Nam802_15_4::def_ColFlash_clr[20] = 0;
+			}
+			return (TCL_OK);
 		}
-		return (TCL_OK);
-	}
-	else if (strcmp(argv[2], "DevClr") == 0)
-	{
-		if (argc == 3)
-			tcl.result(Nam802_15_4::def_Dev_clr);
-		else if (argc >= 4)
+		else if (strcmp(argv[2], "NodeFailClr") == 0)
 		{
-			strncpy(Nam802_15_4::def_Dev_clr,argv[3],20);
-			Nam802_15_4::def_Dev_clr[20] = 0;
+			if (argc == 3)
+				tcl.result(Nam802_15_4::def_NodeFail_clr);
+			else if (argc >= 4)
+			{
+				strncpy(Nam802_15_4::def_NodeFail_clr,argv[3],20);
+				Nam802_15_4::def_NodeFail_clr[20] = 0;
+			}
+			return (TCL_OK);
 		}
-		return (TCL_OK);
-	}
-	else if (strcmp(argv[2], "ColFlashClr") == 0)
-	{
-		if (argc == 3)
-			tcl.result(Nam802_15_4::def_ColFlash_clr);
-		else if (argc >= 4)
+		else if (strcmp(argv[2], "PlaybackRate") == 0)
 		{
-			strncpy(Nam802_15_4::def_ColFlash_clr,argv[3],20);
-			Nam802_15_4::def_ColFlash_clr[20] = 0;
+			if (argc == 3)
+				tcl.result("??");
+			else if (argc >= 4)
+				Nam802_15_4::changePlaybackRate(CURRENT_TIME,argv[3]);
+			return (TCL_OK);
 		}
-		return (TCL_OK);
-	}
-	else if (strcmp(argv[2], "NodeFailClr") == 0)
-	{
-		if (argc == 3)
-			tcl.result(Nam802_15_4::def_NodeFail_clr);
-		else if (argc >= 4)
+		else if (strcmp(argv[2], "FlowClr") == 0)
 		{
-			strncpy(Nam802_15_4::def_NodeFail_clr,argv[3],20);
-			Nam802_15_4::def_NodeFail_clr[20] = 0;
-		}
-		return (TCL_OK);
-	}
-	else if (strcmp(argv[2], "PlaybackRate") == 0)
-	{
-		if (argc == 3)
-			tcl.result("??");
-		else if (argc >= 4)
-			Nam802_15_4::changePlaybackRate(CURRENT_TIME,argv[3]);
-		return (TCL_OK);
-	}
-	else if (strcmp(argv[2], "FlowClr") == 0)
-	{
-		int i,lp,src,dst;
-		char pName[21],cName[21];
-		ATTRIBUTELINK *attr;
+			int i,lp,src,dst;
+			char pName[21],cName[21];
+			ATTRIBUTELINK *attr;
 
-		src = -2;
-		dst = -2;
-		strcpy(pName,packet_info.name(PT_NTYPE));
-		lp = (argc - 3) / 2;
-		for (i=0;i<lp;i++)
-		{
-			if (strcmp(argv[i*2+3],"-p") == 0)
+			src = -2;
+			dst = -2;
+			strcpy(pName,packet_info.name(PT_NTYPE));
+			lp = (argc - 3) / 2;
+			for (i=0;i<lp;i++)
 			{
-				strncpy(pName,argv[i*2+4],20);
-				pName[20] = 0;
+				if (strcmp(argv[i*2+3],"-p") == 0)
+				{
+					strncpy(pName,argv[i*2+4],20);
+					pName[20] = 0;
+				}
+				else if (strcmp(argv[i*2+3],"-s") == 0)
+					src = atoi(argv[i*2+4]);
+				else if (strcmp(argv[i*2+3],"-d") == 0)
+					dst = atoi(argv[i*2+4]);
+				else if (strcmp(argv[i*2+3],"-c") == 0)
+				{
+					strncpy(cName,argv[i*2+4],20);
+					cName[20] = 0;
+				}
 			}
-			else if (strcmp(argv[i*2+3],"-s") == 0)
-				src = atoi(argv[i*2+4]);
-			else if (strcmp(argv[i*2+3],"-d") == 0)
-				dst = atoi(argv[i*2+4]);
-			else if (strcmp(argv[i*2+3],"-c") == 0)
+			i = chkAddAttrLink(nam_pktName2Type(pName),cName,src,dst);
+			if (i == 1)		//already exist
 			{
-				strncpy(cName,argv[i*2+4],20);
-				cName[20] = 0;
+				attr = findAttrLink(nam_pktName2Type(pName),src,dst);
+				if (strcmp(attr->color,cName) != 0)	//color changed
+				{
+					strncpy(attr->color,cName,20);
+					attr->color[20] = 0;
+					Nam802_15_4::flowAttribute(attr->attribute,attr->color);
+				}
+
 			}
-		}
-		i = chkAddAttrLink(nam_pktName2Type(pName),cName,src,dst);
-		if (i == 1)		//already exist
-		{
-			attr = findAttrLink(nam_pktName2Type(pName),src,dst);
-			if (strcmp(attr->color,cName) != 0)	//color changed
+			else if (i == 0)	//added into the link
 			{
-				strncpy(attr->color,cName,20);
-				attr->color[20] = 0;
+				attr = findAttrLink(nam_pktName2Type(pName),src,dst);
 				Nam802_15_4::flowAttribute(attr->attribute,attr->color);
 			}
-			
+			return (TCL_OK);
 		}
-		else if (i == 0)	//added into the link
-		{
-			attr = findAttrLink(nam_pktName2Type(pName),src,dst);
-			Nam802_15_4::flowAttribute(attr->attribute,attr->color);
-		}
-		return (TCL_OK);
 	}
-
 
 	return TclClass::method(ac, av);
 }
 
 Mac802_15_4::Mac802_15_4(MAC_PIB *mp) : Mac(),
-txCmdDataH(this,macTxBcnCmdDataHType),
-IFSH(this,macIFSHType),
-backoffBoundH(this,macBackoffBoundType)
+	txCmdDataH(this,macTxBcnCmdDataHType),
+	IFSH(this,macIFSHType),
+	backoffBoundH(this,macBackoffBoundType)
 {
 	capability.cap = 0xc1;		//alterPANCoor = true
-					//FFD = true
-					//mainsPower = false
-					//recvOnWhenIdle = false
-					//secuCapable = false
-					//alloShortAddr = true
+	//FFD = true
+	//mainsPower = false
+	//recvOnWhenIdle = false
+	//secuCapable = false
+	//alloShortAddr = true
 	capability.parse();
 	aExtendedAddress = index_;
 	oneMoreBeacon = false;
@@ -444,20 +447,20 @@ backoffBoundH(this,macBackoffBoundType)
 Mac802_15_4::~Mac802_15_4()
 {
 	/*for some reason,this function sometimes is called with <index_> beyond the scope (ns2 bug?)
-	delete txOverT;
-	delete txT;
-	delete extractT;
-	delete assoRspWaitT;
-	delete dataWaitT;
-	delete rxEnableT;
-	delete scanT;
-	delete bcnTxT;
-	delete bcnRxT;
-	delete bcnSearchT;
-	delete csmaca;
-	delete sscs;
-	delete nam;
-	*/
+	  delete txOverT;
+	  delete txT;
+	  delete extractT;
+	  delete assoRspWaitT;
+	  delete dataWaitT;
+	  delete rxEnableT;
+	  delete scanT;
+	  delete bcnTxT;
+	  delete bcnRxT;
+	  delete bcnSearchT;
+	  delete csmaca;
+	  delete sscs;
+	  delete nam;
+	  */
 }
 
 void Mac802_15_4::init(bool reset)
@@ -540,23 +543,23 @@ void Mac802_15_4::PLME_ED_confirm(PHYenum status,UINT_8 EnergyLevel)
 void Mac802_15_4::PLME_GET_confirm(PHYenum status,PPIBAenum PIBAttribute,PHY_PIB *PIBAttributeValue)
 {
 	if (status == p_SUCCESS)
-	switch(PIBAttribute)
-	{
-		case phyCurrentChannel:
-			tmp_ppib.phyCurrentChannel = PIBAttributeValue->phyCurrentChannel;
-			break;
-		case phyChannelsSupported:
-			tmp_ppib.phyChannelsSupported = PIBAttributeValue->phyChannelsSupported;
-			break;
-		case phyTransmitPower:
-			tmp_ppib.phyTransmitPower = PIBAttributeValue->phyTransmitPower;
-			break;
-		case phyCCAMode:
-			tmp_ppib.phyCCAMode = PIBAttributeValue->phyCCAMode;
-			break;
-		default:
-			break;
-	}
+		switch(PIBAttribute)
+		{
+			case phyCurrentChannel:
+				tmp_ppib.phyCurrentChannel = PIBAttributeValue->phyCurrentChannel;
+				break;
+			case phyChannelsSupported:
+				tmp_ppib.phyChannelsSupported = PIBAttributeValue->phyChannelsSupported;
+				break;
+			case phyTransmitPower:
+				tmp_ppib.phyTransmitPower = PIBAttributeValue->phyTransmitPower;
+				break;
+			case phyCCAMode:
+				tmp_ppib.phyCCAMode = PIBAttributeValue->phyCCAMode;
+				break;
+			default:
+				break;
+		}
 }
 
 void Mac802_15_4::PLME_SET_TRX_STATE_confirm(PHYenum status)
@@ -588,14 +591,14 @@ void Mac802_15_4::PLME_SET_TRX_STATE_confirm(PHYenum status)
 	{
 		/* to synchronize better, we don't transmit the beacon here
 #ifdef DEBUG802_15_4
-		fprintf(stdout,"[%s::%s][%f](node %d) transmit BEACON to %d: SN = %d, uid = %d, mac_uid = %ld\n",__FILE__,__FUNCTION__,CURRENT_TIME,index_,p802_15_4macDA(txBeacon),HDR_LRWPAN(txBeacon)->MHR_BDSN,HDR_CMN(txBeacon)->uid(),HDR_LRWPAN(txBeacon)->uid);
+fprintf(stdout,"[%s::%s][%f](node %d) transmit BEACON to %d: SN = %d, uid = %d, mac_uid = %ld\n",__FILE__,__FUNCTION__,CURRENT_TIME,index_,p802_15_4macDA(txBeacon),HDR_LRWPAN(txBeacon)->MHR_BDSN,HDR_CMN(txBeacon)->uid(),HDR_LRWPAN(txBeacon)->uid);
 #endif
-		if (!taskP.taskStatus(TP_mlme_start_request))	//not first beacon
-			assert((!txAck)&&(!txCsmaca));		//all tasks should be done before next beacon
-		txPkt = txBeacon;
-		HDR_CMN(txBeacon)->direction() = hdr_cmn::DOWN;
-		sendDown(txBeacon->refcopy(),this);
-		*/
+if (!taskP.taskStatus(TP_mlme_start_request))	//not first beacon
+assert((!txAck)&&(!txCsmaca));		//all tasks should be done before next beacon
+txPkt = txBeacon;
+HDR_CMN(txBeacon)->direction() = hdr_cmn::DOWN;
+sendDown(txBeacon->refcopy(),this);
+*/
 	}
 	else if (txAck)
 	{
@@ -622,16 +625,16 @@ void Mac802_15_4::PLME_SET_confirm(PHYenum status,PPIBAenum PIBAttribute)
 }
 
 void Mac802_15_4::MCPS_DATA_request(UINT_8 SrcAddrMode,UINT_16 SrcPANId,IE3ADDR SrcAddr,
-				    UINT_8 DstAddrMode,UINT_16 DstPANId,IE3ADDR DstAddr,
-				    UINT_8 msduLength,Packet *msdu,UINT_8 msduHandle,UINT_8 TxOptions)
+		UINT_8 DstAddrMode,UINT_16 DstPANId,IE3ADDR DstAddr,
+		UINT_8 msduLength,Packet *msdu,UINT_8 msduHandle,UINT_8 TxOptions)
 {
 	mcps_data_request(SrcAddrMode,SrcPANId,SrcAddr,DstAddrMode,DstPANId,DstAddr,msduLength,msdu,msduHandle,TxOptions,true);
 }
 
 void Mac802_15_4::MCPS_DATA_indication(UINT_8 SrcAddrMode,UINT_16 SrcPANId,IE3ADDR SrcAddr,
-				       UINT_8 DstAddrMode,UINT_16 DstPANId,IE3ADDR DstAddr,
-				       UINT_8 msduLength,Packet *msdu,UINT_8 mpduLinkQuality,
-				       bool SecurityUse,UINT_8 ACLEntry)
+		UINT_8 DstAddrMode,UINT_16 DstPANId,IE3ADDR DstAddr,
+		UINT_8 msduLength,Packet *msdu,UINT_8 mpduLinkQuality,
+		bool SecurityUse,UINT_8 ACLEntry)
 {
 	HDR_CMN(msdu)->num_forwards() += 1;
 
@@ -646,7 +649,7 @@ void Mac802_15_4::MCPS_DATA_indication(UINT_8 SrcAddrMode,UINT_16 SrcPANId,IE3AD
 
 void Mac802_15_4::MCPS_PURGE_request(UINT_8 msduHandle)
 {
-	
+
 	int i;
 	MACenum t_status;
 
@@ -656,7 +659,7 @@ void Mac802_15_4::MCPS_PURGE_request(UINT_8 msduHandle)
 }
 
 void Mac802_15_4::MLME_ASSOCIATE_request(UINT_8 LogicalChannel,UINT_8 CoordAddrMode,UINT_16 CoordPANId,IE3ADDR CoordAddress,
-					 UINT_8 CapabilityInformation,bool SecurityEnable)
+		UINT_8 CapabilityInformation,bool SecurityEnable)
 {
 	mlme_associate_request(LogicalChannel,CoordAddrMode,CoordPANId,CoordAddress,CapabilityInformation,SecurityEnable,true);
 }
@@ -678,7 +681,7 @@ void Mac802_15_4::MLME_DISASSOCIATE_indication(IE3ADDR DeviceAddress,UINT_8 Disa
 void Mac802_15_4::MLME_GET_request(MPIBAenum PIBAttribute)
 {
 	MACenum t_status;
-	
+
 	switch(PIBAttribute)
 	{
 		case macAckWaitDuration:
@@ -728,7 +731,7 @@ void Mac802_15_4::MLME_GTS_confirm(UINT_8 GTSCharacteristics,MACenum status)
 }
 
 void Mac802_15_4::MLME_GTS_indication(UINT_16 DevAddress,UINT_8 GTSCharacteristics,
-				      bool SecurityUse, UINT_8 ACLEntry)
+		bool SecurityUse, UINT_8 ACLEntry)
 {
 }
 
@@ -761,101 +764,173 @@ void Mac802_15_4::MLME_SET_request(MPIBAenum PIBAttribute,MAC_PIB *PIBAttributeV
 	switch(PIBAttribute)
 	{
 		case macAckWaitDuration:
-			phy->PLME_GET_request(phyCurrentChannel);	//value will be returned in tmp_ppib
-			if ((tmp_ppib.phyCurrentChannel <= 10)&&(PIBAttributeValue->macAckWaitDuration != 120)
-			 || (tmp_ppib.phyCurrentChannel > 10)&&(PIBAttributeValue->macAckWaitDuration != 54))
-				t_status = m_INVALID_PARAMETER;
-			else
-				mpib.macAckWaitDuration = PIBAttributeValue->macAckWaitDuration;
-			break;
+			{
+				phy->PLME_GET_request(phyCurrentChannel);	//value will be returned in tmp_ppib
+				if (((tmp_ppib.phyCurrentChannel <= 10)&&(PIBAttributeValue->macAckWaitDuration != 120))
+						|| ((tmp_ppib.phyCurrentChannel > 10)&&(PIBAttributeValue->macAckWaitDuration != 54)))
+				{
+					t_status = m_INVALID_PARAMETER;
+				}
+				else
+				{
+					mpib.macAckWaitDuration = PIBAttributeValue->macAckWaitDuration;
+				}
+				break;
+			}
 		case macAssociationPermit:
+			{
 				mpib.macAssociationPermit = PIBAttributeValue->macAssociationPermit;
-			break;
+				break;
+			}
 		case macAutoRequest:
+			{
 				mpib.macAutoRequest = PIBAttributeValue->macAutoRequest;
-			break;
+				break;
+			}
 		case macBattLifeExt:
+			{
 				mpib.macBattLifeExt = PIBAttributeValue->macBattLifeExt;
-			break;
+				break;
+			}
 		case macBattLifeExtPeriods:
-			phy->PLME_GET_request(phyCurrentChannel);	//value will be returned in tmp_ppib
-			if ((tmp_ppib.phyCurrentChannel <= 10)&&(PIBAttributeValue->macBattLifeExtPeriods != 8)
-			 || (tmp_ppib.phyCurrentChannel > 10)&&(PIBAttributeValue->macBattLifeExtPeriods != 6))
-				t_status = m_INVALID_PARAMETER;
-			else
-				mpib.macBattLifeExtPeriods = PIBAttributeValue->macBattLifeExtPeriods;
-			break;
+			{
+				phy->PLME_GET_request(phyCurrentChannel);	//value will be returned in tmp_ppib
+				if (((tmp_ppib.phyCurrentChannel <= 10)&&(PIBAttributeValue->macBattLifeExtPeriods != 8))
+						|| ((tmp_ppib.phyCurrentChannel > 10)&&(PIBAttributeValue->macBattLifeExtPeriods != 6)))
+				{
+					t_status = m_INVALID_PARAMETER;
+				}
+				else
+				{
+					mpib.macBattLifeExtPeriods = PIBAttributeValue->macBattLifeExtPeriods;
+				}
+				break;
+			}
 		case macBeaconPayload:
+			{
 				//<macBeaconPayloadLength> should be set first
 				memcpy(mpib.macBeaconPayload,PIBAttributeValue->macBeaconPayload,mpib.macBeaconPayloadLength);
-			break;
+				break;
+			}
 		case macBeaconPayloadLength:
-			if (PIBAttributeValue->macBeaconPayloadLength > aMaxBeaconPayloadLength)
-				t_status = m_INVALID_PARAMETER;
-			else
-				mpib.macBeaconPayloadLength = PIBAttributeValue->macBeaconPayloadLength;
-			break;
+			{
+				if (PIBAttributeValue->macBeaconPayloadLength > aMaxBeaconPayloadLength)
+				{
+					t_status = m_INVALID_PARAMETER;
+				}
+				else
+				{
+					mpib.macBeaconPayloadLength = PIBAttributeValue->macBeaconPayloadLength;
+				}
+				break;
+			}
 		case macBeaconOrder:
-			if (PIBAttributeValue->macBeaconOrder > 15)
-				t_status = m_INVALID_PARAMETER;
-			else
-				mpib.macBeaconOrder = PIBAttributeValue->macBeaconOrder;
-			break;
+			{
+				if (PIBAttributeValue->macBeaconOrder > 15)
+				{
+					t_status = m_INVALID_PARAMETER;
+				}
+				else
+				{
+					mpib.macBeaconOrder = PIBAttributeValue->macBeaconOrder;
+				}
+				break;
+			}
 		case macBeaconTxTime:
-			mpib.macBeaconTxTime = PIBAttributeValue->macBeaconTxTime;
-			break;
+			{
+				mpib.macBeaconTxTime = PIBAttributeValue->macBeaconTxTime;
+				break;
+			}
 		case macBSN:
-			mpib.macBSN = PIBAttributeValue->macBSN;
-			break;
+			{
+				mpib.macBSN = PIBAttributeValue->macBSN;
+				break;
+			}
 		case macCoordExtendedAddress:
-			mpib.macCoordExtendedAddress = PIBAttributeValue->macCoordExtendedAddress;
-			break;
+			{
+				mpib.macCoordExtendedAddress = PIBAttributeValue->macCoordExtendedAddress;
+				break;
+			}
 		case macCoordShortAddress:
-			mpib.macCoordShortAddress = PIBAttributeValue->macCoordShortAddress;
-			break;
+			{
+				mpib.macCoordShortAddress = PIBAttributeValue->macCoordShortAddress;
+				break;
+			}
 		case macDSN:
-			mpib.macDSN = PIBAttributeValue->macDSN;
-			break;
+			{
+				mpib.macDSN = PIBAttributeValue->macDSN;
+				break;
+			}
 		case macGTSPermit:
-			mpib.macGTSPermit = PIBAttributeValue->macGTSPermit;
-			break;
+			{
+				mpib.macGTSPermit = PIBAttributeValue->macGTSPermit;
+				break;
+			}
 		case macMaxCSMABackoffs:
-			if (PIBAttributeValue->macMaxCSMABackoffs > 5)
-				t_status = m_INVALID_PARAMETER;
-			else
-				mpib.macMaxCSMABackoffs = PIBAttributeValue->macMaxCSMABackoffs;
-			break;
+			{
+				if (PIBAttributeValue->macMaxCSMABackoffs > 5)
+				{
+					t_status = m_INVALID_PARAMETER;
+				}
+				else
+				{
+					mpib.macMaxCSMABackoffs = PIBAttributeValue->macMaxCSMABackoffs;
+				}
+				break;
+			}
 		case macMinBE:
-			if (PIBAttributeValue->macMinBE > 3)
-				t_status = m_INVALID_PARAMETER;
-			else
-				mpib.macMinBE = PIBAttributeValue->macMinBE;
-			break;
+			{
+				if (PIBAttributeValue->macMinBE > 3)
+				{
+					t_status = m_INVALID_PARAMETER;
+				}
+				else
+				{
+					mpib.macMinBE = PIBAttributeValue->macMinBE;
+				}
+				break;
+			}
 		case macPANId:
-			mpib.macPANId = PIBAttributeValue->macPANId;
-			break;
+			{
+				mpib.macPANId = PIBAttributeValue->macPANId;
+				break;
+			}
 		case macPromiscuousMode:
-			mpib.macPromiscuousMode = PIBAttributeValue->macPromiscuousMode;
-			//some other operations (refer to sec. 7.5.6.6)
-			mpib.macRxOnWhenIdle = PIBAttributeValue->macPromiscuousMode;
-			p_state = mpib.macRxOnWhenIdle?p_RX_ON:p_TRX_OFF;
-			phy->PLME_SET_TRX_STATE_request(p_state);
-			break;
+			{
+				mpib.macPromiscuousMode = PIBAttributeValue->macPromiscuousMode;
+				//some other operations (refer to sec. 7.5.6.6)
+				mpib.macRxOnWhenIdle = PIBAttributeValue->macPromiscuousMode;
+				p_state = mpib.macRxOnWhenIdle?p_RX_ON:p_TRX_OFF;
+				phy->PLME_SET_TRX_STATE_request(p_state);
+				break;
+			}
 		case macRxOnWhenIdle:
-			mpib.macRxOnWhenIdle = PIBAttributeValue->macRxOnWhenIdle;
-			break;
+			{
+				mpib.macRxOnWhenIdle = PIBAttributeValue->macRxOnWhenIdle;
+				break;
+			}
 		case macShortAddress:
-			mpib.macShortAddress = PIBAttributeValue->macShortAddress;
-			break;
+			{
+				mpib.macShortAddress = PIBAttributeValue->macShortAddress;
+				break;
+			}
 		case macSuperframeOrder:
-			if (PIBAttributeValue->macSuperframeOrder > 15)
-				t_status = m_INVALID_PARAMETER;
-			else
-				mpib.macSuperframeOrder = PIBAttributeValue->macSuperframeOrder;
-			break;
+			{
+				if (PIBAttributeValue->macSuperframeOrder > 15)
+				{
+					t_status = m_INVALID_PARAMETER;
+				}
+				else
+				{
+					mpib.macSuperframeOrder = PIBAttributeValue->macSuperframeOrder;
+				}
+				break;
+			}
 		case macTransactionPersistenceTime:
-			mpib.macTransactionPersistenceTime = PIBAttributeValue->macTransactionPersistenceTime;
-			break;
+			{
+				mpib.macTransactionPersistenceTime = PIBAttributeValue->macTransactionPersistenceTime;
+				break;
+			}
 		case macACLEntryDescriptorSet:
 		case macACLEntryDescriptorSetSize:
 		case macDefaultSecurity:
@@ -863,17 +938,21 @@ void Mac802_15_4::MLME_SET_request(MPIBAenum PIBAttribute,MAC_PIB *PIBAttributeV
 		case macDefaultSecurityMaterial:
 		case macDefaultSecuritySuite:
 		case macSecurityMode:
-			break;		//currently security ignored in simulation
+			{
+				break;		//currently security ignored in simulation
+			}
 		default:
-			t_status = m_UNSUPPORTED_ATTRIBUTE;
-			break;
+			{
+				t_status = m_UNSUPPORTED_ATTRIBUTE;
+				break;
+			}
 	}
 	sscs->MLME_SET_confirm(t_status,PIBAttribute);
 }
 
 void Mac802_15_4::MLME_START_request(UINT_16 PANId,UINT_8 LogicalChannel,UINT_8 BeaconOrder,
-				     UINT_8 SuperframeOrder,bool PANCoordinator,bool BatteryLifeExtension,
-				     bool CoordRealignment,bool SecurityEnable)
+		UINT_8 SuperframeOrder,bool PANCoordinator,bool BatteryLifeExtension,
+		bool CoordRealignment,bool SecurityEnable)
 {
 	mlme_start_request(PANId,LogicalChannel,BeaconOrder,SuperframeOrder,PANCoordinator,BatteryLifeExtension,CoordRealignment,SecurityEnable,true);
 }
@@ -948,24 +1027,30 @@ void Mac802_15_4::recv(Packet *p, Handler *h)
 #endif
 		}
 		/* SSCS should call MCPS_DATA_request() directly
-		if (from SSCS)
-		{
-			MCPS_DATA_request(wph->SrcAddrMode,wph->SrcPANId,wph->SrcAddr,
-					  wph->DstAddrMode,wph->DstPANId,wph->DstAddr,
-					  ch->size(),p,wph->msduHandle,wph->TxOptions);
-		}
-		else	//802.15.4-unaware upper layer app. packet
-		*/
+		   if (from SSCS)
+		   {
+		   MCPS_DATA_request(wph->SrcAddrMode,wph->SrcPANId,wph->SrcAddr,
+		   wph->DstAddrMode,wph->DstPANId,wph->DstAddr,
+		   ch->size(),p,wph->msduHandle,wph->TxOptions);
+		   }
+		   else	//802.15.4-unaware upper layer app. packet
+		   */
 		{
 			callback_ = h;
 			if (p802_15_4macDA(p) == (nsaddr_t)MAC_BROADCAST)
+			{
 				txop = 0;
+			}
 			else
 			{
 				if (Mac802_15_4::ack4data)
+				{
 					txop = TxOp_Acked;
+				}
 				else
+				{
 					txop = 0;
+				}
 				txop |= Mac802_15_4::txOption;
 			}
 			wph->msduHandle = 0;
@@ -985,32 +1070,34 @@ void Mac802_15_4::recv(Packet *p, Handler *h)
 		frmCtrl.FrmCtrl = wph->MHR_FrmCtrl;
 		frmCtrl.parse();
 		if (taskP.taskStatus(TP_mlme_scan_request))
-		if (taskP.mlme_scan_request_ScanType == 0x00)		//ED scan
 		{
+			if (taskP.mlme_scan_request_ScanType == 0x00)		//ED scan
+			{
 #ifdef DEBUG802_15_4
-			fprintf(stdout,"[D][ED][%s::%s::%d][%f](node %d) dropping pkt: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",__FILE__,__FUNCTION__,__LINE__,CURRENT_TIME,index_,wpan_pName(p),p802_15_4macSA(p),p802_15_4macDA(p),ch->uid(),wph->uid,ch->size());
+				fprintf(stdout,"[D][ED][%s::%s::%d][%f](node %d) dropping pkt: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",__FILE__,__FUNCTION__,__LINE__,CURRENT_TIME,index_,wpan_pName(p),p802_15_4macSA(p),p802_15_4macDA(p),ch->uid(),wph->uid,ch->size());
 #endif
-			drop(p,"ED");
-			return;
-		}
-		else if (((taskP.mlme_scan_request_ScanType == 0x01)	//Active scan
-		        ||(taskP.mlme_scan_request_ScanType == 0x02))	//Passive scan
-		     && (frmCtrl.frmType != defFrmCtrl_Type_Beacon))
-		{
+				drop(p,"ED");
+				return;
+			}
+			else if (((taskP.mlme_scan_request_ScanType == 0x01)	//Active scan
+						||(taskP.mlme_scan_request_ScanType == 0x02))	//Passive scan
+					&& (frmCtrl.frmType != defFrmCtrl_Type_Beacon))
+			{
 #ifdef DEBUG802_15_4
-			fprintf(stdout,"[D][APS][%s::%s::%d][%f](node %d) dropping pkt: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",__FILE__,__FUNCTION__,__LINE__,CURRENT_TIME,index_,wpan_pName(p),p802_15_4macSA(p),p802_15_4macDA(p),ch->uid(),wph->uid,ch->size());
+				fprintf(stdout,"[D][APS][%s::%s::%d][%f](node %d) dropping pkt: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",__FILE__,__FUNCTION__,__LINE__,CURRENT_TIME,index_,wpan_pName(p),p802_15_4macSA(p),p802_15_4macDA(p),ch->uid(),wph->uid,ch->size());
 #endif
-			drop(p,"APS");
-			return;
-		}
-		else if ((taskP.mlme_scan_request_ScanType == 0x03)	//Orphan scan
-		     && ((frmCtrl.frmType != defFrmCtrl_Type_MacCmd)||(wph->MSDU_CmdType != 0x08)))
-		{
+				drop(p,"APS");
+				return;
+			}
+			else if ((taskP.mlme_scan_request_ScanType == 0x03)	//Orphan scan
+					&& ((frmCtrl.frmType != defFrmCtrl_Type_MacCmd)||(wph->MSDU_CmdType != 0x08)))
+			{
 #ifdef DEBUG802_15_4
-			fprintf(stdout,"[D][OPH][%s::%s::%d][%f](node %d) dropping pkt: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",__FILE__,__FUNCTION__,__LINE__,CURRENT_TIME,index_,wpan_pName(p),p802_15_4macSA(p),p802_15_4macDA(p),ch->uid(),wph->uid,ch->size());
+				fprintf(stdout,"[D][OPH][%s::%s::%d][%f](node %d) dropping pkt: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",__FILE__,__FUNCTION__,__LINE__,CURRENT_TIME,index_,wpan_pName(p),p802_15_4macSA(p),p802_15_4macDA(p),ch->uid(),wph->uid,ch->size());
 #endif
-			drop(p,"OPH");
-			return;
+				drop(p,"OPH");
+				return;
+			}
 		}
 
 		//drop the packet if corrupted
@@ -1024,16 +1111,16 @@ void Mac802_15_4::recv(Packet *p, Handler *h)
 		}
 		//drop the packet if the link quality is too bad (basically, collisions)
 		if ((wph->rxTotPower-p->txinfo_.RxPr) > 0.0)
-		if (p->txinfo_.RxPr/(wph->rxTotPower-p->txinfo_.RxPr) < p->txinfo_.CPThresh)
-		{
+			if (p->txinfo_.RxPr/(wph->rxTotPower-p->txinfo_.RxPr) < p->txinfo_.CPThresh)
+			{
 #ifdef DEBUG802_15_4
-			fprintf(stdout,"[D][LQI][%s::%s::%d][%f](node %d) dropping pkt: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",__FILE__,__FUNCTION__,__LINE__,CURRENT_TIME,index_,wpan_pName(p),p802_15_4macSA(p),p802_15_4macDA(p),ch->uid(),wph->uid,ch->size());
+				fprintf(stdout,"[D][LQI][%s::%s::%d][%f](node %d) dropping pkt: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",__FILE__,__FUNCTION__,__LINE__,CURRENT_TIME,index_,wpan_pName(p),p802_15_4macSA(p),p802_15_4macDA(p),ch->uid(),wph->uid,ch->size());
 #endif
-			if (!wph->colFlag)	
-				nam->flashNodeColor(CURRENT_TIME);
-			drop(p,"LQI");
-			return;
-		}
+				if (!wph->colFlag)	
+					nam->flashNodeColor(CURRENT_TIME);
+				drop(p,"LQI");
+				return;
+			}
 
 		if (frmCtrl.frmType == defFrmCtrl_Type_Beacon)
 		{
@@ -1054,75 +1141,24 @@ void Mac802_15_4::recv(Packet *p, Handler *h)
 		//---perform filtering (refer to sec. 7.5.6.2)---
 		//drop the packet if FCS is not correct (ignored in simulation)
 		if (ch->ptype() == PT_MAC)	//perform further filtering only if it is an 802.15.4 packet
-		if (!mpib.macPromiscuousMode)	//perform further filtering only if the PAN is currently not in promiscuous mode
-		{
-			//check packet type
-			if ((frmCtrl.frmType != defFrmCtrl_Type_Beacon)
-			  &&(frmCtrl.frmType != defFrmCtrl_Type_Data)
-			  &&(frmCtrl.frmType != defFrmCtrl_Type_Ack)
-			  &&(frmCtrl.frmType != defFrmCtrl_Type_MacCmd))
+			if (!mpib.macPromiscuousMode)	//perform further filtering only if the PAN is currently not in promiscuous mode
 			{
-#ifdef DEBUG802_15_4
-				fprintf(stdout,"[D][TYPE][%s::%s::%d][%f](node %d) dropping pkt: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",__FILE__,__FUNCTION__,__LINE__,CURRENT_TIME,index_,wpan_pName(p),p802_15_4macSA(p),p802_15_4macDA(p),ch->uid(),wph->uid,ch->size());
-#endif
-				drop(p,"TYPE");
-				return;
-			}
-			//check source PAN ID for beacon frame
-			if ((frmCtrl.frmType == defFrmCtrl_Type_Beacon)
-			  &&(mpib.macPANId != 0xffff)
-			  &&(wph->MHR_SrcAddrInfo.panID != mpib.macPANId))
-			{
-#ifdef DEBUG802_15_4
-				fprintf(stdout,"[D][PAN][%s::%s::%d][%f](node %d) dropping pkt: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",__FILE__,__FUNCTION__,__LINE__,CURRENT_TIME,index_,wpan_pName(p),p802_15_4macSA(p),p802_15_4macDA(p),ch->uid(),wph->uid,ch->size());
-#endif
-				drop(p,"PAN");
-				return;
-			}
-			//check dest. PAN ID if it is included
-			if ((frmCtrl.dstAddrMode == defFrmCtrl_AddrMode16)
-			  ||(frmCtrl.dstAddrMode == defFrmCtrl_AddrMode64))
-			if ((wph->MHR_DstAddrInfo.panID != 0xffff)
-			  &&(wph->MHR_DstAddrInfo.panID != mpib.macPANId))
-			{
-#ifdef DEBUG802_15_4
-				fprintf(stdout,"[D][PAN][%s::%s::%d][%f](node %d) dropping pkt: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",__FILE__,__FUNCTION__,__LINE__,CURRENT_TIME,index_,wpan_pName(p),p802_15_4macSA(p),p802_15_4macDA(p),ch->uid(),wph->uid,ch->size());
-#endif
-				drop(p,"PAN");
-				return;
-			}
-			//check dest. address if it is included
-			if (frmCtrl.dstAddrMode == defFrmCtrl_AddrMode16)
-			{
-				if ((wph->MHR_DstAddrInfo.addr_16 != 0xffff)
-				 && (wph->MHR_DstAddrInfo.addr_16 != mpib.macShortAddress))
+				//check packet type
+				if ((frmCtrl.frmType != defFrmCtrl_Type_Beacon)
+						&&(frmCtrl.frmType != defFrmCtrl_Type_Data)
+						&&(frmCtrl.frmType != defFrmCtrl_Type_Ack)
+						&&(frmCtrl.frmType != defFrmCtrl_Type_MacCmd))
 				{
 #ifdef DEBUG802_15_4
-					fprintf(stdout,"[D][ADR][%s::%s::%d][%f](node %d) dropping pkt: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",__FILE__,__FUNCTION__,__LINE__,CURRENT_TIME,index_,wpan_pName(p),p802_15_4macSA(p),p802_15_4macDA(p),ch->uid(),wph->uid,ch->size());
+					fprintf(stdout,"[D][TYPE][%s::%s::%d][%f](node %d) dropping pkt: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",__FILE__,__FUNCTION__,__LINE__,CURRENT_TIME,index_,wpan_pName(p),p802_15_4macSA(p),p802_15_4macDA(p),ch->uid(),wph->uid,ch->size());
 #endif
-					drop(p,"ADR");
+					drop(p,"TYPE");
 					return;
 				}
-
-			}
-			else if (frmCtrl.dstAddrMode == defFrmCtrl_AddrMode64)
-			{
-				if (wph->MHR_DstAddrInfo.addr_64 != aExtendedAddress)
-				{
-#ifdef DEBUG802_15_4
-					fprintf(stdout,"[D][ADR][%s::%s::%d][%f](node %d) dropping pkt: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",__FILE__,__FUNCTION__,__LINE__,CURRENT_TIME,index_,wpan_pName(p),p802_15_4macSA(p),p802_15_4macDA(p),ch->uid(),wph->uid,ch->size());
-#endif
-					drop(p,"ADR");
-					return;
-				}
-			}
-			//check for Data/MacCmd frame only w/ source address
-			if ((frmCtrl.frmType == defFrmCtrl_Type_Data)
-			  ||(frmCtrl.frmType == defFrmCtrl_Type_MacCmd))
-			if (frmCtrl.dstAddrMode == defFrmCtrl_AddrModeNone)
-			{
-				if (((!capability.FFD)||(numberDeviceLink(&deviceLink1) == 0))	//I am not a coordinator
-				  ||(wph->MHR_SrcAddrInfo.panID != mpib.macPANId))
+				//check source PAN ID for beacon frame
+				if ((frmCtrl.frmType == defFrmCtrl_Type_Beacon)
+						&&(mpib.macPANId != 0xffff)
+						&&(wph->MHR_SrcAddrInfo.panID != mpib.macPANId))
 				{
 #ifdef DEBUG802_15_4
 					fprintf(stdout,"[D][PAN][%s::%s::%d][%f](node %d) dropping pkt: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",__FILE__,__FUNCTION__,__LINE__,CURRENT_TIME,index_,wpan_pName(p),p802_15_4macSA(p),p802_15_4macDA(p),ch->uid(),wph->uid,ch->size());
@@ -1130,82 +1166,141 @@ void Mac802_15_4::recv(Packet *p, Handler *h)
 					drop(p,"PAN");
 					return;
 				}
-			}
-			//we need to add one more filter for supporting multi-hop beacon enabled mode (not in the draft)
-			if (frmCtrl.frmType == defFrmCtrl_Type_Beacon)
-			if (wph->MHR_DstAddrInfo.panID != 0xffff)
-			if ((mpib.macCoordExtendedAddress != wph->MHR_SrcAddrInfo.addr_64)	//ok even for short address (in simulation)
-			&&  (mpib.macCoordExtendedAddress != def_macCoordExtendedAddress))
-			{
+				//check dest. PAN ID if it is included
+				if ((frmCtrl.dstAddrMode == defFrmCtrl_AddrMode16)
+						||(frmCtrl.dstAddrMode == defFrmCtrl_AddrMode64))
+					if ((wph->MHR_DstAddrInfo.panID != 0xffff)
+							&&(wph->MHR_DstAddrInfo.panID != mpib.macPANId))
+					{
 #ifdef DEBUG802_15_4
-				fprintf(stdout,"[D][COO][%s::%s::%d][%f](node %d) dropping pkt: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",__FILE__,__FUNCTION__,__LINE__,CURRENT_TIME,index_,wpan_pName(p),p802_15_4macSA(p),p802_15_4macDA(p),ch->uid(),wph->uid,ch->size());
+						fprintf(stdout,"[D][PAN][%s::%s::%d][%f](node %d) dropping pkt: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",__FILE__,__FUNCTION__,__LINE__,CURRENT_TIME,index_,wpan_pName(p),p802_15_4macSA(p),p802_15_4macDA(p),ch->uid(),wph->uid,ch->size());
 #endif
-				drop(p,"COO");
-				return;
-			}
-		}	//---filtering done---
+						drop(p,"PAN");
+						return;
+					}
+				//check dest. address if it is included
+				if (frmCtrl.dstAddrMode == defFrmCtrl_AddrMode16)
+				{
+					if ((wph->MHR_DstAddrInfo.addr_16 != 0xffff)
+							&& (wph->MHR_DstAddrInfo.addr_16 != mpib.macShortAddress))
+					{
+#ifdef DEBUG802_15_4
+						fprintf(stdout,"[D][ADR][%s::%s::%d][%f](node %d) dropping pkt: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",__FILE__,__FUNCTION__,__LINE__,CURRENT_TIME,index_,wpan_pName(p),p802_15_4macSA(p),p802_15_4macDA(p),ch->uid(),wph->uid,ch->size());
+#endif
+						drop(p,"ADR");
+						return;
+					}
+
+				}
+				else if (frmCtrl.dstAddrMode == defFrmCtrl_AddrMode64)
+				{
+					if (wph->MHR_DstAddrInfo.addr_64 != aExtendedAddress)
+					{
+#ifdef DEBUG802_15_4
+						fprintf(stdout,"[D][ADR][%s::%s::%d][%f](node %d) dropping pkt: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",__FILE__,__FUNCTION__,__LINE__,CURRENT_TIME,index_,wpan_pName(p),p802_15_4macSA(p),p802_15_4macDA(p),ch->uid(),wph->uid,ch->size());
+#endif
+						drop(p,"ADR");
+						return;
+					}
+				}
+				//check for Data/MacCmd frame only w/ source address
+				if ((frmCtrl.frmType == defFrmCtrl_Type_Data)
+						||(frmCtrl.frmType == defFrmCtrl_Type_MacCmd))
+					if (frmCtrl.dstAddrMode == defFrmCtrl_AddrModeNone)
+					{
+						if (((!capability.FFD)||(numberDeviceLink(&deviceLink1) == 0))	//I am not a coordinator
+								||(wph->MHR_SrcAddrInfo.panID != mpib.macPANId))
+						{
+#ifdef DEBUG802_15_4
+							fprintf(stdout,"[D][PAN][%s::%s::%d][%f](node %d) dropping pkt: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",__FILE__,__FUNCTION__,__LINE__,CURRENT_TIME,index_,wpan_pName(p),p802_15_4macSA(p),p802_15_4macDA(p),ch->uid(),wph->uid,ch->size());
+#endif
+							drop(p,"PAN");
+							return;
+						}
+					}
+				//we need to add one more filter for supporting multi-hop beacon enabled mode (not in the draft)
+				if (frmCtrl.frmType == defFrmCtrl_Type_Beacon)
+					if (wph->MHR_DstAddrInfo.panID != 0xffff)
+						if ((mpib.macCoordExtendedAddress != wph->MHR_SrcAddrInfo.addr_64)	//ok even for short address (in simulation)
+								&&  (mpib.macCoordExtendedAddress != def_macCoordExtendedAddress))
+						{
+#ifdef DEBUG802_15_4
+							fprintf(stdout,"[D][COO][%s::%s::%d][%f](node %d) dropping pkt: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",__FILE__,__FUNCTION__,__LINE__,CURRENT_TIME,index_,wpan_pName(p),p802_15_4macSA(p),p802_15_4macDA(p),ch->uid(),wph->uid,ch->size());
+#endif
+							drop(p,"COO");
+							return;
+						}
+			}	//---filtering done---
 
 		//perform security task if required (ignored in simulation)
 
 		//send an acknowledgement if needed (no matter this is a duplicated packet or not)
 		if ((frmCtrl.frmType == defFrmCtrl_Type_Data)
-		  ||(frmCtrl.frmType == defFrmCtrl_Type_MacCmd))
-		if (frmCtrl.ackReq)	//acknowledgement required
+				||(frmCtrl.frmType == defFrmCtrl_Type_MacCmd))
 		{
-			//association request command will be ignored under following cases
-			if ((frmCtrl.frmType == defFrmCtrl_Type_MacCmd)
-			 && (wph->MSDU_CmdType == 0x01))
-			if ((!capability.FFD)			//not an FFD
-			 || (mpib.macShortAddress == 0xffff)	//not yet joined any PAN
-			 || (!macAssociationPermit))		//association not permitted
+			if (frmCtrl.ackReq)	//acknowledgement required
 			{
-				Packet::free(p);
-				return;
-			}
-		
-			noAck = false;
-			if (frmCtrl.frmType == defFrmCtrl_Type_MacCmd)
-			if ((rxCmd)||(txBcnCmd))
-				noAck = true;
-			if (!noAck)
-			{
-				constructACK(p);
-				//stop CSMA-CA if it is pending (it will be restored after the transmission of ACK)
-				if (backoffStatus == 99)
+				//association request command will be ignored under following cases
+				if ((frmCtrl.frmType == defFrmCtrl_Type_MacCmd)
+						&& (wph->MSDU_CmdType == 0x01))
+					if ((!capability.FFD)			//not an FFD
+							|| (mpib.macShortAddress == 0xffff)	//not yet joined any PAN
+							|| (!macAssociationPermit))		//association not permitted
+					{
+						Packet::free(p);
+						return;
+					}
+
+				noAck = false;
+				if (frmCtrl.frmType == defFrmCtrl_Type_MacCmd)
+					if ((rxCmd)||(txBcnCmd))
+						noAck = true;
+				if (!noAck)
 				{
-					backoffStatus = 0;
-					csmaca->cancel();
+					constructACK(p);
+					//stop CSMA-CA if it is pending (it will be restored after the transmission of ACK)
+					if (backoffStatus == 99)
+					{
+						backoffStatus = 0;
+						csmaca->cancel();
+					}
+					plme_set_trx_state_request(p_TX_ON);
 				}
-				plme_set_trx_state_request(p_TX_ON);
+			}
+			else
+			{
+				resetTRX();
 			}
 		}
-		else
-			resetTRX();
 
 		if (frmCtrl.frmType == defFrmCtrl_Type_MacCmd)
-		if ((rxCmd)||(txBcnCmd))
 		{
-#ifdef DEBUG802_15_4
+			if ((rxCmd)||(txBcnCmd))
 			{
-			fprintf(stdout,"[D][BSY][%s::%s::%d][%f](node %d) dropping pkt: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",__FILE__,__FUNCTION__,__LINE__,CURRENT_TIME,index_,wpan_pName(p),p802_15_4macSA(p),p802_15_4macDA(p),ch->uid(),wph->uid,ch->size());
-			if (rxCmd)
-				fprintf(stdout,"\trxCmd pkt: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",wpan_pName(rxCmd),p802_15_4macSA(rxCmd),p802_15_4macDA(rxCmd),HDR_CMN(rxCmd)->uid(),HDR_LRWPAN(rxCmd)->uid,HDR_CMN(rxCmd)->size());
-			if (txBcnCmd)
-				fprintf(stdout,"\ttxBcnCmd pkt: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",wpan_pName(txBcnCmd),p802_15_4macSA(txBcnCmd),p802_15_4macDA(txBcnCmd),HDR_CMN(txBcnCmd)->uid(),HDR_LRWPAN(txBcnCmd)->uid,HDR_CMN(txBcnCmd)->size());
-			}
+#ifdef DEBUG802_15_4
+				{
+					fprintf(stdout,"[D][BSY][%s::%s::%d][%f](node %d) dropping pkt: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",__FILE__,__FUNCTION__,__LINE__,CURRENT_TIME,index_,wpan_pName(p),p802_15_4macSA(p),p802_15_4macDA(p),ch->uid(),wph->uid,ch->size());
+					if (rxCmd)
+						fprintf(stdout,"\trxCmd pkt: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",wpan_pName(rxCmd),p802_15_4macSA(rxCmd),p802_15_4macDA(rxCmd),HDR_CMN(rxCmd)->uid(),HDR_LRWPAN(rxCmd)->uid,HDR_CMN(rxCmd)->size());
+					if (txBcnCmd)
+						fprintf(stdout,"\ttxBcnCmd pkt: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",wpan_pName(txBcnCmd),p802_15_4macSA(txBcnCmd),p802_15_4macDA(txBcnCmd),HDR_CMN(txBcnCmd)->uid(),HDR_LRWPAN(txBcnCmd)->uid,HDR_CMN(txBcnCmd)->size());
+				}
 #endif
-			drop(p,"BSY");
-			return;
+				drop(p,"BSY");
+				return;
+			}
 		}
 
 		if (frmCtrl.frmType == defFrmCtrl_Type_Data)
-		if (rxData)
 		{
+			if (rxData)
+			{
 #ifdef DEBUG802_15_4
-			fprintf(stdout,"[D][BSY][%s::%s::%d][%f](node %d) dropping pkt: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",__FILE__,__FUNCTION__,__LINE__,CURRENT_TIME,index_,wpan_pName(p),p802_15_4macSA(p),p802_15_4macDA(p),ch->uid(),wph->uid,ch->size());
+				fprintf(stdout,"[D][BSY][%s::%s::%d][%f](node %d) dropping pkt: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",__FILE__,__FUNCTION__,__LINE__,CURRENT_TIME,index_,wpan_pName(p),p802_15_4macSA(p),p802_15_4macDA(p),ch->uid(),wph->uid,ch->size());
 #endif
-			drop(p,"BSY");
-			return;
+				drop(p,"BSY");
+				return;
+			}
 		}
 
 		//check duplication -- must be performed AFTER all drop's
@@ -1216,7 +1311,7 @@ void Mac802_15_4::recv(Packet *p, Handler *h)
 		else	//Acknowledgement
 		{
 			assert(txPkt);
-				if (wph->MHR_BDSN != HDR_LRWPAN(txPkt)->MHR_BDSN)
+			if (wph->MHR_BDSN != HDR_LRWPAN(txPkt)->MHR_BDSN)
 				i = 2;
 			else i = 0;
 		}
@@ -1240,7 +1335,7 @@ void Mac802_15_4::recv(Packet *p, Handler *h)
 		//handle the command packet
 		else if (frmCtrl.frmType == defFrmCtrl_Type_MacCmd)
 			recvCommand(p);
-		
+
 		//handle the data packet
 		else if (frmCtrl.frmType == defFrmCtrl_Type_Data)
 		{
@@ -1269,12 +1364,12 @@ void Mac802_15_4::recvBeacon(Packet *p)
 	txtime = phy->trxTime(p);
 
 	/* Linux floating number compatibility
-	macBcnRxTime = (CURRENT_TIME - txtime) * phy->getRate('s');
-	*/
+	   macBcnRxTime = (CURRENT_TIME - txtime) * phy->getRate('s');
+	   */
 	{
-	double tmpf;
-	tmpf = CURRENT_TIME - txtime;
-	macBcnRxTime = tmpf * phy->getRate('s');
+		double tmpf;
+		tmpf = CURRENT_TIME - txtime;
+		macBcnRxTime = tmpf * phy->getRate('s');
 	}
 
 	//calculate <beaconPeriods2>
@@ -1284,16 +1379,16 @@ void Mac802_15_4::recvBeacon(Packet *p)
 		ifs = aMinLIFSPeriod;
 
 	/* Linux floating number compatibility
-	beaconPeriods2 = (UINT_8)((txtime * phy->getRate('s') + ifs) / aUnitBackoffPeriod);
-	*/
+	   beaconPeriods2 = (UINT_8)((txtime * phy->getRate('s') + ifs) / aUnitBackoffPeriod);
+	   */
 	double tmpf;
 	tmpf = txtime * phy->getRate('s');
 	tmpf += ifs;
 	beaconPeriods2 = (UINT_8)(tmpf / aUnitBackoffPeriod);
 
 	/* Linux floating number compatibility
-	if (fmod((txtime * phy->getRate('s')+ ifs) ,aUnitBackoffPeriod) > 0.0)
-	*/
+	   if (fmod((txtime * phy->getRate('s')+ ifs) ,aUnitBackoffPeriod) > 0.0)
+	   */
 	if (fmod(tmpf ,aUnitBackoffPeriod) > 0.0)
 		beaconPeriods2++;
 	//update PAN descriptor
@@ -1315,15 +1410,15 @@ void Mac802_15_4::recvBeacon(Packet *p)
 	panDes2.clusTreeDepth = wph->clusTreeDepth;
 	//handle active and passive channel scans
 	if ((taskP.taskStatus(TP_mlme_scan_request))
-	 || (taskP.taskStatus(TP_mlme_rx_enable_request)))
+			|| (taskP.taskStatus(TP_mlme_rx_enable_request)))
 	{
 		rxBeacon = p;
 		dispatch(p_SUCCESS,__FUNCTION__);
 	}
 
 	if ((mpib.macPANId == 0xffff)
-	|| (mpib.macPANId != panDes2.CoordPANId)
-	|| (taskP.taskStatus(TP_mlme_associate_request)))
+			|| (mpib.macPANId != panDes2.CoordPANId)
+			|| (taskP.taskStatus(TP_mlme_associate_request)))
 	{
 		Packet::free(p);
 		return;		
@@ -1334,16 +1429,16 @@ void Mac802_15_4::recvBeacon(Packet *p)
 	macSuperframeOrder2 = sfSpec2.SO;
 	//populate <macCoordShortAddress> if needed
 	if (mpib.macCoordShortAddress == def_macCoordShortAddress)
-	if (frmCtrl.srcAddrMode == defFrmCtrl_AddrMode16)
-		mpib.macCoordShortAddress = wph->MHR_SrcAddrInfo.addr_16;
+		if (frmCtrl.srcAddrMode == defFrmCtrl_AddrMode16)
+			mpib.macCoordShortAddress = wph->MHR_SrcAddrInfo.addr_16;
 	dispatch(p_SUCCESS,__FUNCTION__);
 	//resume extraction timer if needed
 	extractT->resume();
 	//CSMA-CA may be waiting for the new beacon
 	if (wph->MHR_SrcAddrInfo.panID == mpib.macPANId)
-	if (backoffStatus == 99)
-		csmaca->newBeacon('r');
-	
+		if (backoffStatus == 99)
+			csmaca->newBeacon('r');
+
 	//check if need to notify the upper layer
 	if ((!mpib.macAutoRequest)||(wph->MSDU_PayloadLen > 0))
 		sscs->MLME_BEACON_NOTIFY_indication(wph->MHR_BDSN,&panDes2,wph->MSDU_PendAddrFields.spec,wph->MSDU_PendAddrFields.addrList,wph->MSDU_PayloadLen,wph->MSDU_Payload);
@@ -1362,14 +1457,14 @@ void Mac802_15_4::recvBeacon(Packet *p)
 			}
 		}
 		if (!pending)
-		for (i=0;i<pendSpec.numExtendedAddr;i++)
-		{
-			if (pendSpec.fields.addrList[pendSpec.numShortAddr + i] == aExtendedAddress)
+			for (i=0;i<pendSpec.numExtendedAddr;i++)
 			{
-				pending = true;
-				break;
+				if (pendSpec.fields.addrList[pendSpec.numShortAddr + i] == aExtendedAddress)
+				{
+					pending = true;
+					break;
+				}
 			}
-		}
 
 		if (pending)
 		{
@@ -1406,7 +1501,7 @@ void Mac802_15_4::recvAck(Packet *p)
 		Packet::free(p);
 		return;
 	}
-	
+
 	//check the sequence number in the ack. to see if it matches that in the <txPkt>
 	if (wph->MHR_BDSN != HDR_LRWPAN(txPkt)->MHR_BDSN)
 	{
@@ -1437,14 +1532,14 @@ void Mac802_15_4::recvAck(Packet *p)
 
 	//set pending flag for data polling
 	if (txPkt == txBcnCmd2)
-	if ((taskP.taskStatus(TP_mlme_poll_request))
-	 && (strcmp(taskP.taskFrFunc(TP_mlme_poll_request),__FUNCTION__) == 0))
-	{
-		frmCtrl.FrmCtrl = wph->MHR_FrmCtrl;
-		frmCtrl.parse();
-		taskP.mlme_poll_request_pending = frmCtrl.frmPending;
-	}
-	
+		if ((taskP.taskStatus(TP_mlme_poll_request))
+				&& (strcmp(taskP.taskFrFunc(TP_mlme_poll_request),__FUNCTION__) == 0))
+		{
+			frmCtrl.FrmCtrl = wph->MHR_FrmCtrl;
+			frmCtrl.parse();
+			taskP.mlme_poll_request_pending = frmCtrl.frmPending;
+		}
+
 	dispatch(p_SUCCESS,__FUNCTION__);
 
 	log(p);
@@ -1500,9 +1595,9 @@ void Mac802_15_4::recvCommand(Packet *p)
 			break;
 		case 0x07:	//Beacon request
 			if (capability.FFD						//I am an FFD
-			 && (mpib.macAssociationPermit)					//association permitted
-			 && (mpib.macShortAddress != 0xffff)				//allow to send beacons
-			 && (mpib.macBeaconOrder == 15))				//non-beacon enabled mode
+					&& (mpib.macAssociationPermit)					//association permitted
+					&& (mpib.macShortAddress != 0xffff)				//allow to send beacons
+					&& (mpib.macBeaconOrder == 15))				//non-beacon enabled mode
 			{
 				//send a beacon using unslotted CSMA-CA
 #ifdef DEBUG802_15_4
@@ -1545,7 +1640,7 @@ void Mac802_15_4::recvCommand(Packet *p)
 				hdr_dst((char *)HDR_MAC(txBcnCmd),p802_15_4macSA(p));
 				hdr_src((char *)HDR_MAC(txBcnCmd),index_);
 				HDR_CMN(txBcnCmd)->ptype() = PT_MAC;
-   				//for trace
+				//for trace
 				HDR_CMN(txBcnCmd)->next_hop_ = p802_15_4macDA(txBcnCmd);		//nam needs the nex_hop information
 				p802_15_4hdrBeacon(txBcnCmd);
 				csmacaBegin('c');
@@ -1564,15 +1659,15 @@ void Mac802_15_4::recvCommand(Packet *p)
 				ackReq = true;
 			}
 			else								//broadcasted realignment command
-			if ((wph->MHR_SrcAddrInfo.addr_64 == macCoordExtendedAddress)
-			&& (wph->MHR_SrcAddrInfo.panID == mpib.macPANId))
-			{
-				//no specification in the draft as how to handle this packet, so use our discretion
-				mpib.macPANId = *((UINT_16 *)wph->MSDU_Payload);
-				mpib.macCoordShortAddress = *((UINT_16 *)(wph->MSDU_Payload + 2));
-				tmp_ppib.phyCurrentChannel = wph->MSDU_Payload[4];
-				phy->PLME_SET_request(phyCurrentChannel,&tmp_ppib);
-			}
+				if ((wph->MHR_SrcAddrInfo.addr_64 == macCoordExtendedAddress)
+						&& (wph->MHR_SrcAddrInfo.panID == mpib.macPANId))
+				{
+					//no specification in the draft as how to handle this packet, so use our discretion
+					mpib.macPANId = *((UINT_16 *)wph->MSDU_Payload);
+					mpib.macCoordShortAddress = *((UINT_16 *)(wph->MSDU_Payload + 2));
+					tmp_ppib.phyCurrentChannel = wph->MSDU_Payload[4];
+					phy->PLME_SET_request(phyCurrentChannel,&tmp_ppib);
+				}
 			break;
 		case 0x09:	//GTS request
 			break;
@@ -1626,7 +1721,7 @@ bool Mac802_15_4::toParent(Packet *p)
 	frmCtrl.FrmCtrl = wph->MHR_FrmCtrl;
 	frmCtrl.parse();
 	if (((frmCtrl.dstAddrMode == defFrmCtrl_AddrMode16)&&(wph->MHR_DstAddrInfo.addr_16 == mpib.macCoordShortAddress))
-	||  ((frmCtrl.dstAddrMode == defFrmCtrl_AddrMode64)&&(wph->MHR_DstAddrInfo.addr_64 == mpib.macCoordExtendedAddress)))
+			||  ((frmCtrl.dstAddrMode == defFrmCtrl_AddrMode64)&&(wph->MHR_DstAddrInfo.addr_64 == mpib.macCoordExtendedAddress)))
 		return true;
 	else
 		return false;
@@ -1644,11 +1739,11 @@ double Mac802_15_4::locateBoundary(bool parent,double wtime)
 	//So the alignment is specifically w.r.t. either transmission of beacons
 	//(as a coordinator) or reception of beacons (as a device), but there is
 	//no guarantee to satisfy both.
-	
+
 	int align;			
 	double bcnTxRxTime,bPeriod;
 	double newtime;
-	
+
 	if ((mpib.macBeaconOrder == 15)&&(macBeaconOrder2 == 15))
 		return wtime;		
 
@@ -1656,18 +1751,18 @@ double Mac802_15_4::locateBoundary(bool parent,double wtime)
 		align = (macBeaconOrder2 == 15)?1:2;
 	else				
 		align = (mpib.macBeaconOrder == 15)?2:1;
-	
+
 	bcnTxRxTime = (align == 1)?(macBcnTxTime / phy->getRate('s')):(macBcnRxTime / phy->getRate('s'));
 	bPeriod = aUnitBackoffPeriod / phy->getRate('s');
 
 	/* Linux floating number compatibility
-	newtime = fmod(CURRENT_TIME + wtime - bcnTxRxTime, bPeriod);
-	*/
+	   newtime = fmod(CURRENT_TIME + wtime - bcnTxRxTime, bPeriod);
+	   */
 	{
-	double tmpf;
-	tmpf = CURRENT_TIME + wtime;
-	tmpf -= bcnTxRxTime;
-	newtime = fmod(tmpf, bPeriod);
+		double tmpf;
+		tmpf = CURRENT_TIME + wtime;
+		tmpf -= bcnTxRxTime;
+		newtime = fmod(tmpf, bPeriod);
 	}
 
 #ifdef DEBUG802_15_4
@@ -1676,12 +1771,12 @@ double Mac802_15_4::locateBoundary(bool parent,double wtime)
 	if(newtime > 0.000001) // 2.31 change
 	{
 		/* Linux floating number compatibility
-		newtime = wtime + (bPeriod - newtime);
-		*/
+		   newtime = wtime + (bPeriod - newtime);
+		   */
 		{
-		double tmpf;
-		tmpf = bPeriod - newtime;
-		newtime = wtime + tmpf;
+			double tmpf;
+			tmpf = bPeriod - newtime;
+			newtime = wtime + tmpf;
 		}
 	}
 	else
@@ -1764,149 +1859,153 @@ void Mac802_15_4::beaconTxHandler(bool forTX)
 	int i;
 
 	if ((mpib.macBeaconOrder != 15)		//beacon enabled
-	|| (oneMoreBeacon))
-	if (forTX)
+			|| (oneMoreBeacon))
 	{
-		if (capability.FFD/*&&(numberDeviceLink(&deviceLink1) > 0)*/)
+		if (forTX)
 		{
-			//enable the transmitter
-			beaconWaiting = true;
-			plme_set_trx_state_request(p_FORCE_TRX_OFF);	//finish your job before this!
-			//assert(txAck == 0);	//It's not true, for the reason that packets can arrive 
-						//at any time if the source is in non-beacon mode.
-						//This could also happen if a device loses synchronization
-						//with its coordinator, or if a coordinator changes beacon
-						//order in the middle.
-			if (txAck)
+			if (capability.FFD/*&&(numberDeviceLink(&deviceLink1) > 0)*/)
 			{
+				//enable the transmitter
+				beaconWaiting = true;
+				plme_set_trx_state_request(p_FORCE_TRX_OFF);	//finish your job before this!
+				//assert(txAck == 0);	//It's not true, for the reason that packets can arrive 
+				//at any time if the source is in non-beacon mode.
+				//This could also happen if a device loses synchronization
+				//with its coordinator, or if a coordinator changes beacon
+				//order in the middle.
+				if (txAck)
+				{
 #ifdef DEBUG802_15_4
-				if (!updateDeviceLink(tr_oper_est, &deviceLink1, &deviceLink2, p802_15_4macDA(txAck)))	//this ACK is for my child
-					fprintf(stdout,"[%f](node %d) outgoing ACK truncated by beacon: src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n", CURRENT_TIME,index_,p802_15_4macSA(txAck),p802_15_4macDA(txAck),HDR_CMN(txAck)->uid(),HDR_LRWPAN(txAck)->uid,HDR_CMN(txAck)->size());
+					if (!updateDeviceLink(tr_oper_est, &deviceLink1, &deviceLink2, p802_15_4macDA(txAck)))	//this ACK is for my child
+						fprintf(stdout,"[%f](node %d) outgoing ACK truncated by beacon: src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n", CURRENT_TIME,index_,p802_15_4macSA(txAck),p802_15_4macDA(txAck),HDR_CMN(txAck)->uid(),HDR_LRWPAN(txAck)->uid,HDR_CMN(txAck)->size());
 #endif
-				Packet::free(txAck);
-				txAck = 0;
+					Packet::free(txAck);
+					txAck = 0;
+				}
+				plme_set_trx_state_request(p_TX_ON);
 			}
-			plme_set_trx_state_request(p_TX_ON);
+			else
+				assert(0);
 		}
 		else
-			assert(0);
-	}
-	else
-	{
-		if (capability.FFD/*&&(numberDeviceLink(&deviceLink1) > 0)*/)	//send a beacon here
 		{
-			//beaconWaiting = false;				
-			if ((taskP.taskStatus(TP_mlme_start_request))		
-			&&  (mpib.macBeaconOrder != 15))
+			if (capability.FFD/*&&(numberDeviceLink(&deviceLink1) > 0)*/)	//send a beacon here
 			{
-				if (txAck||backoffStatus == 1)
+				//beaconWaiting = false;				
+				if ((taskP.taskStatus(TP_mlme_start_request))		
+						&&  (mpib.macBeaconOrder != 15))
 				{
+					if (txAck||backoffStatus == 1)
+					{
+						beaconWaiting = false;
+						bcnTxT->start();
+						return;
+					}
+				}
+#ifdef DEBUG802_15_4
+				fprintf(stdout,"[%s::%s][%f](node %d) before alloc txBeacon:\n\t\ttxBeacon\t= %ld\n\t\ttxAck   \t= %ld\n\t\ttxBcnCmd\t= %ld\n\t\ttxBcnCmd2\t= %ld\n\t\ttxData  \t= %ld\n",__FILE__,__FUNCTION__,CURRENT_TIME,index_,txBeacon,txAck,txBcnCmd,txBcnCmd2,txData);
+#endif
+				if (updateNFailLink(fl_oper_est,index_) == 0)
+				{
+					if (txBeacon)
+					{
+						Packet::free(txBeacon);
+						txBeacon = 0;
+					}
 					beaconWaiting = false;
 					bcnTxT->start();
 					return;
 				}
-			}
-#ifdef DEBUG802_15_4
-			fprintf(stdout,"[%s::%s][%f](node %d) before alloc txBeacon:\n\t\ttxBeacon\t= %ld\n\t\ttxAck   \t= %ld\n\t\ttxBcnCmd\t= %ld\n\t\ttxBcnCmd2\t= %ld\n\t\ttxData  \t= %ld\n",__FILE__,__FUNCTION__,CURRENT_TIME,index_,txBeacon,txAck,txBcnCmd,txBcnCmd2,txData);
-#endif
-			if (updateNFailLink(fl_oper_est,index_) == 0)
-			{
-				if (txBeacon)
+				assert(!txBeacon);
+				txBeacon = Packet::alloc();
+				if (!txBeacon)
 				{
-					Packet::free(txBeacon);
-					txBeacon = 0;
+					bcnTxT->start();		//try to restore the transmission of beacons next time
+					return;
 				}
-				beaconWaiting = false;
-				bcnTxT->start();
-				return;
-			}
-			assert(!txBeacon);
-			txBeacon = Packet::alloc();
-			if (!txBeacon)
-			{
-				bcnTxT->start();		//try to restore the transmission of beacons next time
-				return;
-			}
-			wph = HDR_LRWPAN(txBeacon);
-			frmCtrl.FrmCtrl = 0;
-			frmCtrl.setFrmType(defFrmCtrl_Type_Beacon);
-			frmCtrl.setSecu(secuBeacon);
-			frmCtrl.setAckReq(false);
-			frmCtrl.setDstAddrMode(defFrmCtrl_AddrModeNone);
-			if (mpib.macShortAddress == 0xfffe)
-			{
-				frmCtrl.setSrcAddrMode(defFrmCtrl_AddrMode64);
-				wph->MHR_SrcAddrInfo.panID = mpib.macPANId;
-				wph->MHR_SrcAddrInfo.addr_64 = aExtendedAddress;
-			}
-			else
-			{
-				frmCtrl.setSrcAddrMode(defFrmCtrl_AddrMode16);
-				wph->MHR_SrcAddrInfo.panID = mpib.macPANId;
-				wph->MHR_SrcAddrInfo.addr_16 = mpib.macShortAddress;
-			}
-			sfSpec.SuperSpec = 0;
-			sfSpec.setBO(mpib.macBeaconOrder);
-			sfSpec.setSO(mpib.macSuperframeOrder);
-			sfSpec.setFinCAP(aNumSuperframeSlots - 1);		//TBD: may be less than <aNumSuperframeSlots> when considering GTS
-			sfSpec.setBLE(mpib.macBattLifeExt);
-			sfSpec.setPANCoor(isPANCoor);
-			sfSpec.setAssoPmt(mpib.macAssociationPermit);
-			//populate the GTS fields -- more TBD when considering GTS
-			gtsSpec.fields.spec = 0;
-			gtsSpec.setPermit(mpib.macGTSPermit);
-			wph->MSDU_GTSFields = gtsSpec.fields;
-			//--- populate the pending address list ---
-			pendAddrSpec.numShortAddr = 0;
-			pendAddrSpec.numExtendedAddr = 0;
-			purgeTransacLink(&transacLink1,&transacLink2);
-			tmp = transacLink1;
-			i = 0;
-			while (tmp != NULL)
-			{
-				if (tmp->pendAddrMode == defFrmCtrl_AddrMode16)
+				wph = HDR_LRWPAN(txBeacon);
+				frmCtrl.FrmCtrl = 0;
+				frmCtrl.setFrmType(defFrmCtrl_Type_Beacon);
+				frmCtrl.setSecu(secuBeacon);
+				frmCtrl.setAckReq(false);
+				frmCtrl.setDstAddrMode(defFrmCtrl_AddrModeNone);
+				if (mpib.macShortAddress == 0xfffe)
 				{
-					if (updateDeviceLink(tr_oper_est,&deviceLink1,&deviceLink2,tmp->pendAddr64) == 0)
-						i = pendAddrSpec.addShortAddr(tmp->pendAddr16);		//duplicated address filtered out
+					frmCtrl.setSrcAddrMode(defFrmCtrl_AddrMode64);
+					wph->MHR_SrcAddrInfo.panID = mpib.macPANId;
+					wph->MHR_SrcAddrInfo.addr_64 = aExtendedAddress;
 				}
 				else
 				{
-					if (updateDeviceLink(tr_oper_est,&deviceLink1,&deviceLink2,tmp->pendAddr64) == 0)
-						i = pendAddrSpec.addExtendedAddr(tmp->pendAddr64);	//duplicated address filtered out
+					frmCtrl.setSrcAddrMode(defFrmCtrl_AddrMode16);
+					wph->MHR_SrcAddrInfo.panID = mpib.macPANId;
+					wph->MHR_SrcAddrInfo.addr_16 = mpib.macShortAddress;
 				}
-				if (i >= 7) break;
-				tmp = tmp->next;
-			}
-			pendAddrSpec.format();
-			wph->MSDU_PendAddrFields = pendAddrSpec.fields;
-			frmCtrl.setFrmPending(i>0);
-			//To populate the beacon payload field, <macBeaconPayloadLength> and <macBeaconPayload>
-			//should be set first, in that order (use primitive MLME_SET_request).
-			wph->MSDU_PayloadLen = mpib.macBeaconPayloadLength;
-			memcpy(wph->MSDU_Payload,mpib.macBeaconPayload,mpib.macBeaconPayloadLength);
-			//-----------------------------------------
+				sfSpec.SuperSpec = 0;
+				sfSpec.setBO(mpib.macBeaconOrder);
+				sfSpec.setSO(mpib.macSuperframeOrder);
+				sfSpec.setFinCAP(aNumSuperframeSlots - 1);		//TBD: may be less than <aNumSuperframeSlots> when considering GTS
+				sfSpec.setBLE(mpib.macBattLifeExt);
+				sfSpec.setPANCoor(isPANCoor);
+				sfSpec.setAssoPmt(mpib.macAssociationPermit);
+				//populate the GTS fields -- more TBD when considering GTS
+				gtsSpec.fields.spec = 0;
+				gtsSpec.setPermit(mpib.macGTSPermit);
+				wph->MSDU_GTSFields = gtsSpec.fields;
+				//--- populate the pending address list ---
+				pendAddrSpec.numShortAddr = 0;
+				pendAddrSpec.numExtendedAddr = 0;
+				purgeTransacLink(&transacLink1,&transacLink2);
+				tmp = transacLink1;
+				i = 0;
+				while (tmp != NULL)
+				{
+					if (tmp->pendAddrMode == defFrmCtrl_AddrMode16)
+					{
+						if (updateDeviceLink(tr_oper_est,&deviceLink1,&deviceLink2,tmp->pendAddr64) == 0)
+							i = pendAddrSpec.addShortAddr(tmp->pendAddr16);		//duplicated address filtered out
+					}
+					else
+					{
+						if (updateDeviceLink(tr_oper_est,&deviceLink1,&deviceLink2,tmp->pendAddr64) == 0)
+							i = pendAddrSpec.addExtendedAddr(tmp->pendAddr64);	//duplicated address filtered out
+					}
+					if (i >= 7) break;
+					tmp = tmp->next;
+				}
+				pendAddrSpec.format();
+				wph->MSDU_PendAddrFields = pendAddrSpec.fields;
+				frmCtrl.setFrmPending(i>0);
+				//To populate the beacon payload field, <macBeaconPayloadLength> and <macBeaconPayload>
+				//should be set first, in that order (use primitive MLME_SET_request).
+				wph->MSDU_PayloadLen = mpib.macBeaconPayloadLength;
+				memcpy(wph->MSDU_Payload,mpib.macBeaconPayload,mpib.macBeaconPayloadLength);
+				//-----------------------------------------
 #ifdef ZigBeeIF
-			sscs->setGetClusTreePara('s',txBeacon);
+				sscs->setGetClusTreePara('s',txBeacon);
 #endif
-			constructMPDU(2 + gtsSpec.size() + pendAddrSpec.size() + mpib.macBeaconPayloadLength,txBeacon,frmCtrl.FrmCtrl,mpib.macBSN++,wph->MHR_DstAddrInfo,wph->MHR_SrcAddrInfo,sfSpec.SuperSpec,0,0);
-			hdr_src((char *)HDR_MAC(txBeacon),index_);
-			hdr_dst((char *)HDR_MAC(txBeacon),MAC_BROADCAST);
-			HDR_CMN(txBeacon)->ptype() = PT_MAC;
-			HDR_CMN(txBeacon)->next_hop_ = p802_15_4macDA(txBeacon);		//nam needs the nex_hop information
-			p802_15_4hdrBeacon(txBeacon);
+				constructMPDU(2 + gtsSpec.size() + pendAddrSpec.size() + mpib.macBeaconPayloadLength,txBeacon,frmCtrl.FrmCtrl,mpib.macBSN++,wph->MHR_DstAddrInfo,wph->MHR_SrcAddrInfo,sfSpec.SuperSpec,0,0);
+				hdr_src((char *)HDR_MAC(txBeacon),index_);
+				hdr_dst((char *)HDR_MAC(txBeacon),MAC_BROADCAST);
+				HDR_CMN(txBeacon)->ptype() = PT_MAC;
+				HDR_CMN(txBeacon)->next_hop_ = p802_15_4macDA(txBeacon);		//nam needs the nex_hop information
+				p802_15_4hdrBeacon(txBeacon);
 #ifdef DEBUG802_15_4
-			fprintf(stdout,"[%s::%s][%f](node %d) transmit BEACON to %d: SN = %d, uid = %d, mac_uid = %ld\n",__FILE__,__FUNCTION__,CURRENT_TIME,index_,p802_15_4macDA(txBeacon),HDR_LRWPAN(txBeacon)->MHR_BDSN,HDR_CMN(txBeacon)->uid(),HDR_LRWPAN(txBeacon)->uid);
+				fprintf(stdout,"[%s::%s][%f](node %d) transmit BEACON to %d: SN = %d, uid = %d, mac_uid = %ld\n",__FILE__,__FUNCTION__,CURRENT_TIME,index_,p802_15_4macDA(txBeacon),HDR_LRWPAN(txBeacon)->MHR_BDSN,HDR_CMN(txBeacon)->uid(),HDR_LRWPAN(txBeacon)->uid);
 #endif
-			txPkt = txBeacon;
-			HDR_CMN(txBeacon)->direction() = hdr_cmn::DOWN;
-			//nam->flashNodeMark(CURRENT_TIME);
-			sendDown(txBeacon->refcopy(), this);
-			mpib.macBeaconTxTime = (UINT_32)(CURRENT_TIME * phy->getRate('s'));
-			macBcnTxTime = CURRENT_TIME * phy->getRate('s');	//double used for accuracy
-			oneMoreBeacon = false;
+				txPkt = txBeacon;
+				HDR_CMN(txBeacon)->direction() = hdr_cmn::DOWN;
+				//nam->flashNodeMark(CURRENT_TIME);
+				sendDown(txBeacon->refcopy(), this);
+				mpib.macBeaconTxTime = (UINT_32)(CURRENT_TIME * phy->getRate('s'));
+				macBcnTxTime = CURRENT_TIME * phy->getRate('s');	//double used for accuracy
+				oneMoreBeacon = false;
+			}
+			else
+			{
+				assert(0);
+			}
 		}
-		else
-			assert(0);
 	}
 	bcnTxT->start();	//don't disable this even beacon not enabled (beacon may be temporarily disabled like in channel scan, but it will be enabled again)
 }
@@ -1962,8 +2061,8 @@ void Mac802_15_4::isPanCoor(bool isPC)
 		changeNodeColor(CURRENT_TIME,Nam802_15_4::def_PANCoor_clr);
 	else if (isPANCoor)
 		changeNodeColor(CURRENT_TIME,
-		   (mpib.macPANId == 0xffff) ? Nam802_15_4::def_Node_clr :
-		   (mpib.macAssociationPermit) ? Nam802_15_4::def_Coor_clr : Nam802_15_4::def_Dev_clr);
+				(mpib.macPANId == 0xffff) ? Nam802_15_4::def_Node_clr :
+				(mpib.macAssociationPermit) ? Nam802_15_4::def_Coor_clr : Nam802_15_4::def_Dev_clr);
 	isPANCoor = isPC;
 }
 
@@ -1973,30 +2072,30 @@ void Mac802_15_4::set_trx_state_request(PHYenum state,const char *frFile,const c
 {
 #ifdef DEBUG802_15_4
 	fprintf(stdout,"[%s::%s][%f](node %d): %s request from [%s:%s:%d]\n",__FILE__,__FUNCTION__,CURRENT_TIME,index_,
-	(state == p_RX_ON)?"RX_ON":
-	(state == p_TX_ON)?"TX_ON":
-	(state == p_TRX_OFF)?"TRX_OFF":
-	(state == p_FORCE_TRX_OFF)?"FORCE_TRX_OFF":"???",
-	frFile,frFunc,line);
+			(state == p_RX_ON)?"RX_ON":
+			(state == p_TX_ON)?"TX_ON":
+			(state == p_TRX_OFF)?"TRX_OFF":
+			(state == p_FORCE_TRX_OFF)?"FORCE_TRX_OFF":"???",
+			frFile,frFunc,line);
 #endif
 	trx_state_req = state;
 	phy->PLME_SET_TRX_STATE_request(state);
 }
 
 char *taskName[] = {"NONE",
-		    "MCPS-DATA.request",
-		    "MLME-ASSOCIATE.request",
-		    "MLME-ASSOCIATE.response",
-		    "MLME-DISASSOCIATE.request",
-		    "MLME-ORPHAN.response",
-		    "MLME-RESET.request",
-		    "MLME-RX-ENABLE.request",
-		    "MLME-SCAN.request",
-		    "MLME-START.request",
-		    "MLME-SYNC.request",
-		    "MLME-POLL.request",
-		    "CCA_csmaca",
-		    "RX_ON_csmaca"};
+	"MCPS-DATA.request",
+	"MLME-ASSOCIATE.request",
+	"MLME-ASSOCIATE.response",
+	"MLME-DISASSOCIATE.request",
+	"MLME-ORPHAN.response",
+	"MLME-RESET.request",
+	"MLME-RX-ENABLE.request",
+	"MLME-SCAN.request",
+	"MLME-START.request",
+	"MLME-SYNC.request",
+	"MLME-POLL.request",
+	"CCA_csmaca",
+	"RX_ON_csmaca"};
 void Mac802_15_4::checkTaskOverflow(UINT_8 task)
 {
 	//Though we assume the upper layer should know what it is doing -- should send down requests one by one.
@@ -2026,20 +2125,20 @@ void Mac802_15_4::dispatch(PHYenum status,const char *frFunc,PHYenum req_state,M
 		if (txCsmaca == txBcnCmd2)
 		{
 			if (taskP.taskStatus(TP_mlme_scan_request)
-			&& (strcmp(taskP.taskFrFunc(TP_mlme_scan_request),frFunc) == 0))
+					&& (strcmp(taskP.taskFrFunc(TP_mlme_scan_request),frFunc) == 0))
 			{
 				if ((taskP.mlme_scan_request_ScanType == 0x01)	//active scan
-				||  (taskP.mlme_scan_request_ScanType == 0x03))	//orphan scan
+						||  (taskP.mlme_scan_request_ScanType == 0x03))	//orphan scan
 					mlme_scan_request(taskP.mlme_scan_request_ScanType,taskP.mlme_scan_request_ScanChannels,taskP.mlme_scan_request_ScanDuration,false,status);
 			}
 			else if (taskP.taskStatus(TP_mlme_start_request)
-			&& (strcmp(taskP.taskFrFunc(TP_mlme_start_request),frFunc) == 0))
+					&& (strcmp(taskP.taskFrFunc(TP_mlme_start_request),frFunc) == 0))
 				mlme_start_request(taskP.mlme_start_request_PANId,taskP.mlme_start_request_LogicalChannel,taskP.mlme_start_request_BeaconOrder,taskP.mlme_start_request_SuperframeOrder,taskP.mlme_start_request_PANCoordinator,taskP.mlme_start_request_BatteryLifeExtension,0,taskP.mlme_start_request_SecurityEnable,false,status);
 			else if (taskP.taskStatus(TP_mlme_associate_request)
-			&& (strcmp(taskP.taskFrFunc(TP_mlme_associate_request),frFunc) == 0))
+					&& (strcmp(taskP.taskFrFunc(TP_mlme_associate_request),frFunc) == 0))
 				mlme_associate_request(0,0,0,0,0,taskP.mlme_associate_request_SecurityEnable,false,status);
 			else if (taskP.taskStatus(TP_mlme_poll_request)
-			&& (strcmp(taskP.taskFrFunc(TP_mlme_poll_request),frFunc) == 0))
+					&& (strcmp(taskP.taskFrFunc(TP_mlme_poll_request),frFunc) == 0))
 				mlme_poll_request(taskP.mlme_poll_request_CoordAddrMode,taskP.mlme_poll_request_CoordPANId,taskP.mlme_poll_request_CoordAddress,taskP.mlme_poll_request_SecurityEnable,taskP.mlme_poll_request_autoRequest,false,status);
 			else	//default handling for txBcnCmd2
 			{
@@ -2056,14 +2155,14 @@ void Mac802_15_4::dispatch(PHYenum status,const char *frFunc,PHYenum req_state,M
 		else if (txCsmaca == txData)
 		{
 			assert(taskP.taskStatus(TP_mcps_data_request)
-			&& (strcmp(taskP.taskFrFunc(TP_mcps_data_request),frFunc) == 0));
+					&& (strcmp(taskP.taskFrFunc(TP_mcps_data_request),frFunc) == 0));
 
 			if (taskP.mcps_data_request_TxOptions & TxOp_GTS)		//GTS transmission
 			{
 				;	//TBD
 			}
 			else if ((taskP.mcps_data_request_TxOptions & TxOp_Indirect)	//indirect transmission
-			&& (capability.FFD&&(numberDeviceLink(&deviceLink1) > 0)))	//I am a coordinator
+					&& (capability.FFD&&(numberDeviceLink(&deviceLink1) > 0)))	//I am a coordinator
 			{
 				if (status != p_IDLE)
 					mcps_data_request(0,0,0,0,0,0,0,0,0,taskP.mcps_data_request_TxOptions,false,p_BUSY,m_CHANNEL_ACCESS_FAILURE);
@@ -2084,20 +2183,20 @@ void Mac802_15_4::dispatch(PHYenum status,const char *frFunc,PHYenum req_state,M
 			if (status == p_IDLE)
 			{
 				if ((frmCtrl.frmType == defFrmCtrl_Type_MacCmd)		//command packet
-				&& (wph->MSDU_CmdType == 0x02))				//association response packet
+						&& (wph->MSDU_CmdType == 0x02))				//association response packet
 					strcpy(taskP.taskFrFunc(TP_mlme_associate_response),"PD_DATA_confirm");
 				else if ((frmCtrl.frmType == defFrmCtrl_Type_MacCmd)	//command packet
-				&& (wph->MSDU_CmdType == 0x08))				//coordinator realignment response packet
+						&& (wph->MSDU_CmdType == 0x08))				//coordinator realignment response packet
 					strcpy(taskP.taskFrFunc(TP_mlme_orphan_response),"PD_DATA_confirm");
 				plme_set_trx_state_request(p_TX_ON);
 			}
 			else
 			{
 				if ((frmCtrl.frmType == defFrmCtrl_Type_MacCmd)		//command packet
-				&& (wph->MSDU_CmdType == 0x02))				//association response packet
+						&& (wph->MSDU_CmdType == 0x02))				//association response packet
 					mlme_associate_response(taskP.mlme_associate_response_DeviceAddress,0,m_CHANNEL_ACCESS_FAILURE,0,false,p_BUSY);	//status returned in MACenum rather than in PHYenum
 				else if ((frmCtrl.frmType == defFrmCtrl_Type_MacCmd)	//command packet
-				&& (wph->MSDU_CmdType == 0x08))				//coordinator realignment response packet
+						&& (wph->MSDU_CmdType == 0x08))				//coordinator realignment response packet
 					mlme_orphan_response(taskP.mlme_orphan_response_OrphanAddress,0,true,false,false,p_BUSY);
 				else
 				{
@@ -2114,7 +2213,7 @@ void Mac802_15_4::dispatch(PHYenum status,const char *frFunc,PHYenum req_state,M
 		if (txPkt == txBeacon)
 		{
 			if (taskP.taskStatus(TP_mlme_start_request)
-			&& (strcmp(taskP.taskFrFunc(TP_mlme_start_request),frFunc) == 0))
+					&& (strcmp(taskP.taskFrFunc(TP_mlme_start_request),frFunc) == 0))
 				mlme_start_request(taskP.mlme_start_request_PANId,taskP.mlme_start_request_LogicalChannel,taskP.mlme_start_request_BeaconOrder,taskP.mlme_start_request_SuperframeOrder,taskP.mlme_start_request_PANCoordinator,taskP.mlme_start_request_BatteryLifeExtension,0,taskP.mlme_start_request_SecurityEnable,false,status);
 			else	//default handling
 			{
@@ -2175,18 +2274,18 @@ void Mac802_15_4::dispatch(PHYenum status,const char *frFunc,PHYenum req_state,M
 		else if (txPkt == txBcnCmd2)
 		{
 			if (taskP.taskStatus(TP_mlme_scan_request)
-			&& ((taskP.mlme_scan_request_ScanType == 0x01)		//active scan
-			  ||(taskP.mlme_scan_request_ScanType == 0x03))		//orphan scan
-			&& (strcmp(taskP.taskFrFunc(TP_mlme_scan_request),frFunc) == 0))
+					&& ((taskP.mlme_scan_request_ScanType == 0x01)		//active scan
+						||(taskP.mlme_scan_request_ScanType == 0x03))		//orphan scan
+					&& (strcmp(taskP.taskFrFunc(TP_mlme_scan_request),frFunc) == 0))
 				mlme_scan_request(taskP.mlme_scan_request_ScanType,taskP.mlme_scan_request_ScanChannels,taskP.mlme_scan_request_ScanDuration,false,status);
 			else if (taskP.taskStatus(TP_mlme_start_request)
-			&& (strcmp(taskP.taskFrFunc(TP_mlme_start_request),frFunc) == 0))
+					&& (strcmp(taskP.taskFrFunc(TP_mlme_start_request),frFunc) == 0))
 				mlme_start_request(taskP.mlme_start_request_PANId,taskP.mlme_start_request_LogicalChannel,taskP.mlme_start_request_BeaconOrder,taskP.mlme_start_request_SuperframeOrder,taskP.mlme_start_request_PANCoordinator,taskP.mlme_start_request_BatteryLifeExtension,0,taskP.mlme_start_request_SecurityEnable,false,status);
 			else if (taskP.taskStatus(TP_mlme_associate_request)
-			&& (strcmp(taskP.taskFrFunc(TP_mlme_associate_request),frFunc) == 0))
+					&& (strcmp(taskP.taskFrFunc(TP_mlme_associate_request),frFunc) == 0))
 				mlme_associate_request(0,0,0,0,0,taskP.mlme_associate_request_SecurityEnable,false,status);
 			else if (taskP.taskStatus(TP_mlme_poll_request)
-			&& (strcmp(taskP.taskFrFunc(TP_mlme_poll_request),frFunc) == 0))
+					&& (strcmp(taskP.taskFrFunc(TP_mlme_poll_request),frFunc) == 0))
 				mlme_poll_request(taskP.mlme_poll_request_CoordAddrMode,taskP.mlme_poll_request_CoordPANId,taskP.mlme_poll_request_CoordAddress,taskP.mlme_poll_request_SecurityEnable,taskP.mlme_poll_request_autoRequest,false,status);
 			else	//default handling
 			{
@@ -2211,7 +2310,7 @@ void Mac802_15_4::dispatch(PHYenum status,const char *frFunc,PHYenum req_state,M
 		else if (txPkt == txData)
 		{
 			assert((taskP.taskStatus(TP_mcps_data_request))
-			&& (strcmp(taskP.taskFrFunc(TP_mcps_data_request),frFunc) == 0));
+					&& (strcmp(taskP.taskFrFunc(TP_mcps_data_request),frFunc) == 0));
 
 			wph = HDR_LRWPAN(txData);
 			ch = HDR_CMN(txData);
@@ -2224,7 +2323,7 @@ void Mac802_15_4::dispatch(PHYenum status,const char *frFunc,PHYenum req_state,M
 					;	//TBD
 				}
 				else if ((taskP.mcps_data_request_TxOptions & TxOp_Indirect)	//indirect transmission
-				&& (capability.FFD&&(numberDeviceLink(&deviceLink1) > 0)))	//I am a coordinator
+						&& (capability.FFD&&(numberDeviceLink(&deviceLink1) > 0)))	//I am a coordinator
 				{
 					if (!frmCtrl.ackReq)	//ack. not required
 						mcps_data_request(0,0,0,0,0,0,0,0,0,taskP.mcps_data_request_TxOptions,false,p_SUCCESS);
@@ -2263,7 +2362,7 @@ void Mac802_15_4::dispatch(PHYenum status,const char *frFunc,PHYenum req_state,M
 		if (txPkt == txData)
 		{
 			if ((taskP.taskStatus(TP_mcps_data_request))
-		 	 && (strcmp(taskP.taskFrFunc(TP_mcps_data_request),frFunc) == 0))
+					&& (strcmp(taskP.taskFrFunc(TP_mcps_data_request),frFunc) == 0))
 				mcps_data_request(0,0,0,0,0,0,0,0,0,taskP.mcps_data_request_TxOptions,false,p_SUCCESS);
 			else	//default handling for <txData>
 			{
@@ -2276,10 +2375,10 @@ void Mac802_15_4::dispatch(PHYenum status,const char *frFunc,PHYenum req_state,M
 		else if (txPkt == txBcnCmd2)
 		{
 			if (taskP.taskStatus(TP_mlme_associate_request)
-		 	&& (strcmp(taskP.taskFrFunc(TP_mlme_associate_request),frFunc) == 0))
+					&& (strcmp(taskP.taskFrFunc(TP_mlme_associate_request),frFunc) == 0))
 				mlme_associate_request(0,0,0,0,0,taskP.mlme_associate_request_SecurityEnable,false,p_SUCCESS);
 			else if (taskP.taskStatus(TP_mlme_poll_request)
-		 	&& (strcmp(taskP.taskFrFunc(TP_mlme_poll_request),frFunc) == 0))
+					&& (strcmp(taskP.taskFrFunc(TP_mlme_poll_request),frFunc) == 0))
 				mlme_poll_request(taskP.mlme_poll_request_CoordAddrMode,taskP.mlme_poll_request_CoordPANId,taskP.mlme_poll_request_CoordAddress,taskP.mlme_poll_request_SecurityEnable,taskP.mlme_poll_request_autoRequest,false,p_SUCCESS);
 			else	//default handling for <txBcnCmd2>
 				taskSuccess('C');
@@ -2290,10 +2389,10 @@ void Mac802_15_4::dispatch(PHYenum status,const char *frFunc,PHYenum req_state,M
 			frmCtrl.FrmCtrl = wph->MHR_FrmCtrl;
 			frmCtrl.parse();
 			if ((frmCtrl.frmType == defFrmCtrl_Type_MacCmd)			//command packet
-			 && (wph->MSDU_CmdType == 0x02))				//association response packet
+					&& (wph->MSDU_CmdType == 0x02))				//association response packet
 				mlme_associate_response(taskP.mlme_associate_response_DeviceAddress,0,m_SUCCESS,0,false,p_SUCCESS);
 			else if ((frmCtrl.frmType == defFrmCtrl_Type_MacCmd)		//command packet
-			&& (wph->MSDU_CmdType == 0x08))					//coordinator realignment response packet
+					&& (wph->MSDU_CmdType == 0x08))					//coordinator realignment response packet
 				mlme_orphan_response(taskP.mlme_orphan_response_OrphanAddress,0,true,false,false);
 			else
 				taskSuccess('c');
@@ -2305,58 +2404,63 @@ void Mac802_15_4::dispatch(PHYenum status,const char *frFunc,PHYenum req_state,M
 		if (txPkt == txData)
 		{
 			if ((!taskP.taskStatus(TP_mcps_data_request))
-		 	 || (strcmp(taskP.taskFrFunc(TP_mcps_data_request),"recvAck") != 0))
-		 	 	return;
+					|| (strcmp(taskP.taskFrFunc(TP_mcps_data_request),"recvAck") != 0))
+				return;
 
 			if (taskP.taskStatus(TP_mcps_data_request))
-			if (taskP.mcps_data_request_TxOptions & TxOp_GTS)		//GTS transmission
 			{
-				;	//TBD
-			}
-			else if ((taskP.mcps_data_request_TxOptions & TxOp_Indirect)	//indirect transmission
-			&& (capability.FFD&&(numberDeviceLink(&deviceLink1) > 0)))	//I am a coordinator
-			{
-				/*
-				//there is contradiction in the draft:
-				//page 156, line 16: (for transaction, i.e., indirect transmission) "all subsequent retransmissions shall be transmitted using CSMA-CA"
-				//page 158, line 14-16:
-				//	"if a single transmission attempt has failed and the transmission was indirect, the coordinator shall not
-				//	retransmit the data or MAC command frame. Instead, the frame shall remain in the transaction queue of the
-				//	coordinator."
-				//the description on page 158 is more reasonable (though we already proceeded according to page 156)
-				// now follow page 158
-				numDataRetry++;
-				if (numDataRetry <= aMaxFrameRetries)
+				if (taskP.mcps_data_request_TxOptions & TxOp_GTS)		//GTS transmission
 				{
-				//no need to check if the packet has been purged -- if purged, then taskFailed() should have set txData = 0
-				wph = HDR_LRWPAN(txData);
-				frmCtrl.FrmCtrl = wph->MHR_FrmCtrl;
-				frmCtrl.parse();
-				i = updateTransacLinkByPktOrHandle(tr_oper_est,&transacLink1,&transacLink2,txData);
-				if (i != 0)	//already purged from pending list
-				{
-				Packet::free(txData);
-				txData = 0;
-				return;
+					;	//TBD
 				}
-				// -- don't end here, but afte 'else'
-				waitDataAck = false;
-				csmacaResume();
+				else if ((taskP.mcps_data_request_TxOptions & TxOp_Indirect)	//indirect transmission
+						&& (capability.FFD&&(numberDeviceLink(&deviceLink1) > 0)))	//I am a coordinator
+				{
+					/*
+					//there is contradiction in the draft:
+					//page 156, line 16: (for transaction, i.e., indirect transmission) "all subsequent retransmissions shall be transmitted using CSMA-CA"
+					//page 158, line 14-16:
+					//	"if a single transmission attempt has failed and the transmission was indirect, the coordinator shall not
+					//	retransmit the data or MAC command frame. Instead, the frame shall remain in the transaction queue of the
+					//	coordinator."
+					//the description on page 158 is more reasonable (though we already proceeded according to page 156)
+					// now follow page 158
+					numDataRetry++;
+					if (numDataRetry <= aMaxFrameRetries)
+					{
+					//no need to check if the packet has been purged -- if purged, then taskFailed() should have set txData = 0
+					wph = HDR_LRWPAN(txData);
+					frmCtrl.FrmCtrl = wph->MHR_FrmCtrl;
+					frmCtrl.parse();
+					i = updateTransacLinkByPktOrHandle(tr_oper_est,&transacLink1,&transacLink2,txData);
+					if (i != 0)	//already purged from pending list
+					{
+					Packet::free(txData);
+					txData = 0;
+					return;
+					}
+					// -- don't end here, but afte 'else'
+					waitDataAck = false;
+					csmacaResume();
+					}
+					else
+					*/
+					mcps_data_request(0,0,0,0,0,0,0,0,0,taskP.mcps_data_request_TxOptions,false,p_BUSY,m_NO_ACK);
 				}
 				else
-				*/
-				mcps_data_request(0,0,0,0,0,0,0,0,0,taskP.mcps_data_request_TxOptions,false,p_BUSY,m_NO_ACK);
+				{
+					//direct transmission: in this case, let mcps_data_request() take care of everything
+					mcps_data_request(0,0,0,0,0,0,0,0,0,taskP.mcps_data_request_TxOptions,false,p_BUSY);	//status can be anything but p_SUCCESS
+				}
 			}
-			else		//direct transmission: in this case, let mcps_data_request() take care of everything
-				mcps_data_request(0,0,0,0,0,0,0,0,0,taskP.mcps_data_request_TxOptions,false,p_BUSY);	//status can be anything but p_SUCCESS
 		}
 		else if (txPkt == txBcnCmd2)
 		{
 			if (taskP.taskStatus(TP_mlme_associate_request)
-			    && (strcmp(taskP.taskFrFunc(TP_mlme_associate_request),"recvAck") == 0))
+					&& (strcmp(taskP.taskFrFunc(TP_mlme_associate_request),"recvAck") == 0))
 				mlme_associate_request(0,0,0,0,0,taskP.mlme_associate_request_SecurityEnable,false,p_BUSY);	//status can anything but p_SUCCESS
 			else if (taskP.taskStatus(TP_mlme_poll_request)
-		 	&& (strcmp(taskP.taskFrFunc(TP_mlme_poll_request),"recvAck") == 0))
+					&& (strcmp(taskP.taskFrFunc(TP_mlme_poll_request),"recvAck") == 0))
 				mlme_poll_request(taskP.mlme_poll_request_CoordAddrMode,taskP.mlme_poll_request_CoordPANId,taskP.mlme_poll_request_CoordAddress,taskP.mlme_poll_request_SecurityEnable,taskP.mlme_poll_request_autoRequest,false,p_BUSY);		//status can anything but p_SUCCESS
 			else	//default handling for <txBcnCmd2>
 			{
@@ -2377,7 +2481,7 @@ void Mac802_15_4::dispatch(PHYenum status,const char *frFunc,PHYenum req_state,M
 			frmCtrl.FrmCtrl = wph->MHR_FrmCtrl;
 			frmCtrl.parse();
 			if ((frmCtrl.frmType == defFrmCtrl_Type_MacCmd)		//command packet
-			 && (wph->MSDU_CmdType == 0x02))			//association response packet
+					&& (wph->MSDU_CmdType == 0x02))			//association response packet
 			{
 				//different from data packet, association response packet
 				//should be retransmitted though it uses indirect transmission
@@ -2386,19 +2490,19 @@ void Mac802_15_4::dispatch(PHYenum status,const char *frFunc,PHYenum req_state,M
 				if (numBcnCmdRetry <= aMaxFrameRetries)
 				{
 					/* no need to check if the packet has been purged -- if purged, then taskFailed() should have set txBcnCmd = 0
-					if (wph->indirect)				//indirect transmission
-					{
-						frmCtrl.FrmCtrl = wph->MHR_FrmCtrl;
-						frmCtrl.parse();
-						i = updateTransacLinkByPktOrHandle(tr_oper_est,&transacLink1,&transacLink2,txBcnCmd);
-						if (i != 0)	//already purged from pending list
-						{
-							Packet::free(txBcnCmd);
-							txBcnCmd = 0;
-							return;
-						}
-					}
-					*/
+					   if (wph->indirect)				//indirect transmission
+					   {
+					   frmCtrl.FrmCtrl = wph->MHR_FrmCtrl;
+					   frmCtrl.parse();
+					   i = updateTransacLinkByPktOrHandle(tr_oper_est,&transacLink1,&transacLink2,txBcnCmd);
+					   if (i != 0)	//already purged from pending list
+					   {
+					   Packet::free(txBcnCmd);
+					   txBcnCmd = 0;
+					   return;
+					   }
+					   }
+					   */
 					strcpy(taskP.taskFrFunc(TP_mlme_associate_response),"csmacaCallBack");
 					waitBcnCmdAck = false;
 					csmacaResume();
@@ -2407,7 +2511,7 @@ void Mac802_15_4::dispatch(PHYenum status,const char *frFunc,PHYenum req_state,M
 					mlme_associate_response(taskP.mlme_associate_response_DeviceAddress,0,m_NO_ACK,0,false,p_BUSY);	//status returned in MACenum rather than in PHYenum
 			}
 			else if ((frmCtrl.frmType == defFrmCtrl_Type_MacCmd)		//command packet
-			&& (wph->MSDU_CmdType == 0x08))					//coordinator realignment response packet
+					&& (wph->MSDU_CmdType == 0x08))					//coordinator realignment response packet
 			{
 				numBcnCmdRetry++;
 				if (numBcnCmdRetry <= aMaxFrameRetries)
@@ -2427,47 +2531,58 @@ void Mac802_15_4::dispatch(PHYenum status,const char *frFunc,PHYenum req_state,M
 			}
 		}
 		//else		//may be purged from the pending list
-		
+
 	}
 	else if (strcmp(frFunc,"PLME_SET_TRX_STATE_confirm") == 0)
 	{
 		//handle TRX_OFF
 		if (req_state == p_TRX_OFF)
-		if (taskP.taskStatus(TP_mlme_reset_request)
-	 	&& (strcmp(taskP.taskFrFunc(TP_mlme_reset_request),frFunc) == 0))
-			mlme_reset_request(taskP.mlme_reset_request_SetDefaultPIB,false,status);
+		{
+			if (taskP.taskStatus(TP_mlme_reset_request)
+					&& (strcmp(taskP.taskFrFunc(TP_mlme_reset_request),frFunc) == 0))
+			{
+				mlme_reset_request(taskP.mlme_reset_request_SetDefaultPIB,false,status);
+			}
+		}
+
 		//handle RX_ON
 		if (req_state == p_RX_ON)
-		if (taskP.taskStatus(TP_mlme_scan_request)
-	 	&& (strcmp(taskP.taskFrFunc(TP_mlme_scan_request),frFunc) == 0))
-			mlme_scan_request(taskP.mlme_scan_request_ScanType,taskP.mlme_scan_request_ScanChannels,taskP.mlme_scan_request_ScanDuration,false,status);
-		else if (taskP.taskStatus(TP_mlme_rx_enable_request)
-	 	&& (strcmp(taskP.taskFrFunc(TP_mlme_rx_enable_request),frFunc) == 0))
-			mlme_rx_enable_request(0,taskP.mlme_rx_enable_request_RxOnTime,taskP.mlme_rx_enable_request_RxOnDuration,false);
+		{
+			if (taskP.taskStatus(TP_mlme_scan_request)
+					&& (strcmp(taskP.taskFrFunc(TP_mlme_scan_request),frFunc) == 0))
+			{
+				mlme_scan_request(taskP.mlme_scan_request_ScanType,taskP.mlme_scan_request_ScanChannels,taskP.mlme_scan_request_ScanDuration,false,status);
+			}
+			else if (taskP.taskStatus(TP_mlme_rx_enable_request)
+					&& (strcmp(taskP.taskFrFunc(TP_mlme_rx_enable_request),frFunc) == 0))
+			{
+				mlme_rx_enable_request(0,taskP.mlme_rx_enable_request_RxOnTime,taskP.mlme_rx_enable_request_RxOnDuration,false);
+			}
+		}
 	}
 	else if (strcmp(frFunc,"PLME_SET_confirm") == 0)
 	{
 		if (taskP.taskStatus(TP_mlme_scan_request)
-	 	&& (strcmp(taskP.taskFrFunc(TP_mlme_scan_request),frFunc) == 0))
+				&& (strcmp(taskP.taskFrFunc(TP_mlme_scan_request),frFunc) == 0))
 			mlme_scan_request(taskP.mlme_scan_request_ScanType,taskP.mlme_scan_request_ScanChannels,taskP.mlme_scan_request_ScanDuration,false,status);
 	}
 	else if (strcmp(frFunc,"PLME_ED_confirm") == 0)
 	{
 		if (taskP.taskStatus(TP_mlme_scan_request)
-		&& (taskP.mlme_scan_request_ScanType == 0x00)		//ED scan
-	 	&& (strcmp(taskP.taskFrFunc(TP_mlme_scan_request),frFunc) == 0))
+				&& (taskP.mlme_scan_request_ScanType == 0x00)		//ED scan
+				&& (strcmp(taskP.taskFrFunc(TP_mlme_scan_request),frFunc) == 0))
 			mlme_scan_request(taskP.mlme_scan_request_ScanType,taskP.mlme_scan_request_ScanChannels,taskP.mlme_scan_request_ScanDuration,false,status);
 	}
 	else if (strcmp(frFunc,"recvBeacon") == 0)
 	{
 		if (taskP.taskStatus(TP_mlme_scan_request)
-	 	&& (strcmp(taskP.taskFrFunc(TP_mlme_scan_request),frFunc) == 0))
+				&& (strcmp(taskP.taskFrFunc(TP_mlme_scan_request),frFunc) == 0))
 			mlme_scan_request(taskP.mlme_scan_request_ScanType,taskP.mlme_scan_request_ScanChannels,taskP.mlme_scan_request_ScanDuration,false,p_SUCCESS);
 		else if (taskP.taskStatus(TP_mlme_rx_enable_request)
-	 	&& (strcmp(taskP.taskFrFunc(TP_mlme_rx_enable_request),frFunc) == 0))
+				&& (strcmp(taskP.taskFrFunc(TP_mlme_rx_enable_request),frFunc) == 0))
 			mlme_rx_enable_request(0,taskP.mlme_rx_enable_request_RxOnTime,taskP.mlme_rx_enable_request_RxOnDuration,false);
 		else if (taskP.taskStatus(TP_mlme_sync_request)
-	 	&& (strcmp(taskP.taskFrFunc(TP_mlme_sync_request),frFunc) == 0))
+				&& (strcmp(taskP.taskFrFunc(TP_mlme_sync_request),frFunc) == 0))
 			mlme_sync_request(0,taskP.mlme_sync_request_tracking,false,p_SUCCESS);
 	}
 	else if (strcmp(frFunc,"scanHandler") == 0)	//always check the task status if the dispatch comes from a timer
@@ -2478,12 +2593,12 @@ void Mac802_15_4::dispatch(PHYenum status,const char *frFunc,PHYenum req_state,M
 	else if (strcmp(frFunc,"extractHandler") == 0)	//always check the task status if the dispatch comes from a timer
 	{
 		if (taskP.taskStatus(TP_mlme_associate_request)
-	 	&& (strcmp(taskP.taskFrFunc(TP_mlme_associate_request),frFunc) == 0))
-	 	{
+				&& (strcmp(taskP.taskFrFunc(TP_mlme_associate_request),frFunc) == 0))
+		{
 			mlme_associate_request(0,0,0,0,0,taskP.mlme_associate_request_SecurityEnable,false,p_BUSY);	//status ignored in case 4, but should set to any value but p_SUCCESS in case 7 -- p_BUSY will be ok anyway
 		}
 		else if (taskP.taskStatus(TP_mlme_poll_request)
-	 	&& (strcmp(taskP.taskFrFunc(TP_mlme_poll_request),"IFSHandler") == 0))
+				&& (strcmp(taskP.taskFrFunc(TP_mlme_poll_request),"IFSHandler") == 0))
 			mlme_poll_request(taskP.mlme_poll_request_CoordAddrMode,taskP.mlme_poll_request_CoordPANId,taskP.mlme_poll_request_CoordAddress,taskP.mlme_poll_request_SecurityEnable,taskP.mlme_poll_request_autoRequest,false,p_BUSY);
 	}
 	else if (strcmp(frFunc,"assoRspWaitHandler") == 0)	//always check the task status if the dispatch comes from a timer
@@ -2505,25 +2620,25 @@ void Mac802_15_4::dispatch(PHYenum status,const char *frFunc,PHYenum req_state,M
 	else if (strcmp(frFunc,"IFSHandler") == 0)	//always check the task status if the dispatch comes from a timer
 	{
 		if (taskP.taskStatus(TP_mlme_associate_request)
-	 	&& (strcmp(taskP.taskFrFunc(TP_mlme_associate_request),frFunc) == 0))
+				&& (strcmp(taskP.taskFrFunc(TP_mlme_associate_request),frFunc) == 0))
 			mlme_associate_request(0,0,0,0,0,taskP.mlme_associate_request_SecurityEnable,false,p_SUCCESS,mStatus);
 		else if (taskP.taskStatus(TP_mlme_poll_request)
-	 	&& (strcmp(taskP.taskFrFunc(TP_mlme_poll_request),frFunc) == 0))
+				&& (strcmp(taskP.taskFrFunc(TP_mlme_poll_request),frFunc) == 0))
 			mlme_poll_request(taskP.mlme_poll_request_CoordAddrMode,taskP.mlme_poll_request_CoordPANId,taskP.mlme_poll_request_CoordAddress,taskP.mlme_poll_request_SecurityEnable,taskP.mlme_poll_request_autoRequest,false,p_SUCCESS);
 		else if (taskP.taskStatus(TP_mlme_scan_request)
-	 	&& (strcmp(taskP.taskFrFunc(TP_mlme_scan_request),frFunc) == 0))
+				&& (strcmp(taskP.taskFrFunc(TP_mlme_scan_request),frFunc) == 0))
 			mlme_scan_request(taskP.mlme_scan_request_ScanType,taskP.mlme_scan_request_ScanChannels,taskP.mlme_scan_request_ScanDuration,false,p_SUCCESS);
 	}
 	else if (strcmp(frFunc,"rxEnableHandler") == 0)
 	{
 		//if (taskP.taskStatus(TP_mlme_rx_enable_request))	//we don't check the task status (it may be reset)
-	 	if (strcmp(taskP.taskFrFunc(TP_mlme_rx_enable_request),frFunc) == 0)
+		if (strcmp(taskP.taskFrFunc(TP_mlme_rx_enable_request),frFunc) == 0)
 			mlme_rx_enable_request(0,taskP.mlme_rx_enable_request_RxOnTime,taskP.mlme_rx_enable_request_RxOnDuration,false);
 	}
 	else if (strcmp(frFunc,"beaconSearchHandler") == 0)	//always check the task status if the dispatch comes from a timer
 	{
 		if (taskP.taskStatus(TP_mlme_sync_request)
-	 	&& (strcmp(taskP.taskFrFunc(TP_mlme_sync_request),"recvBeacon") == 0))
+				&& (strcmp(taskP.taskFrFunc(TP_mlme_sync_request),"recvBeacon") == 0))
 			mlme_sync_request(0,taskP.mlme_sync_request_tracking,false,p_BUSY);	//status can anything but p_SUCCESS
 	}
 }
@@ -2550,8 +2665,8 @@ void Mac802_15_4::sendDown(Packet *p,Handler* h)
 
 	//double trx_time = phy->trxTime(p,false);
 	/* Linux floating number compatibility
-	txOverT->start(trx_time + 1/phy->getRate('s'));
-	*/
+	   txOverT->start(trx_time + 1/phy->getRate('s'));
+	   */
 	//{
 	//double tmpf;
 	//tmpf = 1/phy->getRate('s');		
@@ -2559,19 +2674,19 @@ void Mac802_15_4::sendDown(Packet *p,Handler* h)
 	//}
 	EnergyModel *em = netif_->node()->energy_model();
 	if (em)
-	if (em->energy() <= 0)
-	{
-		PD_DATA_confirm(p_UNDEFINED);
-		return;
-	}
+		if (em->energy() <= 0)
+		{
+			PD_DATA_confirm(p_UNDEFINED);
+			return;
+		}
 
 	downtarget_->recv(p, h);
 }
 
 void Mac802_15_4::mcps_data_request(UINT_8 SrcAddrMode,UINT_16 SrcPANId,IE3ADDR SrcAddr,
-				    UINT_8 DstAddrMode,UINT_16 DstPANId,IE3ADDR DstAddr,
-				    UINT_8 msduLength,Packet *msdu,UINT_8 msduHandle,UINT_8 TxOptions,
-				    bool frUpper,PHYenum status,MACenum mStatus)
+		UINT_8 DstAddrMode,UINT_16 DstPANId,IE3ADDR DstAddr,
+		UINT_8 msduLength,Packet *msdu,UINT_8 msduHandle,UINT_8 TxOptions,
+		bool frUpper,PHYenum status,MACenum mStatus)
 {
 	UINT_8 step,task;
 	hdr_lrwpan *wph;
@@ -2590,14 +2705,14 @@ void Mac802_15_4::mcps_data_request(UINT_8 SrcAddrMode,UINT_16 SrcPANId,IE3ADDR 
 		//check if parameters valid or not
 		ch = HDR_CMN(msdu);
 		if (ch->ptype() == PT_MAC)	//we only check for 802.15.4 packets (let other packets go through -- must be changed in implementation)
-		if ((SrcAddrMode > 0x03)
-		||(DstAddrMode > 0x03)
-		||(msduLength > aMaxMACFrameSize)
-		||(TxOptions > 0x0f))
-		{
-			sscs->MCPS_DATA_confirm(msduHandle,m_INVALID_PARAMETER);
-			return;
-		}
+			if ((SrcAddrMode > 0x03)
+					||(DstAddrMode > 0x03)
+					||(msduLength > aMaxMACFrameSize)
+					||(TxOptions > 0x0f))
+			{
+				sscs->MCPS_DATA_confirm(msduHandle,m_INVALID_PARAMETER);
+				return;
+			}
 
 		taskP.taskStatus(task) = true;
 		taskP.mcps_data_request_TxOptions = TxOptions;
@@ -2634,7 +2749,7 @@ void Mac802_15_4::mcps_data_request(UINT_8 SrcAddrMode,UINT_16 SrcPANId,IE3ADDR 
 		}
 	}
 	else if ((TxOptions & TxOp_Indirect)				//indirect transmission
-	&& (capability.FFD&&(numberDeviceLink(&deviceLink1) > 0)))	//I am a coordinator
+			&& (capability.FFD&&(numberDeviceLink(&deviceLink1) > 0)))	//I am a coordinator
 	{
 		switch(step)
 		{
@@ -2642,15 +2757,15 @@ void Mac802_15_4::mcps_data_request(UINT_8 SrcAddrMode,UINT_16 SrcPANId,IE3ADDR 
 				taskP.taskStep(task)++;
 				taskP.mcps_data_request_pendPkt = msdu;
 				if ((DstAddrMode == defFrmCtrl_AddrMode16)		//16-bit address available
-				|| (DstAddrMode == defFrmCtrl_AddrMode64))		//64-bit address available
+						|| (DstAddrMode == defFrmCtrl_AddrMode64))		//64-bit address available
 				{
 					/* Linux floating number compatibility
-					kpTime = mpib.macTransactionPersistenceTime * (aBaseSuperframeDuration * (1 << mpib.macBeaconOrder) / phy->getRate('s'));
-					*/
+					   kpTime = mpib.macTransactionPersistenceTime * (aBaseSuperframeDuration * (1 << mpib.macBeaconOrder) / phy->getRate('s'));
+					   */
 					{
-					double tmpf;
-					tmpf = (aBaseSuperframeDuration * (1 << mpib.macBeaconOrder) / phy->getRate('s'));
-					kpTime = mpib.macTransactionPersistenceTime * tmpf;		
+						double tmpf;
+						tmpf = (aBaseSuperframeDuration * (1 << mpib.macBeaconOrder) / phy->getRate('s'));
+						kpTime = mpib.macTransactionPersistenceTime * tmpf;		
 					}
 
 					chkAddTransacLink(&transacLink1,&transacLink2,DstAddrMode,DstAddr,msdu,msduHandle,kpTime);
@@ -2739,8 +2854,8 @@ void Mac802_15_4::mcps_data_request(UINT_8 SrcAddrMode,UINT_16 SrcPANId,IE3ADDR 
 					}
 					else
 					{
-// 						2.31 change. An access failure needs to be 							reported here. Earlier csmacaResume() was being 						called indefinetely. This has been commented and 							the folowing 3 lines of code have been added 							within else.
-//						csmacaResume();
+						// 						2.31 change. An access failure needs to be 							reported here. Earlier csmacaResume() was being 						called indefinetely. This has been commented and 							the folowing 3 lines of code have been added 							within else.
+						//						csmacaResume();
 						taskP.taskStatus(task) = false;
 						resetTRX();
 						taskFailed('d',m_CHANNEL_ACCESS_FAILURE,0);
@@ -2771,7 +2886,7 @@ void Mac802_15_4::mcps_data_request(UINT_8 SrcAddrMode,UINT_16 SrcPANId,IE3ADDR 
 					taskP.taskStatus(task) = false;
 					resetTRX();
 					taskSuccess('d');
-// 2.31 change: added this to put the node to sleep after successful pkt tx
+					// 2.31 change: added this to put the node to sleep after successful pkt tx
 #ifdef SHUTDOWN
 					if ((em) && ((!capability.FFD)||(numberDeviceLink(&deviceLink1) == 0)) && (NOW>phy->T_sleep_)){ //I can sleep only if i am not a coordinator
 						phy->putNodeToSleep();
@@ -2817,8 +2932,8 @@ void Mac802_15_4::mcps_data_request(UINT_8 SrcAddrMode,UINT_16 SrcPANId,IE3ADDR 
 }
 
 void Mac802_15_4::mlme_associate_request(UINT_8 LogicalChannel,UINT_8 CoordAddrMode,UINT_16 CoordPANId,IE3ADDR CoordAddress,
-					 UINT_8 CapabilityInformation,bool SecurityEnable,
-					 bool frUpper,PHYenum status,MACenum mStatus)
+		UINT_8 CapabilityInformation,bool SecurityEnable,
+		bool frUpper,PHYenum status,MACenum mStatus)
 {
 	//refer to Figure 25 for association details
 	UINT_8 step,task;
@@ -2834,7 +2949,7 @@ void Mac802_15_4::mlme_associate_request(UINT_8 LogicalChannel,UINT_8 CoordAddrM
 		case 0:
 			//check if parameters valid or not
 			if ((!phy->channelSupported(LogicalChannel))
-			|| ((CoordAddrMode != defFrmCtrl_AddrMode16)&&(CoordAddrMode != defFrmCtrl_AddrMode64)))
+					|| ((CoordAddrMode != defFrmCtrl_AddrMode16)&&(CoordAddrMode != defFrmCtrl_AddrMode64)))
 			{
 				sscs->MLME_ASSOCIATE_confirm(0,m_INVALID_PARAMETER);
 				return;
@@ -3054,7 +3169,7 @@ void Mac802_15_4::mlme_associate_request(UINT_8 LogicalChannel,UINT_8 CoordAddrM
 }
 
 void Mac802_15_4::mlme_associate_response(IE3ADDR DeviceAddress,UINT_16 AssocShortAddress,MACenum Status,bool SecurityEnable,
-					  bool frUpper,PHYenum status)
+		bool frUpper,PHYenum status)
 {
 	FrameCtrl frmCtrl;
 	hdr_lrwpan* wph;
@@ -3161,100 +3276,100 @@ void Mac802_15_4::mlme_associate_response(IE3ADDR DeviceAddress,UINT_16 AssocSho
 void Mac802_15_4::mlme_disassociate_request(IE3ADDR DeviceAddress,UINT_8 DisassociateReason,bool SecurityEnable,bool frUpper,PHYenum status)
 {
 	/*
-	FrameCtrl frmCtrl;
-	hdr_lrwpan* wph;
-	double kpTime;
-	UINT_8 step,task;
-	int i;
+	   FrameCtrl frmCtrl;
+	   hdr_lrwpan* wph;
+	   double kpTime;
+	   UINT_8 step,task;
+	   int i;
 
-	task = TP_mlme_disassociate_request;
-	if (frUpper) checkTaskOverflow(task);
+	   task = TP_mlme_disassociate_request;
+	   if (frUpper) checkTaskOverflow(task);
 
-	step = taskP.taskStep(task);
-	switch(step)
+	   step = taskP.taskStep(task);
+	   switch(step)
+	   {
+	   case 0:
+	//check if parameters valid or not
+	if (DeviceAddress != mpib.macCoordExtendedAddress)		//send to a device
+	if ((!capability.FFD)||(numberDeviceLink(&deviceLink1) == 0))	//I am not a coordinator
+
 	{
-		case 0:
-			//check if parameters valid or not
-			if (DeviceAddress != mpib.macCoordExtendedAddress)		//send to a device
-			if ((!capability.FFD)||(numberDeviceLink(&deviceLink1) == 0))	//I am not a coordinator
-
-			{
-				sscs->MLME_DISASSOCIATE_confirm(m_INVALID_PARAMETER);
-				return;
-			}
-			taskP.mlme_disassociate_request_toCoor = (DeviceAddress == mpib.macCoordExtendedAddress);
-			//--- construct a disassociation notification command packet ---
-#ifdef DEBUG802_15_4
-			fprintf(stdout,"[%s::%s][%f](node %d) before alloc txBcnCmd2:\n\t\ttxBeacon\t= %ld\n\t\ttxAck   \t= %ld\n\t\ttxBcnCmd\t= %ld\n\t\ttxBcnCmd2\t= %ld\n\t\ttxData  \t= %ld\n",__FILE__,__FUNCTION__,CURRENT_TIME,index_,txBeacon,txAck,txBcnCmd,txBcnCmd2,txData);
-#endif
-			assert(!txBcnCmd2);
-			txBcnCmd2 = Packet::alloc();
-			assert(txBcnCmd2);
-			wph = HDR_LRWPAN(txBcnCmd2);
-			if (!taskP.mlme_disassociate_request_toCoor)
-				wph->MHR_DstAddrInfo.addr_64 = DeviceAddress;
-			else
-				wph->MHR_DstAddrInfo.addr_64 = mpib.macCoordExtendedAddress;
-			constructCommandHeader(txBcnCmd2,&frmCtrl,0x03,defFrmCtrl_AddrMode64,mpib.macPANId,wph->MHR_DstAddrInfo.addr_64,defFrmCtrl_AddrMode64,mpib.macPANId,aExtendedAddress,SecurityEnable,false,true);
-			*((UINT_8 *)wph->MSDU_Payload) = (taskP.mlme_disassociate_request_toCoor)?0x02:0x01;
-			constructMPDU(2,txBcnCmd2,frmCtrl.FrmCtrl,mpib.macDSN++,wph->MHR_DstAddrInfo,wph->MHR_SrcAddrInfo,0,0x03,0);
-			//----------------------------------------------------------------------
-			taskP.taskStatus(task) = true;
-			taskP.taskStep(task)++;
-			taskP.mlme_disassociate_request_pendPkt = txBcnCmd2;
-			if (!taskP.mlme_disassociate_request_toCoor)		//indirect transmission should be used
-			{
-				// Linux floating number compatibility
-				//kpTime = mpib.macTransactionPersistenceTime * (aBaseSuperframeDuration * (1 << mpib.macBeaconOrder) / phy->getRate('s'));
-				{
-				double tmpf;
-				tmpf = (aBaseSuperframeDuration * (1 << mpib.macBeaconOrder) / phy->getRate('s'));
-				kpTime = mpib.macTransactionPersistenceTime * tmpf;
-				}
-
-				i = chkAddTransacLink(&transacLink1,&transacLink2,defFrmCtrl_AddrMode64,wph->MHR_DstAddrInfo.addr_64,txBcnCmd2,0,kpTime);
-				if (i != 0)	//overflow or failed
-				{
-					taskP.taskStatus(task) = false;
-					Packet::free(txBcnCmd2);
-					txBcnCmd2 = 0;
-					sscs->MLME_DISASSOCIATE_confirm(m_TRANSACTION_OVERFLOW);
-					return;
-				}
-				extractT->start(kpTime,false);
-			}
-			else
-				csmacaBegin('C');
-			break;
-		case 1:
-			if (!taskP.mlme_disassociate_request_toCoor)		//indirect transmission
-			{
-				//check if the transaction still pending
-				wph = HDR_LRWPAN(txBcnCmd2);
-				i = updateTransacLinkByPktOrHandle(tr_oper_est,&transacLink1,&transacLink2,taskP.mlme_disassociate_request_pendPkt);	//don't use <txBcnCmd2>, since it may be null if a data request command not received
-				if (i == 0)	//still pending
-				{
-					//delete the packet from the transaction list immediately -- prevent the packet from being transmitted at the last moment
-					updateTransacLinkByPktOrHandle(tr_oper_del,&transacLink1,&transacLink2,taskP.mlme_disassociate_request_pendPkt);
-					taskP.taskStatus(task) = false;
-					sscs->MLME_DISASSOCIATE_confirm(m_TRANSACTION_EXPIRED);
-					return;
-				}
-				else	//being successfully extracted
-				{
-					taskP.taskStatus(task) = false;
-					sscs->MLME_COMM_STATUS_indication(mpib.macPANId,defFrmCtrl_AddrMode64,aExtendedAddress,defFrmCtrl_AddrMode64,DeviceAddress,m_SUCCESS);
-					return;
-				}
-			}
-			else
-			{
-			}
-			break;
-		default:
-			break;
+	sscs->MLME_DISASSOCIATE_confirm(m_INVALID_PARAMETER);
+	return;
 	}
-	*/
+	taskP.mlme_disassociate_request_toCoor = (DeviceAddress == mpib.macCoordExtendedAddress);
+	//--- construct a disassociation notification command packet ---
+#ifdef DEBUG802_15_4
+fprintf(stdout,"[%s::%s][%f](node %d) before alloc txBcnCmd2:\n\t\ttxBeacon\t= %ld\n\t\ttxAck   \t= %ld\n\t\ttxBcnCmd\t= %ld\n\t\ttxBcnCmd2\t= %ld\n\t\ttxData  \t= %ld\n",__FILE__,__FUNCTION__,CURRENT_TIME,index_,txBeacon,txAck,txBcnCmd,txBcnCmd2,txData);
+#endif
+assert(!txBcnCmd2);
+txBcnCmd2 = Packet::alloc();
+assert(txBcnCmd2);
+wph = HDR_LRWPAN(txBcnCmd2);
+if (!taskP.mlme_disassociate_request_toCoor)
+wph->MHR_DstAddrInfo.addr_64 = DeviceAddress;
+else
+wph->MHR_DstAddrInfo.addr_64 = mpib.macCoordExtendedAddress;
+constructCommandHeader(txBcnCmd2,&frmCtrl,0x03,defFrmCtrl_AddrMode64,mpib.macPANId,wph->MHR_DstAddrInfo.addr_64,defFrmCtrl_AddrMode64,mpib.macPANId,aExtendedAddress,SecurityEnable,false,true);
+	 *((UINT_8 *)wph->MSDU_Payload) = (taskP.mlme_disassociate_request_toCoor)?0x02:0x01;
+	 constructMPDU(2,txBcnCmd2,frmCtrl.FrmCtrl,mpib.macDSN++,wph->MHR_DstAddrInfo,wph->MHR_SrcAddrInfo,0,0x03,0);
+	//----------------------------------------------------------------------
+	taskP.taskStatus(task) = true;
+	taskP.taskStep(task)++;
+	taskP.mlme_disassociate_request_pendPkt = txBcnCmd2;
+	if (!taskP.mlme_disassociate_request_toCoor)		//indirect transmission should be used
+	{
+	// Linux floating number compatibility
+	//kpTime = mpib.macTransactionPersistenceTime * (aBaseSuperframeDuration * (1 << mpib.macBeaconOrder) / phy->getRate('s'));
+	{
+	double tmpf;
+	tmpf = (aBaseSuperframeDuration * (1 << mpib.macBeaconOrder) / phy->getRate('s'));
+	kpTime = mpib.macTransactionPersistenceTime * tmpf;
+	}
+
+	i = chkAddTransacLink(&transacLink1,&transacLink2,defFrmCtrl_AddrMode64,wph->MHR_DstAddrInfo.addr_64,txBcnCmd2,0,kpTime);
+	if (i != 0)	//overflow or failed
+	{
+	taskP.taskStatus(task) = false;
+	Packet::free(txBcnCmd2);
+	txBcnCmd2 = 0;
+	sscs->MLME_DISASSOCIATE_confirm(m_TRANSACTION_OVERFLOW);
+	return;
+	}
+	extractT->start(kpTime,false);
+	}
+	else
+	csmacaBegin('C');
+	break;
+	case 1:
+	if (!taskP.mlme_disassociate_request_toCoor)		//indirect transmission
+	{
+	//check if the transaction still pending
+	wph = HDR_LRWPAN(txBcnCmd2);
+	i = updateTransacLinkByPktOrHandle(tr_oper_est,&transacLink1,&transacLink2,taskP.mlme_disassociate_request_pendPkt);	//don't use <txBcnCmd2>, since it may be null if a data request command not received
+	if (i == 0)	//still pending
+	{
+		//delete the packet from the transaction list immediately -- prevent the packet from being transmitted at the last moment
+		updateTransacLinkByPktOrHandle(tr_oper_del,&transacLink1,&transacLink2,taskP.mlme_disassociate_request_pendPkt);
+		taskP.taskStatus(task) = false;
+		sscs->MLME_DISASSOCIATE_confirm(m_TRANSACTION_EXPIRED);
+		return;
+	}
+	else	//being successfully extracted
+	{
+		taskP.taskStatus(task) = false;
+		sscs->MLME_COMM_STATUS_indication(mpib.macPANId,defFrmCtrl_AddrMode64,aExtendedAddress,defFrmCtrl_AddrMode64,DeviceAddress,m_SUCCESS);
+		return;
+	}
+}
+else
+{
+}
+break;
+default:
+break;
+}
+*/
 }
 
 void Mac802_15_4::mlme_orphan_response(IE3ADDR OrphanAddress,UINT_16 ShortAddress,bool AssociatedMember,bool SecurityEnable,bool frUpper,PHYenum status)
@@ -3266,7 +3381,7 @@ void Mac802_15_4::mlme_orphan_response(IE3ADDR OrphanAddress,UINT_16 ShortAddres
 
 	task = TP_mlme_orphan_response;
 	if (frUpper) checkTaskOverflow(task);
-	
+
 	switch(taskP.taskStep(task))
 	{
 		case 0:
@@ -3358,13 +3473,13 @@ void Mac802_15_4::mlme_rx_enable_request(bool DeferPermit,UINT_32 RxOnTime,UINT_
 	step = taskP.taskStep(task);
 
 	if (step == 0)
-	if (RxOnDuration == 0)
-	{
-		sscs->MLME_RX_ENABLE_confirm(m_SUCCESS);
-		plme_set_trx_state_request(p_TRX_OFF);
-		return;
-	}
-	
+		if (RxOnDuration == 0)
+		{
+			sscs->MLME_RX_ENABLE_confirm(m_SUCCESS);
+			plme_set_trx_state_request(p_TRX_OFF);
+			return;
+		}
+
 	if (macBeaconOrder2 != 15)		//beacon enabled
 	{
 		switch(step)
@@ -3389,8 +3504,8 @@ void Mac802_15_4::mlme_rx_enable_request(bool DeferPermit,UINT_32 RxOnTime,UINT_
 					return;
 				}
 				/* Linux floating number compatibility
-				else if ((CURRENT_TIME * phy->getRate('s') - macBcnRxTime) < (RxOnTime - aTurnaroundTime))
-				*/
+				   else if ((CURRENT_TIME * phy->getRate('s') - macBcnRxTime) < (RxOnTime - aTurnaroundTime))
+				   */
 				else if ((tmpf - macBcnRxTime) < (RxOnTime - aTurnaroundTime))
 				{
 					//can proceed in current superframe
@@ -3415,15 +3530,15 @@ void Mac802_15_4::mlme_rx_enable_request(bool DeferPermit,UINT_32 RxOnTime,UINT_
 				taskP.taskStep(task)++;
 				strcpy(taskP.taskFrFunc(task),"rxEnableHandler");
 				/* Linux floating number compatibility
-				rxEnableT->start(RxOnTime / phy->getRate('s') - (CURRENT_TIME - macBcnRxTime / phy->getRate('s')));
-				*/
+				   rxEnableT->start(RxOnTime / phy->getRate('s') - (CURRENT_TIME - macBcnRxTime / phy->getRate('s')));
+				   */
 				{
-				double tmpf2;
-				tmpf = macBcnRxTime / phy->getRate('s');
-				tmpf = CURRENT_TIME - tmpf;
-				tmpf2 = RxOnTime / phy->getRate('s');
-				tmpf = tmpf2 - tmpf;
-				rxEnableT->start(tmpf);
+					double tmpf2;
+					tmpf = macBcnRxTime / phy->getRate('s');
+					tmpf = CURRENT_TIME - tmpf;
+					tmpf2 = RxOnTime / phy->getRate('s');
+					tmpf = tmpf2 - tmpf;
+					rxEnableT->start(tmpf);
 				}
 				break;
 			case 2:
@@ -3445,14 +3560,14 @@ void Mac802_15_4::mlme_rx_enable_request(bool DeferPermit,UINT_32 RxOnTime,UINT_
 				cutTime = (RxOnTime + RxOnDuration - t_CAP) / phy->getRate('s');
 
 				/* Linux floating number compatibility
-				rxEnableT->start(RxOnDuration / phy->getRate('s') - (CURRENT_TIME - taskP.mlme_rx_enable_request_currentTime) - cutTime);
-				*/
+				   rxEnableT->start(RxOnDuration / phy->getRate('s') - (CURRENT_TIME - taskP.mlme_rx_enable_request_currentTime) - cutTime);
+				   */
 				{
-				tmpf = RxOnDuration / phy->getRate('s');
-				tmpf -= CURRENT_TIME;
-				tmpf += taskP.mlme_rx_enable_request_currentTime;
-				tmpf -= cutTime;
-				rxEnableT->start(tmpf);
+					tmpf = RxOnDuration / phy->getRate('s');
+					tmpf -= CURRENT_TIME;
+					tmpf += taskP.mlme_rx_enable_request_currentTime;
+					tmpf -= cutTime;
+					rxEnableT->start(tmpf);
 				}
 				break;
 			case 4:
@@ -3484,13 +3599,13 @@ void Mac802_15_4::mlme_rx_enable_request(bool DeferPermit,UINT_32 RxOnTime,UINT_
 				else
 					sscs->MLME_RX_ENABLE_confirm(m_SUCCESS);
 				/* Linux floating number compatibility
-				rxEnableT->start(RxOnDuration / phy->getRate('s') - (CURRENT_TIME - taskP.mlme_rx_enable_request_currentTime));
-				*/
+				   rxEnableT->start(RxOnDuration / phy->getRate('s') - (CURRENT_TIME - taskP.mlme_rx_enable_request_currentTime));
+				   */
 				{
-				tmpf = RxOnDuration / phy->getRate('s');
-				tmpf -= CURRENT_TIME;
-				tmpf += taskP.mlme_rx_enable_request_currentTime;
-				rxEnableT->start(tmpf);
+					tmpf = RxOnDuration / phy->getRate('s');
+					tmpf -= CURRENT_TIME;
+					tmpf += taskP.mlme_rx_enable_request_currentTime;
+					rxEnableT->start(tmpf);
 				}
 				break;
 			case 2:
@@ -3519,7 +3634,7 @@ void Mac802_15_4::mlme_scan_request(UINT_8 ScanType,UINT_32 ScanChannels,UINT_8 
 	if (step == 0)
 	{
 		if ((ScanType > 3)
-		||((ScanType != 3)&&(ScanDuration > 14)))
+				||((ScanType != 3)&&(ScanDuration > 14)))
 		{
 			sscs->MLME_SCAN_confirm(m_INVALID_PARAMETER,ScanType,ScanChannels,0,NULL,NULL);
 			return;
@@ -3541,133 +3656,306 @@ void Mac802_15_4::mlme_scan_request(UINT_8 ScanType,UINT_32 ScanChannels,UINT_8 
 	}
 
 	if (ScanType == 0x00)		//ED scan
-	switch (step)
-	{
-		case 0:
-			phy->PLME_GET_request(phyChannelsSupported);	//value will be returned in tmp_ppib
-			taskP.mlme_scan_request_ScanChannels = ScanChannels;
-			if ((taskP.mlme_scan_request_ScanChannels & tmp_ppib.phyChannelsSupported) == 0)
-			{
-				//restore the beacon order
-				mpib.macBeaconOrder = taskP.mlme_scan_request_orig_macBeaconOrder;
-				macBeaconOrder2 = taskP.mlme_scan_request_orig_macBeaconOrder2;
-				macBeaconOrder3 = taskP.mlme_scan_request_orig_macBeaconOrder3;
-				sscs->MLME_SCAN_confirm(m_SUCCESS,ScanType,ScanChannels,0,NULL,NULL);	//SUCCESS or INVALID_PARAMETER?
-				csmacaResume();
-				return;
-			}
-			taskP.taskStatus(task) = true;
-			taskP.taskStep(task)++;
-			strcpy(taskP.taskFrFunc(task),"PLME_SET_confirm");
-			taskP.mlme_scan_request_CurrentChannel = 0;
-			taskP.mlme_scan_request_ListNum = 0;
-			t_chanPos = (1<<taskP.mlme_scan_request_CurrentChannel);
-			while((t_chanPos & taskP.mlme_scan_request_ScanChannels) == 0
-			||(t_chanPos & tmp_ppib.phyChannelsSupported) == 0)
-			{
+		switch (step)
+		{
+			case 0:
+				phy->PLME_GET_request(phyChannelsSupported);	//value will be returned in tmp_ppib
+				taskP.mlme_scan_request_ScanChannels = ScanChannels;
+				if ((taskP.mlme_scan_request_ScanChannels & tmp_ppib.phyChannelsSupported) == 0)
+				{
+					//restore the beacon order
+					mpib.macBeaconOrder = taskP.mlme_scan_request_orig_macBeaconOrder;
+					macBeaconOrder2 = taskP.mlme_scan_request_orig_macBeaconOrder2;
+					macBeaconOrder3 = taskP.mlme_scan_request_orig_macBeaconOrder3;
+					sscs->MLME_SCAN_confirm(m_SUCCESS,ScanType,ScanChannels,0,NULL,NULL);	//SUCCESS or INVALID_PARAMETER?
+					csmacaResume();
+					return;
+				}
+				taskP.taskStatus(task) = true;
+				taskP.taskStep(task)++;
+				strcpy(taskP.taskFrFunc(task),"PLME_SET_confirm");
+				taskP.mlme_scan_request_CurrentChannel = 0;
+				taskP.mlme_scan_request_ListNum = 0;
+				t_chanPos = (1<<taskP.mlme_scan_request_CurrentChannel);
+				while((t_chanPos & taskP.mlme_scan_request_ScanChannels) == 0
+						||(t_chanPos & tmp_ppib.phyChannelsSupported) == 0)
+				{
+					taskP.mlme_scan_request_CurrentChannel++;
+					t_chanPos = (1<<taskP.mlme_scan_request_CurrentChannel);
+				}
+				tmp_ppib.phyCurrentChannel = taskP.mlme_scan_request_CurrentChannel;
+				phy->PLME_SET_request(phyCurrentChannel,&tmp_ppib);
+				break;
+			case 1:
+				taskP.taskStep(task)++;
+				strcpy(taskP.taskFrFunc(task),"PLME_SET_TRX_STATE_confirm");
+				{plme_set_trx_state_request(p_RX_ON);}
+				break;
+			case 2:
+				if (status == p_RX_ON)
+				{
+					taskP.taskStep(task)++;
+					strcpy(taskP.taskFrFunc(task),"PLME_ED_confirm");
+					phy->PLME_ED_request();
+					break;
+				}
+				//else	//fall through case 4
+			case 3:
+				if (step == 3)	//note that case 2 needs to fall through case 4 via here
+				{
+					if (status == p_SUCCESS)
+					{
+						t_chanPos = (1<<taskP.mlme_scan_request_CurrentChannel);
+						taskP.mlme_scan_request_ScanChannels &= (t_chanPos^0xffffffff);
+						taskP.mlme_scan_request_EnergyDetectList[taskP.mlme_scan_request_ListNum] = energyLevel;
+						taskP.mlme_scan_request_ListNum++;
+					}
+				}
+				//fall through
+			case 4:
+				if ((taskP.mlme_scan_request_ScanChannels & tmp_ppib.phyChannelsSupported) == 0)
+				{
+					//restore the beacon order
+					mpib.macBeaconOrder = taskP.mlme_scan_request_orig_macBeaconOrder;
+					macBeaconOrder2 = taskP.mlme_scan_request_orig_macBeaconOrder2;
+					macBeaconOrder3 = taskP.mlme_scan_request_orig_macBeaconOrder3;
+					taskP.taskStatus(task) = false;
+					sscs->MLME_SCAN_confirm(m_SUCCESS,ScanType,taskP.mlme_scan_request_ScanChannels,taskP.mlme_scan_request_ListNum,taskP.mlme_scan_request_EnergyDetectList,NULL);
+					csmacaResume();
+					return;
+				}
+				taskP.taskStep(task) = 1;	//important
+				strcpy(taskP.taskFrFunc(task),"PLME_SET_confirm");
 				taskP.mlme_scan_request_CurrentChannel++;
 				t_chanPos = (1<<taskP.mlme_scan_request_CurrentChannel);
-			}
-			tmp_ppib.phyCurrentChannel = taskP.mlme_scan_request_CurrentChannel;
-			phy->PLME_SET_request(phyCurrentChannel,&tmp_ppib);
-			break;
-		case 1:
-			taskP.taskStep(task)++;
-			strcpy(taskP.taskFrFunc(task),"PLME_SET_TRX_STATE_confirm");
-			{plme_set_trx_state_request(p_RX_ON);}
-			break;
-		case 2:
-			if (status == p_RX_ON)
-			{
-				taskP.taskStep(task)++;
-				strcpy(taskP.taskFrFunc(task),"PLME_ED_confirm");
-				phy->PLME_ED_request();
+				while((t_chanPos & taskP.mlme_scan_request_ScanChannels) == 0
+						||(t_chanPos & tmp_ppib.phyChannelsSupported) == 0)
+				{
+					taskP.mlme_scan_request_CurrentChannel++;
+					t_chanPos = (1<<taskP.mlme_scan_request_CurrentChannel);
+				}
+				tmp_ppib.phyCurrentChannel = taskP.mlme_scan_request_CurrentChannel;
+				phy->PLME_SET_request(phyCurrentChannel,&tmp_ppib);
 				break;
-			}
-			//else	//fall through case 4
-		case 3:
-			if (step == 3)	//note that case 2 needs to fall through case 4 via here
-			{
-				if (status == p_SUCCESS)
+			default:
+				break;
+		}
+
+	else if ((ScanType == 0x01)	//active scan
+			||	 (ScanType == 0x02))	//passive scan
+		switch (step)
+		{
+			case 0:
+				phy->PLME_GET_request(phyChannelsSupported);	//value will be returned in tmp_ppib
+				taskP.mlme_scan_request_ScanChannels = ScanChannels;
+				if ((taskP.mlme_scan_request_ScanChannels & tmp_ppib.phyChannelsSupported) == 0)
+				{
+					mpib.macBeaconOrder = taskP.mlme_scan_request_orig_macBeaconOrder;
+					macBeaconOrder2 = taskP.mlme_scan_request_orig_macBeaconOrder2;
+					macBeaconOrder3 = taskP.mlme_scan_request_orig_macBeaconOrder3;
+					sscs->MLME_SCAN_confirm(m_SUCCESS,ScanType,ScanChannels,0,NULL,NULL);	//SUCCESS or INVALID_PARAMETER?
+					csmacaResume();
+					return;
+				}
+				taskP.taskStatus(task) = true;
+				taskP.taskStep(task)++;
+				strcpy(taskP.taskFrFunc(task),"PLME_SET_confirm");
+				taskP.mlme_scan_request_orig_macPANId = mpib.macPANId;
+				mpib.macPANId = 0xffff;
+				taskP.mlme_scan_request_ScanDuration = ScanDuration;
+				taskP.mlme_scan_request_CurrentChannel = 0;
+				taskP.mlme_scan_request_ListNum = 0;
+				t_chanPos = (1<<taskP.mlme_scan_request_CurrentChannel);
+				while((t_chanPos & taskP.mlme_scan_request_ScanChannels) == 0
+						||(t_chanPos & tmp_ppib.phyChannelsSupported) == 0)
+				{
+					taskP.mlme_scan_request_CurrentChannel++;
+					t_chanPos = (1<<taskP.mlme_scan_request_CurrentChannel);
+				}
+				tmp_ppib.phyCurrentChannel = taskP.mlme_scan_request_CurrentChannel;
+				phy->PLME_SET_request(phyCurrentChannel,&tmp_ppib);
+				break;
+			case 1:
+				if (Mac802_15_4::verbose)
+					fprintf(stdout,"[%f](node %d) scanning channel %d\n",CURRENT_TIME,index_,taskP.mlme_scan_request_CurrentChannel);
+				if (ScanType == 0x01)		//active scan
+				{
+					taskP.taskStep(task)++;
+					strcpy(taskP.taskFrFunc(task),"csmacaCallBack");
+					//--- send a beacon request command ---
+#ifdef DEBUG802_15_4
+					fprintf(stdout,"[%s::%s][%f](node %d) before alloc txBcnCmd2:\n\t\ttxBeacon\t= %ld\n\t\ttxAck   \t= %ld\n\t\ttxBcnCmd\t= %ld\n\t\ttxBcnCmd2\t= %ld\n\t\ttxData  \t= %ld\n",__FILE__,__FUNCTION__,CURRENT_TIME,index_,txBeacon,txAck,txBcnCmd,txBcnCmd2,txData);
+#endif
+					assert(!txBcnCmd2);
+					txBcnCmd2 = Packet::alloc();
+					assert(txBcnCmd2);
+					wph = HDR_LRWPAN(txBcnCmd2);
+					constructCommandHeader(txBcnCmd2,&frmCtrl,0x07,defFrmCtrl_AddrMode16,0xffff,0xffff,defFrmCtrl_AddrModeNone,0,0,false,false,false);
+					constructMPDU(1,txBcnCmd2,frmCtrl.FrmCtrl,mpib.macDSN++,wph->MHR_DstAddrInfo,wph->MHR_SrcAddrInfo,0,0x07,0);
+					csmacaBegin('C');
+					//------------------------------------
+				}
+				else
+				{
+					taskP.taskStep(task) = 4;	//skip the steps only for active scan
+					strcpy(taskP.taskFrFunc(task),"PLME_SET_TRX_STATE_confirm");
+					plme_set_trx_state_request(p_RX_ON);
+				}
+				break;
+			case 2:
+				if (status == p_IDLE)
+				{
+					taskP.taskStep(task)++;
+					strcpy(taskP.taskFrFunc(task),"PD_DATA_confirm");
+					plme_set_trx_state_request(p_TX_ON);
+					break;
+				}
+				else
+				{
+					freePkt(txBcnCmd2);	//actually we can keep <txBcnCmd2> for next channel
+					txBcnCmd2 = 0;
+					//fall through case 7
+				}
+			case 3:
+				if (step == 3)
+				{
+					taskP.taskStep(task)++;
+					strcpy(taskP.taskFrFunc(task),"PLME_SET_TRX_STATE_confirm");
+					taskSuccess('C',false);
+					plme_set_trx_state_request(p_RX_ON);
+					break;
+				}
+			case 4:
+				if (step == 4)
+				{
+					if (status == p_RX_ON)
+					{
+						taskP.taskStep(task)++;
+						strcpy(taskP.taskFrFunc(task),"recvBeacon");
+						//schedule for next channel
+						scanT->start((aBaseSuperframeDuration * ((1 << taskP.mlme_scan_request_ScanDuration) + 1)) / phy->getRate('s'));
+						break;
+					}
+					//else	//fall through case 7
+				}
+			case 5:
+				if (step == 5)
+				{
+					//beacon received
+					//record the PAN descriptor if it is a new one
+					assert(rxBeacon);
+					wph = HDR_LRWPAN(rxBeacon);
+					frmCtrl.FrmCtrl = wph->MHR_FrmCtrl;
+					frmCtrl.parse();
+					for (i=0;i<taskP.mlme_scan_request_ListNum;i++)
+					{
+						if ((taskP.mlme_scan_request_PANDescriptorList[i].LogicalChannel == taskP.mlme_scan_request_CurrentChannel)
+								&& (taskP.mlme_scan_request_PANDescriptorList[i].CoordAddrMode == frmCtrl.srcAddrMode)
+								&& (taskP.mlme_scan_request_PANDescriptorList[i].CoordPANId == wph->MHR_SrcAddrInfo.panID)		//but (page 146, line 4-5) implies not checking PAN ID
+								&& (
+									((frmCtrl.srcAddrMode == defFrmCtrl_AddrMode16)&&(taskP.mlme_scan_request_PANDescriptorList[i].CoordAddress_16 == wph->MHR_SrcAddrInfo.addr_16))
+									||
+									((frmCtrl.srcAddrMode == defFrmCtrl_AddrMode64)&&(taskP.mlme_scan_request_PANDescriptorList[i].CoordAddress_64 == wph->MHR_SrcAddrInfo.addr_64))
+								   )
+						   )
+						{
+							break;
+						}
+					}
+
+					if (i >= taskP.mlme_scan_request_ListNum)	//unique beacon
+					{
+						taskP.mlme_scan_request_PANDescriptorList[taskP.mlme_scan_request_ListNum] = panDes2;
+						taskP.mlme_scan_request_ListNum++;
+						if (taskP.mlme_scan_request_ListNum >= 27)
+						{
+							//stop the timer
+							scanT->stop();
+							//fall through case 7
+						}
+						else
+						{
+							break;
+						}
+					}
+					else
+					{
+						break;
+					}
+				}
+			case 6:
+				if (step == 6)
 				{
 					t_chanPos = (1<<taskP.mlme_scan_request_CurrentChannel);
 					taskP.mlme_scan_request_ScanChannels &= (t_chanPos^0xffffffff);
-					taskP.mlme_scan_request_EnergyDetectList[taskP.mlme_scan_request_ListNum] = energyLevel;
-					taskP.mlme_scan_request_ListNum++;
+					//fall through case 7
 				}
-			}
-			//fall through
-		case 4:
-			if ((taskP.mlme_scan_request_ScanChannels & tmp_ppib.phyChannelsSupported) == 0)
-			{
-				//restore the beacon order
-				mpib.macBeaconOrder = taskP.mlme_scan_request_orig_macBeaconOrder;
-				macBeaconOrder2 = taskP.mlme_scan_request_orig_macBeaconOrder2;
-				macBeaconOrder3 = taskP.mlme_scan_request_orig_macBeaconOrder3;
-				taskP.taskStatus(task) = false;
-				sscs->MLME_SCAN_confirm(m_SUCCESS,ScanType,taskP.mlme_scan_request_ScanChannels,taskP.mlme_scan_request_ListNum,taskP.mlme_scan_request_EnergyDetectList,NULL);
-				csmacaResume();
-				return;
-			}
-			taskP.taskStep(task) = 1;	//important
-			strcpy(taskP.taskFrFunc(task),"PLME_SET_confirm");
-			taskP.mlme_scan_request_CurrentChannel++;
-			t_chanPos = (1<<taskP.mlme_scan_request_CurrentChannel);
-			while((t_chanPos & taskP.mlme_scan_request_ScanChannels) == 0
-			||(t_chanPos & tmp_ppib.phyChannelsSupported) == 0)
-			{
+			case 7:
+				if (((taskP.mlme_scan_request_ScanChannels & tmp_ppib.phyChannelsSupported) == 0)
+						||(taskP.mlme_scan_request_ListNum >= 27))
+				{
+					mpib.macPANId = taskP.mlme_scan_request_orig_macPANId;
+					mpib.macBeaconOrder = taskP.mlme_scan_request_orig_macBeaconOrder;
+					macBeaconOrder2 = taskP.mlme_scan_request_orig_macBeaconOrder2;
+					macBeaconOrder3 = taskP.mlme_scan_request_orig_macBeaconOrder3;
+					taskP.taskStatus(task) = false;
+					sscs->MLME_SCAN_confirm(m_SUCCESS,ScanType,taskP.mlme_scan_request_ScanChannels,taskP.mlme_scan_request_ListNum,NULL,taskP.mlme_scan_request_PANDescriptorList);
+					csmacaResume();
+					return;
+				}
+				taskP.taskStep(task) = 1;	//important
+				strcpy(taskP.taskFrFunc(task),"PLME_SET_confirm");
 				taskP.mlme_scan_request_CurrentChannel++;
 				t_chanPos = (1<<taskP.mlme_scan_request_CurrentChannel);
-			}
-			tmp_ppib.phyCurrentChannel = taskP.mlme_scan_request_CurrentChannel;
-			phy->PLME_SET_request(phyCurrentChannel,&tmp_ppib);
-			break;
-		default:
-			break;
-	}
+				while((t_chanPos & taskP.mlme_scan_request_ScanChannels) == 0
+						||(t_chanPos & tmp_ppib.phyChannelsSupported) == 0)
+				{
+					taskP.mlme_scan_request_CurrentChannel++;
+					t_chanPos = (1<<taskP.mlme_scan_request_CurrentChannel);
+				}
+				tmp_ppib.phyCurrentChannel = taskP.mlme_scan_request_CurrentChannel;
+				phy->PLME_SET_request(phyCurrentChannel,&tmp_ppib);
+				break;
+			default:
+				break;
+		}
 
-	else if ((ScanType == 0x01)	//active scan
-	||	 (ScanType == 0x02))	//passive scan
-	switch (step)
-	{
-		case 0:
-			phy->PLME_GET_request(phyChannelsSupported);	//value will be returned in tmp_ppib
-			taskP.mlme_scan_request_ScanChannels = ScanChannels;
-			if ((taskP.mlme_scan_request_ScanChannels & tmp_ppib.phyChannelsSupported) == 0)
-			{
-				mpib.macBeaconOrder = taskP.mlme_scan_request_orig_macBeaconOrder;
-				macBeaconOrder2 = taskP.mlme_scan_request_orig_macBeaconOrder2;
-				macBeaconOrder3 = taskP.mlme_scan_request_orig_macBeaconOrder3;
-				sscs->MLME_SCAN_confirm(m_SUCCESS,ScanType,ScanChannels,0,NULL,NULL);	//SUCCESS or INVALID_PARAMETER?
-				csmacaResume();
-				return;
-			}
-			taskP.taskStatus(task) = true;
-			taskP.taskStep(task)++;
-			strcpy(taskP.taskFrFunc(task),"PLME_SET_confirm");
-			taskP.mlme_scan_request_orig_macPANId = mpib.macPANId;
-			mpib.macPANId = 0xffff;
-			taskP.mlme_scan_request_ScanDuration = ScanDuration;
-			taskP.mlme_scan_request_CurrentChannel = 0;
-			taskP.mlme_scan_request_ListNum = 0;
-			t_chanPos = (1<<taskP.mlme_scan_request_CurrentChannel);
-			while((t_chanPos & taskP.mlme_scan_request_ScanChannels) == 0
-			||(t_chanPos & tmp_ppib.phyChannelsSupported) == 0)
-			{
-				taskP.mlme_scan_request_CurrentChannel++;
+	else //if (ScanType == 0x03)	//orphan scan
+		switch (step)
+		{
+			case 0:
+				phy->PLME_GET_request(phyChannelsSupported);	//value will be returned in tmp_ppib
+				taskP.mlme_scan_request_ScanChannels = ScanChannels;
+				if ((taskP.mlme_scan_request_ScanChannels & tmp_ppib.phyChannelsSupported) == 0)
+				{
+					mpib.macBeaconOrder = taskP.mlme_scan_request_orig_macBeaconOrder;
+					//macBeaconOrder2 = taskP.mlme_scan_request_orig_macBeaconOrder2;
+					macBeaconOrder2 = 15;
+					macBeaconOrder3 = taskP.mlme_scan_request_orig_macBeaconOrder3;
+					sscs->MLME_SCAN_confirm(m_INVALID_PARAMETER,ScanType,ScanChannels,0,NULL,NULL);
+					csmacaResume();
+					return;
+				}
+				taskP.taskStatus(task) = true;
+				taskP.taskStep(task)++;
+				strcpy(taskP.taskFrFunc(task),"PLME_SET_confirm");
+				taskP.mlme_scan_request_CurrentChannel = 0;
 				t_chanPos = (1<<taskP.mlme_scan_request_CurrentChannel);
-			}
-			tmp_ppib.phyCurrentChannel = taskP.mlme_scan_request_CurrentChannel;
-			phy->PLME_SET_request(phyCurrentChannel,&tmp_ppib);
-			break;
-		case 1:
-			if (Mac802_15_4::verbose)
-				fprintf(stdout,"[%f](node %d) scanning channel %d\n",CURRENT_TIME,index_,taskP.mlme_scan_request_CurrentChannel);
-			if (ScanType == 0x01)		//active scan
-			{
+				while((t_chanPos & taskP.mlme_scan_request_ScanChannels) == 0
+						||(t_chanPos & tmp_ppib.phyChannelsSupported) == 0)
+				{
+					taskP.mlme_scan_request_CurrentChannel++;
+					t_chanPos = (1<<taskP.mlme_scan_request_CurrentChannel);
+				}
+				tmp_ppib.phyCurrentChannel = taskP.mlme_scan_request_CurrentChannel;
+				phy->PLME_SET_request(phyCurrentChannel,&tmp_ppib);
+				break;
+			case 1:
+				if (Mac802_15_4::verbose)
+					fprintf(stdout,"[%f](node %d) orphan-scanning channel %d\n",CURRENT_TIME,index_,taskP.mlme_scan_request_CurrentChannel);
 				taskP.taskStep(task)++;
 				strcpy(taskP.taskFrFunc(task),"csmacaCallBack");
-				//--- send a beacon request command ---
+				//--- send an orphan notification command ---
 #ifdef DEBUG802_15_4
 				fprintf(stdout,"[%s::%s][%f](node %d) before alloc txBcnCmd2:\n\t\ttxBeacon\t= %ld\n\t\ttxAck   \t= %ld\n\t\ttxBcnCmd\t= %ld\n\t\ttxBcnCmd2\t= %ld\n\t\ttxData  \t= %ld\n",__FILE__,__FUNCTION__,CURRENT_TIME,index_,txBeacon,txAck,txBcnCmd,txBcnCmd2,txData);
 #endif
@@ -3675,264 +3963,104 @@ void Mac802_15_4::mlme_scan_request(UINT_8 ScanType,UINT_32 ScanChannels,UINT_8 
 				txBcnCmd2 = Packet::alloc();
 				assert(txBcnCmd2);
 				wph = HDR_LRWPAN(txBcnCmd2);
-				constructCommandHeader(txBcnCmd2,&frmCtrl,0x07,defFrmCtrl_AddrMode16,0xffff,0xffff,defFrmCtrl_AddrModeNone,0,0,false,false,false);
-				constructMPDU(1,txBcnCmd2,frmCtrl.FrmCtrl,mpib.macDSN++,wph->MHR_DstAddrInfo,wph->MHR_SrcAddrInfo,0,0x07,0);
+				constructCommandHeader(txBcnCmd2,&frmCtrl,0x06,defFrmCtrl_AddrMode64,mpib.macPANId,mpib.macCoordExtendedAddress,defFrmCtrl_AddrMode64,mpib.macPANId,aExtendedAddress,false,false,false);
+				constructMPDU(1,txBcnCmd2,frmCtrl.FrmCtrl,mpib.macDSN++,wph->MHR_DstAddrInfo,wph->MHR_SrcAddrInfo,0,0x06,0);
 				csmacaBegin('C');
 				//------------------------------------
-			}
-			else
-			{
-				taskP.taskStep(task) = 4;	//skip the steps only for active scan
-				strcpy(taskP.taskFrFunc(task),"PLME_SET_TRX_STATE_confirm");
-				plme_set_trx_state_request(p_RX_ON);
-			}
-			break;
-		case 2:
-			if (status == p_IDLE)
-			{
-				taskP.taskStep(task)++;
-				strcpy(taskP.taskFrFunc(task),"PD_DATA_confirm");
-				plme_set_trx_state_request(p_TX_ON);
 				break;
-			}
-			else
-			{
-				freePkt(txBcnCmd2);	//actually we can keep <txBcnCmd2> for next channel
-				txBcnCmd2 = 0;
-				//fall through case 7
-			}
-		case 3:
-			if (step == 3)
-			{
-				taskP.taskStep(task)++;
-				strcpy(taskP.taskFrFunc(task),"PLME_SET_TRX_STATE_confirm");
-				taskSuccess('C',false);
-				plme_set_trx_state_request(p_RX_ON);
-				break;
-			}
-		case 4:
-			if (step == 4)
-			{
-				if (status == p_RX_ON)
+			case 2:
+				if (status == p_IDLE)
 				{
 					taskP.taskStep(task)++;
-					strcpy(taskP.taskFrFunc(task),"recvBeacon");
-					//schedule for next channel
-					scanT->start((aBaseSuperframeDuration * ((1 << taskP.mlme_scan_request_ScanDuration) + 1)) / phy->getRate('s'));
+					strcpy(taskP.taskFrFunc(task),"PD_DATA_confirm");
+					plme_set_trx_state_request(p_TX_ON);
 					break;
-				}
-				//else	//fall through case 7
-			}
-		case 5:
-			if (step == 5)
-			{
-				//beacon received
-				//record the PAN descriptor if it is a new one
-				assert(rxBeacon);
-				wph = HDR_LRWPAN(rxBeacon);
-				frmCtrl.FrmCtrl = wph->MHR_FrmCtrl;
-				frmCtrl.parse();
-				for (i=0;i<taskP.mlme_scan_request_ListNum;i++)
-				if ((taskP.mlme_scan_request_PANDescriptorList[i].LogicalChannel == taskP.mlme_scan_request_CurrentChannel)
-				&& (taskP.mlme_scan_request_PANDescriptorList[i].CoordAddrMode == frmCtrl.srcAddrMode)
-				&& (taskP.mlme_scan_request_PANDescriptorList[i].CoordPANId == wph->MHR_SrcAddrInfo.panID)		//but (page 146, line 4-5) implies not checking PAN ID
-				&& (((frmCtrl.srcAddrMode == defFrmCtrl_AddrMode16)&&(taskP.mlme_scan_request_PANDescriptorList[i].CoordAddress_16 == (wph->MHR_SrcAddrInfo.addr_16))
-				||((frmCtrl.srcAddrMode == defFrmCtrl_AddrMode64)&&(taskP.mlme_scan_request_PANDescriptorList[i].CoordAddress_64 == wph->MHR_SrcAddrInfo.addr_64)))))
-				 	break;
-				if (i >= taskP.mlme_scan_request_ListNum)	//unique beacon
-				{
-					taskP.mlme_scan_request_PANDescriptorList[taskP.mlme_scan_request_ListNum] = panDes2;
-					taskP.mlme_scan_request_ListNum++;
-					if (taskP.mlme_scan_request_ListNum >= 27)
-					{
-						//stop the timer
-						scanT->stop();
-						//fall through case 7
-					}
-					else
-						break;
 				}
 				else
-					break;
-			}
-		case 6:
-			if (step == 6)
-			{
-				t_chanPos = (1<<taskP.mlme_scan_request_CurrentChannel);
-				taskP.mlme_scan_request_ScanChannels &= (t_chanPos^0xffffffff);
-				//fall through case 7
-			}
-		case 7:
-			if (((taskP.mlme_scan_request_ScanChannels & tmp_ppib.phyChannelsSupported) == 0)
-			   ||(taskP.mlme_scan_request_ListNum >= 27))
-			{
-				mpib.macPANId = taskP.mlme_scan_request_orig_macPANId;
-				mpib.macBeaconOrder = taskP.mlme_scan_request_orig_macBeaconOrder;
-				macBeaconOrder2 = taskP.mlme_scan_request_orig_macBeaconOrder2;
-				macBeaconOrder3 = taskP.mlme_scan_request_orig_macBeaconOrder3;
-				taskP.taskStatus(task) = false;
-				sscs->MLME_SCAN_confirm(m_SUCCESS,ScanType,taskP.mlme_scan_request_ScanChannels,taskP.mlme_scan_request_ListNum,NULL,taskP.mlme_scan_request_PANDescriptorList);
-				csmacaResume();
-				return;
-			}
-			taskP.taskStep(task) = 1;	//important
-			strcpy(taskP.taskFrFunc(task),"PLME_SET_confirm");
-			taskP.mlme_scan_request_CurrentChannel++;
-			t_chanPos = (1<<taskP.mlme_scan_request_CurrentChannel);
-			while((t_chanPos & taskP.mlme_scan_request_ScanChannels) == 0
-			||(t_chanPos & tmp_ppib.phyChannelsSupported) == 0)
-			{
-				taskP.mlme_scan_request_CurrentChannel++;
-				t_chanPos = (1<<taskP.mlme_scan_request_CurrentChannel);
-			}
-			tmp_ppib.phyCurrentChannel = taskP.mlme_scan_request_CurrentChannel;
-			phy->PLME_SET_request(phyCurrentChannel,&tmp_ppib);
-			break;
-		default:
-			break;
-	}
-
-	else //if (ScanType == 0x03)	//orphan scan
-	switch (step)
-	{
-		case 0:
-			phy->PLME_GET_request(phyChannelsSupported);	//value will be returned in tmp_ppib
-			taskP.mlme_scan_request_ScanChannels = ScanChannels;
-			if ((taskP.mlme_scan_request_ScanChannels & tmp_ppib.phyChannelsSupported) == 0)
-			{
-				mpib.macBeaconOrder = taskP.mlme_scan_request_orig_macBeaconOrder;
-				//macBeaconOrder2 = taskP.mlme_scan_request_orig_macBeaconOrder2;
-				macBeaconOrder2 = 15;
-				macBeaconOrder3 = taskP.mlme_scan_request_orig_macBeaconOrder3;
-				sscs->MLME_SCAN_confirm(m_INVALID_PARAMETER,ScanType,ScanChannels,0,NULL,NULL);
-				csmacaResume();
-				return;
-			}
-			taskP.taskStatus(task) = true;
-			taskP.taskStep(task)++;
-			strcpy(taskP.taskFrFunc(task),"PLME_SET_confirm");
-			taskP.mlme_scan_request_CurrentChannel = 0;
-			t_chanPos = (1<<taskP.mlme_scan_request_CurrentChannel);
-			while((t_chanPos & taskP.mlme_scan_request_ScanChannels) == 0
-			||(t_chanPos & tmp_ppib.phyChannelsSupported) == 0)
-			{
-				taskP.mlme_scan_request_CurrentChannel++;
-				t_chanPos = (1<<taskP.mlme_scan_request_CurrentChannel);
-			}
-			tmp_ppib.phyCurrentChannel = taskP.mlme_scan_request_CurrentChannel;
-			phy->PLME_SET_request(phyCurrentChannel,&tmp_ppib);
-			break;
-		case 1:
-			if (Mac802_15_4::verbose)
-				fprintf(stdout,"[%f](node %d) orphan-scanning channel %d\n",CURRENT_TIME,index_,taskP.mlme_scan_request_CurrentChannel);
-			taskP.taskStep(task)++;
-			strcpy(taskP.taskFrFunc(task),"csmacaCallBack");
-			//--- send an orphan notification command ---
-#ifdef DEBUG802_15_4
-			fprintf(stdout,"[%s::%s][%f](node %d) before alloc txBcnCmd2:\n\t\ttxBeacon\t= %ld\n\t\ttxAck   \t= %ld\n\t\ttxBcnCmd\t= %ld\n\t\ttxBcnCmd2\t= %ld\n\t\ttxData  \t= %ld\n",__FILE__,__FUNCTION__,CURRENT_TIME,index_,txBeacon,txAck,txBcnCmd,txBcnCmd2,txData);
-#endif
-			assert(!txBcnCmd2);
-			txBcnCmd2 = Packet::alloc();
-			assert(txBcnCmd2);
-			wph = HDR_LRWPAN(txBcnCmd2);
-			constructCommandHeader(txBcnCmd2,&frmCtrl,0x06,defFrmCtrl_AddrMode64,mpib.macPANId,mpib.macCoordExtendedAddress,defFrmCtrl_AddrMode64,mpib.macPANId,aExtendedAddress,false,false,false);
-			constructMPDU(1,txBcnCmd2,frmCtrl.FrmCtrl,mpib.macDSN++,wph->MHR_DstAddrInfo,wph->MHR_SrcAddrInfo,0,0x06,0);
-			csmacaBegin('C');
-			//------------------------------------
-			break;
-		case 2:
-			if (status == p_IDLE)
-			{
-				taskP.taskStep(task)++;
-				strcpy(taskP.taskFrFunc(task),"PD_DATA_confirm");
-				plme_set_trx_state_request(p_TX_ON);
-				break;
-			}
-			else
-			{
-				freePkt(txBcnCmd2);
-				txBcnCmd2 = 0;
-				//fall through case 6
-			}
-		case 3:
-			if (step == 3)
-			{
-				taskP.taskStep(task)++;
-				strcpy(taskP.taskFrFunc(task),"PLME_SET_TRX_STATE_confirm");
-				taskSuccess('C',false);
-				plme_set_trx_state_request(p_RX_ON);
-				break;
-			}
-		case 4:
-			if (step == 4)
-			{
-				if (status == p_RX_ON)
 				{
-					taskP.taskStep(task)++;
-					strcpy(taskP.taskFrFunc(task),"IFSHandler");
-					scanT->start(aResponseWaitTime / phy->getRate('s'));
-					break;
-				}
-				//else	//fall through case 6
-			}
-		case 5:
-			if (step == 5)
-			{
-				if (status == p_SUCCESS)	//coordinator realignment command received
-				{
-					scanT->stop();
-					mpib.macBeaconOrder = taskP.mlme_scan_request_orig_macBeaconOrder;
-					macBeaconOrder2 = taskP.mlme_scan_request_orig_macBeaconOrder2;
-					macBeaconOrder3 = taskP.mlme_scan_request_orig_macBeaconOrder3;
-					taskP.taskStatus(task) = false;
-					changeNodeColor(CURRENT_TIME,(mpib.macAssociationPermit)?Nam802_15_4::def_Coor_clr:Nam802_15_4::def_Dev_clr);
-					t_chanPos = (1<<taskP.mlme_scan_request_CurrentChannel);
-					taskP.mlme_scan_request_ScanChannels &= (t_chanPos^0xffffffff);
-					sscs->MLME_SCAN_confirm(m_SUCCESS,ScanType,taskP.mlme_scan_request_ScanChannels,0,NULL,NULL);
-					csmacaResume();
-					break;
-				}
-				else	//time out
-				{
-					t_chanPos = (1<<taskP.mlme_scan_request_CurrentChannel);
-					taskP.mlme_scan_request_ScanChannels &= (t_chanPos^0xffffffff);
+					freePkt(txBcnCmd2);
+					txBcnCmd2 = 0;
 					//fall through case 6
 				}
-			}
-		case 6:
-			if ((taskP.mlme_scan_request_ScanChannels & tmp_ppib.phyChannelsSupported) == 0)
-			{
-				mpib.macBeaconOrder = taskP.mlme_scan_request_orig_macBeaconOrder;
-				//macBeaconOrder2 = taskP.mlme_scan_request_orig_macBeaconOrder2;
-				macBeaconOrder2 = 15;
-				macBeaconOrder3 = taskP.mlme_scan_request_orig_macBeaconOrder3;
-				taskP.taskStatus(task) = false;
-				sscs->MLME_SCAN_confirm(m_NO_BEACON,ScanType,taskP.mlme_scan_request_ScanChannels,0,NULL,NULL);
-				csmacaResume();
-				return;
-			}
-			taskP.taskStep(task) = 1;	//important
-			strcpy(taskP.taskFrFunc(task),"PLME_SET_confirm");
-			taskP.mlme_scan_request_CurrentChannel++;
-			t_chanPos = (1<<taskP.mlme_scan_request_CurrentChannel);
-			while((t_chanPos & taskP.mlme_scan_request_ScanChannels) == 0
-			||(t_chanPos & tmp_ppib.phyChannelsSupported) == 0)
-			{
+			case 3:
+				if (step == 3)
+				{
+					taskP.taskStep(task)++;
+					strcpy(taskP.taskFrFunc(task),"PLME_SET_TRX_STATE_confirm");
+					taskSuccess('C',false);
+					plme_set_trx_state_request(p_RX_ON);
+					break;
+				}
+			case 4:
+				if (step == 4)
+				{
+					if (status == p_RX_ON)
+					{
+						taskP.taskStep(task)++;
+						strcpy(taskP.taskFrFunc(task),"IFSHandler");
+						scanT->start(aResponseWaitTime / phy->getRate('s'));
+						break;
+					}
+					//else	//fall through case 6
+				}
+			case 5:
+				if (step == 5)
+				{
+					if (status == p_SUCCESS)	//coordinator realignment command received
+					{
+						scanT->stop();
+						mpib.macBeaconOrder = taskP.mlme_scan_request_orig_macBeaconOrder;
+						macBeaconOrder2 = taskP.mlme_scan_request_orig_macBeaconOrder2;
+						macBeaconOrder3 = taskP.mlme_scan_request_orig_macBeaconOrder3;
+						taskP.taskStatus(task) = false;
+						changeNodeColor(CURRENT_TIME,(mpib.macAssociationPermit)?Nam802_15_4::def_Coor_clr:Nam802_15_4::def_Dev_clr);
+						t_chanPos = (1<<taskP.mlme_scan_request_CurrentChannel);
+						taskP.mlme_scan_request_ScanChannels &= (t_chanPos^0xffffffff);
+						sscs->MLME_SCAN_confirm(m_SUCCESS,ScanType,taskP.mlme_scan_request_ScanChannels,0,NULL,NULL);
+						csmacaResume();
+						break;
+					}
+					else	//time out
+					{
+						t_chanPos = (1<<taskP.mlme_scan_request_CurrentChannel);
+						taskP.mlme_scan_request_ScanChannels &= (t_chanPos^0xffffffff);
+						//fall through case 6
+					}
+				}
+			case 6:
+				if ((taskP.mlme_scan_request_ScanChannels & tmp_ppib.phyChannelsSupported) == 0)
+				{
+					mpib.macBeaconOrder = taskP.mlme_scan_request_orig_macBeaconOrder;
+					//macBeaconOrder2 = taskP.mlme_scan_request_orig_macBeaconOrder2;
+					macBeaconOrder2 = 15;
+					macBeaconOrder3 = taskP.mlme_scan_request_orig_macBeaconOrder3;
+					taskP.taskStatus(task) = false;
+					sscs->MLME_SCAN_confirm(m_NO_BEACON,ScanType,taskP.mlme_scan_request_ScanChannels,0,NULL,NULL);
+					csmacaResume();
+					return;
+				}
+				taskP.taskStep(task) = 1;	//important
+				strcpy(taskP.taskFrFunc(task),"PLME_SET_confirm");
 				taskP.mlme_scan_request_CurrentChannel++;
 				t_chanPos = (1<<taskP.mlme_scan_request_CurrentChannel);
-			}
-			tmp_ppib.phyCurrentChannel = taskP.mlme_scan_request_CurrentChannel;
-			phy->PLME_SET_request(phyCurrentChannel,&tmp_ppib);
-			break;
-		default:
-			break;
-	}
+				while((t_chanPos & taskP.mlme_scan_request_ScanChannels) == 0
+						||(t_chanPos & tmp_ppib.phyChannelsSupported) == 0)
+				{
+					taskP.mlme_scan_request_CurrentChannel++;
+					t_chanPos = (1<<taskP.mlme_scan_request_CurrentChannel);
+				}
+				tmp_ppib.phyCurrentChannel = taskP.mlme_scan_request_CurrentChannel;
+				phy->PLME_SET_request(phyCurrentChannel,&tmp_ppib);
+				break;
+			default:
+				break;
+		}
 }
 
 void Mac802_15_4::mlme_start_request(UINT_16 PANId,UINT_8 LogicalChannel,UINT_8 BeaconOrder,
-				     UINT_8 SuperframeOrder,bool PANCoordinator,bool BatteryLifeExtension,
-				     bool CoordRealignment,bool SecurityEnable,
-				     bool frUpper,PHYenum status)
+		UINT_8 SuperframeOrder,bool PANCoordinator,bool BatteryLifeExtension,
+		bool CoordRealignment,bool SecurityEnable,
+		bool frUpper,PHYenum status)
 {
 	FrameCtrl frmCtrl;
 	hdr_lrwpan* wph;
@@ -3952,8 +4080,8 @@ void Mac802_15_4::mlme_start_request(UINT_16 PANId,UINT_8 LogicalChannel,UINT_8 
 				return;
 			}
 			else if ((!phy->channelSupported(LogicalChannel))
-			|| (BeaconOrder > 15)
-			|| ((SuperframeOrder > BeaconOrder)&&(SuperframeOrder != 15)))
+					|| (BeaconOrder > 15)
+					|| ((SuperframeOrder > BeaconOrder)&&(SuperframeOrder != 15)))
 			{
 				sscs->MLME_START_confirm(m_INVALID_PARAMETER);
 				return;
@@ -4092,9 +4220,9 @@ void Mac802_15_4::mlme_sync_request(UINT_8 LogicalChannel, bool TrackBeacon,bool
 		case 0:
 			//no validation check required in the draft, but it's better to check it
 			if ((!phy->channelSupported(LogicalChannel))	//channel not supported
-			 || (mpib.macPANId == 0xffff)			//broadcast PAN ID
-			 //|| (macBeaconOrder2 == 15)			//non-beacon mode or <macBeaconOrder2> not yet populated
-			 )
+					|| (mpib.macPANId == 0xffff)			//broadcast PAN ID
+					//|| (macBeaconOrder2 == 15)			//non-beacon mode or <macBeaconOrder2> not yet populated
+			   )
 			{
 				sscs->MLME_SYNC_LOSS_indication(m_UNDEFINED);
 				return;
@@ -4159,7 +4287,7 @@ void Mac802_15_4::mlme_sync_request(UINT_8 LogicalChannel, bool TrackBeacon,bool
 }
 
 void Mac802_15_4::mlme_poll_request(UINT_8 CoordAddrMode,UINT_16 CoordPANId,IE3ADDR CoordAddress,bool SecurityEnable,
-				    bool autoRequest,bool firstTime,PHYenum status)
+		bool autoRequest,bool firstTime,PHYenum status)
 {
 	UINT_8 step,task;
 	FrameCtrl frmCtrl;
@@ -4183,7 +4311,7 @@ void Mac802_15_4::mlme_poll_request(UINT_8 CoordAddrMode,UINT_16 CoordPANId,IE3A
 		case 0:
 			//check if parameters valid or not
 			if (((CoordAddrMode != defFrmCtrl_AddrMode16)&&(CoordAddrMode != defFrmCtrl_AddrMode64))
-			 || (CoordPANId == 0xffff))
+					|| (CoordPANId == 0xffff))
 			{
 				if (!autoRequest)
 					sscs->MLME_POLL_confirm(m_INVALID_PARAMETER);
@@ -4358,40 +4486,42 @@ void Mac802_15_4::csmacaResume(void)
 	FrameCtrl frmCtrl;
 
 	if ((backoffStatus != 99)			//not during backoff
-	&&  (!inTransmission))				//not during transmission
-	if ((txBcnCmd)&&(!waitBcnCmdAck))
+			&& (!inTransmission))				//not during transmission
 	{
-		backoffStatus = 99;
-		frmCtrl.FrmCtrl = HDR_LRWPAN(txBcnCmd)->MHR_FrmCtrl;
-		frmCtrl.parse();
-		txCsmaca = txBcnCmd;
-		csmaca->start(true,txBcnCmd,frmCtrl.ackReq);
-	}
-	else if ((txBcnCmd2)&&(!waitBcnCmdAck2))
-	{
-		backoffStatus = 99;
-		frmCtrl.FrmCtrl = HDR_LRWPAN(txBcnCmd2)->MHR_FrmCtrl;
-		frmCtrl.parse();
-		txCsmaca = txBcnCmd2;
-		csmaca->start(true,txBcnCmd2,frmCtrl.ackReq);
-	}
-	else if ((txData)&&(!waitDataAck))
-	{
-		strcpy(taskP.taskFrFunc(TP_mcps_data_request),"csmacaCallBack");	//the transmission may be interrupted and need to backoff again
-		taskP.taskStep(TP_mcps_data_request) = 1;				//also set the step
-		backoffStatus = 99;
-		frmCtrl.FrmCtrl = HDR_LRWPAN(txData)->MHR_FrmCtrl;
-		frmCtrl.parse();
-		txCsmaca = txData;
-		csmaca->start(true,txData,frmCtrl.ackReq);
+		if ((txBcnCmd)&&(!waitBcnCmdAck))
+		{
+			backoffStatus = 99;
+			frmCtrl.FrmCtrl = HDR_LRWPAN(txBcnCmd)->MHR_FrmCtrl;
+			frmCtrl.parse();
+			txCsmaca = txBcnCmd;
+			csmaca->start(true,txBcnCmd,frmCtrl.ackReq);
+		}
+		else if ((txBcnCmd2)&&(!waitBcnCmdAck2))
+		{
+			backoffStatus = 99;
+			frmCtrl.FrmCtrl = HDR_LRWPAN(txBcnCmd2)->MHR_FrmCtrl;
+			frmCtrl.parse();
+			txCsmaca = txBcnCmd2;
+			csmaca->start(true,txBcnCmd2,frmCtrl.ackReq);
+		}
+		else if ((txData)&&(!waitDataAck))
+		{
+			strcpy(taskP.taskFrFunc(TP_mcps_data_request),"csmacaCallBack");	//the transmission may be interrupted and need to backoff again
+			taskP.taskStep(TP_mcps_data_request) = 1;				//also set the step
+			backoffStatus = 99;
+			frmCtrl.FrmCtrl = HDR_LRWPAN(txData)->MHR_FrmCtrl;
+			frmCtrl.parse();
+			txCsmaca = txData;
+			csmaca->start(true,txData,frmCtrl.ackReq);
+		}
 	}
 }
 
 void Mac802_15_4::csmacaCallBack(PHYenum status)
 {
 	if (((!txBcnCmd)||(waitBcnCmdAck))
-	  &&((!txBcnCmd2)||(waitBcnCmdAck2))
-	  &&((!txData)||(waitDataAck)))
+			&&((!txBcnCmd2)||(waitBcnCmdAck2))
+			&&((!txData)||(waitDataAck)))
 		return;
 
 	backoffStatus = (status == p_IDLE)?1:2;
@@ -4401,7 +4531,7 @@ void Mac802_15_4::csmacaCallBack(PHYenum status)
 	if (status != p_IDLE)
 		fprintf(stdout,"[%s::%s][%f](node %d) backoff failed: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",__FILE__,__FUNCTION__,CURRENT_TIME,index_,wpan_pName(txCsmaca),p802_15_4macSA(txCsmaca),p802_15_4macDA(txCsmaca),ch->uid(),HDR_LRWPAN(txCsmaca)->uid,ch->size());
 #endif
-	
+
 	dispatch(status,__FUNCTION__);
 }
 
@@ -4416,14 +4546,14 @@ double Mac802_15_4::getCAP(bool small)
 	double bcnTxTime,bcnRxTime,bcnOtherRxTime,bPeriod;
 	double sSlotDuration,sSlotDuration2,sSlotDuration3,BI2,BI3,t_CAP,t_CAP2,t_CAP3;
 	double now,oneDay,tmpf;
-	
+
 	now = CURRENT_TIME;
 	oneDay = now + 24.0*3600;
 
 	if ((mpib.macBeaconOrder == 15)&&(macBeaconOrder2 == 15)				//non-beacon enabled
-	&&(macBeaconOrder3 == 15))								//no beacons from outside PAN
+			&&(macBeaconOrder3 == 15))								//no beacons from outside PAN
 		return oneDay;									//transmission can always go ahead
-	
+
 	bcnTxTime = macBcnTxTime / phy->getRate('s');
 	bcnRxTime = macBcnRxTime / phy->getRate('s');
 	bcnOtherRxTime = macBcnOtherRxTime / phy->getRate('s');
@@ -4438,21 +4568,21 @@ double Mac802_15_4::getCAP(bool small)
 		if (sfSpec.BLE)
 		{
 			/* Linux floating number compatibility
-			t_CAP = (bcnTxTime + (beaconPeriods + getBattLifeExtSlotNum()) * aUnitBackoffPeriod);
-			*/
+			   t_CAP = (bcnTxTime + (beaconPeriods + getBattLifeExtSlotNum()) * aUnitBackoffPeriod);
+			   */
 			{
-			tmpf = (beaconPeriods + getBattLifeExtSlotNum()) * aUnitBackoffPeriod;
-			t_CAP = bcnTxTime + tmpf;
+				tmpf = (beaconPeriods + getBattLifeExtSlotNum()) * aUnitBackoffPeriod;
+				t_CAP = bcnTxTime + tmpf;
 			}
 		}
 		else
 		{
 			/* Linux floating number compatibility
-			t_CAP = (bcnTxTime + (sfSpec.FinCAP + 1) * sSlotDuration);
-			*/
+			   t_CAP = (bcnTxTime + (sfSpec.FinCAP + 1) * sSlotDuration);
+			   */
 			{
-			tmpf = (sfSpec.FinCAP + 1) * sSlotDuration;
-			t_CAP = bcnTxTime + tmpf;
+				tmpf = (sfSpec.FinCAP + 1) * sSlotDuration;
+				t_CAP = bcnTxTime + tmpf;
 			}
 		}
 	}
@@ -4461,50 +4591,50 @@ double Mac802_15_4::getCAP(bool small)
 		if (sfSpec2.BLE)
 		{
 			/* Linux floating number compatibility
-			t_CAP2 = (bcnRxTime + (beaconPeriods2 + getBattLifeExtSlotNum()) * aUnitBackoffPeriod);
-			*/
+			   t_CAP2 = (bcnRxTime + (beaconPeriods2 + getBattLifeExtSlotNum()) * aUnitBackoffPeriod);
+			   */
 			{
-			tmpf = (beaconPeriods2 + getBattLifeExtSlotNum()) * aUnitBackoffPeriod;
-			t_CAP2 = bcnRxTime + tmpf;
+				tmpf = (beaconPeriods2 + getBattLifeExtSlotNum()) * aUnitBackoffPeriod;
+				t_CAP2 = bcnRxTime + tmpf;
 			}
 		}
 		else
 		{
 			/* Linux floating number compatibility
-			t_CAP2 = (bcnRxTime + (sfSpec2.FinCAP + 1) * sSlotDuration2);
-			*/
+			   t_CAP2 = (bcnRxTime + (sfSpec2.FinCAP + 1) * sSlotDuration2);
+			   */
 			{
-			tmpf = (sfSpec2.FinCAP + 1) * sSlotDuration2;
-			t_CAP2 = bcnRxTime + tmpf;
+				tmpf = (sfSpec2.FinCAP + 1) * sSlotDuration2;
+				t_CAP2 = bcnRxTime + tmpf;
 			}
 		}
 
 		/* Linux floating number compatibility
-		if ((t_CAP2 < now)&&(t_CAP2 + aMaxLostBeacons * BI2 >= now))
-		*/
+		   if ((t_CAP2 < now)&&(t_CAP2 + aMaxLostBeacons * BI2 >= now))
+		   */
 		tmpf = aMaxLostBeacons * BI2;
 		if ((t_CAP2 < now)&&(t_CAP2 + tmpf >= now))	//no more than <aMaxLostBeacons> beacons missed
-		while (t_CAP2 < now)
-			t_CAP2 += BI2;
+			while (t_CAP2 < now)
+				t_CAP2 += BI2;
 	}
 	if (macBeaconOrder3 != 15)
 	{
 		//no need to handle option <macBattLifeExt> here
 		/* Linux floating number compatibility
-		t_CAP3 = (bcnOtherRxTime + (sfSpec3.FinCAP + 1) * sSlotDuration3);
-		*/
+		   t_CAP3 = (bcnOtherRxTime + (sfSpec3.FinCAP + 1) * sSlotDuration3);
+		   */
 		{
-		tmpf = (sfSpec3.FinCAP + 1) * sSlotDuration3;
-		t_CAP3 = bcnOtherRxTime + tmpf;
+			tmpf = (sfSpec3.FinCAP + 1) * sSlotDuration3;
+			t_CAP3 = bcnOtherRxTime + tmpf;
 		}
 
 		/* Linux floating number compatibility
-		if ((t_CAP3 < now)&&(t_CAP3 + aMaxLostBeacons * BI3 >= now))
-		*/
+		   if ((t_CAP3 < now)&&(t_CAP3 + aMaxLostBeacons * BI3 >= now))
+		   */
 		tmpf = aMaxLostBeacons * BI3;
 		if ((t_CAP3 < now)&&(t_CAP3 + tmpf >= now))	//no more than <aMaxLostBeacons> beacons missed
-		while (t_CAP3 < now)
-			t_CAP3 += BI3;
+			while (t_CAP3 < now)
+				t_CAP3 += BI3;
 	}
 
 	if ((mpib.macBeaconOrder == 15)&&(macBeaconOrder2 == 15))
@@ -4534,10 +4664,10 @@ double Mac802_15_4::getCAP(bool small)
 			return t_CAP;
 
 		if ((small)
-		&&  (t_CAP > t_CAP2))
+				&&  (t_CAP > t_CAP2))
 			t_CAP = t_CAP2;
 		if ((!small)
-		&&  (t_CAP < t_CAP2))
+				&&  (t_CAP < t_CAP2))
 			t_CAP = t_CAP2;
 
 		return t_CAP;
@@ -4549,14 +4679,14 @@ double Mac802_15_4::getCAPbyType(int type)
 	double bcnTxTime,bcnRxTime,bcnOtherRxTime,bPeriod;
 	double sSlotDuration,sSlotDuration2,sSlotDuration3,BI2,BI3,t_CAP,t_CAP2,t_CAP3;
 	double now,oneDay,tmpf;
-	
+
 	now = CURRENT_TIME;
 	oneDay = now + 24.0*3600;
 
 	if ((mpib.macBeaconOrder == 15)&&(macBeaconOrder2 == 15)				//non-beacon enabled
-	&&(macBeaconOrder3 == 15))								//no beacons from outside PAN
+			&&(macBeaconOrder3 == 15))								//no beacons from outside PAN
 		return oneDay;									//transmission can always go ahead
-	
+
 	bcnTxTime = macBcnTxTime / phy->getRate('s');
 	bcnRxTime = macBcnRxTime / phy->getRate('s');
 	bcnOtherRxTime = macBcnOtherRxTime / phy->getRate('s');
@@ -4568,92 +4698,112 @@ double Mac802_15_4::getCAPbyType(int type)
 	BI3 = (sfSpec3.BI / phy->getRate('s'));
 
 	if (type == 1)
-	if (mpib.macBeaconOrder != 15)
 	{
-		if (sfSpec.BLE)
+		if (mpib.macBeaconOrder != 15)
 		{
-			/* Linux floating number compatibility
-			t_CAP = (bcnTxTime + (beaconPeriods + getBattLifeExtSlotNum()) * aUnitBackoffPeriod);
-			*/
+			if (sfSpec.BLE)
 			{
-			tmpf = (beaconPeriods + getBattLifeExtSlotNum()) * aUnitBackoffPeriod;
-			t_CAP = bcnTxTime + tmpf;
+				/* Linux floating number compatibility
+				   t_CAP = (bcnTxTime + (beaconPeriods + getBattLifeExtSlotNum()) * aUnitBackoffPeriod);
+				   */
+				{
+					tmpf = (beaconPeriods + getBattLifeExtSlotNum()) * aUnitBackoffPeriod;
+					t_CAP = bcnTxTime + tmpf;
+				}
 			}
+			else
+			{
+				/* Linux floating number compatibility
+				   t_CAP = (bcnTxTime + (sfSpec.FinCAP + 1) * sSlotDuration);
+				   */
+				{
+					tmpf = (sfSpec.FinCAP + 1) * sSlotDuration;
+					t_CAP = bcnTxTime + tmpf;
+				}
+			}
+			return (t_CAP>=now)?t_CAP:oneDay;
 		}
 		else
 		{
-			/* Linux floating number compatibility
-			t_CAP = (bcnTxTime + (sfSpec.FinCAP + 1) * sSlotDuration);
-			*/
-			{
-			tmpf = (sfSpec.FinCAP + 1) * sSlotDuration;
-			t_CAP = bcnTxTime + tmpf;
-			}
+			return oneDay;
 		}
-		return (t_CAP>=now)?t_CAP:oneDay;
 	}
-	else
-		return oneDay;
 
 	if (type == 2)
-	if (macBeaconOrder2 != 15)
 	{
-		if (sfSpec2.BLE)
+		if (macBeaconOrder2 != 15)
 		{
-			/* Linux floating number compatibility
-			t_CAP2 = (bcnRxTime + (beaconPeriods2 + getBattLifeExtSlotNum()) * aUnitBackoffPeriod);
-			*/
+			if (sfSpec2.BLE)
 			{
-			tmpf = (beaconPeriods2 + getBattLifeExtSlotNum()) * aUnitBackoffPeriod;
-			t_CAP2 = bcnRxTime + tmpf;
+				/* Linux floating number compatibility
+				   t_CAP2 = (bcnRxTime + (beaconPeriods2 + getBattLifeExtSlotNum()) * aUnitBackoffPeriod);
+				   */
+				{
+					tmpf = (beaconPeriods2 + getBattLifeExtSlotNum()) * aUnitBackoffPeriod;
+					t_CAP2 = bcnRxTime + tmpf;
+				}
 			}
+			else
+			{
+				/* Linux floating number compatibility
+				   t_CAP2 = (bcnRxTime + (sfSpec2.FinCAP + 1) * sSlotDuration2);
+				   */
+				{
+					tmpf = (sfSpec2.FinCAP + 1) * sSlotDuration2;
+					t_CAP2 = bcnRxTime + tmpf;
+				}
+			}
+
+			/* Linux floating number compatibility
+			   if ((t_CAP2 < now)&&(t_CAP2 + aMaxLostBeacons * BI2 >= now))
+			   */
+			tmpf = aMaxLostBeacons * BI2;
+			if ((t_CAP2 < now)&&(t_CAP2 + tmpf >= now))	//no more than <aMaxLostBeacons> beacons missed
+			{
+				while (t_CAP2 < now)
+				{
+					t_CAP2 += BI2;
+				}
+			}
+			return (t_CAP2>=now)?t_CAP2:oneDay;
 		}
 		else
 		{
-			/* Linux floating number compatibility
-			t_CAP2 = (bcnRxTime + (sfSpec2.FinCAP + 1) * sSlotDuration2);
-			*/
-			{
-			tmpf = (sfSpec2.FinCAP + 1) * sSlotDuration2;
-			t_CAP2 = bcnRxTime + tmpf;
-			}
+			return oneDay;
 		}
-
-		/* Linux floating number compatibility
-		if ((t_CAP2 < now)&&(t_CAP2 + aMaxLostBeacons * BI2 >= now))
-		*/
-		tmpf = aMaxLostBeacons * BI2;
-		if ((t_CAP2 < now)&&(t_CAP2 + tmpf >= now))	//no more than <aMaxLostBeacons> beacons missed
-		while (t_CAP2 < now)
-			t_CAP2 += BI2;
-		return (t_CAP2>=now)?t_CAP2:oneDay;
 	}
-	else
-		return oneDay;
 	
 	if (type == 3)
-	if (macBeaconOrder3 != 15)
 	{
-		//no need to handle option <macBattLifeExt> here
-		/* Linux floating number compatibility
-		t_CAP3 = (bcnOtherRxTime + (sfSpec3.FinCAP + 1) * sSlotDuration3);
-		*/
+		if (macBeaconOrder3 != 15)
 		{
-		tmpf = (sfSpec3.FinCAP + 1) * sSlotDuration3;
-		t_CAP3 = bcnOtherRxTime + tmpf;
-		}
+			//no need to handle option <macBattLifeExt> here
+			/* Linux floating number compatibility
+			   t_CAP3 = (bcnOtherRxTime + (sfSpec3.FinCAP + 1) * sSlotDuration3);
+			   */
+			{
+				tmpf = (sfSpec3.FinCAP + 1) * sSlotDuration3;
+				t_CAP3 = bcnOtherRxTime + tmpf;
+			}
 
-		/* Linux floating number compatibility
-		if ((t_CAP3 < now)&&(t_CAP3 + aMaxLostBeacons * BI3 >= now))
-		*/
-		tmpf = aMaxLostBeacons * BI3;
-		if ((t_CAP3 < now)&&(t_CAP3 + tmpf >= now))	//no more than <aMaxLostBeacons> beacons missed
-		while (t_CAP3 < now)
-			t_CAP3 += BI3;
-		return (t_CAP3>=now)?t_CAP3:oneDay;
+			/* Linux floating number compatibility
+			   if ((t_CAP3 < now)&&(t_CAP3 + aMaxLostBeacons * BI3 >= now))
+			   */
+			tmpf = aMaxLostBeacons * BI3;
+			if ((t_CAP3 < now)&&(t_CAP3 + tmpf >= now))	//no more than <aMaxLostBeacons> beacons missed
+			{
+				while (t_CAP3 < now)
+				{
+					t_CAP3 += BI3;
+				}
+			}
+			return (t_CAP3>=now)?t_CAP3:oneDay;
+		}
+		else
+		{
+			return oneDay;
+		}
 	}
-	else
-		return oneDay;
 
 	return oneDay;
 }

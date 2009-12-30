@@ -1359,8 +1359,8 @@ AOMDV::forward(aomdv_rt_entry *rt, Packet *p, double delay) {
 
 	
 	// AODV ns-2.31 code
-	if (ch->ptype() != PT_AOMDV && ch->direction() == hdr_cmn::UP &&
-		 ((u_int32_t)ih->daddr() == IP_BROADCAST)
+	if ((( ch->ptype() != PT_AOMDV && ch->direction() == hdr_cmn::UP ) &&
+		 ((u_int32_t)ih->daddr() == IP_BROADCAST))
 		 || (ih->daddr() == here_.addr_)) {
 		dmux_->recv(p,0);
 		return;

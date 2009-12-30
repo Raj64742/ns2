@@ -66,7 +66,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/rio.cc,v 1.13 2006/12/17 15:21:59 mweigle Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/rio.cc,v 1.14 2009/12/30 22:06:34 tom_henderson Exp $ (LBL)";
 #endif
 
 #include "rio.h"
@@ -477,7 +477,7 @@ void RIOQueue::enque(Packet* pkt)
           curq_ = qlen; // helps to trace queue during arrival, if enabled
 
           if (qavg >= edp_out_.th_min && qlen > 1) {
-                  if (!edp_out_.gentle && qavg >= edp_out_.th_max ||
+                  if ((!edp_out_.gentle && qavg >= edp_out_.th_max) ||
 		      (edp_out_.gentle && qavg >= 2 * edp_out_.th_max)) {
                         droptype = DTYPE_FORCED;  // ? not sure, Yun
                   } else if (edv_out_.old == 0) {

@@ -191,7 +191,7 @@ void Tmix_DelayBoxClassifier::create_flow_table (const char* src, const char *ds
 		    timer = new DelayBoxTimer(this, atoi(src), atoi(dst), fid);
 		    flow = new DelayBoxFlow(delay/2 ,fwdloss, linkspd, q, timer);
 		    flows_[*pair] = flow;
-	  	delete pair;
+		    delete pair;
 
 		    pair = new DelayBoxPair(atoi(dst), atoi(src), fid);
 		    q = new DelayBoxQueue();

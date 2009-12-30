@@ -2,7 +2,7 @@
 /*
  * dsragent.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: dsragent.cc,v 1.37 2006/03/10 12:25:28 mahrenho Exp $
+ * $Id: dsragent.cc,v 1.38 2009/12/30 22:06:34 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -2379,8 +2379,8 @@ DSRAgent::undeliverablePkt(Packet *pkt, int mine)
 
 		  for (int i = 0 ; i < srh->route_reply_len()-1; i++) {
 
-			  if (net_id == ID(srh->reply_addrs()[i]) &&
-			      to_id == ID(srh->reply_addrs()[i+1]) ||
+			  if ((net_id == ID(srh->reply_addrs()[i]) &&
+			      to_id == ID(srh->reply_addrs()[i+1])) ||
 			      (dsragent_require_bi_routes &&
 			       to_id == ID(srh->reply_addrs()[i]) &&
 			       net_id == ID(srh->reply_addrs()[i+1]))) {

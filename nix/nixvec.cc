@@ -2,7 +2,7 @@
 /*
  * nixvec.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: nixvec.cc,v 1.5 2005/08/25 18:58:10 johnh Exp $
+ * $Id: nixvec.cc,v 1.6 2009/12/30 22:06:34 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -247,7 +247,7 @@ Nixl_t NixVec::GetBitl( Nixl_t l)
   // Find a good starting point
   if ((l & 0xFFFF0000) == 0)
     {
-      if (l & 0xFFFFFF00 == 0)
+      if ((l & 0xFFFFFF00) == 0)
         {
           h = 7;
         }

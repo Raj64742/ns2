@@ -324,7 +324,7 @@ void TcpSink::ack(Packet* opkt)
 	if ( (sf != 0 && sf->ect()) || of->ect() )
 		// Set EcnEcho bit.  
 		nf->ecnecho() = acker_->ecn_unacked();
-	if (!of->ect() && of->ecnecho() ||
+	if ((!of->ect() && of->ecnecho()) ||
 		(sf != 0 && !sf->ect() && sf->ecnecho()) ) {
 		 // This is the negotiation for ECN-capability.
 		 // We are not checking for of->cong_action() also. 

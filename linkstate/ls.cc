@@ -2,7 +2,7 @@
 /*
  * ls.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: ls.cc,v 1.5 2005/08/25 18:58:06 johnh Exp $
+ * $Id: ls.cc,v 1.6 2009/12/30 22:06:34 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -59,7 +59,7 @@
 //  be used to endorse or promote products derived from this software 
 //  without specific prior written permission.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/ls.cc,v 1.5 2005/08/25 18:58:06 johnh Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/ls.cc,v 1.6 2009/12/30 22:06:34 tom_henderson Exp $
 
 #include "config.h"
 #ifdef HAVE_STL
@@ -444,8 +444,8 @@ int LsRetransmissionManager::ackIn(int peerId, const LsMessage& msg)
 {
 	LsUnackPeer* peerPtr = findPtr(peerId);
 	if ((peerPtr == NULL) ||
-	    (peerPtr->tpmSeq_ == LS_INVALID_MESSAGE_ID) &&
-	    peerPtr->lsaMap_.empty())
+	    ((peerPtr->tpmSeq_ == LS_INVALID_MESSAGE_ID) &&
+	    peerPtr->lsaMap_.empty()))
 		// no pending ack for this neighbor 
 		return 0;
 

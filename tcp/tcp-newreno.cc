@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.57 2006/06/14 18:05:30 sallyfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.58 2009/12/30 22:06:34 tom_henderson Exp $ (LBL)";
 #endif
 
 //
@@ -288,13 +288,19 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 	 */
 
         if (valid_ack || aggressive_maxburst_)
+	{
 		if (dupacks_ == 0) 
+		{
 			/*
 			 * Maxburst is really only needed for the first
 			 *  window of data on exiting Fast Recovery.
 			 */
 			send_much(0, 0, maxburst_);
+		}
 		else if (dupacks_ > numdupacks_ - 1 && newreno_changes_ == 0)
+		{
 			send_much(0, 0, 2);
+		}
+	}
 }
 

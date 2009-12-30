@@ -1241,7 +1241,9 @@ void SctpCMTAgent::SendBufferDequeueUpTo(u_int uiTsn)
 	  spCurrNodeData->spChunk->uiTsn)) ||
 	 (spCurrNodeData->spDest->uiExpectedRtxPseudoCum <=
 	  spCurrNodeData->spChunk->uiTsn))
+       {
 	StopT3RtxTimer(spCurrNodeData->spDest);
+       }
 
       /****** End CMT Change ******/
  

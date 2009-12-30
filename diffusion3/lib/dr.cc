@@ -3,7 +3,7 @@
 // authors         : John Heidemann and Fabio Silva
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: dr.cc,v 1.17 2005/09/13 04:53:49 tomh Exp $
+// $Id: dr.cc,v 1.18 2009/12/30 22:06:34 tom_henderson Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -438,8 +438,8 @@ int DiffusionRouting::send(handle publication_handle,
   nr_algorithm = NRAlgorithmAttr.find(my_handle->attrs_);
   rmst_id_attr = RmstIdAttr.find(send_attrs);
 
-  if (!nr_algorithm && !rmst_id_attr || nr_algorithm &&
-      nr_algorithm->getVal() != NRAttribute::ONE_PHASE_PULL_ALGORITHM){
+  if ((!nr_algorithm && !rmst_id_attr) || (nr_algorithm &&
+      nr_algorithm->getVal() != NRAttribute::ONE_PHASE_PULL_ALGORITHM)){
 
     // In One-Phase Pull, there are no exploratory messages
     if (TimevalCmp(&current_time, &(my_handle->exploratory_time_)) >= 0){

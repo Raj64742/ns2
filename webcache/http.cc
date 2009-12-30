@@ -37,7 +37,7 @@
  * this exception also makes it possible to release a modified version
  * which carries forward this exception.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.21 2005/09/18 23:33:35 tomh Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.22 2009/12/30 22:06:34 tom_henderson Exp $
  *
  */
 //
@@ -536,8 +536,8 @@ int HttpYucInvalServer::command(int argc, const char*const* argv)
 				fprintf(stderr, 
 					"server %d timeout mpush\n", id_);
 			}
-			tcl.resultf("%d", (enable_upd_ && 
-					   (pg->counter() >= push_thresh_) ||
+			tcl.resultf("%d", ((enable_upd_ && 
+					   (pg->counter() >= push_thresh_)) ||
 					   pg->is_mpush()));
 			return TCL_OK;
 		}
@@ -1440,7 +1440,8 @@ int HttpMInvalCache::recv_upd(HttpUpdateData *d)
 	}
 
 	ClientPage *pg = pool_->get_page(d->rec_page(0));
-	if (pg != NULL) 
+	if (pg != NULL)
+	{
 		if (pg->mtime() >= d->rec_mtime(0)) {
 			// If we've already had this version, or a newer 
 			// version, ignore this old push
@@ -1455,6 +1456,7 @@ int HttpMInvalCache::recv_upd(HttpUpdateData *d)
 			pg->count_inval(Ca_, push_low_bound_);
 			log("E NTF p %s v %d\n", d->rec_page(0),pg->counter());
 		}
+	}
 
 	// Add the new page into our pool
 	ClientPage *q = pool_->enter_page(d->rec_page(0), d->rec_size(0), 
@@ -1477,12 +1479,16 @@ int HttpMInvalCache::recv_upd(HttpUpdateData *d)
 				      name_, d->rec_page(0));
 	}
 
-	if (enable_upd_ && (q->counter() >= push_thresh_) || q->is_mpush())
+	if ((enable_upd_ && (q->counter() >= push_thresh_)) || q->is_mpush())
+	{
 		// XXX Continue pushing if we either select to push, or 
 		// were instructed to do so.
 		return 1;
+	}
 	else 
+	{
 		return 0;
+	}
 }
 
 HttpUpdateData* HttpMInvalCache::pack_upd(ClientPage* page)

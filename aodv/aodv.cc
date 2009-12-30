@@ -1014,8 +1014,8 @@ struct hdr_ip *ih = HDR_IP(p);
   return;
  }
 
- if (ch->ptype() != PT_AODV && ch->direction() == hdr_cmn::UP &&
-	((u_int32_t)ih->daddr() == IP_BROADCAST)
+ if ((( ch->ptype() != PT_AODV && ch->direction() == hdr_cmn::UP ) &&
+	((u_int32_t)ih->daddr() == IP_BROADCAST))
 		|| (ih->daddr() == here_.addr_)) {
 	dmux_->recv(p,0);
 	return;

@@ -13,7 +13,7 @@
 // File:  p802_15_4sscs.cc
 // Mode:  C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t
 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4sscs.cc,v 1.2 2005/07/13 03:51:33 tomh Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4sscs.cc,v 1.3 2009/12/30 22:06:34 tom_henderson Exp $
 
 // Functions in this file are out of the scope of 802.15.4.
 // But they elaborate how a higher layer interfaces with 802.15.4.
@@ -292,26 +292,31 @@ void SSCS802_15_4::MLME_SCAN_confirm(MACenum status,UINT_8 ScanType,UINT_32 Unsc
 	T_EnergyDetectList = EnergyDetectList;
 	T_PANDescriptorList = PANDescriptorList;
 	if (ScanType == 0x01)
+	{
 		dispatch(status,"MLME_SCAN_confirm");
-	if (ScanType == 0x03)
-	if (status == m_SUCCESS)
-	{
-		fprintf(stdout,"[%f](node %d) coordinator relocation successful, begin to re-synchronize with the coordinator\n",CURRENT_TIME,mac->index_);
-		//re-synchronize with the coordinator
-		mac->phy->PLME_GET_request(phyCurrentChannel);
-		mac->MLME_SYNC_request(mac->tmp_ppib.phyCurrentChannel,true);
 	}
-	else
+
+	if (ScanType == 0x03)
 	{
-		bool isCoord = ((mac->capability.FFD)&&(numberDeviceLink(&mac->deviceLink1) > 0));
-		fprintf(stdout,"[%f](node %d) coordinator relocation failed%s\n",CURRENT_TIME,mac->index_,(isCoord)?".":" --> try to reassociate ...");
- 		if (!isCoord)		//I am not a coordinator
- 		{
-	 		t_mpib.macShortAddress = 0xffff;
-			mac->MLME_SET_request(macShortAddress,&t_mpib);
-	 		t_mpib.macCoordExtendedAddress = def_macCoordExtendedAddress;
-			mac->MLME_SET_request(macCoordExtendedAddress,&t_mpib);
-			startDevice(t_isCT,t_isFFD,t_assoPermit,t_txBeacon,t_BO,t_SO,true);
+		if (status == m_SUCCESS)
+		{
+			fprintf(stdout,"[%f](node %d) coordinator relocation successful, begin to re-synchronize with the coordinator\n",CURRENT_TIME,mac->index_);
+			//re-synchronize with the coordinator
+			mac->phy->PLME_GET_request(phyCurrentChannel);
+			mac->MLME_SYNC_request(mac->tmp_ppib.phyCurrentChannel,true);
+		}
+		else
+		{
+			bool isCoord = ((mac->capability.FFD)&&(numberDeviceLink(&mac->deviceLink1) > 0));
+			fprintf(stdout,"[%f](node %d) coordinator relocation failed%s\n",CURRENT_TIME,mac->index_,(isCoord)?".":" --> try to reassociate ...");
+			if (!isCoord)		//I am not a coordinator
+			{
+				t_mpib.macShortAddress = 0xffff;
+				mac->MLME_SET_request(macShortAddress,&t_mpib);
+				t_mpib.macCoordExtendedAddress = def_macCoordExtendedAddress;
+				mac->MLME_SET_request(macCoordExtendedAddress,&t_mpib);
+				startDevice(t_isCT,t_isFFD,t_assoPermit,t_txBeacon,t_BO,t_SO,true);
+			}
 		}
 	}
 }
