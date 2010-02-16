@@ -12734,7 +12734,7 @@ fi
 
 case $system in
     Darwin-7.*|Darwin-8.*)
-	V_LIBS="$V_LIBS -framework CoreFoundation"
+	V_LIB="$V_LIB -framework CoreFoundation"
 esac
 
 if test "$host_cpu" = alpha ; then
