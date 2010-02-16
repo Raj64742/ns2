@@ -18,6 +18,7 @@
 #ifndef NS_LINUX_UTIL_H
 #define NS_LINUX_UTIL_H
 #include <stdlib.h>
+#include <stdint.h>
 #include "ns-linux-param.h"
 
 extern struct tcp_congestion_ops tcp_reno;
@@ -46,9 +47,6 @@ extern void tcp_cong_avoid_register(void);
 
 #define s32 long
 #define s64 long long
-
-#define uint64_t u64
-#define uint32_t u32
 
 #define ktime_t s64
 extern ktime_t net_invalid_timestamp();
