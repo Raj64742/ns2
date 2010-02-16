@@ -5733,7 +5733,7 @@ fi
 if test "$enable_debug" = "yes" ; then
 	V_CCOPT="-g"
 	if test "$CC" = gcc ; then
-		V_CCOPT="$V_CCOPT -Wall -Wno-write-strings -Werror"
+		V_CCOPT="$V_CCOPT -Wall -Wno-write-strings -Wno-parentheses -Werror"
 		V_DEFINE="$V_DEFINE -fsigned-char -fno-inline"
 	fi
 else
@@ -7213,7 +7213,7 @@ else
 fi
 
 
-OTCL_VERS=1.13
+OTCL_VERS=1.14
 OTCL_ALT_VERS=1.0
 
 OTCL_H_PLACES_D="$d \
@@ -7436,7 +7436,7 @@ else
 fi
 
 
-TCLCL_VERS=1.19
+TCLCL_VERS=1.20
 TCLCL_ALT_VERS=1.0
 
 TCLCL_H_PLACES="\
@@ -12704,6 +12704,38 @@ fi
 	fi
 fi
 
+# Recheck the system to see if we need to add any system-dependent
+# libraries
+
+{ $as_echo "$as_me:$LINENO: checking system version (for system-dependent libraries)" >&5
+$as_echo_n "checking system version (for system-dependent libraries)... " >&6; }
+if test -f /usr/lib/NextStep/software_version; then
+    system=NEXTSTEP-`awk '/3/,/3/' /usr/lib/NextStep/software_version`
+else
+    system=`uname -s`-`uname -r`
+    if test "$?" -ne 0 ; then
+	{ $as_echo "$as_me:$LINENO: result: unknown (can't find uname command)" >&5
+$as_echo "unknown (can't find uname command)" >&6; }
+	system=unknown
+    else
+	# Special check for weird MP-RAS system (uname returns weird
+	# results, and the version is kept in special file).
+
+	if test -r /etc/.relid -a "X`uname -n`" = "X`uname -s`" ; then
+	    system=MP-RAS-`awk '{print $3}' /etc/.relid`
+	fi
+	if test "`uname -s`" = "AIX" ; then
+	    system=AIX-`uname -v`.`uname -r`
+	fi
+	{ $as_echo "$as_me:$LINENO: result: $system" >&5
+$as_echo "$system" >&6; }
+    fi
+fi
+
+case $system in
+    Darwin-7.*|Darwin-8.*)
+	V_LIBS="$V_LIBS -framework CoreFoundation"
+esac
 
 if test "$host_cpu" = alpha ; then
 	V_DEFINE="$V_DEFINE -DINT_64=u_long"
