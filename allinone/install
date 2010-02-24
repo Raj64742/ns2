@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.33 2008/03/22 20:28:02 tom_henderson Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.34 2010/02/24 04:22:52 tom_henderson Exp $
 
 die() {
 	echo "$@"  1>&2
@@ -205,8 +205,8 @@ TCLVER=8.4.18
 TKVER=8.4.18
 OTCLVER=1.13
 TCLCLVER=1.19
-NSVER=2.33
-NAMVER=1.13
+NSVER=2.34
+NAMVER=1.14
 XGRAPHVER=12.1
 ZLIBVER=1.2.3
 DEI80211MRVER=1.1.4
