@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.277 2009/01/15 06:23:49 tom_henderson Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.278 2010/03/06 21:23:53 tom_henderson Exp $
 
 
 #
@@ -633,6 +633,9 @@ Simulator instproc create-wireless-node args {
 		    AOMDV {
 			    set ragent [$self create-aomdv-agent $node]
 		    }
+                    PUMA {
+                            set ragent [$self create-puma-agent $node]
+                    }
 		    TORA {
 			    Simulator set IMEPFlag_ ON
 			    set ragent [$self create-tora-agent $node]
@@ -859,6 +862,14 @@ Simulator instproc create-aomdv-agent { node } {
 	$self at 0.0 "$ragent start"
 	$node set ragent_ $ragent
 	return $ragent
+}
+
+Simulator instproc create-puma-agent { node } {
+        #  Create PUMA routing agent
+        set ragent [new Agent/PUMA [$node node-addr]]
+        $self at 0.0 "$ragent start"
+        $node set ragent_ $ragent
+        return $ragent
 }
 
 Simulator instproc use-newtrace {} {

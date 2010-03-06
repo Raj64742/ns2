@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.103 2009/01/15 06:23:49 tom_henderson Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.104 2010/03/06 21:23:53 tom_henderson Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -182,8 +182,11 @@ static const packet_t PT_BLTRACE = 60;
 	// AOMDV packet
 static const packet_t PT_AOMDV = 61;
 
+        // PUMA packet
+static const packet_t PT_PUMA = 62;
+
         // insert new packet types here
-static packet_t       PT_NTYPE = 62; // This MUST be the LAST one
+static packet_t       PT_NTYPE = 63; // This MUST be the LAST one
 
 enum packetClass
 {
@@ -247,7 +250,8 @@ public:
 	static packetClass classify(packet_t type) {		
 		if (type == PT_DSR || 
 		    type == PT_MESSAGE || 
-		    type == PT_TORA || 
+		    type == PT_TORA ||
+                    type == PT_PUMA ||
 		    type == PT_AODV)
 			return ROUTING;		
 		if (type == PT_TCP || 
@@ -382,6 +386,9 @@ public:
 		
 		// AOMDV patch
 		name_[PT_AOMDV]= "AOMDV";
+
+                // PUMA
+                name_[PT_PUMA]="PUMA";
 
 		name_[PT_NTYPE]= "undefined";
 	}

@@ -40,7 +40,7 @@ signals to and from a wireless channel etc. A major difference between
 them, though, is that a \code{MobileNode} is not connected by means of
 \code{Links} to other nodes or mobilenodes. In this section we shall
 describe the internals of \code{MobileNode}, its routing mechanisms, the
-routing protocols dsdv, aodv, tora and dsr, creation of network stack
+routing protocols dsdv, aodv, tora, puma and dsr, creation of network stack
 allowing channel
 access in \code{MobileNode}, brief description of each stack component,
 trace support and movement/traffic scenario generation for wireless
@@ -72,15 +72,18 @@ $ns tcl/ex/wireless.tcl (or /wireless-test.tcl)
 \end{program} %$
 
 %\code{$opt(rp)} and \$opt(rp) dont work  ---xuanc
-The four ad-hoc routing protocols that are currently supported are 
+The five ad-hoc routing protocols that are currently supported are 
 Destination Sequence Distance Vector (DSDV), Dynamic Source Routing
-(DSR), Temporally ordered Routing Algorithm (TORA) and Adhoc On-demand
-Distance Vector (AODV). 
-The primitive to create a mobilenode is described below. Please note that the old APIs for creating a mobilenode depended on which routing protocol was used, like 
+(DSR), Temporally ordered Routing Algorithm (TORA), Adhoc On-demand
+Distance Vector (AODV) and Protocol for Unified Multicasting Through
+Announcements (PUMA).
+The primitive to create a mobilenode is described below. Please note 
+that the old APIs for creating a mobilenode depended on which routing 
+protocol was used, like 
 \begin{program} set mnode [$opt(rp)-create-mobile-node $id] \end{program} 
 where 
 \begin{program} $opt(rp) \end{program} 
-defines "dsdv", "aodv", "tora" or "dsr" and id is the index for the mobilenode. But the old API's use is being deprecated and the new API is described as follows:.
+defines "dsdv", "aodv", "tora", "dsr" or "puma" and id is the index for the mobilenode. But the old API's use is being deprecated and the new API is described as follows:.
 
 \begin{program}
 $ns_ node-config -adhocRouting $opt(adhocRouting) 
@@ -491,9 +494,9 @@ See \nsf{mac-tdma.\{cc,h\}} for implementation details.
 \subsection{Different types of Routing Agents in mobile networking}
 \label{sec:mobilenode-routing}
 
-The four different ad-hoc routing protocols currently implemented
-for mobile networking in \ns are dsdv, dsr, aodv and tora. In this section
-we shall briefly discuss each of them.
+The five different ad-hoc routing protocols currently implemented
+for mobile networking in \ns are dsdv, dsr, aodv, tora and puma. 
+In this section we shall briefly discuss each of them.
 
 \subsubsection{DSDV}
 \label{sec:dsdv}
@@ -602,6 +605,31 @@ routing.
 See \ns/aodv and \ns/tcl/lib/ns-lib.tcl for implementational details
 of aodv.
 
+\subsubsection{PUMA}
+\label{sec:PUMA}
+
+The \emph{Protocol for Unified Multicasting Through Announcements} (PUMA) 
+is a distributed, receiver initiated, mesh based multicast routing protocol. 
+By default, the first receiver in a multicast group acts as the core (i.e., 
+\emph{rendezvous point}) for that particular group. PUMA uses a simple and 
+very efficient control message, a \textit{multicast announcement}, to 
+maintain the mesh. Besides that, multiple meshes can be compiled into a 
+single announcement bucket. PUMA does not require any unicast protocol, and
+all transmissions are broadcasts. Even though broadcast transmissions are 
+unreliable, the mesh itself introduces some redundancy, and because the mesh
+includes only group members and the nodes interconnecting them, broadcasts
+remain scoped within the mesh.
+
+As a multicast announcement propagates throughout the mesh, nodes learn the
+shortest path to the core. This way, data packets can be quickly routed to 
+the core. On its way toward the core, two things can happen to a data packet:
+(a) the packet goes all the way until it reaches the core, or (b) a mesh 
+member is hit before reaching the core. Anyway, once a data packet reaches 
+the mesh, the packet propagates only inside the mesh. The core is not a 
+single point of failure, because when the core fails a group member quickly 
+takes the core role.
+See \ns/puma directory and \ns/tcl/ex/puma.tcl for implementation of
+PUMA in \ns.
 
 \subsection{Trace Support}
 \label{sec:mobile-trace}
@@ -931,7 +959,7 @@ shown below:
 \item[Packet info at "Application level"]
 The packet information at application level consists of the type of
 application like ARP, TCP, the type of adhoc routing protocol like
-DSDV, DSR, AODV etc being traced. This field consists of a leading "-P"
+PUMA, DSR, AODV etc being traced. This field consists of a leading "-P"
 and list of tags for different application is listed as below:
 \begin{description}
 \item[-P arp] Address Resolution Protocol. Details for ARP is given by the
@@ -1429,8 +1457,8 @@ Following is a list of commands used in wireless simulations:
 \begin{program}
 $ns_ node-config -addressingType <usually flat or hierarchical used for 
                                    wireless topologies>
-                 -adhocRouting   <adhoc rotuing protocol like DSDV, DSR,
-                                   TORA, AODV etc>
+                 -adhocRouting   <adhoc rotuing protocol like PUMA, DSR,
+                                   TORA, AODV, DSDV etc>
                  -llType         <LinkLayer>
                  -macType        <MAC type like Mac/802_11>
                  -propType       <Propagation model like
