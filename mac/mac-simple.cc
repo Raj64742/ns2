@@ -2,7 +2,7 @@
 /*
  * mac-simple.cc
  * Copyright (C) 2003 by the University of Southern California
- * $Id: mac-simple.cc,v 1.7 2005/09/21 20:52:46 haldar Exp $
+ * $Id: mac-simple.cc,v 1.8 2010/03/08 05:54:52 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -349,7 +349,7 @@ void MacSimpleTimer::stop(void)
 }
 
 
-void MacSimpleWaitTimer::handle(Event *e)
+void MacSimpleWaitTimer::handle(Event *)
 {
 	busy_ = 0;
 	stime = rtime = 0.0;
@@ -357,7 +357,7 @@ void MacSimpleWaitTimer::handle(Event *e)
 	mac->waitHandler();
 }
 
-void MacSimpleSendTimer::handle(Event *e)
+void MacSimpleSendTimer::handle(Event *)
 {
 	busy_ = 0;
 	stime = rtime = 0.0;
@@ -365,7 +365,7 @@ void MacSimpleSendTimer::handle(Event *e)
 	mac->sendHandler();
 }
 
-void MacSimpleRecvTimer::handle(Event *e)
+void MacSimpleRecvTimer::handle(Event *)
 {
 	busy_ = 0;
 	stime = rtime = 0.0;

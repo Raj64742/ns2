@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.h,v 1.29 2008/12/13 23:22:58 tom_henderson Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.h,v 1.30 2010/03/08 05:54:52 tom_henderson Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  * wireless-mac-802_11.h
@@ -501,7 +501,7 @@ private:
 
 	double txtime(Packet *p);
 	double txtime(double psz, double drt);
-	double txtime(int bytes) { /* clobber inherited txtime() */ abort(); return 0;}
+	double txtime(int bytes);
 
 	inline void transmit(Packet *p, double timeout);
 	inline void checkBackoffTimer(void);

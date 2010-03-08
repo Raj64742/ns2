@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.94 2009/01/15 06:23:49 tom_henderson Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.95 2010/03/08 05:54:55 tom_henderson Exp $
  */
 
 #include <packet.h>
@@ -353,7 +353,7 @@ CMUTrace::format_mac_common(Packet *p, const char *why, int offset)
 }
 
 void
-CMUTrace::format_phy(Packet *p, int offset)
+CMUTrace::format_phy(Packet *, int offset)
 {
 	sprintf(pt_->buffer() + offset, " ");
 }

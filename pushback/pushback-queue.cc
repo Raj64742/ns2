@@ -139,7 +139,7 @@ PushbackQueue::command(int argc, const char*const* argv)
 }
  
 void 
-PushbackQueue::timeout(int from) {
+PushbackQueue::timeout(int ) {
   
   int barrivals = qmon_->barrivals() - qmon_->mon_ebdrops();
   int bdrops = qmon_->bdrops() - qmon_->mon_ebdrops();
@@ -257,3 +257,9 @@ PushbackQueue::getDropRate() {
   }
 }
   
+
+void PushbackQueueTimer::expire(Event *) {
+	//    printf("PBQTimer: expiry at %g\n", Scheduler::instance().clock());
+	queue_->timeout(0);
+}
+

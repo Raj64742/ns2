@@ -37,12 +37,12 @@
  * Multi-state error model patches contributed by Jianping Pan 
  * (jpan@bbcr.uwaterloo.ca).
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.83 2006/03/01 19:28:04 padmah Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.84 2010/03/08 05:54:53 tom_henderson Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.83 2006/03/01 19:28:04 padmah Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.84 2010/03/08 05:54:53 tom_henderson Exp $ (UCB)";
 #endif
 
 #include "config.h"
@@ -472,7 +472,7 @@ int TwoStateErrorModel::corrupt(Packet* p)
 		return corruptPkt(p);
 }
 
-int TwoStateErrorModel::corruptTime(Packet* p)
+int TwoStateErrorModel::corruptTime(Packet*)
 {
 	int error = 0;
 	if (state_ == 1)
@@ -534,7 +534,7 @@ int ComplexTwoStateErrorModel::command(int argc, const char*const* argv)
 }
 
 
-int ComplexTwoStateErrorModel::corruptTime(Packet* p)
+int ComplexTwoStateErrorModel::corruptTime(Packet*)
 {
 	int error = 0;
 	if (em_[0]->state_ == 1 && em_[1]->state_ == 1) 
@@ -542,7 +542,7 @@ int ComplexTwoStateErrorModel::corruptTime(Packet* p)
 	return error;
 }
 
-int ComplexTwoStateErrorModel::corruptPkt(Packet* p)
+int ComplexTwoStateErrorModel::corruptPkt(Packet*)
 {
 	fprintf(stderr, "Error model defined in time; not in packets\n");
 	return -1;
@@ -1235,7 +1235,7 @@ printf ("Error Model: DROPPING pkt type %d, seqno %d\n", pkt_type_, rh->seqno())
 	return 0;
 }
 
-void TwoStateErrModelTimer::expire(Event *e) 
+void TwoStateErrModelTimer::expire(Event *) 
 {
 	(*a_.*call_back_)();
 }

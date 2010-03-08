@@ -192,7 +192,7 @@ void PBCTimer::setPeriod(double p)
   if(p >= 0) period = p;
 }
 
-void PBCTimer::handle(Event *e)
+void PBCTimer::handle(Event *)
 {
 	agent->singleBroadcast();
 	if(agent->periodicBroadcast)

@@ -74,7 +74,7 @@ void RLookup::Log( ostream& os)
   os << "LOG called";
 }
 
-void RLookup::Populate( istream& is)
+void RLookup::Populate( istream& )
 {
   printf("Populate(istream) called\n");
 }
@@ -225,7 +225,7 @@ void BMLookup::Populate(
     RoutingVec_t& r, // NextHop table
     RoutingVec_t& p, // Population counts
     nodeid_t d, // Default route
-    nodeid_t o,
+    nodeid_t ,
     nodeid_t f,
     nodeid_t l)
 {
@@ -292,11 +292,11 @@ size_t   BMLookup::NumberEntries()
 }
 
 size_t   BMLookup::EstimateSize(
-    RoutingVec_t& r,   // NextHop table
+    RoutingVec_t& ,   // NextHop table
     RoutingVec_t& p,   // Population counts
-    nodeid_t d,        // Default route
-    nodeid_t n,        // Number default
-    nodeid_t o,
+    nodeid_t ,        // Default route
+    nodeid_t ,        // Number default
+    nodeid_t ,
     nodeid_t f,
     nodeid_t l)
 {
@@ -397,9 +397,9 @@ size_t   HMLookup::NumberEntries()
 
 size_t   HMLookup::EstimateSize(
     RoutingVec_t& r, // NextHop table
-    RoutingVec_t& p, // Population counts
+    RoutingVec_t& , // Population counts
     nodeid_t d,      // Default route
-    nodeid_t n,      // Number default
+    nodeid_t ,      // Number default
     nodeid_t,
     nodeid_t,
     nodeid_t)
@@ -440,7 +440,7 @@ RLookup_Types NHLookup::WhatType(void) const // Identifies the type of lookup
 void NHLookup::Populate(
     RoutingVec_t& r, // NextHop table
     RoutingVec_t&,   // Population counts
-    nodeid_t d,      // Default route
+    nodeid_t ,      // Default route
     nodeid_t,
     nodeid_t,
     nodeid_t)
@@ -503,7 +503,7 @@ RoutingVec_it i;
 size_t   NHLookup::EstimateSize(
     RoutingVec_t& r, // NextHop table
     RoutingVec_t&,   // Population counts
-    nodeid_t d,      // Default route
+    nodeid_t ,      // Default route
     nodeid_t,
     nodeid_t,
     nodeid_t,

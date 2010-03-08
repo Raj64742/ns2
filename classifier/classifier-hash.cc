@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.cc,v 1.30 2005/09/18 23:33:31 tomh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.cc,v 1.31 2010/03/08 05:54:49 tom_henderson Exp $ (LBL)";
 #endif
 
 //
@@ -219,7 +219,5 @@ int DestHashClassifier::command(int argc, const char*const* argv)
 	return(HashClassifier::command(argc, argv));
 } // command
 
-
-
-
-
+void HashClassifier::set_table_size(int)
+{}

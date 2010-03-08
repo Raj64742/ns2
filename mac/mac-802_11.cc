@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.58 2008/12/14 14:31:59 tom_henderson Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.59 2010/03/08 05:54:52 tom_henderson Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  * Contributions by:
@@ -3231,3 +3231,9 @@ done:
 	
 }
 
+double Mac802_11::txtime(int )
+{ 
+	/* clobber inherited txtime() */
+	abort();
+	return 0;
+}

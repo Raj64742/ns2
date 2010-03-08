@@ -3,7 +3,7 @@
 /*
  * dsr_proto.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: dsr_proto.cc,v 1.3 2005/08/25 18:58:04 johnh Exp $
+ * $Id: dsr_proto.cc,v 1.4 2010/03/08 05:54:50 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -84,7 +84,7 @@ DSRProto::DSRProto() : Agent(PT_DSR)
 
 
 void
-DSRProto::recv(Packet* p, Handler* callback)
+DSRProto::recv(Packet* , Handler* )
 {
   
 }
@@ -160,7 +160,7 @@ DSRProto::command(int argc, const char*const* argv)
 }
 
 void 
-DSRProto::noRouteForPacket(Packet *p)
+DSRProto::noRouteForPacket(Packet *)
 {
 
 }

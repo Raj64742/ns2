@@ -2,7 +2,7 @@
 /*
  * gaf.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: gaf.cc,v 1.6 2005/08/25 18:58:05 johnh Exp $
+ * $Id: gaf.cc,v 1.7 2010/03/08 05:54:50 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -69,7 +69,7 @@ public:
 static class GAFAgentClass : public TclClass {
 public:
 	GAFAgentClass() : TclClass("Agent/GAF") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int , const char*const* argv) {
 	        assert(argc == 5);
 		return (new GAFAgent((nsaddr_t) atoi(argv[4])));
 	}
@@ -505,9 +505,10 @@ GAFAgent::makeUpDiscoveryMsg(Packet *p)
 
   if (state_ == GAF_LEADER) {
       // must send real msg because I am the leader
-	ttl = (int)(leader_settime_ - NOW);
-	if (ttl < 0) ttl = 0;
-
+      	if (leader_settime_ < NOW)
+		ttl = 0;
+	else
+		ttl = leader_settime_ - NOW;
   } else {
 
       if ((ttl = (u_int32_t)myttl()) > MIN_LIFETIME) {

@@ -477,7 +477,7 @@ void DelayBoxClassifier::add_rule(const char* src, const char* dst,
 	rules_[*pair] = rule;
 }
 
-int DelayBoxClassifier::classify(Packet *p) {
+int DelayBoxClassifier::classify(Packet *) {
 	/* 
 	 * Everything should be classified into slot 0, which points
 	 * to the default classifier.
@@ -485,7 +485,7 @@ int DelayBoxClassifier::classify(Packet *p) {
 	return 0;
 }
 
-void DelayBoxClassifier::recv (Packet* p, Handler* h)
+void DelayBoxClassifier::recv (Packet* p, Handler* )
 {
 	DelayBoxFlow* flow = NULL;
 	double delay = 0.0, loss = 0, linkspd = 0;

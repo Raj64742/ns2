@@ -204,7 +204,7 @@ void Tmix_DelayBoxClassifier::create_flow_table (const char* src, const char *ds
     fclose (fp);
 }
 
-void Tmix_DelayBoxClassifier::recv (Packet* p, Handler* h)
+void Tmix_DelayBoxClassifier::recv (Packet* p, Handler* )
 {
 	DelayBoxFlow* flow;
 	double delay;

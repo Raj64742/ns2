@@ -13,7 +13,7 @@
 // File:  p802_15_4phy.cc
 // Mode:  C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t
 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4phy.cc,v 1.5 2007/01/30 15:54:40 tom_henderson Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4phy.cc,v 1.6 2010/03/08 05:54:55 tom_henderson Exp $
 
 /*
  * Copyright (c) 2003-2004 Samsung Advanced Institute of Technology and
@@ -250,7 +250,7 @@ void Phy802_15_4::PD_DATA_request(UINT_8 psduLength,Packet *psdu)
 	}
 }
 
-void Phy802_15_4::PD_DATA_indication(UINT_8 psduLength,Packet *psdu,UINT_8 ppduLinkQuality)
+void Phy802_15_4::PD_DATA_indication(UINT_8 ,Packet *psdu,UINT_8 ppduLinkQuality)
 {
 	//refer to sec 6.7.8 for LQI details
 	hdr_lrwpan* wph = HDR_LRWPAN(psdu);
@@ -512,7 +512,7 @@ UINT_8 Phy802_15_4::measureLinkQ(Packet *p)
 	return (UINT_8) lq;
 }
 
-void Phy802_15_4::recv(Packet *p, Handler *h)
+void Phy802_15_4::recv(Packet *p, Handler *)
 {
 	hdr_lrwpan* wph = HDR_LRWPAN(p);
 	hdr_cmn *ch = HDR_CMN(p);

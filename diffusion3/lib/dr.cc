@@ -3,7 +3,7 @@
 // authors         : John Heidemann and Fabio Silva
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: dr.cc,v 1.18 2009/12/30 22:06:34 tom_henderson Exp $
+// $Id: dr.cc,v 1.19 2010/03/08 05:54:49 tom_henderson Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -171,19 +171,32 @@ NR * NR::createNR(u_int16_t port)
 }
 #endif // NS_DIFFUSION
 
+#ifdef USE_THREADS
 void GetLock(pthread_mutex_t *mutex)
 {
-#ifdef USE_THREADS
   pthread_mutex_lock(mutex);
-#endif // USE_THREADS
 }
+#endif // USE_THREADS
 
+#ifndef USE_THREADS
+void GetLock(pthread_mutex_t *)
+{
+}
+#endif // USE_THREADS
+
+#ifdef USE_THREADS
 void ReleaseLock(pthread_mutex_t *mutex)
 {
-#ifdef USE_THREADS
   pthread_mutex_unlock(mutex);
-#endif // USE_THREADS
 }
+#endif // USE_THREADS
+#ifndef USE_THREADS
+void ReleaseLock(pthread_mutex_t *)
+{
+}
+#endif // USE_THREADS
+
+
 
 #ifdef NS_DIFFUSION
 DiffusionRouting::DiffusionRouting(u_int16_t port, DiffAppAgent *da)

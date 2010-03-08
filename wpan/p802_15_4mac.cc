@@ -13,7 +13,7 @@
 // File:  p802_15_4mac.cc
 // Mode:  C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t
 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4mac.cc,v 1.6 2009/12/30 22:06:34 tom_henderson Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4mac.cc,v 1.7 2010/03/08 05:54:55 tom_henderson Exp $
 
 /*
  * Copyright (c) 2003-2004 Samsung Advanced Institute of Technology and
@@ -84,7 +84,7 @@ static MAC_PIB MPIB =
 	def_macSecurityMode
 };
 
-void Mac802_15_4Handler::handle(Event* e)
+void Mac802_15_4Handler::handle(Event* )
 {
 	nullEvent.uid_ = 0;
 	if (type == macTxBcnCmdDataHType)
@@ -674,7 +674,7 @@ void Mac802_15_4::MLME_DISASSOCIATE_request(IE3ADDR DeviceAddress,UINT_8 Disasso
 	mlme_disassociate_request(DeviceAddress,DisassociateReason,SecurityEnable,true);
 }
 
-void Mac802_15_4::MLME_DISASSOCIATE_indication(IE3ADDR DeviceAddress,UINT_8 DisassociateReason,bool SecurityUse,UINT_8 ACLEntry)
+void Mac802_15_4::MLME_DISASSOCIATE_indication(IE3ADDR ,UINT_8 ,bool ,UINT_8 )
 {
 }
 
@@ -722,16 +722,15 @@ void Mac802_15_4::MLME_GET_request(MPIBAenum PIBAttribute)
 	sscs->MLME_GET_confirm(t_status,PIBAttribute,&mpib);
 }
 
-void Mac802_15_4::MLME_GTS_request(UINT_8 GTSCharacteristics,bool SecurityEnable)
+void Mac802_15_4::MLME_GTS_request(UINT_8, bool)
 {
 }
 
-void Mac802_15_4::MLME_GTS_confirm(UINT_8 GTSCharacteristics,MACenum status)
+void Mac802_15_4::MLME_GTS_confirm(UINT_8, MACenum)
 {
 }
 
-void Mac802_15_4::MLME_GTS_indication(UINT_16 DevAddress,UINT_8 GTSCharacteristics,
-		bool SecurityUse, UINT_8 ACLEntry)
+void Mac802_15_4::MLME_GTS_indication(UINT_16, UINT_8, bool, UINT_8)
 {
 }
 
@@ -2068,7 +2067,7 @@ void Mac802_15_4::isPanCoor(bool isPC)
 
 //-------------------------------------------------------------------------------------
 
-void Mac802_15_4::set_trx_state_request(PHYenum state,const char *frFile,const char *frFunc,int line)
+void Mac802_15_4::set_trx_state_request(PHYenum state,const char *,const char *,int )
 {
 #ifdef DEBUG802_15_4
 	fprintf(stdout,"[%s::%s][%f](node %d): %s request from [%s:%s:%d]\n",__FILE__,__FUNCTION__,CURRENT_TIME,index_,
@@ -2932,7 +2931,7 @@ void Mac802_15_4::mcps_data_request(UINT_8 SrcAddrMode,UINT_16 SrcPANId,IE3ADDR 
 }
 
 void Mac802_15_4::mlme_associate_request(UINT_8 LogicalChannel,UINT_8 CoordAddrMode,UINT_16 CoordPANId,IE3ADDR CoordAddress,
-		UINT_8 CapabilityInformation,bool SecurityEnable,
+		UINT_8, bool SecurityEnable,
 		bool frUpper,PHYenum status,MACenum mStatus)
 {
 	//refer to Figure 25 for association details
@@ -3273,7 +3272,8 @@ void Mac802_15_4::mlme_associate_response(IE3ADDR DeviceAddress,UINT_16 AssocSho
 	}
 }
 
-void Mac802_15_4::mlme_disassociate_request(IE3ADDR DeviceAddress,UINT_8 DisassociateReason,bool SecurityEnable,bool frUpper,PHYenum status)
+//void Mac802_15_4::mlme_disassociate_request(IE3ADDR DeviceAddress,UINT_8 DisassociateReason,bool SecurityEnable,bool frUpper,PHYenum status)
+void Mac802_15_4::mlme_disassociate_request(IE3ADDR , UINT_8 ,bool ,bool , PHYenum )
 {
 	/*
 	   FrameCtrl frmCtrl;

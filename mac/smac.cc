@@ -2,7 +2,7 @@
 /*
  * smac.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: smac.cc,v 1.18 2005/12/10 17:57:13 liyuan Exp $
+ * $Id: smac.cc,v 1.19 2010/03/08 05:54:52 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -108,11 +108,11 @@ void SmacAdaptiveListenTimer::expire(Event *e) {
 }
 #endif
 
-void SmacGeneTimer::expire(Event *e) {
+void SmacGeneTimer::expire(Event *) {
 	a_->handleGeneTimer();
 }
 
-void SmacRecvTimer::expire(Event *e) {
+void SmacRecvTimer::expire(Event *) {
 	stime_ = rtime_ = 0;
 	a_->handleRecvTimer();
 }
@@ -133,11 +133,11 @@ double SmacRecvTimer::timeToExpire() {
 	return ((stime_ + rtime_) - Scheduler::instance().clock());
 }
 
-void SmacSendTimer::expire(Event *e) {
+void SmacSendTimer::expire(Event *) {
 	a_->handleSendTimer();
 }
 
-void SmacNavTimer::expire(Event *e) {
+void SmacNavTimer::expire(Event *) {
 	a_->handleNavTimer();
 }
 
@@ -147,7 +147,7 @@ void SmacNeighNavTimer::sched(double time) {
 	rtime_ = time;
 }
 
-void SmacNeighNavTimer::expire(Event *e) {
+void SmacNeighNavTimer::expire(Event *) {
 	stime_ = rtime_ = 0;
 	a_->handleNeighNavTimer();
 }
@@ -156,7 +156,7 @@ double SmacNeighNavTimer::timeToExpire() {
 	return ((stime_ + rtime_) - Scheduler::instance().clock());
 }
 
-void SmacCsTimer::expire(Event *e) {
+void SmacCsTimer::expire(Event *) {
 	a_->handleCsTimer();
 }
 
@@ -211,7 +211,7 @@ double SmacCounterTimer::timeToSleep() {
 	return ((stime_ + tts_) - Scheduler::instance().clock()) ;
 }
 
-void SmacCounterTimer::expire(Event *e) {
+void SmacCounterTimer::expire(Event *) {
 	tts_ = stime_ = 0;
 	a_->handleCounterTimer(index_);
 }
@@ -2137,7 +2137,7 @@ bool SMAC::bcastMsg(Packet *p) {
 	}
 }
 
-bool SMAC::unicastMsg(int numfrags, Packet *p) {
+bool SMAC::unicastMsg(int , Packet *p) {
 
 	//  if (dataPkt != 0 || p == 0)
 	//return 0;

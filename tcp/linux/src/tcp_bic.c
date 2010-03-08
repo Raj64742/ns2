@@ -93,7 +93,7 @@ static inline void bictcp_update(struct bictcp *ca, u32 cwnd)
 		ca->epoch_start = tcp_time_stamp;
 
 	/* start off normal */
-	if (cwnd <= low_window) {
+	if (cwnd <= (u32)low_window) {
 		ca->cnt = cwnd;
 		return;
 	}
@@ -103,7 +103,7 @@ static inline void bictcp_update(struct bictcp *ca, u32 cwnd)
 		__u32 	dist = (ca->last_max_cwnd - cwnd)
 			/ BICTCP_B;
 
-		if (dist > max_increment)
+		if (dist > (__u32)max_increment)
 			/* linear increase */
 			ca->cnt = cwnd / max_increment;
 		else if (dist <= 1U)
@@ -140,6 +140,10 @@ static inline void bictcp_update(struct bictcp *ca, u32 cwnd)
 static void bictcp_cong_avoid(struct sock *sk, u32 ack,
 			      u32 seq_rtt, u32 in_flight, int data_acked)
 {
+	ack = ack;
+	seq_rtt = seq_rtt;
+	data_acked = data_acked;
+
 	struct tcp_sock *tp = tcp_sk(sk);
 	struct bictcp *ca = inet_csk_ca(sk);
 
@@ -185,7 +189,7 @@ static u32 bictcp_recalc_ssthresh(struct sock *sk)
 	ca->loss_cwnd = tp->snd_cwnd;
 
 
-	if (tp->snd_cwnd <= low_window)
+	if (tp->snd_cwnd <= (__u32)low_window)
 		return max(tp->snd_cwnd >> 1U, 2U);
 	else
 		return max((tp->snd_cwnd * beta) / BICTCP_BETA_SCALE, 2U);
@@ -209,6 +213,9 @@ static void bictcp_state(struct sock *sk, u8 new_state)
  */
 static void bictcp_acked(struct sock *sk, u32 cnt, ktime_t last)
 {
+
+	last = last;
+
 	const struct inet_connection_sock *icsk = inet_csk(sk);
 
 	if (cnt > 0 && icsk->icsk_ca_state == TCP_CA_Open) {

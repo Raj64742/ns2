@@ -222,6 +222,8 @@ static u32 tcp_lp_owd_calculator(struct sock *sk)
  */
 static void tcp_lp_rtt_sample(struct sock *sk, u32 rtt)
 {
+	rtt = rtt;
+
 	struct lp *lp = inet_csk_ca(sk);
 	s64 mowd = tcp_lp_owd_calculator(sk);
 
@@ -230,13 +232,13 @@ static void tcp_lp_rtt_sample(struct sock *sk, u32 rtt)
 		return;
 
 	/* record the next min owd */
-	if (mowd < lp->owd_min)
+	if (mowd < (s64)lp->owd_min)
 		lp->owd_min = mowd;
 
 	/* always forget the max of the max
 	 * we just set owd_max as one below it */
-	if (mowd > lp->owd_max) {
-		if (mowd > lp->owd_max_rsv) {
+	if (mowd > (s64)lp->owd_max) {
+		if (mowd > (s64)lp->owd_max_rsv) {
 			if (lp->owd_max_rsv == 0)
 				lp->owd_max = mowd;
 			else
@@ -265,6 +267,8 @@ static void tcp_lp_rtt_sample(struct sock *sk, u32 rtt)
  */
 static void tcp_lp_pkts_acked(struct sock *sk, u32 num_acked, ktime_t last)
 {
+	num_acked = num_acked;
+
 	struct tcp_sock *tp = tcp_sk(sk);
 	struct lp *lp = inet_csk_ca(sk);
 

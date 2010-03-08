@@ -32,7 +32,7 @@
  * SUCH DAMAGE.
  * 
  propagation.cc
- $Id: propagation.cc,v 1.8 2006/01/24 00:36:43 sallyfloyd Exp $
+ $Id: propagation.cc,v 1.9 2010/03/08 05:54:52 tom_henderson Exp $
 */
 
 #include <stdio.h>
@@ -89,8 +89,7 @@ Propagation::Pr(PacketStamp *, PacketStamp *, WirelessPhy *)
 }
 
 double
-Propagation::getDist(double Pr, double Pt, double Gt, double Gr, double hr,
-		     double ht, double L, double lambda)
+Propagation::getDist(double , double , double , double , double , double , double , double )
 {
 	fprintf(stderr,
 		"Propagtion model %s not implemented for generic use\n", name);
@@ -163,7 +162,7 @@ double FreeSpace::Pr(PacketStamp *t, PacketStamp *r, WirelessPhy *ifp)
 }
 
 double
-FreeSpace::getDist(double Pr, double Pt, double Gt, double Gr, double hr, double ht, double L, double lambda)
+FreeSpace::getDist(double Pr, double Pt, double Gt, double Gr, double , double , double L, double lambda)
 {
         return sqrt((Pt * Gt * Gr * lambda * lambda) / (L * Pr)) /
                 (4 * PI);

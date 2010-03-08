@@ -40,7 +40,7 @@
 class BaseTraceClass : public TclClass {
 public:
        BaseTraceClass() : TclClass("BaseTrace") { }
-       TclObject* create(int argc, const char*const* argv) {
+       TclObject* create(int , const char*const* ) {
 		  return (new BaseTrace());
        }
 } basetrace_class;
@@ -48,7 +48,7 @@ public:
 class EventTraceClass : public TclClass {
 public:
 	EventTraceClass() : TclClass("BaseTrace/Event") { }
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int , const char*const* ) {
 		return (new EventTrace());
 	}
 } eventtrace_class;

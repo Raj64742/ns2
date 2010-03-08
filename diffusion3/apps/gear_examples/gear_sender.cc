@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: gear_sender.cc,v 1.5 2005/09/13 04:53:46 tomh Exp $
+// $Id: gear_sender.cc,v 1.6 2010/03/08 05:54:49 tom_henderson Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -47,12 +47,12 @@
 static class GearSenderAppClass : public TclClass {
 public:
   GearSenderAppClass() : TclClass("Application/DiffApp/GearSenderApp") {}
-  TclObject * create(int argc, const char*const* argv) {
+  TclObject * create(int , const char*const* ) {
     return (new GearSenderApp());
   }
 } class_gear_sender_app_class;
 
-void GearSendDataTimer::expire(Event *e) {
+void GearSendDataTimer::expire(Event *) {
   a_->send();
 }
 
@@ -130,7 +130,7 @@ void GearSenderReceive::recv(NRAttrVec *data, NR::handle my_handle)
   app_->recv(data, my_handle);
 }
 
-void GearSenderApp::recv(NRAttrVec *data, NR::handle my_handle)
+void GearSenderApp::recv(NRAttrVec *data, NR::handle )
 {
   NRSimpleAttribute<int> *nrclass = NULL;
 

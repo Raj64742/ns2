@@ -1,6 +1,6 @@
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/messpass.cc,v 1.3 2003/11/27 23:27:19 xuanc Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/messpass.cc,v 1.4 2010/03/08 05:54:49 tom_henderson Exp $";
 #endif
 
 #include "messpass.h"
@@ -28,7 +28,7 @@ MessagePassingAgent::MessagePassingAgent(packet_t type) : Agent(type)
 	bind("packetSize_", &size_);
 }
 
-void MessagePassingAgent::sendmsg(int nbytes, AppData* data, const char* flags)
+void MessagePassingAgent::sendmsg(int nbytes, AppData* data, const char*)
 {
 	Packet *p;
 
@@ -57,7 +57,7 @@ void MessagePassingAgent::sendmsg(int nbytes, AppData* data, const char* flags)
 }
 
 
-void MessagePassingAgent::sendto(int nbytes, AppData *data, const char* flags, ns_addr_t dst)
+void MessagePassingAgent::sendto(int nbytes, AppData *data, const char*, ns_addr_t dst)
 {
 	Packet *p;
 

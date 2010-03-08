@@ -40,7 +40,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.cc,v 1.16 2009/11/21 21:10:52 tom_henderson Exp $ (UD/PEL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.cc,v 1.17 2010/03/08 05:54:53 tom_henderson Exp $ (UD/PEL)";
 #endif
 
 #include "ip.h"
@@ -2207,7 +2207,7 @@ int SctpAgent::GenMultipleDataChunks(u_char *ucpOutData, int iTotalOutDataSize)
  *
  * returns the aggregate size of the control chunk(s)
  */
-int SctpAgent::BundleControlChunks(u_char *ucpOutData)
+int SctpAgent::BundleControlChunks(u_char *)
 {
   DBG_I(BundleControlChunks);
   DBG_PL(BundleControlChunks, "None... returning 0") DBG_PR;
@@ -3861,12 +3861,14 @@ void SctpAgent::ProcessInitAckChunk(u_char *ucpInitAckChunk)
   DBG_X(ProcessInitAckChunk);
 }
 
-void SctpAgent::ProcessCookieEchoChunk(SctpCookieEchoChunk_S *spCookieEchoChunk)
+//void SctpAgent::ProcessCookieEchoChunk(SctpCookieEchoChunk_S *spCookieEchoChunk)
+void SctpAgent::ProcessCookieEchoChunk(SctpCookieEchoChunk_S *)
 {
   /* dummy empty function left as a hook for cookie echo processing */
 }
 
-void SctpAgent::ProcessCookieAckChunk(SctpCookieAckChunk_S *spCookieAckChunk)
+//void SctpAgent::ProcessCookieAckChunk(SctpCookieAckChunk_S *spCookieAckChunk)
+void SctpAgent::ProcessCookieAckChunk(SctpCookieAckChunk_S *)
 {
   opT1CookieTimer->force_cancel();
 }

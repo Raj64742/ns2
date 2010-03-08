@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/misc.cc,v 1.14 2002/06/04 23:25:19 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/misc.cc,v 1.15 2010/03/08 05:54:49 tom_henderson Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -120,7 +120,7 @@ public:
 	virtual int command(int argc, const char*const* argv);
 };
 
-int HasInt64Command::command(int argc, const char*const* argv)
+int HasInt64Command::command(int, const char*const*)
 {
 	Tcl& tcl = Tcl::instance();
 	char res[2];
@@ -177,7 +177,7 @@ public:
 	virtual int command(int argc, const char*const* argv);
 };
 
-int HasSTLCommand::command(int argc, const char*const* argv) 
+int HasSTLCommand::command(int, const char*const*) 
 {
 	Tcl& tcl = Tcl::instance();
 	char res[2];

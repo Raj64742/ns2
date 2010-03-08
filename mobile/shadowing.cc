@@ -3,7 +3,7 @@
 /*
  * shadowing.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: shadowing.cc,v 1.5 2008/02/20 04:59:14 tom_henderson Exp $
+ * $Id: shadowing.cc,v 1.6 2010/03/08 05:54:52 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -161,5 +161,11 @@ int Shadowing::command(int argc, const char* const* argv)
 	}
 	
 	return Propagation::command(argc, argv);
+}
+
+
+double Shadowing::getDist(double , double , double , double, double , double , double , double )
+{
+	return DBL_MAX;
 }
 

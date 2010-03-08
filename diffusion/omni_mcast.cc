@@ -2,7 +2,7 @@
 /*
  * omni_mcast.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: omni_mcast.cc,v 1.14 2006/03/10 12:25:28 mahrenho Exp $
+ * $Id: omni_mcast.cc,v 1.15 2010/03/08 05:54:49 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -91,7 +91,7 @@ void OmniMcastXmitFailedCallback(Packet *pkt, void *data)
 static class OmniMcastClass : public TclClass {
 public:
   OmniMcastClass() : TclClass("Agent/OmniMcast") {}
-  TclObject* create(int argc, const char*const* argv) {
+  TclObject* create(int , const char*const* ) {
     return(new OmniMcastAgent());
   }
 } class_omni_mcast;
@@ -427,7 +427,7 @@ void OmniMcastAgent::MACsend(Packet *pkt, Time delay)
 }
 
 
-void OmniMcastAgent::xmitFailed(Packet *pkt)
+void OmniMcastAgent::xmitFailed(Packet *)
 {
   // For future extension if needed.
 }

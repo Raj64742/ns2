@@ -297,7 +297,7 @@ void tcp_slow_start(struct tcp_sock *tp)
 	if (sysctl_tcp_abc && tp->bytes_acked < tp->mss_cache)
 		return;
 
-	if (sysctl_tcp_max_ssthresh > 0 && tp->snd_cwnd > sysctl_tcp_max_ssthresh)
+	if (sysctl_tcp_max_ssthresh > 0 && tp->snd_cwnd > (__u32)sysctl_tcp_max_ssthresh)
 		cnt = sysctl_tcp_max_ssthresh >> 1;	/* limited slow start */
 	else
 		cnt = tp->snd_cwnd;			/* exponential increase */
@@ -328,6 +328,10 @@ EXPORT_SYMBOL_GPL(tcp_slow_start);
 void tcp_reno_cong_avoid(struct sock *sk, u32 ack, u32 rtt, u32 in_flight,
 			 int flag)
 {
+	ack = ack;
+	rtt = rtt;
+	flag = flag;
+
 	struct tcp_sock *tp = tcp_sk(sk);
 
 	if (!tcp_is_cwnd_limited(sk, in_flight))

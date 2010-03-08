@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2002 by the Unversity of Southern California
-// $Id: tag.cc,v 1.2 2005/09/13 04:53:48 tomh Exp $
+// $Id: tag.cc,v 1.3 2010/03/08 05:54:49 tom_henderson Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -48,7 +48,7 @@
 static class TagFilterClass : public TclClass {
 public:
   TagFilterClass() : TclClass("Application/DiffApp/TagFilter") {}
-  TclObject * create(int argc, const char*const* argv) {
+  TclObject * create(int , const char*const* ) {
     return(new TagFilter());
   }
 } class_tag_filter;

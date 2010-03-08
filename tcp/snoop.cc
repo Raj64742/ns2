@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/snoop.cc,v 1.25 2003/01/28 23:31:03 sfloyd Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/snoop.cc,v 1.26 2010/03/08 05:54:54 tom_henderson Exp $ (UCB)";
 #endif
 
 #include "snoop.h"
@@ -197,7 +197,7 @@ void LLSnoop::recv(Packet *p, Handler *h)
  * Call snoop_data() if TCP packet and forward it on if it's an ack.
  */
 void
-Snoop::recv(Packet* p, Handler* h )
+Snoop::recv(Packet* p, Handler*)
 {	
 	
 	hdr_cmn *ch = HDR_CMN(p);	

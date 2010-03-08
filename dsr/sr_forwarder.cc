@@ -2,7 +2,7 @@
 /*
  * sr_forwarder.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: sr_forwarder.cc,v 1.2 2005/08/25 18:58:05 johnh Exp $
+ * $Id: sr_forwarder.cc,v 1.3 2010/03/08 05:54:50 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -181,7 +181,7 @@ SRForwarder::handlePktWithoutSR(Packet *p)
 }
 
 void
-SRForwarder::recv(Packet* p, Handler* callback)
+SRForwarder::recv(Packet* p, Handler* )
 {
   hdr_sr *srh =  (hdr_sr*)p->access(off_sr_);
 

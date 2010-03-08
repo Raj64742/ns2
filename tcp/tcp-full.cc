@@ -109,7 +109,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.129 2009/12/30 22:06:34 tom_henderson Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.130 2010/03/08 05:54:54 tom_henderson Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -2917,7 +2917,7 @@ full_sack_action:
 }
 
 void
-SackFullTcpAgent::pack_action(Packet* p)
+SackFullTcpAgent::pack_action(Packet*)
 {
 	if (!sq_.empty() && sack_min_ < highest_ack_) {
 		sack_min_ = highest_ack_;
@@ -2929,7 +2929,7 @@ SackFullTcpAgent::pack_action(Packet* p)
 }
 
 void
-SackFullTcpAgent::ack_action(Packet* p)
+SackFullTcpAgent::ack_action(Packet*)
 {
 //printf("%f: EXITING fast recovery, recover:%d\n",
 //now(), recover_);

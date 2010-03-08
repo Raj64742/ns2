@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.79 2006/02/21 15:20:17 mahrenho Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.80 2010/03/08 05:54:49 tom_henderson Exp $ (LBL)";
 #endif
 
 #include <assert.h>
@@ -534,3 +534,6 @@ Agent::allocpkt(int n) const
 
 	return(p);
 }
+
+void Agent::trace_event(char *)
+{}

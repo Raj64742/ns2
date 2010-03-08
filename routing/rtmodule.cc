@@ -2,7 +2,7 @@
 
 /*
  * Copyright (C) 2000 by the University of Southern California
- * $Id: rtmodule.cc,v 1.16 2005/08/25 18:58:12 johnh Exp $
+ * $Id: rtmodule.cc,v 1.17 2010/03/08 05:54:53 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -44,7 +44,7 @@
  *
  */
 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/rtmodule.cc,v 1.16 2005/08/25 18:58:12 johnh Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/rtmodule.cc,v 1.17 2010/03/08 05:54:53 tom_henderson Exp $
 
 
 #include "rtmodule.h"
@@ -509,3 +509,5 @@ void ManualRoutingModule::add_route(char *dst, NsObject *target) {
 		next_rtm_->add_route(dst, target); 
 }
 
+void LmsRoutingModule::add_route(char *, NsObject *)
+{}

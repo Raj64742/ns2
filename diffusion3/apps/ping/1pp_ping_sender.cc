@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: 1pp_ping_sender.cc,v 1.2 2005/09/13 04:53:46 tomh Exp $
+// $Id: 1pp_ping_sender.cc,v 1.3 2010/03/08 05:54:49 tom_henderson Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -53,7 +53,7 @@ public:
   }
 } class_opp_ping_sender;
 
-void OPPPingSendDataTimer::expire(Event *e) {
+void OPPPingSendDataTimer::expire(Event *) {
   a_->send();
 }
 
@@ -98,7 +98,7 @@ void OPPPingSenderReceive::recv(NRAttrVec *data, NR::handle my_handle)
   app_->recv(data, my_handle);
 }
 
-void OPPPingSenderApp::recv(NRAttrVec *data, NR::handle my_handle)
+void OPPPingSenderApp::recv(NRAttrVec *data, NR::handle )
 {
   NRSimpleAttribute<int> *nrclass = NULL;
 

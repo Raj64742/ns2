@@ -272,6 +272,9 @@ static inline void measure_delay(struct sock *sk)
 static void bictcp_cong_avoid(struct sock *sk, u32 ack,
 			      u32 seq_rtt, u32 in_flight, int data_acked)
 {
+	ack = ack;
+	seq_rtt = seq_rtt;
+
 	struct tcp_sock *tp = tcp_sk(sk);
 	struct bictcp *ca = inet_csk_ca(sk);
 
@@ -336,6 +339,8 @@ static void bictcp_state(struct sock *sk, u8 new_state)
  */
 static void bictcp_acked(struct sock *sk, u32 cnt, ktime_t last)
 {
+	last = last;
+
 	const struct inet_connection_sock *icsk = inet_csk(sk);
 
 	if (cnt > 0 && icsk->icsk_ca_state == TCP_CA_Open) {

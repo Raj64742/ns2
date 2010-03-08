@@ -2,7 +2,7 @@
 /*
  * dewp.cc
  * Copyright (C) 1999 by the University of Southern California
- * $Id: dewp.cc,v 1.2 2005/08/25 18:58:03 johnh Exp $
+ * $Id: dewp.cc,v 1.3 2010/03/08 05:54:49 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -105,7 +105,7 @@ void DEWPPolicy::init(double dt_inv) {
 // DEWP meter: do nothing.
 //  measurement is done in policer: we need to know whether the packet is
 //    dropped or not.
-void DEWPPolicy::applyMeter(policyTableEntry *policy, Packet *pkt) {
+void DEWPPolicy::applyMeter(policyTableEntry *, Packet *pkt) {
   hdr_ip* iph = hdr_ip::access(pkt);
 
   dport_list[iph->dport()] = Scheduler::instance().clock();
@@ -116,7 +116,7 @@ void DEWPPolicy::applyMeter(policyTableEntry *policy, Packet *pkt) {
 // DEWP Policer
 //  1. do measurement: P: both arrival and departure; B: only departure
 //  2. make packet drop decisions
-int DEWPPolicy::applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt) {
+int DEWPPolicy::applyPolicer(policyTableEntry *, policerTableEntry *policer, Packet * pkt) {
   //printf("enter applyPolicer ");
 
   // can't count/penalize ACKs:
@@ -217,7 +217,7 @@ void DEWPPolicy::detect(Packet *pkt) {
 }
 
 //  make packet drop decisions
-int DEWPPolicy::dropPacket(Packet *pkt) {
+int DEWPPolicy::dropPacket(Packet *) {
  
   return(0);
 }

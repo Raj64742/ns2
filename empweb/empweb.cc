@@ -3,7 +3,7 @@
 /*
  * empweb.cc
  * Copyright (C) 2001 by the University of Southern California
- * $Id: empweb.cc,v 1.20 2005/09/18 23:33:32 tomh Exp $
+ * $Id: empweb.cc,v 1.21 2010/03/08 05:54:50 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -50,7 +50,7 @@
 // CDF (Cumulative Distribution Function) data derived from live tcpdump trace
 // The structure of this file is largely borrowed from webtraf.cc
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.20 2005/09/18 23:33:32 tomh Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.21 2010/03/08 05:54:50 tom_henderson Exp $
 
 #include <tclcl.h>
 
@@ -290,7 +290,7 @@ void EmpWebTrafSession::handle(Event *e)
 }
 
 // Launch a request for a particular object
-void EmpWebTrafSession::launchReq(void* ClntData, int obj, int size, int reqSize, int sid, int persist)
+void EmpWebTrafSession::launchReq(void* ClntData, int obj, int size, int reqSize, int , int persist)
 {
 
   	TcpAgent* ctcp;
@@ -650,3 +650,15 @@ int EmpWebTrafPool::command(int argc, const char*const* argv)
 }
 
 
+
+EmpWebTrafSession::EmpWebTrafSession(EmpWebTrafPool *mgr, Node *src, int np, int id, int , int cl, int ftcp_) : 
+	rvInterPage_(NULL), rvPageSize_(NULL),
+	rvInterObj_(NULL), rvObjSize_(NULL), 
+	rvReqSize_(NULL), rvPersistSel_(NULL), rvServerSel_(NULL),
+	rvServerWin_(NULL), rvClientWin_(NULL),
+	rvMtu_(NULL),
+	mgr_(mgr), src_(src), nPage_(np), curPage_(0), donePage_(0),
+	id_(id), clientIdx_(cl), fulltcp_(0), interPageOption_(1)
+{
+	fulltcp_ = ftcp_;	
+}

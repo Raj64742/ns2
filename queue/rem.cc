@@ -75,7 +75,7 @@ void REMQueue :: timeout()
 }
 
 
-void REMTimer :: expire (Event *e) {
+void REMTimer :: expire (Event *) {
 	 a_->timeout();
 }
 

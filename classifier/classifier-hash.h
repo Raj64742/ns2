@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.h,v 1.9 2005/09/18 23:33:31 tomh Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.h,v 1.10 2010/03/08 05:54:49 tom_henderson Exp $
  */
 
 #include "classifier.h"
@@ -67,7 +67,7 @@ public:
 	int do_set_hash(nsaddr_t src, nsaddr_t dst, int fid, int slot) {
 		return (set_hash(src,dst,fid,slot));
 	}
-	void set_table_size(int nn) {}
+	void set_table_size(int nn);
 protected:
 	union hkey {
 		struct {

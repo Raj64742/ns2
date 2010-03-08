@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.46 2002/03/14 01:12:52 haldar Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.47 2010/03/08 05:54:51 tom_henderson Exp $ (UCB)";
 #endif
 
 #include <errmodel.h>
@@ -241,4 +241,5 @@ void LL::sendUp(Packet* p)
 		s.schedule(uptarget_, p, delay_);
 }
 
-
+inline void LL::hdr_dst(Packet *, int)
+{}

@@ -2,7 +2,7 @@
 /*
  * flowstruct.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: flowstruct.cc,v 1.4 2005/08/25 18:58:04 johnh Exp $
+ * $Id: flowstruct.cc,v 1.5 2010/03/08 05:54:50 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -102,7 +102,7 @@ void FlowTable::grow() {
 	table = temp;
 }
 
-u_int16_t FlowTable::generateNextFlowId(nsaddr_t destination, bool allowDefault) {
+u_int16_t FlowTable::generateNextFlowId(nsaddr_t , bool allowDefault) {
 	if ((counter&1)^allowDefault) // make sure parity is correct
 		counter++;
 

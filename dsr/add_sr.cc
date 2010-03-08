@@ -2,7 +2,7 @@
 /*
  * add_sr.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: add_sr.cc,v 1.3 2005/08/25 18:58:04 johnh Exp $
+ * $Id: add_sr.cc,v 1.4 2010/03/08 05:54:50 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -89,7 +89,7 @@ AddSR::AddSR()
 }
 
 void
-AddSR::recv(Packet* p, Handler* callback)
+AddSR::recv(Packet* p, Handler* )
 {
   hdr_sr *srh =  hdr_sr::access(p);
 

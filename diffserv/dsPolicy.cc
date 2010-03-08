@@ -361,7 +361,7 @@ Post: The aggRTT field of the appropriate policy is updated to a weighted
   average of the previous value and the new RTT value specified in the command
   line.  If no matching policy is found, an error message is printed.
 -----------------------------------------------------------------------------*/
-void PolicyClassifier::updatePolicyRTT(int argc, const char*const* argv) {
+void PolicyClassifier::updatePolicyRTT(int , const char*const* argv) {
   policyTableEntry *policy;
   
   policy = getPolicyTableEntry(atoi(argv[2]), atoi(argv[3]));
@@ -533,7 +533,7 @@ void PolicyClassifier::printPolicerTable() {
 void NullPolicy::applyMeter(policyTableEntry *policy, Packet *pkt)
 Do nothing
 -----------------------------------------------------------------------------*/
-void NullPolicy::applyMeter(policyTableEntry *policy, Packet *pkt) {
+void NullPolicy::applyMeter(policyTableEntry *policy, Packet *) {
   policy->arrivalTime = Scheduler::instance().clock();  
 }
 
@@ -541,7 +541,7 @@ void NullPolicy::applyMeter(policyTableEntry *policy, Packet *pkt) {
 int DumbPolicy::applyPolicer(policyTableEntry *policy, int initialCodePt, Packet *pkt)
 Always return the initial codepoint.
 -----------------------------------------------------------------------------*/
-int NullPolicy::applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt) {
+int NullPolicy::applyPolicer(policyTableEntry *, policerTableEntry *policer, Packet *) {
   return(policer->initialCodePt);
 }
 
@@ -578,7 +578,7 @@ Post: If policy's avgRate exceeds its CIR, this method returns an out-of-profile
 Returns: A code point to apply to the current packet.
 Uses: Method downgradeOne().
 -----------------------------------------------------------------------------*/
-int TSW2CMPolicy::applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt) {
+int TSW2CMPolicy::applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *) {
   if ((policy->avgRate > policy->cir)
       && (Random::uniform(0.0, 1.0) <= (1-(policy->cir/policy->avgRate)))) {
     return(policer->downgrade1);
@@ -631,7 +631,7 @@ and with the following code points when CIR < rate <= PIR:
 Returns: A code point to apply to the current packet.
 Uses: Methods downgradeOne() and downgradeTwo().
 -----------------------------------------------------------------------------*/
-int TSW3CMPolicy::applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt) {
+int TSW3CMPolicy::applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *) {
   double rand = policy->avgRate * (1.0 - Random::uniform(0.0, 1.0));
   
   if (rand > policy->pir)
@@ -652,7 +652,7 @@ Post: Increments policy's Token Bucket state variable cBucket according to the
   elapsed time since the last packet arrival.  cBucket is filled at a rate equal  to CIR, capped at an upper bound of CBS.
   This method also sets arrivalTime equal to the current simulator time.
 -----------------------------------------------------------------------------*/
-void TBPolicy::applyMeter(policyTableEntry *policy, Packet *pkt) {
+void TBPolicy::applyMeter(policyTableEntry *policy, Packet *) {
   double now = Scheduler::instance().clock();
   double tokenBytes;
 
@@ -706,7 +706,7 @@ Post: Increments policy's srTCM state variables cBucket and eBucket according
 Note: See the Internet Draft, "A Single Rate Three Color Marker" (Heinanen et
   al; May, 1999) for a description of the srTCM.
 -----------------------------------------------------------------------------*/
-void SRTCMPolicy::applyMeter(policyTableEntry *policy, Packet *pkt) {
+void SRTCMPolicy::applyMeter(policyTableEntry *policy, Packet *) {
   double now = Scheduler::instance().clock();
   double tokenBytes;
   
@@ -771,7 +771,7 @@ Post: Increments policy's trTCM state variables cBucket and pBucket according
 Note: See the Internet Draft, "A Two Rate Three Color Marker" (Heinanen et al;
   May, 1999) for a description of the srTCM.
 ---------------------------------------------------------------------------*/
-void TRTCMPolicy::applyMeter(policyTableEntry *policy, Packet *pkt) {
+void TRTCMPolicy::applyMeter(policyTableEntry *policy, Packet *) {
   double now = Scheduler::instance().clock();
   double tokenBytes;
   tokenBytes = (double) policy->cir * (now - policy->arrivalTime);
@@ -850,7 +850,7 @@ SFDPolicy::~SFDPolicy(){
  Record how many bytes has been sent per flow and check if there is any flow
  timeout.
 -----------------------------------------------------------------------------*/
-void SFDPolicy::applyMeter(policyTableEntry *policy, Packet *pkt) {
+void SFDPolicy::applyMeter(policyTableEntry *, Packet *pkt) {
   int fid, src_id, dst_id;
   struct flow_entry *p, *q, *new_entry;
 

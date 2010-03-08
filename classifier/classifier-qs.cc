@@ -2,7 +2,7 @@
 /*
  * classifier-qs.cc
  * Copyright (C) 2001 by the University of Southern California
- * $Id: classifier-qs.cc,v 1.2 2005/08/25 18:58:01 johnh Exp $
+ * $Id: classifier-qs.cc,v 1.3 2010/03/08 05:54:49 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -72,7 +72,7 @@ public:
 	}
 } class_qs_classifier;
 
-NsObject *QSClassifier::find(Packet *const p) {
+NsObject *QSClassifier::find(Packet *const) {
 
 	return slot_[0]; //QS Agent installed at slot 0. Send everything there
 

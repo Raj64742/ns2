@@ -188,12 +188,12 @@ double Nakagami::Pr(PacketStamp *t, PacketStamp *r, WirelessPhy *ifp)
 	}
 }	
 
-int Nakagami::command(int argc, const char* const* argv)
+int Nakagami::command(int , const char* const* )
 {
 	return 0;
 }
 
 
-double Nakagami::getDist(double Pr, double Pt, double Gt, double Gr, double hr, double ht, double L, double lambda) {
+double Nakagami::getDist(double , double , double , double , double , double , double , double ) {
 	return DBL_MAX;
 }

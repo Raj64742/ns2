@@ -3,7 +3,7 @@
 // authors         : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: filter_core.cc,v 1.4 2005/09/13 04:53:47 tomh Exp $
+// $Id: filter_core.cc,v 1.5 2010/03/08 05:54:49 tom_henderson Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -935,8 +935,7 @@ void DiffusionCoreAgent::processControlMessage(Message *msg)
   }
 }
 
-void DiffusionCoreAgent::logControlMessage(Message *msg, int command,
-					   int param1, int param2)
+void DiffusionCoreAgent::logControlMessage(Message * , int , int , int )
 {
   // Logs the incoming message
 }

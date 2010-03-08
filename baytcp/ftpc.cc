@@ -36,7 +36,7 @@
  */
 
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/ftpc.cc,v 1.5 2001/09/06 21:01:18 johnh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/ftpc.cc,v 1.6 2010/03/08 05:54:49 tom_henderson Exp $ (LBL)";
 
 #include "tcp-full-bay.h"
 #include "tclcl.h"
@@ -131,6 +131,6 @@ int FtpClientAgent::command(int argc, const char*const* argv)
 }
 
 
-void NewFileTimer::expire(Event *e) {
+void NewFileTimer::expire(Event *) {
 	a_->timeout(NEW_FILE);
 }

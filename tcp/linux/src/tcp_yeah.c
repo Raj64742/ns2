@@ -71,6 +71,9 @@ static void tcp_yeah_pkts_acked(struct sock *sk, u32 pkts_acked, ktime_t last)
 static void tcp_yeah_cong_avoid(struct sock *sk, u32 ack,
 				u32 seq_rtt, u32 in_flight, int flag)
 {
+	seq_rtt = seq_rtt;
+	flag = flag;
+
 	struct tcp_sock *tp = tcp_sk(sk);
 	struct yeah *yeah = inet_csk_ca(sk);
 

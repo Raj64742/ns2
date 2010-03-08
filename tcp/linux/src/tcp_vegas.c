@@ -113,6 +113,8 @@ EXPORT_SYMBOL_GPL(tcp_vegas_init);
  */
 void tcp_vegas_pkts_acked(struct sock *sk, u32 cnt, ktime_t last)
 {
+	cnt = cnt;
+
 	struct vegas *vegas = inet_csk_ca(sk);
 	u32 vrtt;
 
@@ -267,7 +269,7 @@ static void tcp_vegas_cong_avoid(struct sock *sk, u32 ack,
 
 			if (tp->snd_cwnd <= tp->snd_ssthresh) {
 				/* Slow start.  */
-				if (diff > gamma) {
+				if (diff > (u32)gamma) {
 					/* Going too fast. Time to slow down
 					 * and switch to congestion avoidance.
 					 */
@@ -293,12 +295,12 @@ static void tcp_vegas_cong_avoid(struct sock *sk, u32 ack,
 				/* Figure out where we would like cwnd
 				 * to be.
 				 */
-				if (diff > beta) {
+				if (diff > (u32)beta) {
 					/* The old window was too fast, so
 					 * we slow down.
 					 */
 					next_snd_cwnd = old_snd_cwnd - 1;
-				} else if (diff < alpha) {
+				} else if (diff < (u32)alpha) {
 					/* We don't have enough extra packets
 					 * in the network, so speed up.
 					 */
@@ -338,6 +340,10 @@ static void tcp_vegas_cong_avoid(struct sock *sk, u32 ack,
 /* Extract info for Tcp socket info provided via netlink. */
 void tcp_vegas_get_info(struct sock *sk, u32 ext, struct sk_buff *skb)
 {
+	sk = sk;
+	ext = ext;
+	skb = skb;
+
 /*
 	const struct vegas *ca = inet_csk_ca(sk);
 	if (ext & (1 << (INET_DIAG_VEGASINFO - 1))) {

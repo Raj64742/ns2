@@ -2,7 +2,7 @@
 /*
  * asim.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: asim.cc,v 1.11 2005/08/25 18:58:01 johnh Exp $
+ * $Id: asim.cc,v 1.12 2010/03/08 05:54:49 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -165,7 +165,7 @@ public:
     
   }
   
-  int command (int argc, const char*const* argv){
+  int command (int , const char*const* argv){
 
     if (strcmp(argv[1], "run") == 0) {
       int niter=0;

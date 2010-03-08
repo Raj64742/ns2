@@ -2,7 +2,7 @@
 /*
  * Decapsulator.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: Decapsulator.cc,v 1.4 2005/08/25 18:58:02 johnh Exp $
+ * $Id: Decapsulator.cc,v 1.5 2010/03/08 05:54:49 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -44,7 +44,7 @@
  *
  */
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/Decapsulator.cc,v 1.4 2005/08/25 18:58:02 johnh Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/Decapsulator.cc,v 1.5 2010/03/08 05:54:49 tom_henderson Exp $
 
 #include "Decapsulator.h"
 #include "ip.h"
@@ -63,7 +63,7 @@ Decapsulator::Decapsulator()  : Agent(PT_ENCAPSULATED)
 { 
 }
 
-Packet* const Decapsulator::decapPacket(Packet* const p) 
+Packet* Decapsulator::decapPacket(Packet* const p) 
 {
 	hdr_cmn* ch= hdr_cmn::access(p);
 	if (ch->ptype() == PT_ENCAPSULATED) {

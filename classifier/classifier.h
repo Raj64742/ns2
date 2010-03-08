@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.h,v 1.33 2005/09/26 09:12:46 lacage Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.h,v 1.34 2010/03/08 05:54:49 tom_henderson Exp $ (LBL)
  */
 
 #ifndef ns_classifier_h
@@ -72,7 +72,7 @@ public:
 	// function to set the rtg table size
 	void set_table_size(int nn);
 	// hierarchical specific
-	virtual void set_table_size(int level, int nn) {}
+	virtual void set_table_size(int level, int nn);
 
 	int allocPort (NsObject *);	
 protected:

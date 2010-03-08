@@ -2,7 +2,7 @@
 /*
  * flooding.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: flooding.cc,v 1.9 2005/08/25 18:58:03 johnh Exp $
+ * $Id: flooding.cc,v 1.10 2010/03/08 05:54:49 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -83,7 +83,7 @@
 static class FloodingClass : public TclClass {
 public:
   FloodingClass() : TclClass("Agent/Flooding") {}
-  TclObject* create(int argc, const char*const* argv) {
+  TclObject* create(int , const char*const* ) {
     return(new FloodingAgent());
   }
 } class_flooding;

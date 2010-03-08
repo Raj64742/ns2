@@ -2,7 +2,7 @@
 /*
  * ew.cc
  * Copyright (C) 1999 by the University of Southern California
- * $Id: ew.cc,v 1.7 2006/02/21 15:20:18 mahrenho Exp $
+ * $Id: ew.cc,v 1.8 2010/03/08 05:54:49 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -386,7 +386,7 @@ void EWdetectorB::updateCur() {
 }
 
 // Check if the packet belongs to existing flow
-int EWdetectorB::exFlow(Packet *pkt) {
+int EWdetectorB::exFlow(Packet *) {
   // Should check SYN packets to protect existing connections
   //   need to use FullTCP
   return(0);
@@ -884,8 +884,10 @@ void EWdetectorB::trace() {
   //printf("B ");
   db_rate = computeARR();
 
-  if (!m_rate || !db_rate);
-    //printAList();
+  if (!m_rate || !db_rate)
+  {
+	  ;//printAList();
+  }
 
   printf("B %d %.2f %.2f %d %d %.2f %.2f\n", 
 	 (int)now, cur_rate, avg_rate, arr_count, alarm, db_rate, m_rate);
@@ -960,7 +962,7 @@ void EWdetectorP::updateCur() {
 }
 */
 // Update stats
-void EWdetectorP::measure(Packet *pkt) {
+void EWdetectorP::measure(Packet *) {
   
 
   // stats on packet departure and drop are collect in policer 
@@ -1020,14 +1022,14 @@ void EWPolicy::init(int adj, int src, int dst) {
 // EW meter: do nothing.
 //  measurement is done in policer: we need to know whether the packet is
 //    dropped or not.
-void EWPolicy::applyMeter(policyTableEntry *policy, Packet *pkt) {
+void EWPolicy::applyMeter(policyTableEntry *, Packet *) {
   return;
 }
 
 // EW Policer
 //  1. do measurement: P: both arrival and departure; B: only departure
 //  2. make packet drop decisions
-int EWPolicy::applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt) {
+int EWPolicy::applyPolicer(policyTableEntry *, policerTableEntry *policer, Packet *pkt) {
   //printf("enter applyPolicer ");
 
   // can't count/penalize ACKs:
@@ -1079,7 +1081,7 @@ int EWPolicy::applyPolicer(policyTableEntry *policy, policerTableEntry *policer,
 }
 
 // detect if there is alarm triggered
-void EWPolicy::detect(Packet *pkt) {
+void EWPolicy::detect(Packet *) {
   int alarm_b, alarm_p;
 
   alarm_b = alarm_p = 0;

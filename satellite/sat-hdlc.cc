@@ -79,7 +79,7 @@ HDLC::HDLC() : SatLL(), list_head_(0)
 	wndmask_ = HDLC_MWM;
 }
 
-void HDLC::recv(Packet* p, Handler* h)
+void HDLC::recv(Packet* p, Handler* )
 {
 	hdr_cmn *ch = HDR_CMN(p);
 
@@ -397,7 +397,7 @@ void HDLC::sendRR(Packet *p, ARQstate *a)
 	
 }
 
-void HDLC::sendRNR(Packet *p)
+void HDLC::sendRNR(Packet *)
 {}
 
 void HDLC::sendREJ(Packet *p, ARQstate *a)
@@ -858,7 +858,7 @@ Packet *HDLC::getPkt(PacketQueue buffer, int seqno)
 }
 
 // receiver not ready
-void HDLC::handleRNR(Packet *p)
+void HDLC::handleRNR(Packet *)
 {
 	// stop sending pkts and wait until RR is recved.
 	// wait for how long?

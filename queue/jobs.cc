@@ -46,7 +46,7 @@
  * Grateful acknowledgments to Tarek Abdelzaher for his help and       
  * comments.                                                           
  *                                                                     
- * $Id: jobs.cc,v 1.3 2005/07/27 01:13:44 tomh Exp $                   
+ * $Id: jobs.cc,v 1.4 2010/03/08 05:54:53 tom_henderson Exp $                   
  * 							              
  */
 
@@ -313,7 +313,7 @@ int JoBS::command(int argc, const char*const* argv) {
 		if (strcmp(argv[1], "copyright-info") == 0) {
 			fprintf(stdout, "\n----------------------------------------------------------\n\n");
 			fprintf(stdout, "JoBS scheduler/dropper [prototype ns-2 implementation]\n");
-			fprintf(stdout, "Version 1.0 (CVS Revision: $Id: jobs.cc,v 1.3 2005/07/27 01:13:44 tomh Exp $)\n\n");
+			fprintf(stdout, "Version 1.0 (CVS Revision: $Id: jobs.cc,v 1.4 2010/03/08 05:54:53 tom_henderson Exp $)\n\n");
 			fprintf(stdout, "ns-2 implementation by Nicolas Christin <nicolas@cs.virginia.edu>\n");
 			fprintf(stdout, "JoBS algorithms proposed by Nicolas Christin and Jorg Liebeherr.\n");
 			fprintf(stdout, "Grateful acknowledgments to Tarek Abdelzaher for his help and comments.\n");
@@ -901,7 +901,7 @@ void JoBS::updateError() {
 // Side effect (desired): assigns a value to min_rate_[i]
 // *******************************************************************
 
-int JoBS::minRatesNeeded(int priority) {
+int JoBS::minRatesNeeded(int /*priority*/) {
 	int result;
 	int i;
 	double cur_time;
@@ -1027,7 +1027,10 @@ int JoBS::pickDroppedRLC(int mode) {
 			maxALC = -INFINITY;
 			for (i = 1; i <= NO_CLASSES; i++) {
 				if (cls_[i] -> tail() != NULL) {
-					if (ALC_[i]-current_loss_[i] > maxALC);
+					if (ALC_[i]-current_loss_[i] > maxALC)
+					{
+						;
+					}
 					maxALC = ALC_[i]-current_loss_[i]; // pick the class which is the furthest from its ALC
 					class_dropped = i;
 				}

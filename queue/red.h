@@ -53,7 +53,7 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.45 2007/07/03 02:11:34 sallyfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.46 2010/03/08 05:54:53 tom_henderson Exp $ (LBL)
  */
 
 #ifndef ns_red_h
@@ -163,7 +163,7 @@ class REDQueue : public Queue {
 	  double v_a, double v_b, double v_c, double v_d, double max_p);
  	double calculate_p(double v_ave, double th_max, int gentle, 
 	  double v_a, double v_b, double v_c, double v_d, double max_p_inv);
-        virtual void reportDrop(Packet *pkt) {}  //pushback
+        virtual void reportDrop(Packet *pkt); //pushback
 	void print_summarystats();
 
 	

@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-     "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.88 2007/10/23 06:55:54 seashadow Exp $ (LBL)";
+     "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.89 2010/03/08 05:54:53 tom_henderson Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -984,3 +984,5 @@ void REDQueue::run_estimator(int nqueued, int m)
 	edv_.v_slope = f_sl;
 }
 
+void REDQueue::reportDrop(Packet *)
+{}

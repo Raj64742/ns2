@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-virtual.cc,v 1.13 2005/09/18 23:33:31 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-virtual.cc,v 1.14 2010/03/08 05:54:49 tom_henderson Exp $";
 #endif
 
 extern "C" {
@@ -56,7 +56,8 @@ public:
 	~VirtualClassifier() {
 		Tcl_DeleteHashTable(&ht_);
 	}
-	virtual void do_install(char *dst, NsObject *target) { }
+	//virtual void do_install(char *dst, NsObject *target) { }
+	virtual void do_install(char *, NsObject *) { }
 protected:
 	NsObject* next_;
 	Tcl_HashTable ht_;

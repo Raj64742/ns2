@@ -3,7 +3,7 @@
 /*
  * classifier-addr-mpls.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: classifier-addr-mpls.cc,v 1.7 2005/08/25 18:58:09 johnh Exp $
+ * $Id: classifier-addr-mpls.cc,v 1.8 2010/03/08 05:54:52 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -48,7 +48,7 @@
 //
 // Original source contributed by Gaeil Ahn. See below.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/classifier-addr-mpls.cc,v 1.7 2005/08/25 18:58:09 johnh Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/classifier-addr-mpls.cc,v 1.8 2010/03/08 05:54:52 tom_henderson Exp $
 
 // XXX
 //
@@ -872,7 +872,7 @@ void MPLSAddressClassifier::ERBupdate(int entrynb, int LIBptr)
 	ERB_.Entry_[entrynb].LIBptr_ = LIBptr;
 }
 
-int  MPLSAddressClassifier::ERBlocate(int LSPid, int FEC, int &LIBptr)
+int  MPLSAddressClassifier::ERBlocate(int LSPid, int , int &LIBptr)
 {
 	LIBptr = -1;
 	for (int i = 0; i < ERB_.NB_; i++)
@@ -974,7 +974,7 @@ int MPLSAddressClassifier::LIBlookup(int entrynb, int &oIface,
 	return 0;
 }
 
-int MPLSAddressClassifier::LIBlookup(int iIface, int iLabel, int &oIface, 
+int MPLSAddressClassifier::LIBlookup(int , int iLabel, int &oIface, 
 				     int &oLabel, int &LIBptr)
 {
 	oIface = oLabel = LIBptr = -1;

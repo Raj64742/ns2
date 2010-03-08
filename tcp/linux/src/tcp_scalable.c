@@ -20,6 +20,10 @@
 static void tcp_scalable_cong_avoid(struct sock *sk, u32 ack, u32 rtt,
 				    u32 in_flight, int flag)
 {
+	ack = ack;
+	rtt = rtt;
+	flag = flag;
+
 	struct tcp_sock *tp = tcp_sk(sk);
 
 	if (!tcp_is_cwnd_limited(sk, in_flight))

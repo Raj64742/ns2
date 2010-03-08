@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.104 2010/03/06 21:23:53 tom_henderson Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.105 2010/03/08 05:54:49 tom_henderson Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -473,7 +473,7 @@ public:
 	static int hdrlen_;
 
 	Packet() : bits_(0), data_(0), ref_count_(0), next_(0) { }
-	inline unsigned char* const bits() { return (bits_); }
+	inline unsigned char* bits() { return (bits_); }
 	inline Packet* copy() const;
 	inline Packet* refcopy() { ++ref_count_; return this; }
 	inline int& ref_count() { return (ref_count_); }
@@ -550,7 +550,7 @@ public:
 	iface_literal(const iface_constant i, const char * const n) : 
 		value_(i), name_(n) {}
 	inline int value() const { return value_; }
-	inline const char * const name() const { return name_; }
+	inline const char * name() const { return name_; }
 private:
 	const iface_constant value_;
 	/* strings used in TCL to access those special values */

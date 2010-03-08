@@ -530,7 +530,7 @@ void TfrcSinkAgent::print_count_losses_all(int *count_losses)
 		now, count_losses[0], count_losses[1], count_losses[2], count_losses[3], count_losses[4]); 
 }
 
-void TfrcSinkAgent::print_num_rtts_all(int *count_losses) 
+void TfrcSinkAgent::print_num_rtts_all(int *) 
 {
 	double now = Scheduler::instance().clock();
 	printf ("%f: rtts 0: %5d 1: %5d 2: %5d 3: %5d 4: %5d\n", 

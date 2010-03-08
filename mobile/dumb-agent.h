@@ -2,7 +2,7 @@
 /*
  * dumb-agent.h
  * Copyright (C) 2000 by the University of Southern California
- * $Id: dumb-agent.h,v 1.2 2005/08/25 18:58:08 johnh Exp $
+ * $Id: dumb-agent.h,v 1.3 2010/03/08 05:54:52 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -62,7 +62,7 @@ class DumbAgent : public Agent {
  public:
   DumbAgent();
   virtual int command(int argc, const char*const* argv);
-  virtual void recv(Packet*, Handler*);
+  virtual void recv(Packet *p, Handler *h=0);
   void trace(char* fmt, ...);
  protected:
   Trace *tracetarget_;

@@ -158,7 +158,7 @@ void Mac802_11Ext::trace_pkt(Packet *p) {
 	index_, packet_info.name(ch->ptype()), ch->size());
 }
 
-void Mac802_11Ext::dump(char *fname) {
+void Mac802_11Ext::dump(char *) {
 
 }
 
@@ -264,12 +264,12 @@ void Mac802_11Ext::discard(Packet *p, const char* why) {
 /*---------------------------------------------------------------------*/
 
 //IFSTimer
-void IFSTimer::expire(Event *e) {
+void IFSTimer::expire(Event *) {
 	csmgr->handleIFSTimer();
 }
 
 //NAVTimer
-void NAVTimer::expire(Event *e) {
+void NAVTimer::expire(Event *) {
 	csmgr->handleNAVTimer();
 }
 
@@ -453,7 +453,7 @@ void BackoffTimer_t::run() {
 	}
 }
 
-void BackoffTimer_t::expire(Event *e) {
+void BackoffTimer_t::expire(Event *) {
 	remainingSlots_=-1;
 	bkmgr_->handleBackoffTimer();
 	return;
@@ -771,15 +771,15 @@ double Mac802_11Ext::txtime(double psz, int mod_scheme) {
 /*new code ends here*/
 
 //-------tx coordination function-------//
-void TXC_CTSTimer::expire(Event *e) {
+void TXC_CTSTimer::expire(Event *) {
 	txc_->handleTCTStimeout();
 }
 
-void TXC_SIFSTimer::expire(Event *e) {
+void TXC_SIFSTimer::expire(Event *) {
 	txc_->handleSIFStimeout();
 }
 
-void TXC_ACKTimer::expire(Event *e) {
+void TXC_ACKTimer::expire(Event *) {
 	txc_->handleTACKtimeout();
 }
 
@@ -1132,7 +1132,7 @@ void TXC::setTXCState(TXCState newstate) {
 
 //-------rx coordination-------//
 
-void RXC_SIFSTimer::expire(Event *e) {
+void RXC_SIFSTimer::expire(Event *) {
 	rxc_->handleSIFStimeout();
 }
 
@@ -1300,6 +1300,14 @@ void RXC::setRXCState(RXCState newstate) {
 	}
 	rxc_state_=newstate;
 }
+
+
+double Mac802_11Ext::txtime(int )
+{
+	/* clobber inherited txtime() */
+	abort();
+}
+
 
 //-------rx coordination-------//
 

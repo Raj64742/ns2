@@ -76,7 +76,7 @@ public:
 	}	
 } class_gk;
 
-GK::GK(const char * trace):link_(NULL), EDTrace(NULL), tchan_(0)
+GK::GK(const char * ):link_(NULL), EDTrace(NULL), tchan_(0)
 {
 	q_ = new PacketQueue;
 	pq_ = q_;

@@ -3,7 +3,7 @@
 /*
  * shadowing-vis.h
  * Copyright (C) 2000 by the University of Southern California
- * $Id: shadowing-vis.h,v 1.3 2005/08/25 18:58:09 johnh Exp $
+ * $Id: shadowing-vis.h,v 1.4 2010/03/08 05:54:52 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -66,9 +66,7 @@ public:
 	ShadowingVis();
 	virtual double Pr(PacketStamp *tx, PacketStamp *rx, WirelessPhy *ifp);
 	virtual double getDist(double Pr, double Pt, double Gt, double Gr,
-			       double hr, double ht, double L, double lambda) {
-		return DBL_MAX;
-	}
+			       double hr, double ht, double L, double lambda);
 	
 	virtual int command(int argc, const char*const* argv);
 	

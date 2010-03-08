@@ -3,7 +3,7 @@
 /*
  * shadowing-vis.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: shadowing-vis.cc,v 1.6 2005/08/25 18:58:09 johnh Exp $
+ * $Id: shadowing-vis.cc,v 1.7 2010/03/08 05:54:52 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -301,5 +301,11 @@ int ShadowingVis::getPropCond(float xt, float yt, float xr, float yr)
 	}
 	
 	return goodProp;
+}
+
+
+double ShadowingVis::getDist(double , double , double , double , double , double , double , double )
+{
+	return DBL_MAX;
 }
 

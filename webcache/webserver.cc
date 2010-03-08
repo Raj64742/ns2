@@ -2,7 +2,7 @@
 /*
  * webserver.cc
  * Copyright (C) 1999 by the University of Southern California
- * $Id: webserver.cc,v 1.6 2005/08/25 18:58:13 johnh Exp $
+ * $Id: webserver.cc,v 1.7 2010/03/08 05:54:55 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -211,6 +211,6 @@ void WebServer::schedule_next_job() {
 }
 
 // Processing finished
-void WebServer::expire(Event *e) {
+void WebServer::expire(Event *) {
   job_departure();
 }

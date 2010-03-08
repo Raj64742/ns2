@@ -6,7 +6,7 @@
 /*
  * parentnode.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: parentnode.cc,v 1.2 2005/08/25 18:58:02 johnh Exp $
+ * $Id: parentnode.cc,v 1.3 2010/03/08 05:54:49 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -135,3 +135,6 @@ void BroadcastNode::add_route(char *dst, NsObject *target) {
 void BroadcastNode::delete_route(char *dst, NsObject *nullagent) {
   classifier_->do_install(dst, nullagent); 
 }
+
+void ParentNode::set_table_size(int) {}
+void ParentNode::set_table_size(int, int) {}

@@ -183,7 +183,7 @@ double PIQueue::calculate_p()
 	return p;
 }
 
-int PIQueue::drop_early(Packet* pkt, int qlen)
+int PIQueue::drop_early(Packet* pkt, int )
 {
 	//double now = Scheduler::instance().clock();
 	hdr_cmn* ch = hdr_cmn::access(pkt);

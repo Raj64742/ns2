@@ -460,17 +460,17 @@ int WirelessPhyExt::getState() {
 	return state;
 }
 
-void TX_Timer::expire(Event *e) {
+void TX_Timer::expire(Event *) {
 	wirelessPhyExt->handle_TXtimeout();
 	return;
 }
 
-void RX_Timer::expire(Event *e) {
+void RX_Timer::expire(Event *) {
 	wirelessPhyExt->handle_RXtimeout();
 	return;
 }
 
-void PreRX_Timer::expire(Event *e) {
+void PreRX_Timer::expire(Event *) {
 	wirelessPhyExt->handle_PreRXtimeout();
 	return;
 }

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.43 2008/11/03 05:34:48 tom_henderson Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.44 2010/03/08 05:54:49 tom_henderson Exp $";
 #endif
 
 #include <stdlib.h>
@@ -288,3 +288,6 @@ int Classifier::command(int argc, const char*const* argv)
 	}
 	return (NsObject::command(argc, argv));
 }
+
+void Classifier::set_table_size(int, int)
+{}

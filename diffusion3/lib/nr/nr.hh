@@ -4,7 +4,7 @@
 // authors       : Fabio Silva
 // 
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: nr.hh,v 1.13 2005/09/13 04:53:50 tomh Exp $
+// $Id: nr.hh,v 1.14 2010/03/08 05:54:50 tom_henderson Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -224,7 +224,7 @@ protected:
 template<class T>
 class NRSimpleAttribute : public NRAttribute{
 public:
-  NRSimpleAttribute(int key, int type, int op, T val, int size = 0) :
+  NRSimpleAttribute(int key, int type, int op, T val, int = 0) :
     NRAttribute(key, type, op, sizeof(T)) {
 
     assert(type != STRING_TYPE && type != BLOB_TYPE);

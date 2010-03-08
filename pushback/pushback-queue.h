@@ -85,10 +85,7 @@ class PushbackQueueTimer: public TimerHandler {
   PushbackQueueTimer(PushbackQueue * queue) {queue_ = queue;}
 
   virtual void
-  expire(Event *e) {
-    //    printf("PBQTimer: expiry at %g\n", Scheduler::instance().clock());
-    queue_->timeout(0);
-  }
+  expire(Event *e);
    
  protected:
   PushbackQueue * queue_;

@@ -2,7 +2,7 @@
 /*
  * qsagent.cc
  * Copyright (C) 2001 by the University of Southern California
- * $Id: qsagent.cc,v 1.8 2006/12/19 18:10:57 sallyfloyd Exp $
+ * $Id: qsagent.cc,v 1.9 2010/03/08 05:54:53 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -245,7 +245,7 @@ double QSAgent::process(LinkDelay *link, Queue *queue, double ratereq)
 }
 
 
-void QSTimer::expire(Event *e) {
+void QSTimer::expire(Event *) {
 	
 	qs_handle_->prev_int_aggr_ = qs_handle_->aggr_approval_;
 	qs_handle_->aggr_approval_ = 0;

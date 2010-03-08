@@ -2,7 +2,7 @@
 /*
  * dumb-agent.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: dumb-agent.cc,v 1.3 2006/02/22 13:32:23 mahrenho Exp $
+ * $Id: dumb-agent.cc,v 1.4 2010/03/08 05:54:52 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -85,7 +85,7 @@ int DumbAgent::command(int argc, const char*const* argv)
 }
  
 
-void DumbAgent::recv(Packet *p, Handler *h=0) 
+void DumbAgent::recv(Packet *p, Handler *) 
 {
   
   hdr_cmn *ch = HDR_CMN(p);

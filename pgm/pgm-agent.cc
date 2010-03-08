@@ -2,7 +2,7 @@
 /*
  * pgm-agent.cc
  * Copyright (C) 2001 by the University of Southern California
- * $Id: pgm-agent.cc,v 1.10 2006/02/21 15:20:19 mahrenho Exp $
+ * $Id: pgm-agent.cc,v 1.11 2010/03/08 05:54:52 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -350,12 +350,12 @@ protected:
 static class PgmClass : public TclClass {
 public:
   PgmClass() : TclClass("Agent/PGM") {}
-  TclObject * create(int argc, const char * const * argv) {
+  TclObject * create(int , const char * const * ) {
     return (new PgmAgent());
   }
 } class_pgm_agent;
 
-void PgmAgentTimer::expire(Event *e) {
+void PgmAgentTimer::expire(Event *) {
   a_->timeout(type_, data_);
 }
 

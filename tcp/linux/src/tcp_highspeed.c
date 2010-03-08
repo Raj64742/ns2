@@ -114,6 +114,10 @@ static void hstcp_init(struct sock *sk)
 static void hstcp_cong_avoid(struct sock *sk, u32 adk, u32 rtt,
 			     u32 in_flight, int data_acked)
 {
+	adk = adk;
+	rtt = rtt;
+	data_acked = data_acked;
+
 	struct tcp_sock *tp = tcp_sk(sk);
 	struct hstcp *ca = inet_csk_ca(sk);
 

@@ -109,7 +109,7 @@ int ScoreBoardRQ::GetNextUnacked (int seqno)
       return (unacked);
 }
 
-int ScoreBoardRQ::CheckSndNxt(hdr_tcp* h) {
+int ScoreBoardRQ::CheckSndNxt(hdr_tcp* ) {
 	printf("ScoreBoardRQ::CheckSndNxt not implemented\n");
 	exit(1);
 	return 0;
@@ -118,3 +118,10 @@ int ScoreBoardRQ::CheckSndNxt(hdr_tcp* h) {
 void ScoreBoardRQ::Dump() {
   rq_.dumplist();
 }
+
+void ScoreBoardRQ::MarkRetran (int retran_seqno, int)
+{
+	if (retran_seqno >= h_seqno_) 
+		h_seqno_ = retran_seqno+1;
+}
+

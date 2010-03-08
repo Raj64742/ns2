@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net.h,v 1.8 2002/10/09 23:57:15 difa Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net.h,v 1.9 2010/03/08 05:54:50 tom_henderson Exp $ (LBL)
  */
 
 #ifndef ns_net_h
@@ -59,13 +59,7 @@ public:
 	virtual int command(int argc, const char*const* argv);
 	virtual int send(u_char* buf, int len) = 0;
 	virtual int recv(u_char* buf, int len, sockaddr& from, double& ts) = 0;
-	virtual int recv(netpkt_handler callback, void *clientdata) {
-	  Tcl::instance().evalf("%s info class", name());
-	  fprintf( stderr, "Callback Interface to receiving packets"
-		           " unsupported in class %s\n",
-		   Tcl::instance().result() );
-	  return 0;
-	} // callback called for every packet
+	virtual int recv(netpkt_handler callback, void *clientdata); // callback called for every packet
 	virtual int rchannel() = 0;
 	virtual int schannel() = 0;
 	int mode() { return mode_; }

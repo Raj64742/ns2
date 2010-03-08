@@ -3,7 +3,7 @@
 // authors         : Fred Stann
 //
 // Copyright (C) 2003 by the University of Southern California
-// $Id: rmst_filter.cc,v 1.3 2005/09/13 04:53:48 tomh Exp $
+// $Id: rmst_filter.cc,v 1.4 2010/03/08 05:54:49 tom_henderson Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -55,7 +55,7 @@ class DiffAppAgent;
 static class RmstFilterClass : public TclClass {
 public:
   RmstFilterClass() : TclClass("Application/DiffApp/RmstFilter") {}
-  TclObject* create(int argc, const char*const* argv) {
+  TclObject* create(int , const char*const* ) {
     return(new RmstFilter());
   }
 } class_rmst_filter;

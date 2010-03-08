@@ -143,7 +143,7 @@ PacketTypeLog::log(Packet *p) {
 }
 
 void
-PacketTypeLog::expire(Event * e) {
+PacketTypeLog::expire(Event * ) {
 
   //printf("PTTimer Expiry at %g\n", Scheduler::instance().clock());
 
@@ -221,7 +221,7 @@ TokenBucketRateLimiter::TokenBucketRateLimiter() {
 }
 
 int 
-TokenBucketRateLimiter::rateLimit(Packet * p, double arrRate, double targetRate, int mine, int lowDemand) {
+TokenBucketRateLimiter::rateLimit(Packet * p, double , double targetRate, int mine, int lowDemand) {
 
   hdr_cmn* hdr = HDR_CMN(p);
   double now = Scheduler::instance().clock();

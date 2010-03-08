@@ -3,7 +3,7 @@
 /*
  * mac-tdma.cc
  * Copyright (C) 1999 by the University of Southern California
- * $Id: mac-tdma.cc,v 1.16 2006/02/22 13:25:43 mahrenho Exp $
+ * $Id: mac-tdma.cc,v 1.17 2010/03/08 05:54:52 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -46,7 +46,7 @@
  */
 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-tdma.cc,v 1.16 2006/02/22 13:25:43 mahrenho Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-tdma.cc,v 1.17 2010/03/08 05:54:52 tom_henderson Exp $
 //
 // mac-tdma.cc
 // by Xuan Chen (xuanc@isi.edu), ISI/USC
@@ -568,7 +568,7 @@ void MacTdma::slotHandler(Event *e)
 	return;
 }
 
-void MacTdma::recvHandler(Event *e) 
+void MacTdma::recvHandler(Event *) 
 {
 	u_int32_t dst, src; 
 	int size;

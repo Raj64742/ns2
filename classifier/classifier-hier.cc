@@ -3,7 +3,7 @@
 /*
  * classifier-hier.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: classifier-hier.cc,v 1.8 2005/08/25 18:58:01 johnh Exp $
+ * $Id: classifier-hier.cc,v 1.9 2010/03/08 05:54:49 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -45,7 +45,7 @@
  *
  */
 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hier.cc,v 1.8 2005/08/25 18:58:01 johnh Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hier.cc,v 1.9 2010/03/08 05:54:49 tom_henderson Exp $
 
 #include <assert.h>
 #include "classifier-hier.h"
@@ -112,7 +112,7 @@ void HierClassifier::set_table_size(int level, int size)
 static class HierClassifierClass : public TclClass {
 public:
 	HierClassifierClass() : TclClass("Classifier/Hier") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int , const char*const* ) {
 		return (new HierClassifier());
 	}
 } class_hier_classifier;

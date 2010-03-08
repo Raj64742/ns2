@@ -4,7 +4,7 @@
 // authors       : Fabio Silva
 // 
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: nr.cc,v 1.8 2005/09/13 04:53:50 tomh Exp $
+// $Id: nr.cc,v 1.9 2010/03/08 05:54:50 tom_henderson Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -254,7 +254,7 @@ bool NRAttribute::isGE(NRAttribute *attr) {
    }
 }
 
-NRSimpleAttribute<char *>::NRSimpleAttribute(int key, int type, int op, char *val, int size) :
+NRSimpleAttribute<char *>::NRSimpleAttribute(int key, int type, int op, char *val, int ) :
    NRAttribute(key, type, op, (strlen(val) + 1))
 {
    assert(type == STRING_TYPE);

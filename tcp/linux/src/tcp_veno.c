@@ -70,6 +70,8 @@ static void tcp_veno_init(struct sock *sk)
 /* Do rtt sampling needed for Veno. */
 static void tcp_veno_pkts_acked(struct sock *sk, u32 cnt, ktime_t last)
 {
+	cnt = cnt;
+
 	struct veno *veno = inet_csk_ca(sk);
 	u32 vrtt;
 
@@ -151,7 +153,7 @@ static void tcp_veno_cong_avoid(struct sock *sk, u32 ack,
 			tcp_slow_start(tp);
 		} else {
 			/* Congestion avoidance. */
-			if (veno->diff < beta) {
+			if (veno->diff < (u32)beta) {
 				/* In the "non-congestive state", increase cwnd
 				 *  every rtt.
 				 */
@@ -195,7 +197,7 @@ static u32 tcp_veno_ssthresh(struct sock *sk)
 	const struct tcp_sock *tp = tcp_sk(sk);
 	struct veno *veno = inet_csk_ca(sk);
 
-	if (veno->diff < beta)
+	if (veno->diff < (u32)beta)
 		/* in "non-congestive state", cut cwnd by 1/5 */
 		return max(tp->snd_cwnd * 4 / 5, 2U);
 	else

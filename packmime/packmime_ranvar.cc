@@ -862,7 +862,7 @@ static class PackMimeHTTPPersistRspSizeRandomVariableClass : public TclClass {
 public:
 	PackMimeHTTPPersistRspSizeRandomVariableClass() : 
 		TclClass("RandomVariable/PackMimeHTTPPersistRspSize"){}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int , const char*const* ) {
 		return(new PackMimeHTTPPersistRspSizeRandomVariable());
 	}
 } class_packmimepersistrspsizeranvar;

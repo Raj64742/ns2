@@ -52,10 +52,7 @@ public:
 		if (retran_seqno >= h_seqno_) 
 			h_seqno_ = retran_seqno+1;
 	};
-	virtual void MarkRetran (int retran_seqno, int snd_nxt){
-		if (retran_seqno >= h_seqno_) 
-			h_seqno_ = retran_seqno+1;
-	};
+	virtual void MarkRetran (int retran_seqno, int snd_nxt);
 	virtual int UpdateScoreBoard (int last_ack_, hdr_tcp*);
 	virtual int CheckUpdate() {return (changed_);}
 	virtual int CheckSndNxt (hdr_tcp*);

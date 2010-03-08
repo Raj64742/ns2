@@ -5207,7 +5207,8 @@ SctpDest_S*  SctpCMTAgent::SelectFromPFDests()
 }
 
 /* New CMT function. Currently not used. */
-void SctpCMTAgent::SetSharedCCParams(SctpDest_S *spCurrInfo)
+//void SctpCMTAgent::SetSharedCCParams(SctpDest_S *spCurrInfo)
+void SctpCMTAgent::SetSharedCCParams(SctpDest_S *)
 {
 // {
 //   Node_S *spCurrNode = NULL;

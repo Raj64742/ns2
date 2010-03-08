@@ -101,6 +101,8 @@ static inline void measure_rtt(struct sock *sk)
 
 static void measure_achieved_throughput(struct sock *sk, u32 pkts_acked, ktime_t last)
 {
+	last = last;
+
 	const struct inet_connection_sock *icsk = inet_csk(sk);
 	const struct tcp_sock *tp = tcp_sk(sk);
 	struct htcp *ca = inet_csk_ca(sk);
@@ -229,6 +231,10 @@ static u32 htcp_recalc_ssthresh(struct sock *sk)
 static void htcp_cong_avoid(struct sock *sk, u32 ack, u32 rtt,
 			    u32 in_flight, int data_acked)
 {
+	ack = ack;
+	rtt = rtt;
+	data_acked = data_acked;
+
 	struct tcp_sock *tp = tcp_sk(sk);
 	struct htcp *ca = inet_csk_ca(sk);
 

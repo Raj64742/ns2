@@ -229,6 +229,9 @@ static void tcp_compound_cwnd_event(struct sock *sk, enum tcp_ca_event event)
 static void tcp_compound_cong_avoid(struct sock *sk, u32 ack,
 				    u32 seq_rtt, u32 in_flight, int flag)
 {
+	seq_rtt = seq_rtt;
+	flag = flag;
+
 	struct tcp_sock *tp = tcp_sk(sk);
 	struct compound *vegas = inet_csk_ca(sk);
 	u8 inc = 0;
@@ -412,6 +415,8 @@ static void tcp_compound_cong_avoid(struct sock *sk, u32 ack,
 /* Extract info for Tcp socket info provided via netlink. */
 static void tcp_compound_get_info(struct sock *sk, u32 ext, struct sk_buff *skb)
 {
+	skb = skb;
+
 	const struct compound *ca = inet_csk_ca(sk);
 	if (ext & (1 << (INET_DIAG_VEGASINFO - 1))) {
 		struct tcpvegas_info *info;

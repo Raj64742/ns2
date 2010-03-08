@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: log.cc,v 1.2 2005/09/13 04:53:48 tomh Exp $
+// $Id: log.cc,v 1.3 2010/03/08 05:54:49 tom_henderson Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -51,7 +51,7 @@ char *msg_types[] = {"INTEREST", "POSITIVE REINFORCEMENT",
 static class LogFilterClass : public TclClass {
 public:
   LogFilterClass() : TclClass("Application/DiffApp/LogFilter") {}
-  TclObject * create(int argc, const char*const* argv) {
+  TclObject * create(int , const char*const* ) {
     return(new LogFilter());
   }
 } class_log_filter;

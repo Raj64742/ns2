@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.h,v 1.36 2003/10/05 06:20:30 xuanc Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.h,v 1.37 2010/03/08 05:54:49 tom_henderson Exp $ (LBL)
  */
 
 #ifndef ns_agent_h
@@ -146,7 +146,7 @@ class Agent : public Connector {
 
 	/* support for event-tracing */
         EventTrace *et_;
-        virtual void trace_event(char *eventtype){}
+        virtual void trace_event(char *eventtype);
 
  private:
 	void flushAVar(TracedVar *v);

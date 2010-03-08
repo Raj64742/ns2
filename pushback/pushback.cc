@@ -685,7 +685,7 @@ PushbackAgent::pushbackCancel(RateLimitSession * rls) {
 //######################## Message Receiving Code #####################
 
 void 
-PushbackAgent::recv(Packet * pkt, Handler * h) {
+PushbackAgent::recv(Packet * pkt, Handler * ) {
   
   hdr_pushback * hdr_push = ((hdr_pushback*)pkt)->access(pkt);
   PushbackMessage * msg = hdr_push->msg_;
@@ -984,7 +984,7 @@ PushbackAgent::checkQID(int qid) {
 //the number of bits in the resultant aggregate would be "bits"
 //the aggregate is being broadended by "bitsDiff" (measured from shortest prefix)
 int
-PushbackAgent::mergerAccept(int count, int bits, int bitsDiff) {
+PushbackAgent::mergerAccept(int , int , int ) {
   
   //todo: think of a smarter way.
   //currently merge if bits < some value.
@@ -996,7 +996,7 @@ PushbackAgent::mergerAccept(int count, int bits, int bitsDiff) {
 // ############################### PushbackTimer Methods ############################
 
 void 
-PushbackTimer::expire(Event *e) {
+PushbackTimer::expire(Event *) {
  
   if (firstEvent_ == NULL) {
     printf("PushbackTimer: No event found on expiry\n");

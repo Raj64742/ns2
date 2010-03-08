@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tcptap.cc,v 1.4 2002/09/23 23:25:05 alefiyah Exp $ (ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tcptap.cc,v 1.5 2010/03/08 05:54:50 tom_henderson Exp $ (ISI)";
 #endif
 
 #include "tcptap.h"
@@ -306,7 +306,7 @@ TCPTapAgent::pkt_handler(void *clientdata, Packet *p, const struct timeval &ts)
 }
 
 void
-TCPTapAgent::processpkt(Packet *p, const struct timeval &ts)
+TCPTapAgent::processpkt(Packet *p, const struct timeval &)
 {
   struct ip *ipheader;
   struct tcphdr *tcpheader;

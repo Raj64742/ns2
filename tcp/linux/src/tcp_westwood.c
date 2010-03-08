@@ -101,6 +101,8 @@ static void westwood_filter(struct westwood *w, u32 delta)
  */
 static void tcp_westwood_pkts_acked(struct sock *sk, u32 cnt, ktime_t last)
 {
+	last = last;
+
 	struct westwood *w = inet_csk_ca(sk);
 	if (cnt > 0)
 		w->rtt = tcp_sk(sk)->srtt >> 3;
@@ -257,6 +259,10 @@ static void tcp_westwood_event(struct sock *sk, enum tcp_ca_event event)
 static void tcp_westwood_info(struct sock *sk, u32 ext,
 			      struct sk_buff *skb)
 {
+	sk = sk;
+	ext = ext;
+	skb = skb;
+
 /*	const struct westwood *ca = inet_csk_ca(sk);
 	if (ext & (1 << (INET_DIAG_VEGASINFO - 1))) {
 		struct tcpvegas_info info = {

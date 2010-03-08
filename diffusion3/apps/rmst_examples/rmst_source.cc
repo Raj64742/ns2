@@ -3,7 +3,7 @@
 // authors         : Fred Stann
 //
 // Copyright (C) 2003 by the University of Southern California
-// $Id: rmst_source.cc,v 1.4 2005/09/13 04:53:47 tomh Exp $
+// $Id: rmst_source.cc,v 1.5 2010/03/08 05:54:49 tom_henderson Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -52,7 +52,7 @@ public:
     }
 } class_rmst_source;
 
-void RmstSendDataTimer::expire(Event *e) {
+void RmstSendDataTimer::expire(Event *) {
   a_->send();
 }
 
@@ -91,7 +91,7 @@ int RmstSource::command(int argc, const char*const* argv)
 #endif // NS_DIFFUSION
 
 
-void RmstSrcReceive::recv(NRAttrVec *data, NR::handle my_handle)
+void RmstSrcReceive::recv(NRAttrVec *data, NR::handle )
 {
   NRSimpleAttribute<char*> *rmst_target_attr = NULL;
   NRSimpleAttribute<int> *nr_class = NULL;
@@ -273,3 +273,6 @@ void RmstSource::sendBlob() {
   blobs_to_send_--;
   delete blob;
 }
+
+void RmstSource::recv(Message *, handle )
+{}

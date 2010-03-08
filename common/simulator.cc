@@ -2,7 +2,7 @@
 
 /*
  * Copyright (C) 2000 by the University of Southern California
- * $Id: simulator.cc,v 1.8 2005/08/25 18:58:02 johnh Exp $
+ * $Id: simulator.cc,v 1.9 2010/03/08 05:54:49 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -54,7 +54,7 @@
 static class SimulatorClass : public TclClass {
 public:
 	SimulatorClass() : TclClass("Simulator") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int , const char*const* ) {
 		return (new Simulator);
 	}
 } simulator_class;

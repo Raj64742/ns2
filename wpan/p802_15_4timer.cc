@@ -13,7 +13,7 @@
 // File:  p802_15_4timer.cc
 // Mode:  C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t
 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4timer.cc,v 1.2 2007/01/30 05:00:52 tom_henderson Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4timer.cc,v 1.3 2010/03/08 05:54:55 tom_henderson Exp $
 
 /*
  * Copyright (c) 2003-2004 Samsung Advanced Institute of Technology and
@@ -322,7 +322,7 @@ void macBeaconTxTimer::start(bool reset, bool fortx, double wt)
 	}
 }
 
-void macBeaconTxTimer::handle(Event *e)
+void macBeaconTxTimer::handle(Event *)
 {
 	reset();
 	mac->beaconTxHandler(forTX);
@@ -369,7 +369,7 @@ void macBeaconRxTimer::start(void)
 	Mac802_15_4Timer::start(wtime);
 }
 
-void macBeaconRxTimer::handle(Event *e)
+void macBeaconRxTimer::handle(Event *)
 {
 	reset();
 	mac->beaconRxHandler();
@@ -377,7 +377,7 @@ void macBeaconRxTimer::handle(Event *e)
 
 //------------------------------------------------------
 
-void macBeaconSearchTimer::handle(Event *e)
+void macBeaconSearchTimer::handle(Event *)
 {
 	reset();
 	mac->beaconSearchHandler();
@@ -408,7 +408,7 @@ void macWakeupTimer::start(void)
 }
 
 // 2.31 change: Timer to control node shutdown and wakeup
-void macWakeupTimer::handle(Event *e)
+void macWakeupTimer::handle(Event *)
 {
 	reset();
 	EnergyModel *em = mac->netif_->node()->energy_model();

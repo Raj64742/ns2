@@ -13,7 +13,7 @@
 // File:  p802_15_4sscs.cc
 // Mode:  C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t
 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4sscs.cc,v 1.3 2009/12/30 22:06:34 tom_henderson Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4sscs.cc,v 1.4 2010/03/08 05:54:55 tom_henderson Exp $
 
 // Functions in this file are out of the scope of 802.15.4.
 // But they elaborate how a higher layer interfaces with 802.15.4.
@@ -80,7 +80,7 @@ void SSCS802_15_4Timer::cancel(void)
 	Scheduler::instance().cancel(&nullEvent);
 }
 
-void SSCS802_15_4Timer::handle(Event* e)
+void SSCS802_15_4Timer::handle(Event* )
 {
 	active = false;
 	if (sscs->neverAsso)
@@ -160,26 +160,26 @@ SSCS802_15_4::~SSCS802_15_4()
 {
 }
 
-void SSCS802_15_4::MCPS_DATA_confirm(UINT_8 msduHandle,MACenum status)
+void SSCS802_15_4::MCPS_DATA_confirm(UINT_8 , MACenum )
 {
 }
 
-void SSCS802_15_4::MCPS_DATA_indication(UINT_8 SrcAddrMode,UINT_16 SrcPANId,IE3ADDR SrcAddr,
-					UINT_8 DstAddrMode,UINT_16 DstPANId,IE3ADDR DstAddr,
-					UINT_8 msduLength,Packet *msdu,UINT_8 mpduLinkQuality,
-					bool SecurityUse,UINT_8 ACLEntry)
+void SSCS802_15_4::MCPS_DATA_indication(UINT_8 , UINT_16     , IE3ADDR ,
+					UINT_8 , UINT_16     , IE3ADDR ,
+					UINT_8 , Packet *msdu, UINT_8  ,
+					bool   , UINT_8 )
 {
 	Packet::free(msdu);
 }
 
-void SSCS802_15_4::MCPS_PURGE_confirm(UINT_8 msduHandle,MACenum status)
+void SSCS802_15_4::MCPS_PURGE_confirm(UINT_8 , MACenum )
 {
 }
 
 #ifdef ZigBeeIF
 extern NET_SYSTEM_CONFIG NetSystemConfig;
 #endif
-void SSCS802_15_4::MLME_ASSOCIATE_indication(IE3ADDR DeviceAddress,UINT_8 CapabilityInformation,bool SecurityUse,UINT_8 ACLEntry)
+void SSCS802_15_4::MLME_ASSOCIATE_indication(IE3ADDR DeviceAddress, UINT_8 CapabilityInformation, bool , UINT_8)
 {
 	
 	//we assign the cluster tree address as the MAC short address
@@ -249,19 +249,19 @@ void SSCS802_15_4::MLME_ASSOCIATE_confirm(UINT_16 AssocShortAddress,MACenum stat
 	dispatch(status,"MLME_ASSOCIATE_confirm");
 }
 
-void SSCS802_15_4::MLME_DISASSOCIATE_confirm(MACenum status)
+void SSCS802_15_4::MLME_DISASSOCIATE_confirm(MACenum )
 {
 }
 
-void SSCS802_15_4::MLME_BEACON_NOTIFY_indication(UINT_8 BSN,PAN_ELE *PANDescriptor,UINT_8 PendAddrSpec,IE3ADDR *AddrList,UINT_8 sduLength,UINT_8 *sdu)
+void SSCS802_15_4::MLME_BEACON_NOTIFY_indication(UINT_8 , PAN_ELE *, UINT_8 ,IE3ADDR * , UINT_8 , UINT_8 *)
 {
 }
 
-void SSCS802_15_4::MLME_GET_confirm(MACenum status,MPIBAenum PIBAttribute,MAC_PIB *PIBAttributeValue)
+void SSCS802_15_4::MLME_GET_confirm(MACenum , MPIBAenum , MAC_PIB *)
 {
 }
 
-void SSCS802_15_4::MLME_ORPHAN_indication(IE3ADDR OrphanAddress,bool SecurityUse,UINT_8 ACLEntry)
+void SSCS802_15_4::MLME_ORPHAN_indication(IE3ADDR OrphanAddress, bool , UINT_8 )
 {
 	if (updateDeviceLink(tr_oper_est,&mac->deviceLink1,&mac->deviceLink2,OrphanAddress) == 0)
 		mac->MLME_ORPHAN_response(OrphanAddress,(UINT_16)OrphanAddress,true,false);
@@ -269,15 +269,15 @@ void SSCS802_15_4::MLME_ORPHAN_indication(IE3ADDR OrphanAddress,bool SecurityUse
 		mac->MLME_ORPHAN_response(OrphanAddress,0,false,false);
 }
 
-void SSCS802_15_4::MLME_RESET_confirm(MACenum status)
+void SSCS802_15_4::MLME_RESET_confirm(MACenum )
 {
 }
 
-void SSCS802_15_4::MLME_RX_ENABLE_confirm(MACenum status)
+void SSCS802_15_4::MLME_RX_ENABLE_confirm(MACenum )
 {
 }
 
-void SSCS802_15_4::MLME_SET_confirm(MACenum status,MPIBAenum PIBAttribute)
+void SSCS802_15_4::MLME_SET_confirm(MACenum , MPIBAenum )
 {
 }
 
@@ -321,8 +321,8 @@ void SSCS802_15_4::MLME_SCAN_confirm(MACenum status,UINT_8 ScanType,UINT_32 Unsc
 	}
 }
 
-void SSCS802_15_4::MLME_COMM_STATUS_indication(UINT_16 PANId,UINT_8 SrcAddrMode,IE3ADDR SrcAddr,
-				 UINT_8 DstAddrMode,IE3ADDR DstAddr,MACenum status)
+void SSCS802_15_4::MLME_COMM_STATUS_indication(UINT_16 , UINT_8 , IE3ADDR ,
+				 UINT_8 , IE3ADDR , MACenum )
 {
 }
 
@@ -331,13 +331,13 @@ void SSCS802_15_4::MLME_START_confirm(MACenum status)
 	dispatch(status,"MLME_START_confirm");
 }
 
-void SSCS802_15_4::MLME_SYNC_LOSS_indication(MACenum LossReason)
+void SSCS802_15_4::MLME_SYNC_LOSS_indication(MACenum )
 {
 	fprintf(stdout,"[%f](node %d) synchronization loss\n",CURRENT_TIME,mac->index_);
 	mac->MLME_SCAN_request(0x03,SSCS802_15_4::ScanChannels,0);
 }
 
-void SSCS802_15_4::MLME_POLL_confirm(MACenum status)
+void SSCS802_15_4::MLME_POLL_confirm(MACenum )
 {
 }
 

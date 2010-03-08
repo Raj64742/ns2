@@ -424,7 +424,7 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 /*
  * Calculate initial sending rate from RFC 3390.
  */
-double TfrcAgent::rfc3390(int size)
+double TfrcAgent::rfc3390(int )
 {
         if (size_ <= 1095) {
                 return (4.0);
@@ -515,7 +515,7 @@ void TfrcAgent::slowstart ()
 	}
 }
 
-void TfrcAgent::increase_rate (double p)
+void TfrcAgent::increase_rate (double )
 {               
         double now = Scheduler::instance().clock();
         double maximumrate;

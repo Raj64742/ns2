@@ -32,7 +32,7 @@
  * SUCH DAMAGE.
  */
 /* tworayground.cc
-   $Id: tworayground.cc,v 1.7 2005/02/03 20:15:00 haldar Exp $
+   $Id: tworayground.cc,v 1.8 2010/03/08 05:54:52 tom_henderson Exp $
  */
 
 #include <math.h>
@@ -170,7 +170,7 @@ TwoRayGround::Pr(PacketStamp *t, PacketStamp *r, WirelessPhy *ifp)
   }
 }
 
-double TwoRayGround::getDist(double Pr, double Pt, double Gt, double Gr, double hr, double ht, double L, double lambda)
+double TwoRayGround::getDist(double Pr, double Pt, double Gt, double Gr, double hr, double ht, double , double )
 {
        /* Get quartic root */
        return sqrt(sqrt(Pt * Gt * Gr * (hr * hr * ht * ht) / Pr));

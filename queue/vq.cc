@@ -92,7 +92,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/vq.cc,v 1.6 2006/12/17 15:21:59 mweigle Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/vq.cc,v 1.7 2010/03/08 05:54:53 tom_henderson Exp $ (LBL)";
 #endif
 #include "flags.h"
 #include "delay.h"
@@ -110,7 +110,7 @@ public:
 	}
 } class_vq;
 
-Vq::Vq(const char * trace) : link_(NULL), EDTrace(NULL), tchan_(0){
+Vq::Vq(const char * ) : link_(NULL), EDTrace(NULL), tchan_(0){
 	q_ = new PacketQueue;
 	pq_ = q_;
 	bind_bool("drop_front_", &drop_front_);

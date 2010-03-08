@@ -37,12 +37,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctpDebug.cc,v 1.3 2009/11/16 05:51:27 tom_henderson Exp $ (UD/PEL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctpDebug.cc,v 1.4 2010/03/08 05:54:53 tom_henderson Exp $ (UD/PEL)
  */
 
 #include "sctpDebug.h"
 
-void sctpDebugEmptyPrintf (char const *format, ...)
+//void sctpDebugEmptyPrintf (char const *format, ...)
+void sctpDebugEmptyPrintf (char const *, ...)
 {
 
 }

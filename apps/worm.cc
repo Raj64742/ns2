@@ -34,11 +34,11 @@ WormApp::WormApp() : Application() {
   bind("ScanPacketSize", &p_size_);
 }
 
-void WormApp::process_data(int nbytes, AppData* data) {
+void WormApp::process_data(int nbytes, AppData*) {
   recv(nbytes);
 }
 
-void WormApp::recv(int nbytes) {
+void WormApp::recv(int) {
   if (!first_probe_) {
     first_probe_ = 1;
     printf("D FP %.2f\n", Scheduler::instance().clock());
@@ -92,7 +92,7 @@ DnhWormApp::DnhWormApp() : WormApp() {
   timer_ = NULL;
 }
 
-void DnhWormApp::recv(int nbytes) {
+void DnhWormApp::recv(int) {
   if (infected_) {
     //printf("Node %d is infected already...\n", my_addr_);
   } else {
@@ -220,7 +220,7 @@ void AnWormApp::start() {
   //printf("start\n");
 }
 
-void AnWormApp::recv(int nbytes) {
+void AnWormApp::recv(int) {
   probe_recv++;
   
   //printf("AN (%d) received probes from outside...%f \n", my_addr_, probe_recv);

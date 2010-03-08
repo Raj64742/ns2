@@ -3,7 +3,7 @@
 // authors         : Fred Stann
 //
 // Copyright (C) 2003 by the University of Southern California
-// $Id: rmst_source.hh,v 1.3 2005/09/13 04:53:47 tomh Exp $
+// $Id: rmst_source.hh,v 1.4 2010/03/08 05:54:49 tom_henderson Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -85,7 +85,7 @@ public:
   handle setupRmstPublication();
 
   void run();
-  void recv(Message *msg, handle h) { } 
+  void recv(Message *msg, handle h); 
   NR* getDr() {return dr_;} 
   int blobs_to_send_;
   char* createBlob(int id);

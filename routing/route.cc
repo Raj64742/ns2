@@ -39,7 +39,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.39 2005/09/12 04:34:16 tomh Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.40 2010/03/08 05:54:53 tom_henderson Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -275,7 +275,9 @@ int RouteLogic::lookup_hier(char* asrc, char* adst, int& result) {
 		if((src[1] < C_[d]) || (dst[1] < C_[dst[0]]))
 			if((src[2] <= size) ||
 			   (dst[2]<=cluster_size_[INDEX(dst[0],dst[1],Cmax_)]))
+			{
 				;
+			}
 	} else { 
 		tcl.result("node out of range");
 		return TCL_ERROR;

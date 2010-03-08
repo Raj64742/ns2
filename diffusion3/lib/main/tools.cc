@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: tools.cc,v 1.17 2008/03/27 05:24:46 tom_henderson Exp $
+// $Id: tools.cc,v 1.18 2010/03/08 05:54:50 tom_henderson Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -71,12 +71,14 @@ void GetTime(struct timeval *tv)
 #endif // NS_DIFFUSION
 }
 
-void SetSeed(struct timeval *tv) 
-{
 #ifdef NS_DIFFUSION
+void SetSeed(struct timeval *) 
+{
   // Don't need to do anything since NS's RNG is seeded using
   // otcl proc ns-random <seed>
 #else
+void SetSeed(struct timeval *tv) 
+{
   srand(tv->tv_usec);
 #endif // NS_DIFFUSION
 }

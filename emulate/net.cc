@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net.cc,v 1.8 2005/01/25 23:29:12 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net.cc,v 1.9 2010/03/08 05:54:50 tom_henderson Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -164,3 +164,12 @@ Network::modename(int mode)
 	}
 	return ("unknown");
 }
+
+int Network::recv(netpkt_handler , void *) {
+	Tcl::instance().evalf("%s info class", name());
+	fprintf( stderr, "Callback Interface to receiving packets"
+			" unsupported in class %s\n",
+			Tcl::instance().result() );
+	return 0;
+} // callback called for every packet
+

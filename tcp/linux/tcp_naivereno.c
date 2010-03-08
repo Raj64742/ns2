@@ -16,8 +16,13 @@ module_param(beta, int, 0644);
 MODULE_PARM_DESC(beta, "MD decrement portion of window: every loss the window is reduced by a proportion of 1/beta");
 
 /* opencwnd */
-void tcp_naive_reno_cong_avoid(struct tcp_sock *tp, u32 ack, u32 rtt, u32 in_flight, int flag) 
+void tcp_naive_reno_cong_avoid(struct tcp_sock *tp, u32 ack, u32 rtt, u32 in_flight, int flag)
 {
+	ack = ack;
+	rtt = rtt;
+	in_flight = in_flight;
+	flag = flag;
+
 	if (tp->snd_cwnd < tp->snd_ssthresh) {
 		tp->snd_cwnd++;
 	} else {

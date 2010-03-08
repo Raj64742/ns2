@@ -566,9 +566,7 @@ private:
 	double txtime(Packet *p);
 	double txtime(double psz, double drt);
 	double txtime(double psz, int mod_scheme);
-	double txtime(int bytes) { /* clobber inherited txtime() */
-		abort();
-	}
+	double txtime(int bytes);
 
 	inline void inc_cw() {
 		cw_ = (cw_ << 1) + 1;

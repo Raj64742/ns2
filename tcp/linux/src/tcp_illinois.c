@@ -224,7 +224,7 @@ static void update_params(struct sock *sk)
 	struct tcp_sock *tp = tcp_sk(sk);
 	struct illinois *ca = inet_csk_ca(sk);
 
-	if (tp->snd_cwnd < win_thresh) {
+	if (tp->snd_cwnd < (__u32)win_thresh) {
 		ca->alpha = ALPHA_BASE;
 		ca->beta = BETA_BASE;
 	} else if (ca->cnt_rtt > 0) {
@@ -260,6 +260,9 @@ static void tcp_illinois_state(struct sock *sk, u8 new_state)
 static void tcp_illinois_cong_avoid(struct sock *sk, u32 ack, u32 rtt,
 				    u32 in_flight, int flag)
 {
+	rtt = rtt;
+	flag = flag;
+
 	struct tcp_sock *tp = tcp_sk(sk);
 	struct illinois *ca = inet_csk_ca(sk);
 
@@ -307,6 +310,8 @@ static u32 tcp_illinois_ssthresh(struct sock *sk)
 static void tcp_illinois_info(struct sock *sk, u32 ext,
 			      struct sk_buff *skb)
 {
+	skb = skb;
+
 	const struct illinois *ca = inet_csk_ca(sk);
 
 	if (ext & (1 << (INET_DIAG_VEGASINFO - 1))) {

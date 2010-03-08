@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/Decapsulator.h,v 1.3 2000/09/01 03:04:04 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/Decapsulator.h,v 1.4 2010/03/08 05:54:49 tom_henderson Exp $
  */
 
 #ifndef ns_Decapsulator_h
@@ -43,7 +43,7 @@
 class Decapsulator : public Agent {
 public:
 	Decapsulator();
-        static Packet* const decapPacket(Packet* const p); //return pointer to the encapsulated packet
+        static Packet* decapPacket(Packet* const p); //return pointer to the encapsulated packet
 protected:
 	void recv(Packet*, Handler* callback = 0);
 // 	nsaddr_t src_;        //bound variables: real source of a packet

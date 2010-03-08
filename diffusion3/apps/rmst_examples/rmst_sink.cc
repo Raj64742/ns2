@@ -3,7 +3,7 @@
 // authors         : Fred Stann
 //
 // Copyright (C) 2003 by the University of Southern California
-// $Id: rmst_sink.cc,v 1.3 2005/09/13 04:53:46 tomh Exp $
+// $Id: rmst_sink.cc,v 1.4 2010/03/08 05:54:49 tom_henderson Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -64,7 +64,7 @@ int RmstSink::command(int argc, const char*const* argv)
 
 #endif // NS_DIFFUSION
 
-void RmstSnkReceive::recv(NRAttrVec *data, NR::handle my_handle)
+void RmstSnkReceive::recv(NRAttrVec *data, NR::handle )
 {
   NRSimpleAttribute<int> *rmst_id_attr = NULL;
   NRSimpleAttribute<void *> *data_buf_attr = NULL;

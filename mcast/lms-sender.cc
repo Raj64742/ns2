@@ -2,7 +2,7 @@
 /*
  * lms-sender.cc
  * Copyright (C) 2001 by the University of Southern California
- * $Id: lms-sender.cc,v 1.5 2006/02/21 15:20:19 mahrenho Exp $
+ * $Id: lms-sender.cc,v 1.6 2010/03/08 05:54:52 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -147,7 +147,7 @@ LmsSender::LmsSender(): Agent(PT_LMS), seqno_(-1)
 //
 // Send a data packet
 //
-void LmsSender::sendmsg(int nbytes, const char* flags)
+void LmsSender::sendmsg(int nbytes, const char* )
 {
 	Packet*   p = allocpkt ();
 	hdr_ip* ih = HDR_IP(p);

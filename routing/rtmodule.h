@@ -2,7 +2,7 @@
 
 /*
  * Copyright (C) 2000 by the University of Southern California
- * $Id: rtmodule.h,v 1.15 2005/08/25 18:58:12 johnh Exp $
+ * $Id: rtmodule.h,v 1.16 2010/03/08 05:54:53 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -45,7 +45,7 @@
  */
 
 /*
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/rtmodule.h,v 1.15 2005/08/25 18:58:12 johnh Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/rtmodule.h,v 1.16 2010/03/08 05:54:53 tom_henderson Exp $
  *
  * Definition of RoutingModule, base class for all extensions to routing 
  * functionality in a Node. These modules are meant to be "plugin", and 
@@ -175,7 +175,7 @@ public:
 	LmsRoutingModule() : RoutingModule() {}
 	virtual const char* module_name() const { return "LMS"; }
 	// virtual int command(int argc, const char*const* argv);
-	virtual void add_route(char *dst, NsObject *target){}
+	virtual void add_route(char *dst, NsObject *target);
 };
 
 #endif //  ns_rtmodule_h

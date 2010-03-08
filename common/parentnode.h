@@ -6,7 +6,7 @@
 /*
  * parentnode.h
  * Copyright (C) 2000 by the University of Southern California
- * $Id: parentnode.h,v 1.4 2005/08/25 18:58:02 johnh Exp $
+ * $Id: parentnode.h,v 1.5 2010/03/08 05:54:49 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -67,8 +67,8 @@ public:
 	virtual inline int nodeid() { return nodeid_;}
 	virtual void add_route (char *, NsObject *) {}
 	virtual void delete_route (char *, NsObject *) {}
-	virtual void set_table_size(int nn) {}
-	virtual void set_table_size(int lev, int nn) {}
+	virtual void set_table_size(int nn);
+	virtual void set_table_size(int lev, int nn);
 protected:
   int nodeid_;
   int address_;
