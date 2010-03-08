@@ -9,12 +9,12 @@ ns out, ns-allinone may be easier than getting all the pieces by hand.
  
 Currently the package contains:
   
-- Tcl       Tcl release 8.4.15    (required component)
-- Tk        Tk release 8.4.15     (required component)
-- Otcl      otcl release 1.13    (required component)
-- TclCL     tclcl release 1.19  (required component)
-- Ns        ns release 2.32    (required component)
-- Nam       Nam release 1.13       (optional component)
+- Tcl       Tcl release 8.5.8    (required component)
+- Tk        Tk release 8.5.8     (required component)
+- Otcl      otcl release 1.14    (required component)
+- TclCL     tclcl release 1.20  (required component)
+- Ns        ns release 2.35    (required component)
+- Nam       Nam release 1.14       (optional component)
 - Xgraph    xgraph version 12     (optional component)
 - GT-ITM    Georgia Tech Internetwork
             Topology Modeler      (optional component)
@@ -23,21 +23,17 @@ Currently the package contains:
 - CWEB      CWeb version 1.0 (?)  (optional component)
 - ZLib      zlib version 1.2.3    (optional component) 
 
-2. FEATURES IN ns-allinone-2.32
+2. FEATURES IN ns-allinone-2.35
 -------------------------------
 
 Features in this version include:
- 
-- Self-containing: All installation will be kept in a directory to help
-		   the user manange and use the package. The execution of ns
-		   ns or nam does not need any ther support outside
-		   this directory
 
-- Bugs fixed:      All components inside the package, are the most recent 
-                   versions;
+- Update to Tcl/Tk 8.5 series (becoming the default Tcl/Tk version on
+  many platforms)
 
-- Easy to use :    Only one-line command is needed to build all ns
-		   components
+- Update for Cygwin-1.7.1 release for Windows
+
+- New features for ns-2.35 release (see the ns-2/CHANGES.html file)
 
 3. Installing the package
 --------------------------
