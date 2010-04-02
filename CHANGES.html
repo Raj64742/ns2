@@ -16,11 +16,23 @@ with the most recent changes coming first.
 <hr>
 <h3>ns-2.35 pending</h3>
 <ul>
-<p><li><b>[tomh]</b> Sat Mar  6 16:24:02 EST 2010:
+<p><li><b>[tomh]</b> Fri Apr  2 19:22:43 EDT 2010:
+<br> During long simulations (30-60 minutes), ns would sometimes abort with the
+message "TcpAgent: negative RTO!". The problem was that TcpAgent::t_backoff
+_ was overflowing and becoming negative, since it was doubled each time a b
+ackoff was triggered but maxrto_ prevented the time between doublings from
+growing beyond 60 seconds.   Patch from Michele Weigle.
+<p><li><b>[tomh]</b> Fri Apr  2 15:58:25 EDT 2010:
+This patch adds support for using one-way TcpAgents with the Tmix traffic g
+enerator, which previously only worked with FullTcp agents.
+This patch also includes the relevant updates to documentation (doc/tmix.te
+x), examples (tcl/ex/tmix/text-tmix-oneway.tcl), and tests
+(tcl/test/test-suite-tmix.tcl; tcl/test/test-output/tmix/).
+<p><li><b>[tomh]</b> Fri Apr  2 15:53:56 EDT 2010:
 <br> Protocol for Unified Multicasting Through Announcements (PUMA) 
 has been added.  PUMA is a distributed, receiver initiated, mesh based 
 multicast routing protocol.  It is documented in the "Mobile Networking in ns"
-chapter in the ns-2 manual.
+chapter in the ns-2 manual.  From Sidney Doria.
 <p><li><b>[tomh]</b> Sun Nov 15 21:50:00 2009:
 <br> A new SCTP patch from Nasif Ekiz and the University of Delaware team.
 <ul>
