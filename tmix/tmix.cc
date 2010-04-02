@@ -42,6 +42,7 @@
 #include "lib/bsd-list.h"
 #include "tcp-full.h"
 #include "tmix.h"
+#include "tmixAgent.h"
 
 /*:::::::::::::::::::::::::: ADU class :::::::::::::::::::::::::::*/
 
@@ -115,13 +116,16 @@ public:
 Tmix::Tmix() :
 	TclObject(), timer_(this), next_init_ind_(0), 
 	next_acc_ind_(0), total_nodes_(0), current_node_(0), outfp_(NULL),
-	cvfp_(NULL), ID_(-1), run_(0), debug_(0),pkt_size_(1460),step_size_(1000),
-       	warmup_(0),active_connections_(0), total_connections_(0), total_apps_(0),
-	running_(false)
+	cvfp_(NULL), ID_(-1), run_(0), debug_(0), pkt_size_(500), step_size_(1000),
+       	warmup_(0), active_connections_(0), total_connections_(0), total_apps_(0),
+	running_(false), agentType_(FULL)
 {
+	pkt_size_ = 1460;
+
 	connections_.clear();
 	line[0] = '#';
 	strcpy (tcptype_, "Reno");
+	strcpy (sinktype_, "default");
 
 	for (int i=0; i<MAX_NODES; i++) {
 		acceptor_[i] = NULL;
@@ -167,7 +171,7 @@ Tmix::~Tmix()
 	}
 
 	/* delete agents in the pool */
-	FullTcpAgent* tcp;
+	TmixAgent* tcp;
 	while (!tcpPool_.empty()) {
 		tcp = tcpPool_.front();
 		tcl.evalf ("delete %s", tcp->name());
@@ -183,14 +187,12 @@ Tmix::~Tmix()
 		fclose (cvfp_);
 }
 
-FullTcpAgent* Tmix::picktcp()
+TmixAgent* Tmix::picktcp()
 {
-	FullTcpAgent* a;
-	Tcl& tcl = Tcl::instance();
+	TmixAgent* a;
 
 	if (tcpPool_.empty()) {
-		tcl.evalf ("%s alloc-tcp %s", name(), tcptype_);
-		a = (FullTcpAgent*) lookup_obj (tcl.result());
+		a = agentFactory(this, tcptype_, sinktype_);
 		if (a == NULL) {
 			fprintf (stderr, "Failed to allocate a TCP agent\n");
 			abort();
@@ -252,15 +254,59 @@ TmixApp* Tmix::pickApp()
 	return a;
 }
 
+int Tmix::crecycle(Agent* tcp) {
+	unsigned long cvid = -1;
+	/* Wait to recycle until peer is done */
+	/* find app associated with this agent */
+	map<string, TmixApp*>::iterator iter = 
+		appActive_.find(tcp->name());
+	
+	if (iter != appActive_.end()) {
+		TmixApp* app = iter->second;
+		TmixApp* peer_app = app->get_peer();
+		TmixAgent* agent = app->get_tmix_agent();
+		TmixAgent* peer_agent = peer_app->get_tmix_agent();
+		app->stop();   /* indicate app is done */
+		cvid = app->get_cv()->get_ID();
+		if (!app->get_running() && !peer_app->get_running()) {
+			/* remove apps from active pools 
+			   and put in inactive pools */
+			if (debug_ > 1) {
+				fprintf (stderr, 
+					 "App (%s)> DONE at %f\n", 
+					 app->id_str(), now());
+			}
+			
+			/* delete the ConnVector associated
+			   with the apps */
+			connections_.remove(app->get_cv());
+			delete app->get_cv();
+			
+			/* recycle everything */
+			recycle (agent);
+			recycle (peer_agent);
+			recycle (app);
+			recycle (peer_app);
+		}
+		else {
+			return(TCL_OK); 
+		}
+	}
+	if (debug_ > 1) {
+		fprintf(stderr, "\n%f Finished: %lu", now(), cvid);
+	}
+	active_connections_--;  
+	return (TCL_OK);
+}
 
-void Tmix::recycle(FullTcpAgent* agent)
+void Tmix::recycle(TmixAgent* agent)
 {
 	if (agent == NULL) {
 		fprintf (stderr, "Tmix::recycle> agent is null\n");
 		return;
 	}
 
-	/* reinitialize FullTcp agent */
+	/* reinitialize agent */
 	agent->reset();
 
 	/* add to the inactive agent pool */
@@ -336,7 +382,6 @@ void Tmix::setup_connection ()
  * Setup a new connection, including creation of Agents and Apps
  */
 {
-	Tcl& tcl = Tcl::instance();
 	ConnVector* cv = get_current_cvec();
 
 	/* incr count of connections */
@@ -351,8 +396,8 @@ void Tmix::setup_connection ()
 	}
         
 	/* pick tcp agent for initiator and acceptor */
-	FullTcpAgent* init_tcp = picktcp();
-	FullTcpAgent* acc_tcp = picktcp();
+	TmixAgent* init_tcp = picktcp();
+	TmixAgent* acc_tcp = picktcp();
 
 	/* rotate through nodes assigning connections */
 	current_node_++;
@@ -360,20 +405,42 @@ void Tmix::setup_connection ()
 		current_node_ = 0;
 
 	/* attach agents to nodes (acceptor_ init_) */
-	tcl.evalf ("%s attach %s", acceptor_[current_node_]->name(), 
-		   acc_tcp->name());
-	tcl.evalf ("%s attach %s", initiator_[current_node_]->name(), 
-		   init_tcp->name());
+	init_tcp->attachToNode(initiator_[current_node_]);
+	acc_tcp->attachToNode(acceptor_[current_node_]);
+
+	if (debug_ > 2) {
+		if (agentType_ == FULL) {
+			// link node.port to cvec global id
+			fprintf(stderr, "%f GID-NODE-PORT: %lu %d.%d -> %d.%d\n", 
+				now(),  cv->get_ID(), 
+				initiator_[current_node_]->nodeid(), 
+				init_tcp->port(), 
+				acceptor_[current_node_]->nodeid(), 
+				acc_tcp->port());
+		} else {
+			// link node.port to cvec global id
+			fprintf(stderr, "%f GID-NODE-PORT: %lu %d.%d -> %d.%d  %d.%d -> %d.%d\n",
+				now(),  cv->get_ID(), 
+				initiator_[current_node_]->nodeid(), 
+				init_tcp->port(), 
+				acceptor_[current_node_]->nodeid(), 
+				(dynamic_cast<TmixOneWayAgent*>(acc_tcp))->getSink()->port(), 
+				acceptor_[current_node_]->nodeid(),
+				acc_tcp->port(),
+				initiator_[current_node_]->nodeid(),
+				(dynamic_cast<TmixOneWayAgent*>(init_tcp))->getSink()->port());
+		} 
+	}
+
 
 	/* set TCP options */
-	tcl.evalf ("%s setup-tcp %s %d %d", name(), acc_tcp->name(), 
-		   total_connections_, cv->get_acc_win());
-	tcl.evalf ("%s setup-tcp %s %d %d", name(), init_tcp->name(), 
-		   total_connections_, cv->get_init_win());
+	init_tcp->configureTcp(this, cv->get_init_win());
+	acc_tcp->configureTcp(this, cv->get_acc_win());
 
-	/* setup connection between initiator and acceptor */
-	tcl.evalf ("set ns [Simulator instance]");
-	tcl.evalf ("$ns connect %s %s", init_tcp->name(), acc_tcp->name());
+	/* connect initiator and acceptor in this way since we may be
+         * from an agent as source to an agent as sink instead of from 
+	 * a fulltcp agent to another fulltcp agent */
+	init_tcp->connect(acc_tcp);
 
 	/* create TmixApps and put in active list */
 	TmixApp* init_app = pickApp();
@@ -384,9 +451,15 @@ void Tmix::setup_connection ()
 
 	/* attach TCPs to TmixApps */
 	init_tcp->attachApp((Application*) init_app);
-	init_app->set_agent(init_tcp);
+	init_app->set_agent(init_tcp->getAgent());
 	acc_tcp->attachApp((Application*) acc_app);
-	acc_app->set_agent(acc_tcp);
+	acc_app->set_agent(acc_tcp->getAgent());
+
+	/*
+	 * Combine this functionality with set_agent
+	 */
+	init_app->set_tmix_agent(init_tcp);
+	acc_app->set_tmix_agent(acc_tcp);
 
 	/* associate these peers with each other */
 	init_app->set_peer(acc_app);
@@ -959,6 +1032,22 @@ int Tmix::command(int argc, const char*const* argv) {
 			strcpy (tcptype_, argv[2]);
 			return (TCL_OK);
 		}
+		else if (!strcmp (argv[1], "set-sink")) {
+			strcpy (sinktype_, argv[2]);
+			return (TCL_OK);
+		}
+		else if (strcmp(argv[1],"set-agent-type") == 0) {
+			if (strcmp(argv[2], "full") == 0) {
+				agentType_ = FULL;
+				pkt_size_ = 1460;
+			}
+			else if (strcmp (argv[2], "one-way") == 0){
+				agentType_ = ONE_WAY;
+				pkt_size_ = 500;
+			}
+			return (TCL_OK);
+			
+		}
 		else if(strcmp(argv[1],"set-pkt-size")==0) {
 			pkt_size_ = atoi(argv[2]);
 			return(TCL_OK);
@@ -968,48 +1057,8 @@ int Tmix::command(int argc, const char*const* argv) {
 			return(TCL_OK);
 		}
 		else if (strcmp (argv[1], "recycle") == 0) {
-			FullTcpAgent* tcp = (FullTcpAgent*) 
-				lookup_obj(argv[2]);
-			
-			/* Wait to recycle until peer is done */
-
-			/* find app associated with this agent */
-			map<string, TmixApp*>::iterator iter = 
-				appActive_.find(tcp->name());
-			if (iter != appActive_.end()) {
-				TmixApp* app = iter->second;
-				TmixApp* peer_app = app->get_peer();
-				app->stop();   /* indicate app is done */
-				if (!app->get_running() && 
-				  !peer_app->get_running()) {
-					FullTcpAgent* peer_tcp = 
-						(FullTcpAgent*) lookup_obj 
-						(peer_app->get_agent_name());
-					/* remove apps from active pools 
-					   and put in inactive pools */
-					if (debug_ > 1)
-						fprintf (stderr, 
-						 "App (%s)> DONE at %f\n", 
-							 app->id_str(), now());
-
-					/* delete the ConnVector associated
-					   with the apps */
-					connections_.remove(app->get_cv());
-					delete app->get_cv();
-
-					/* recycle everything */
-					recycle ((FullTcpAgent*) tcp);
-					recycle ((FullTcpAgent*) peer_tcp);
-					recycle (app);
-					recycle (peer_app);
-				}
-				else {
-					return(TCL_OK); 
-				}
-			}
-                             
-			active_connections_--;  
-			return (TCL_OK);
+			Agent* tcp = (Agent*) lookup_obj(argv[2]);
+			return crecycle(tcp);
 		}
 	}
 	return TclObject::command(argc, argv);
@@ -1152,6 +1201,9 @@ void TmixApp::start()
 	ADU_ind_ = 0;
 
 	get_agent()->listen();
+	if (sink_ != NULL) {
+		sink_->listen();
+	}
 	if (mgr_->debug() > 3) {
 		fprintf (stderr, "App (%s)> listening\n", id_str());
 	}
@@ -1204,6 +1256,9 @@ void TmixApp::timeout()
 			fprintf (stderr,"App (%s)> closing connection at %f\n",
 				 id_str(), mgr_->now());
 		}
+		if (tmixAgent_->getType() == ONE_WAY) {
+			mgr_->crecycle(agent_);
+		}
 		return;
 	} 
 
@@ -1214,6 +1269,9 @@ void TmixApp::timeout()
 			fprintf (stderr, 
 				 "App (%s)> last ADU (skipped FIN) at %f\n",
 				 id_str(), mgr_->now());
+		}
+		if (tmixAgent_->getType() == ONE_WAY) {
+			mgr_->crecycle(agent_);
 		}
 		sent_last_ADU_ = true;
 		return;
@@ -1253,6 +1311,9 @@ void TmixApp::timeout()
 				fprintf (stderr, "\n");
 			}
 		}
+		if (tmixAgent_->getType() == ONE_WAY) {
+			mgr_->crecycle(agent_);
+		}
 		return;
 	}
 
@@ -1284,6 +1345,12 @@ void TmixApp::recv(int bytes)
 	double recv_wait;
 	ADU* adu;
 
+	if (tmixAgent_->getType() == ONE_WAY) {
+		if (bytes == 40) 
+			return;
+		bytes = bytes - 40;
+	}
+
 	/* we've received a packet */
 	if (mgr_->debug() > 4)
 		fprintf (stderr, "App (%s)> received %d B at %f\n",
@@ -1297,7 +1364,13 @@ void TmixApp::recv(int bytes)
 				 "App (%s)> received total %d B at %f\n",
 				 id_str(), expected_bytes_, mgr_->now());
 
-		total_bytes_ -= expected_bytes_;
+		if (tmixAgent_->getType() == ONE_WAY) {
+			// one-way won't give us the exact number of 
+			// expected bytes because of constant pktsz
+			total_bytes_ = 0;
+		} else {
+			total_bytes_ -= expected_bytes_;
+		}
 		expected_bytes_ = 0;
 
 		if (mgr_->debug() > 3 && total_bytes_ > 0) {

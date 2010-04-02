@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.130 2007/09/29 01:07:22 sallyfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.131 2010/04/02 19:58:25 tom_henderson Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -184,6 +184,8 @@ public:
 
 	void trace(TracedVar* v);
 	virtual void advanceby(int delta);
+
+	virtual void reset();
 protected:
 	virtual int window();
 	virtual double windowd();
@@ -226,7 +228,6 @@ protected:
 	void ecn(int seqno);		/* react to quench */
 	virtual void set_initial_window();	/* set IW */
 	double initial_window();		/* what is IW? */
-	void reset();
 	void newack(Packet*);
 	void finish(); /* called when the connection is terminated */
 	int network_limited();	/* Sending limited by network? */

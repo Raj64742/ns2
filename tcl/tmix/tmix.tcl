@@ -27,17 +27,56 @@
  #
  # Contact: Michele Weigle (mweigle@cs.odu.edu)
 
+#
+# ONE-WAY TCP FUNCTIONS
+#
+
+# one-way TCP agent allocation 
+Tmix instproc alloc-agent {tcptype} {
+    if {$tcptype != "Tahoe"} {
+	return [new Agent/TCP/$tcptype]
+    } else {
+	# Tahoe is the default in one-way TCP
+	return [new Agent/TCP]
+    }
+}
+
+# one-way TCP sink allocation
+Tmix instproc alloc-sink {sinktype} {
+    if {$sinktype != "default"} {
+	return [new Agent/TCPSink/$sinktype]
+    } else {
+	return [new Agent/TCPSink]
+    }
+}
+
+Tmix instproc configure-sink {sink} {
+    $sink set packetSize_ 40
+}
+
+Tmix instproc configure-source {agent fid wnd} {
+    # set flow ID, max window, and packet size
+    $agent set fid_ $fid
+    $agent set window_ $wnd
+    $agent set packetSize_ 500
+}
+
+#
+# FULL TCP FUNCTIONS
+#
+
+# Full TCP agent allocation
 Tmix instproc alloc-tcp {tcptype} {
     if {$tcptype != "Reno"} {
-	set tcp [new Agent/TCP/FullTcp/$tcptype]
+	return [new Agent/TCP/FullTcp/$tcptype]
     } else {
-	set tcp [new Agent/TCP/FullTcp]
+	# Reno is the default in Full-TCP
+	return [new Agent/TCP/FullTcp]
     }
-    return $tcp
 }
 
 Tmix instproc setup-tcp {tcp fid wnd} {
-    # set flow ID
+    # set flow ID and max window
     $tcp set fid_ $fid
     $tcp set window_ $wnd
 
@@ -45,8 +84,11 @@ Tmix instproc setup-tcp {tcp fid wnd} {
     $tcp proc done {} "$self done $tcp"
 }
 
-# These need to be here so that we can attach the
-# apps to a node (done in Tcl code)
+#
+# HELPER FUNCTIONS
+#
+
+# This is here so that we can attach the apps to a node
 Tmix instproc alloc-app {} {
     return [new Application/Tmix]
 }

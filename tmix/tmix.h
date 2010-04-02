@@ -50,6 +50,7 @@
 #include <map>
 #include <vector>
 #include <list>
+#include "tmixAgent.h"
 
 #define MAX_NODES 10 
 
@@ -68,6 +69,7 @@ class TmixTimer;
 class TmixApp;
 class ADU;
 class ConnVector;
+class TmixAgent;
 
 /*:::::::::::::::::::::::::: ADU class :::::::::::::::::::::::::::*/
 
@@ -191,9 +193,9 @@ protected:
 class TmixApp : public Application {
 public:
 	TmixApp() : Application(), id_(0), ADU_ind_(0), running_(false), 
-			total_bytes_(0), expected_bytes_(0), timer_(this), 
-			peer_(NULL), cv_(NULL), mgr_(NULL),
-	                sent_last_ADU_(false), waiting_to_send_(false) {}
+		    total_bytes_(0), expected_bytes_(0), timer_(this), 
+		    peer_(NULL), cv_(NULL), mgr_(NULL), sink_(NULL),
+		    sent_last_ADU_(false), waiting_to_send_(false) {}
 	~TmixApp();
 	void timeout();
 	void stop();
@@ -207,6 +209,8 @@ public:
 	inline unsigned long get_id () {return id_;}
 	inline bool get_running(){return running_;}
 	inline Agent* get_agent(){return agent_;}
+	inline TmixAgent* get_tmix_agent(){return tmixAgent_;}
+	inline void set_tmix_agent(TmixAgent* tmixAgent) {tmixAgent_ = tmixAgent;}
 	inline bool get_type() {return type_;}
 	inline int get_expected_bytes() {return expected_bytes_;}
 	inline unsigned long get_global_id() {return cv_->get_ID();}
@@ -217,6 +221,7 @@ public:
 
 	inline void set_peer(TmixApp* peer) {peer_ = peer;}
 	inline void set_agent(Agent* tcp) {agent_ = tcp;}
+	inline void set_sink(Agent * s) { sink_ = s; }
 	inline void set_mgr(Tmix* mgr) {mgr_ = mgr;}
 	inline void set_id (unsigned long id) {id_ = id;}
 	inline void set_expected_bytes (int bytes) {expected_bytes_ = bytes;}
@@ -238,6 +243,7 @@ protected:
 	vector<ADU*>::iterator ADU_iter_; 
 	int ADU_ind_;              /* index into the ADU vector */
 	bool running_;
+	TmixAgent* tmixAgent_;
 
 	bool type_;                /* initiator or acceptor */
            
@@ -248,6 +254,7 @@ protected:
 	TmixApp* peer_;            /* pointer to the other side (init or acc */
 	ConnVector* cv_;           /* pointer to the connection vector */
 	Tmix* mgr_;       
+	Agent* sink_;
 
 	bool sent_last_ADU_;       /* sent the last ADU? */
 	bool waiting_to_send_;     /* waiting to send something? */
@@ -261,6 +268,7 @@ public:
 	~Tmix();
 
 	void recycle (TmixApp*);
+	int crecycle(Agent* tcp);
 	void stop();
 	void setup_connection();
   
@@ -279,10 +287,12 @@ public:
 	inline void init_next_active() {next_active_ = connections_.begin();}
 	void incr_next_active();
 
+	inline int getAgentType() { return agentType_; }
+
 protected:
 	virtual int command (int argc, const char*const* argv);
 	void start();
-	void recycle (FullTcpAgent*);
+	void recycle (TmixAgent*);
 
 	ConnVector* read_one_cvec();
 	ConnVector* read_one_cvec_v1();
@@ -291,7 +301,7 @@ protected:
 		unsigned long last_time_value, unsigned long last_initiator_time_value,
 		unsigned long last_acceptor_time_value, bool pending_initiator, bool pending_acceptor);
 
-	FullTcpAgent* picktcp();
+	TmixAgent* picktcp();
 	TmixApp* pickApp();	
 
 	TmixTimer timer_;
@@ -307,7 +317,8 @@ protected:
 	char line[CVEC_LINE_MAX];
 	Node* initiator_[MAX_NODES];
 	Node* acceptor_[MAX_NODES];
-	char tcptype_[20];         /* {Reno, Tahoe, NewReno, SACK} */
+	char tcptype_[20];         /* {Reno, Tahoe, Newreno, Sack, ...} */
+	char sinktype_[20];        /* {DelAck, Sack1, ...} */
 	FILE* outfp_;
 	FILE* cvfp_;               /* connection vector file pointer */
 	int ID_;                   /* tmix cloud ID */
@@ -324,6 +335,8 @@ protected:
 
 	bool running_;              /* start new connections? */
 
+	int agentType_;
+
 	TclObject* lookup_obj(const char* name) {
 		TclObject* obj = Tcl::instance().lookup(name);
 		if (obj == NULL) 
@@ -332,7 +345,7 @@ protected:
 	}
 
 	/* Agent and App Pools */
-	queue<FullTcpAgent*> tcpPool_;
+	queue<TmixAgent*> tcpPool_;
 	queue<TmixApp*> appPool_;
 
 	/* string = tcpAgent's name */

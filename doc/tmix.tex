@@ -269,8 +269,8 @@ Tmix is an ns object that drives the generation of TCP traffic. Each
 Tmix object controls the operation of two applications: a Tmix
 Application used to simulate a TCP connection acceptor and a Tmix
 Application used to simulate a TCP connection initiator. Each of these
-applications is connected to a TCP Agent (Full-TCP).  {\bf Note:} Tmix
-currently only supports Full-TCP agents, but one-way TCP support is under development.
+applications is connected to a TCP Agent. Tmix supports both Full-TCP
+and one-way TCP agents (see the {\tt set-agent-type} command).
 
 Each initiator or acceptor cloud is represented by a single ns node
 that can produce and consume multiple TCP connections at a time
@@ -373,13 +373,13 @@ the simulated link. To simulate network-level effects of TCP transfer
 through the clouds, use Tmix\_DelayBox. Tmix\_DelayBox is derived from
 DelayBox (Chapter \ref{chap:delaybox}).  Tmix\_DelayBox simply adds
 the ability to specify delays and losses for each connection using a
-connection vector file instead of making setting up rules for each
+connection vector file instead of setting up rules for each
 source-destination pair.  After a connection vector file is specified,
 Tmix\_DelayBox parses each connection vector to obtain the loss rate and
 delay, which are written into the DelayBox flow table.  Note that the current version of Tmix\_DelayBox does not allow bandwidth limitations as does DelayBox, but that future versions may support this.
 
 \section{Example}
-The following is an example of using Tmix and Tmix\_DelayBox.  Another example can be found at {\tt tcl/ex/tmix/test-tmix.tcl}.  The
+The following is an example of using Tmix and Tmix\_DelayBox.  Another example can be found at {\tt tcl/ex/tmix/test-tmix.tcl}.  An example using one-way TCP instead of Full-TCP agents can be found at {\tt tcl/ex/tmix/test-tmix-oneway.tcl}.  The
 validation script {\tt test-suite-tmix.tcl} is in {\tt tcl/test/} and
 can be run with the command {\tt test-all-tmix} from that directory.
 
@@ -515,8 +515,13 @@ Set the debugging level:
 Sets at what time output should start.  Only used with {\tt set outfile}.
 
 {\tt \$tmix set-TCP <protocol>}\\
-Sets the TCP type (Reno, Newreno, or Sack) for all connections in the
-client and server clouds - Reno is the default
+Sets the TCP type for all connections in the client and server clouds. In one-way mode, Tahoe is the default; for Full-TCP, Reno is the default. When this is set, the actual agent class used is ``Agent/TCP/FullTcp/<protocol>'' for Full-TCP, and ``Agent/TCP/<protocol>'' for one-way TCP.
+
+{\tt \$tmix set-sink <name>}\\
+Sets the type of TCPSink used. The default value is ``default'', meaning Agent/TCPSink. When this is set, the actual class used is ``Agent/TCPSink/<name>''. This setting is for one-way TCP; it has no effect in Full-TCP mode.
+
+{\tt \$tmix set-agent-type <name>}\\
+Possible values are ``full'' and ``one-way''. The default mode is Full-TCP. This affects the types of the TCP agents used: see the set-TCP and set-sink commands.
 
 {\tt \$tmix set-pkt-size <int>}\\
 Size of packets to construct and send (TCP MSS)
