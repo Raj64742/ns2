@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.46 2008/12/21 23:33:05 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.47 2010/04/03 20:40:15 tom_henderson Exp $
 #
 # To run all tests: test-all-ecn
 
@@ -46,6 +46,8 @@ Queue/RED set bytes_ false
 # default changed on 10/11/2004.
 Queue/RED set queue_in_bytes_ false
 # default changed on 10/11/2004.
+Agent/TCPSink set SYN_immediate_ack_ false
+# default changed 02/2010.
 
 
 set flowfile fairflow.tr; # file where flow data is written

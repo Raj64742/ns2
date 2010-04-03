@@ -15,7 +15,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rbp.tcl,v 1.15 2006/01/24 23:00:07 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rbp.tcl,v 1.16 2010/04/03 20:40:15 tom_henderson Exp $
 #
 
 #
@@ -46,6 +46,9 @@ Agent/TCP set singledup_ 0
 Agent/TCP set syn_ false
 Agent/TCP set delay_growth_ false
 # In preparation for changing the default values for syn_ and delay_growth_.
+
+Agent/TCPSink set SYN_immediate_ack_ false
+# The default was changed to true 2010/02.
 
 proc usage {} {
 	puts stderr {usage: ns test-suite-rbp.tcl test [QUIET]

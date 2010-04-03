@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.44 2006/01/25 22:02:05 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.45 2010/04/03 20:40:15 tom_henderson Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -973,6 +973,9 @@ Test/reno4 instproc run {} {
 
 	$self tcpDump $tcp1 1.0
 
+    # DelAckSink's default behavior changed 2010-02-02
+	[$node_(r2) agent [$tcp1 dst-port]] set SYN_immediate_ack_ false
+
 	# Trace only the bottleneck link
 	$self traceQueues $node_(s1) [$self openTrace 2.0 $testName_]
 	$ns_ run
@@ -1003,6 +1006,9 @@ Test/reno4a instproc run {} {
 	$ns_ at 0.0 "$ftp1 start"
 
 	$self tcpDump $tcp1 1.0
+
+    # DelAckSink's default behavior changed 2010-02-02
+	[$node_(r2) agent [$tcp1 dst-port]] set SYN_immediate_ack_ false
 
 	# Trace only the bottleneck link
 	$self traceQueues $node_(s1) [$self openTrace 4.0 $testName_]
@@ -1133,6 +1139,7 @@ Test/delayed instproc run {} {
 	$self traceQueues $node_(r1) [$self openTrace 4.0 $testName_]
 	$ns_ run
 }
+
 
 Class Test/phase -superclass TestSuite
 Test/phase instproc init topo {
@@ -1279,6 +1286,10 @@ Test/timers instproc run {} {
 	$tcp2 set window_ 4
 	# look up the sink and set its delay interval
 	[$node_(k1) agent [$tcp2 dst-port]] set interval_ 100ms
+
+    # DelAckSink's default behavior changed 2010-02-02
+	[$node_(k1) agent [$tcp1 dst-port]] set SYN_immediate_ack_ false
+	[$node_(k1) agent [$tcp2 dst-port]] set SYN_immediate_ack_ false
 
 	set ftp1 [$tcp1 attach-app FTP]
 	set ftp2 [$tcp2 attach-app FTP]

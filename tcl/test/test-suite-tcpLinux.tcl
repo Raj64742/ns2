@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpLinux.tcl,v 1.2 2008/02/06 09:45:17 seashadow Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpLinux.tcl,v 1.3 2010/04/03 20:40:15 tom_henderson Exp $
 #
 
 
@@ -46,6 +46,8 @@ Queue/RED set bytes_ false
 # default changed on 10/11/2004.
 Queue/RED set queue_in_bytes_ false
 # default changed on 10/11/2004.
+Agent/TCPSink set SYN_immediate_ack_ false
+# default changed 02/2010.
 
 # Uncomment the line below to use a random seed for the
 #  random number generator.

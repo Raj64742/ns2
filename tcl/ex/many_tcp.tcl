@@ -1,7 +1,7 @@
 
 #
 # many_tcp.tcl
-# $Id: many_tcp.tcl,v 1.18 2000/09/14 18:19:26 haoboy Exp $
+# $Id: many_tcp.tcl,v 1.19 2010/04/03 20:40:14 tom_henderson Exp $
 #
 # Copyright (c) 1998 University of Southern California.
 # All rights reserved.                                            
@@ -621,6 +621,7 @@ Main instproc init {av} {
 		$ns_ gen-map
 	}       
 	Agent/TCP set syn_ true
+    Agent/TCPSink set SYN_immediate_ack_ false ; # Default changed to true 2010/02
 	Agent/TCP set delay_growth_ true
 	Agent/TCP set windowInit_ 1
 	Agent/TCP set windowInitOption_ 1

@@ -123,6 +123,7 @@ protected:
 	int generate_dsacks_;	// used only by sack sinks
 	int qs_enabled_; // to enable QuickStart 
 	int RFC2581_immediate_ack_;	// Used to generate ACKs immediately 
+	int SYN_immediate_ack_; // Used to generate first ACK immediately
 	int bytes_;  	// for JOBS
 					// for RFC2581-compliant gap-filling.
 	double lastreset_; 	/* W.N. used for detecting packets  */

@@ -202,6 +202,7 @@ TcpSink::delay_bind_init_all()
         delay_bind_init_one("generateDSacks_"); // used only by sack
 	delay_bind_init_one("qs_enabled_");
 	delay_bind_init_one("RFC2581_immediate_ack_");
+	delay_bind_init_one("SYN_immediate_ack_");
 	delay_bind_init_one("ecn_syn_");
 #if defined(TCP_DELAY_BIND_ALL) && 0
         delay_bind_init_one("maxSackBlocks_");
@@ -219,6 +220,7 @@ TcpSink::delay_bind_dispatch(const char *varName, const char *localName, TclObje
         if (delay_bind_bool(varName, localName, "generateDSacks_", &generate_dsacks_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "qs_enabled_", &qs_enabled_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "RFC2581_immediate_ack_", &RFC2581_immediate_ack_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "SYN_immediate_ack_", &SYN_immediate_ack_, tracer)) return TCL_OK;
 	if (delay_bind_bool(varName, localName, "ecn_syn_", &ecn_syn_ ,tracer)) return TCL_OK;
 #if defined(TCP_DELAY_BIND_ALL) && 0
         if (delay_bind(varName, localName, "maxSackBlocks_", &max_sack_blocks_, tracer)) return TCL_OK;
@@ -438,6 +440,10 @@ void DelAckSink::recv(Packet* pkt, Handler*)
 			(th->seqno() < acker_->Maxseen())) {
 			// don't delay the ACK since
 			// we're filling in a gap
+		} else if (SYN_immediate_ack_ && (th->seqno() == 0)) {
+			// don't delay the ACK since
+			// we should respond to the connection-setup
+			// SYN immediately
 		} else {
 			// delay the ACK and start the timer.
 	                save_ = pkt;

@@ -785,6 +785,10 @@ source can send in response to a single incoming ACK.
 
 \item[slow\_start\_restart\_]
 Set to 1 to slow-start after the connection goes idle. On by default. 
+
+\item[syn\_]
+Set to false to disable modeling the initial SYN/SYNACK exchange. On by default.
+Note: if this is set to false and the DelAck sink is used, it's advisable to also disable the sink's ``SYN\_immediate\_ack\_'' flag.
 \end{description}
 
 Defined Constants are:
@@ -934,6 +938,17 @@ Configuration Parameters are:
 The amount of time to delay before generating an acknowledgment for a
 single packet. If another packet arrives before this time expires,
 generate an acknowledgment immediately. 
+
+\item[RFC2581\_immediate\_ack\_]
+A boolean flag. If true, conforms to RFC2581 (section 4.2) and only delays
+the ACK if we know we're not doing recovery, i.e. not gap-filling.
+Otherwise all ACKs are delayed. The default value is true.
+
+\item[SYN\_immediate\_ack\_]
+A boolean flag. If true, the first packet in sequence (seqno == 0) is
+always ACKed immediately. This simulates the behavior of the FullTCP
+agent, which ACKs a SYN immediately. The default value is true.
+See also the ``syn\_'' flag of the one-way TcpAgent.
 \end{description}
 
 
