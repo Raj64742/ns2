@@ -16,6 +16,13 @@ with the most recent changes coming first.
 <hr>
 <h3>ns-2.35 pending</h3>
 <ul>
+<p><li><b>[tomh]</b> Sat Apr  3 16:40:13 EDT 2010:
+<br> Added the SYN_immediate_ack flag so that a DelAckSink agent will 
+immediately ACK the first (SYN) packet sent by a TcpAgent. The patch contains 
+changes to tcp-sink.{cc,h}, ns-default.tcl, and affected validation tests. 
+All validation tests that use the syn_ in TcpAgent were set to 
+SYN_immediate_ack = false except for the delayed test in test-suite-simple.tcl. 
+Patch from Michele Weigle.
 <p><li><b>[tomh]</b> Fri Apr  2 19:22:43 EDT 2010:
 <br> During long simulations (30-60 minutes), ns would sometimes abort with the
 message "TcpAgent: negative RTO!". The problem was that TcpAgent::t_backoff
