@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.105 2010/03/08 05:54:49 tom_henderson Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.106 2010/04/06 05:09:01 tom_henderson Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -185,8 +185,19 @@ static const packet_t PT_AOMDV = 61;
         // PUMA packet
 static const packet_t PT_PUMA = 62;
 
+        // DCCP packets
+static const packet_t PT_DCCP = 63;
+static const packet_t PT_DCCP_REQ = 64;
+static const packet_t PT_DCCP_RESP = 65;
+static const packet_t PT_DCCP_ACK = 66;
+static const packet_t PT_DCCP_DATA = 67;
+static const packet_t PT_DCCP_DATAACK = 68;
+static const packet_t PT_DCCP_CLOSE  = 69;
+static const packet_t PT_DCCP_CLOSEREQ = 70;
+static const packet_t PT_DCCP_RESET = 71;
+
         // insert new packet types here
-static packet_t       PT_NTYPE = 63; // This MUST be the LAST one
+static packet_t       PT_NTYPE = 72; // This MUST be the LAST one
 
 enum packetClass
 {
@@ -251,7 +262,7 @@ public:
 		if (type == PT_DSR || 
 		    type == PT_MESSAGE || 
 		    type == PT_TORA ||
-                    type == PT_PUMA ||
+		    type == PT_PUMA ||
 		    type == PT_AODV)
 			return ROUTING;		
 		if (type == PT_TCP || 
@@ -387,8 +398,19 @@ public:
 		// AOMDV patch
 		name_[PT_AOMDV]= "AOMDV";
 
-                // PUMA
-                name_[PT_PUMA]="PUMA";
+		// PUMA
+		name_[PT_PUMA]="PUMA";
+
+		// DCCP
+		name_[PT_DCCP]="DCCP";
+		name_[PT_DCCP_REQ]="DCCP_Request";
+		name_[PT_DCCP_RESP]="DCCP_Response";
+		name_[PT_DCCP_ACK]="DCCP_Ack";
+		name_[PT_DCCP_DATA]="DCCP_Data";
+		name_[PT_DCCP_DATAACK]="DCCP_DataAck";
+		name_[PT_DCCP_CLOSE]="DCCP_Close";
+		name_[PT_DCCP_CLOSEREQ]="DCCP_CloseReq";
+		name_[PT_DCCP_RESET]="DCCP_Reset";
 
 		name_[PT_NTYPE]= "undefined";
 	}
@@ -398,7 +420,7 @@ public:
 		for(unsigned int i = 0; i < nPkt_; i++)
 		{
 		        if(strcmp(name, name_[i]) == 0)
-		                return i;
+				return i;
 		}
 		return PT_NTYPE;
 
@@ -713,11 +735,34 @@ inline Packet* Packet::alloc(int n)
 	return (p);
 }
 
+#include "dccp/dccp_packets.h"
 
 inline void Packet::free(Packet* p)
 {
+        hdr_dccp *dccph;
 	if (p->fflag_) {
 		if (p->ref_count_ == 0) {
+ 
+                        //free DCCP options on dropped packets
+                        switch (HDR_CMN(p)->ptype_){
+                        case PT_DCCP:
+                        case PT_DCCP_REQ:
+                        case PT_DCCP_RESP:
+                        case PT_DCCP_ACK:
+                        case PT_DCCP_DATA:
+                        case PT_DCCP_DATAACK:
+                        case PT_DCCP_CLOSE:
+                        case PT_DCCP_CLOSEREQ:
+                        case PT_DCCP_RESET:
+                                dccph = hdr_dccp::access(p);
+                                if (dccph->options_ != NULL){
+                                        delete (dccph->options_);
+                                }
+                                break;
+                        default:
+                                ;
+                        }
+
 			/*
 			 * A packet's uid may be < 0 (out of a event queue), or
 			 * == 0 (newed but never gets into the event queue.
@@ -740,9 +785,30 @@ inline void Packet::free(Packet* p)
 
 inline Packet* Packet::copy() const
 {
-	
+        hdr_dccp *dccph, *dccph_p;
 	Packet* p = alloc();
 	memcpy(p->bits(), bits_, hdrlen_);
+ 
+        //copy DCCP options_, since it is a pointer
+        switch (HDR_CMN(this)->ptype_){
+        case PT_DCCP:
+        case PT_DCCP_REQ:
+        case PT_DCCP_RESP:
+        case PT_DCCP_ACK:
+        case PT_DCCP_DATA:
+        case PT_DCCP_DATAACK:
+        case PT_DCCP_CLOSE:
+        case PT_DCCP_CLOSEREQ:
+        case PT_DCCP_RESET:
+                dccph = hdr_dccp::access(this);
+                dccph_p = hdr_dccp::access(p);
+                if (dccph->options_ != NULL)
+                        dccph_p->options_ = new DCCPOptions(*dccph->options_);
+                break;
+        default:
+                ;
+        }
+ 
 	if (data_) 
 		p->data_ = data_->copy();
 	p->txinfo_.init(&txinfo_);

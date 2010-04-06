@@ -213,6 +213,13 @@ OBJ_CC = \
 	sctp/sctp-mfrTimestamp.o \
 	sctp/sctp-cmt.o \
 	sctp/sctpDebug.o \
+        dccp/dccp_sb.o \
+        dccp/dccp_opt.o \
+        dccp/dccp_ackv.o \
+        dccp/dccp_packets.o \
+        dccp/dccp.o \
+        dccp/dccp_tcplike.o \
+        dccp/dccp_tfrc.o \
 	tools/integrator.o tools/queue-monitor.o \
 	tools/flowmon.o tools/loss-monitor.o \
 	queue/queue.o queue/drop-tail.o \

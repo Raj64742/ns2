@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.385 2010/04/03 20:40:14 tom_henderson Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.386 2010/04/06 05:09:01 tom_henderson Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -1455,6 +1455,126 @@ Queue set util_records_ 5 ; 		# Changed from 0 to 5, 2/25/05.
 # Quick Start definitions end here
 
 Delayer set debug_ false
+
+# DCCP
+# A description of each parameter can be found in the agents' header files
+# i.e.  dccp/dccp.h  dccp/dccp_tcplike.h  dccp/dccp_tfrc.h
+
+Agent/DCCP set packetSize_ 500
+
+Agent/DCCP set initial_rtx_to_ 3.0
+Agent/DCCP set max_rtx_to_ 75.0
+Agent/DCCP set resp_to_ 75.0
+
+Agent/DCCP set sb_size_ 1000
+Agent/DCCP set opt_size_ 512
+Agent/DCCP set feat_size_ 24
+Agent/DCCP set ackv_size_ 20
+
+Agent/DCCP set ccid_ 0
+Agent/DCCP set use_ecn_local_ 0
+Agent/DCCP set use_ecn_remote_ 0
+Agent/DCCP set ack_ratio_local_ 2
+Agent/DCCP set ack_ratio_remote_ 2
+Agent/DCCP set use_ackv_local_ 0
+Agent/DCCP set use_ackv_remote_ 0
+Agent/DCCP set q_scheme_ 0
+Agent/DCCP set q_local_ 0
+Agent/DCCP set q_remote_ 0
+
+Agent/DCCP set snd_delay_ 0.0001
+
+Agent/DCCP set nam_tracevar_ false
+Agent/DCCP set trace_all_oneline_ false
+
+Agent/DCCP set allow_mult_neg_ 0
+Agent/DCCP set ndp_limit_ 8
+Agent/DCCP set ccval_limit_ 16
+
+Agent/DCCP set cscov_ 0
+
+Agent/DCCP set num_data_pkt_ 0
+Agent/DCCP set num_ack_pkt_ 0
+Agent/DCCP set num_dataack_pkt_ 0
+
+Agent/DCCP/TCPlike set ccid_ 2
+Agent/DCCP/TCPlike set use_ecn_local_ 1
+Agent/DCCP/TCPlike set use_ecn_remote_ 1
+Agent/DCCP/TCPlike set use_ackv_local_ 1
+Agent/DCCP/TCPlike set use_ackv_remote_ 1
+
+Agent/DCCP/TCPlike set initial_cwnd_ 3
+Agent/DCCP/TCPlike set cwnd_timeout_ 1
+Agent/DCCP/TCPlike set initial_ssthresh_ 65535
+Agent/DCCP/TCPlike set cwnd_ 2
+Agent/DCCP/TCPlike set cwnd_frac_ 0
+Agent/DCCP/TCPlike set ssthresh_ 20
+Agent/DCCP/TCPlike set pipe_ 0
+
+Agent/DCCP/TCPlike set initial_rto_ 3.0
+Agent/DCCP/TCPlike set min_rto_ 1.0
+Agent/DCCP/TCPlike set rto_ 3.0
+Agent/DCCP/TCPlike set srtt_ -1.0
+Agent/DCCP/TCPlike set rttvar_ 0.0
+Agent/DCCP/TCPlike set rtt_sample_ 0.0
+Agent/DCCP/TCPlike set alpha_ 0.125
+Agent/DCCP/TCPlike set beta_ 0.25
+Agent/DCCP/TCPlike set k_ 4
+Agent/DCCP/TCPlike set g_ 0.01
+Agent/DCCP/TCPlike set num_dup_acks_ 3
+
+Agent/DCCP/TCPlike set q_min_t_ 0.2
+Agent/DCCP/TCPlike set q_opt_ratio_ 1
+Agent/DCCP/TCPlike set dack_delay_ 0.2
+
+Agent/DCCP/TCPlike set ackv_size_lim_ 10
+
+Agent/DCCP/TFRC set ccid_ 3
+Agent/DCCP/TFRC set use_ecn_local_ 1
+Agent/DCCP/TFRC set use_ecn_remote_ 1
+Agent/DCCP/TFRC set use_ackv_local_ 1
+Agent/DCCP/TFRC set use_ackv_remote_ 1
+Agent/DCCP/TFRC set use_loss_rate_local_ 1
+Agent/DCCP/TFRC set use_loss_rate_remote_ 1
+Agent/DCCP/TFRC set rtt_scheme_local_ 0
+Agent/DCCP/TFRC set rtt_scheme_remote_ 0
+
+Agent/DCCP/TFRC set num_dup_acks_ 3
+Agent/DCCP/TFRC set p_tol_ 0.05
+Agent/DCCP/TFRC set win_count_per_rtt_ 4
+Agent/DCCP/TFRC set max_wc_inc_ 5
+
+Agent/DCCP/TFRC set s_use_osc_prev_ 1
+
+Agent/DCCP/TFRC set s_x_ 500.0
+Agent/DCCP/TFRC set s_x_inst_ 500.0
+Agent/DCCP/TFRC set s_x_recv_ 0.0
+Agent/DCCP/TFRC set s_r_sample_ 0.0
+Agent/DCCP/TFRC set s_rtt_ 0.0
+Agent/DCCP/TFRC set s_r_sqmean_ 0.0
+
+Agent/DCCP/TFRC set s_smallest_p_ 0.00001
+Agent/DCCP/TFRC set s_rtt_q_ 0.9
+Agent/DCCP/TFRC set s_rtt_q2_ 0.9
+Agent/DCCP/TFRC set s_t_mbi_ 64.0
+Agent/DCCP/TFRC set s_os_time_gran_ 0.01
+
+Agent/DCCP/TFRC set s_s_ 500
+Agent/DCCP/TFRC set s_initial_x_ 500.0
+Agent/DCCP/TFRC set s_initial_rto_ 2.0
+Agent/DCCP/TFRC set s_x_ 500.0
+Agent/DCCP/TFRC set s_x_inst_ 500.0
+Agent/DCCP/TFRC set s_x_recv_ 0.0
+Agent/DCCP/TFRC set s_r_sample_ 0.0
+Agent/DCCP/TFRC set s_rtt_ 0.0
+Agent/DCCP/TFRC set s_r_sqmean_ 0.0
+Agent/DCCP/TFRC set s_p_ 0.0
+Agent/DCCP/TFRC set s_q_opt_ratio_ 1
+
+Agent/DCCP/TFRC set r_s_ 500
+Agent/DCCP/TFRC set r_rtt_ 0.0
+Agent/DCCP/TFRC set r_p_ 0.0
+Agent/DCCP/TFRC set q_min_t_ 0.2
 
 Agent/TCP/Linux set rtxcur_init_ 3
 Agent/TCP/Linux set maxrto_ 120

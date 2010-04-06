@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.57 2009/01/15 06:23:49 tom_henderson Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.58 2010/04/06 05:09:01 tom_henderson Exp $
 #
 # set up the packet format for the simulation
 # (initial version)
@@ -150,6 +150,15 @@ foreach prot {
 	TFRC 	# TFRC, transport protocol
 	TFRC_ACK 	# TFRC, transport protocol
 	XCP 	# XCP, transport protocol
+        DCCP            # DCCP, transport protocol
+        DCCP_ACK        # DCCP, transport protocol
+        DCCP_RESET      # DCCP, transport protocol
+        DCCP_REQ        # DCCP, transport protocol
+        DCCP_RESP       # DCCP, transport protocol
+        DCCP_DATA       # DCCP, transport protocol
+        DCCP_DATAACK    # DCCP, transport protocol
+        DCCP_CLOSE      # DCCP, transport protocol
+        DCCP_CLOSEREQ   # DCCP, transport protocol
 # Application-Layer Protocols:
 	Message # a protocol to carry text messages
 	Ping 	# Ping
