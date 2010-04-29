@@ -99,8 +99,8 @@
 //#define ERROR
 
 #ifdef DEBUG
-static int extra_route_reply = 0;
-static int limit_route_request = 0;
+//static int extra_route_reply = 0;
+//static int limit_route_request = 0;
 static int route_request = 0;
 #endif
 
@@ -280,7 +280,7 @@ AOMDVLocalRepairTimer::handle(Event* p)  {  // SRD: 5/4/99
 		agent->rt_down(rt);
 		// send RERR
 #ifdef DEBUG
-		fprintf(stderr,"Node %d: Dst - %d, failed local repair\n",index, rt->rt_dst);
+//		fprintf(stderr,"Node %d: Dst - %d, failed local repair\n",index, rt->rt_dst);
 #endif      
 	}
 	Packet::free((Packet *)p);
@@ -1302,9 +1302,9 @@ AOMDV::recvError(Packet *p) {
 #ifdef DEBUG
 			fprintf(stderr, "%s(%f): %d\t(%d\t%u\t%d)\t(%d\t%u\t%d)\n",
 					  __FUNCTION__,CURRENT_TIME,
-					  index, rt->rt_dst, rt->rt_seqno, ih->src_,
+					  index, rt->rt_dst, rt->rt_seqno, ih->src_.addr_,
 					  re->unreachable_dst[i],re->unreachable_dst_seqno[i],
-					  ih->src_);
+					  ih->src_.addr_);
 #endif // DEBUG
 			
 			rt->path_delete(ih->saddr());
