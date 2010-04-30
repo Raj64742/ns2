@@ -3,7 +3,7 @@
 /*
  * shadowing-vis.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: shadowing-vis.cc,v 1.7 2010/03/08 05:54:52 tom_henderson Exp $
+ * $Id: shadowing-vis.cc,v 1.8 2010/04/30 17:10:38 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -247,40 +247,6 @@ int ShadowingVis::getPropCond(float xt, float yt, float xr, float yr)
 	// can be tested: if the line of sight path is just obstructed by
 	// a very small object, the propagation is still good
 	int goodProp = 1;
-/*
-	float distSq = 0; 
-	while (distSq < maxDistSq) {
-		int xIdx = (int)(xx * ppm);
-		int yIdx = (int)(yy * ppm);
-		if ( pixel[xIdx + yIdx * width] != BLACK ) {
-			goodProp = 0;
-#ifdef DEBUG
-			cout << "xx = " << xx << " yy = " << yy << endl;
-			printf("pixel = %x\n", pixel[xIdx + yIdx * width]);
-#endif
-			break;
-		}
-		xx += dx;
-		yy += dy;
-		distSq = (xx - xt) * (xx - xt) + (yy - yt) * (yy - yt);
-	}
-*/
-/*
-	int maxRange = (int)(maxDist * ppm); // distance times pixels-per-meter
-	for (int rng = 0; rng < maxRange; rng++) {
-		if (pixel[(int)xx + (int)yy * width] != BLACK) {
-#ifdef DEBUG
-			cout << "xx = " << xx << " yy = " << yy << endl;
-			printf("pixel = %x\n", pixel[(int)xx + (int)yy * width]);
-#endif
-			goodProp = 0;
-			break;
-		}
-		xx += dx;
-		yy += dy;
-	}
-*/
-	
 	float distX = 0;
 	float distY = 0;
 	float distSq = 0;
@@ -289,10 +255,6 @@ int ShadowingVis::getPropCond(float xt, float yt, float xr, float yr)
 		int yIdx = (int)(ytPxl + distY);
 		if (pixel[xIdx + yIdx * width] != BLACK) {
 			goodProp = 0;
-#ifdef DEBUG
-			printf("xx = %f  yy = %f\n", xx, yy);
-			printf("pixel = %x\n", pixel[xIdx + yIdx * width]);
-#endif
 			break;
 		}
 		distX += dx;

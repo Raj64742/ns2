@@ -43,8 +43,6 @@ The AODV code developed by the CMU/MONARCH group was optimized and tuned by Sami
 //#define ERROR
 
 #ifdef DEBUG
-static int extra_route_reply = 0;
-static int limit_route_request = 0;
 static int route_request = 0;
 #endif
 
@@ -207,7 +205,7 @@ struct hdr_ip *ih = HDR_IP( (Packet *)p);
       agent->rt_down(rt);
       // send RERR
 #ifdef DEBUG
-      fprintf(stderr,"Node %d: Dst - %d, failed local repair\n",index, rt->rt_dst);
+      fprintf(stderr,"Dst - %d, failed local repair\n", rt->rt_dst);
 #endif      
     }
     Packet::free((Packet *)p);
