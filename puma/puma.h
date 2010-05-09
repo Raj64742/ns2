@@ -19,6 +19,10 @@
  *    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  *    02110-1301 USA
  */
+/*  
+ *  PUMA was designed by Ravindra Vaishampayan and 
+ *  J.J. Garcia-Luna-Aceves @ UCSC. 
+ */
 #ifndef PUMA_H_
 #define PUMA_H_
 
