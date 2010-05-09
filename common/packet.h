@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.106 2010/04/06 05:09:01 tom_henderson Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.107 2010/05/09 22:28:41 tom_henderson Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -196,8 +196,11 @@ static const packet_t PT_DCCP_CLOSE  = 69;
 static const packet_t PT_DCCP_CLOSEREQ = 70;
 static const packet_t PT_DCCP_RESET = 71;
 
+        // M-DART packets
+static const packet_t PT_MDART = 72;
+	
         // insert new packet types here
-static packet_t       PT_NTYPE = 72; // This MUST be the LAST one
+static packet_t       PT_NTYPE = 73; // This MUST be the LAST one
 
 enum packetClass
 {
@@ -263,7 +266,8 @@ public:
 		    type == PT_MESSAGE || 
 		    type == PT_TORA ||
 		    type == PT_PUMA ||
-		    type == PT_AODV)
+		    type == PT_AODV ||
+		    type == PT_MDART)
 			return ROUTING;		
 		if (type == PT_TCP || 
 		    type == PT_TELNET || 
@@ -342,6 +346,7 @@ public:
 		name_[PT_TORA]= "TORA";
 		name_[PT_DSR]= "DSR";
 		name_[PT_AODV]= "AODV";
+		name_[PT_MDART]= "MDART";
 		name_[PT_IMEP]= "IMEP";
 
 		name_[PT_RAP_DATA] = "rap_data";

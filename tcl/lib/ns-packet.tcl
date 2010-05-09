@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.58 2010/04/06 05:09:01 tom_henderson Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.59 2010/05/09 22:28:41 tom_henderson Exp $
 #
 # set up the packet format for the simulation
 # (initial version)
@@ -176,6 +176,7 @@ foreach prot {
         MIP 	# Mobile IP, mobile/mip-reg.cc
 	Smac 	# Sensor-MAC
 	TORA 	# routing protocol for ad-hoc networks
+	MDART 	# routing protocol for ad-hoc networks
 	# AOMDV patch
 	AOMDV
 # Other:

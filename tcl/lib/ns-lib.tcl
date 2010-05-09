@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.278 2010/03/06 21:23:53 tom_henderson Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.279 2010/05/09 22:28:41 tom_henderson Exp $
 
 
 #
@@ -633,6 +633,9 @@ Simulator instproc create-wireless-node args {
 		    AOMDV {
 			    set ragent [$self create-aomdv-agent $node]
 		    }
+		    MDART {
+			    set ragent [$self create-mdart-agent $node]
+		    }
                     PUMA {
                             set ragent [$self create-puma-agent $node]
                     }
@@ -868,6 +871,14 @@ Simulator instproc create-puma-agent { node } {
         #  Create PUMA routing agent
         set ragent [new Agent/PUMA [$node node-addr]]
         $self at 0.0 "$ragent start"
+        $node set ragent_ $ragent
+        return $ragent
+}
+
+Simulator instproc create-mdart-agent { node } {
+        #  Create M-DART routing agent
+	set ragent [new Agent/MDART [$node node-addr]]
+        $self at 0.0 "$ragent start"     ;# start BEACON/HELLO Messages
         $node set ragent_ $ragent
         return $ragent
 }

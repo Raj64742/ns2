@@ -631,6 +631,38 @@ takes the core role.
 See \ns/puma directory and \ns/tcl/ex/puma.tcl for implementation of
 PUMA in \ns.
 
+\subsubsection{M-DART}
+\label{sec:M-DART}
+
+The Multi-Path Dynamic Addressing Routing (M-DART) is a routing protocol 
+for ad hoc networks with the following features:
+\begin{itemize}
+\item proactive, every node keeps information about the available routes;
+\item multi-path, every node tracks redundant routes to face with topology changes;
+\item hierarchic, the routing overhead is reduced with a logarithmic factor;
+\item DHT-based, since a DHT is used at the network layer.
+\end{itemize}
+
+The M-DART extends the DART protocol, first proposed by 
+J. Eriksson, M. Faloutsos and S. Krishnamurthy.  The ns-2 
+implementation has been extensively tested for ad hoc networks up to 
+4096 nodes. The ./mdart/example/ folder contains an example of static 
+ad hoc network scenario used for the results published in 
+M. Caleffi, L. Paura, "On Reliability of Dynamic Addressing Routing 
+Protocols in Mobile Ad Hoc Networks", accepted for publication in 
+the special issue on "Architectures and Protocols for Wireless Mesh, Ad Hoc,
+and Sensor Networks" of Wireless Communications and Mobile Computing, 2010.
+
+For more information:
+\begin{itemize}
+\item M. Caleffi, G. Ferraiuolo, L. Paura, "Augmented Tree-based Routing  
+Protocol for Scalable Ad Hoc Networks", Proc. of IEEE MASS '07: IEEE      *
+Internatonal Conference on Mobile Adhoc and Sensor Systems, Pisa (Italy), *
+October 8-11 2007. 
+\item M. Caleffi, "Mobile Ad Hoc Networks: the DHT Paradigm, Ph.D. Thesis", 
+University of Naples Federico II, December 2008. 
+\end{itemize}
+
 \subsection{Trace Support}
 \label{sec:mobile-trace}
 

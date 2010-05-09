@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.386 2010/04/06 05:09:01 tom_henderson Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.387 2010/05/09 22:28:41 tom_henderson Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -1588,3 +1588,5 @@ Agent/PBC set periodicBroadcastInterval 1
 Agent/PBC set periodicBroadcastVariance 0.1
 Agent/PBC set modulationScheme 0
 
+Agent/MDART set macFailed_ true
+Agent/MDART set etxMetric_ true

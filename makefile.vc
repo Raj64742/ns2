@@ -263,6 +263,9 @@ OBJ_CC = \
 	aodv/aodv_rtable.o aodv/aodv_rqueue.o \
 	aomdv/aomdv_logs.o aomdv/aomdv.o \
 	aomdv/aomdv_rtable.o aomdv/aomdv_rqueue.o \
+	mdart/mdart_adp.o mdart/mdart_dht.o mdart/mdart_ndp.o \
+	mdart/mdart_neighbor.o mdart/mdart_queue.o mdart/mdart_table.o \
+	mdart/mdart.o \
 	common/ns-process.o \
 	satellite/satgeometry.o satellite/sathandoff.o \
 	satellite/satlink.o satellite/satnode.o \

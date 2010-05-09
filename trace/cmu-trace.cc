@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.95 2010/03/08 05:54:55 tom_henderson Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.96 2010/05/09 22:28:41 tom_henderson Exp $
  */
 
 #include <packet.h>
@@ -51,8 +51,9 @@
 #include <tora/tora_packet.h> //TORA
 #include <imep/imep_spec.h>         // IMEP
 #include <aodv/aodv_packet.h> //AODV
-// AOMDV patch
 #include <aomdv/aomdv_packet.h>
+#include <mdart/mdart_packet.h>
+#include <mdart/mdart_function.h>
 #include <cmu-trace.h>
 #include <mobilenode.h>
 #include <simulator.h>
@@ -1058,6 +1059,102 @@ CMUTrace::format_aomdv(Packet *p, int offset)
 					  "%s: invalid AOMDV packet type\n", __FUNCTION__);
 #endif
 			abort();
+	}
+}
+
+void
+CMUTrace::format_mdart(Packet *p, int offset)
+{
+	struct hdr_mdart *rh = HDR_MDART(p);
+	struct hdr_mdart_hello *rhHello = HDR_MDART_HELLO(p);
+	struct hdr_mdart_darq *rhDarq = HDR_MDART_DARQ(p);
+	struct hdr_mdart_darp *rhDarp = HDR_MDART_DARP(p);
+	struct hdr_mdart_daup *rhDaup = HDR_MDART_DAUP(p);
+	//	struct hdr_mdart_encp *rhEncp = HDR_MDART_ENCP(p);
+	switch(rh->type_) {
+		case MDART_TYPE_HELLO:
+		{
+			bitset<ADDR_SIZE> tempSetSrcAdd_ (rhHello->srcAdd_);
+			string tempSrcAdd_ = tempSetSrcAdd_.to_string();
+			bitset<ADDR_SIZE> tempSetDstAdd_ (rhHello->dstAdd_);
+			string tempDstAdd_ = tempSetDstAdd_.to_string();
+			if (pt_->tagged()) {
+				sprintf(pt_->buffer() + offset, "-mdart:t %x -mdart:dAdd %d -mdart:sAdd %d -mdart:sId %d", rhHello->type_, rhHello->dstAdd_, rhHello->srcAdd_, rhHello->srcId_);
+			} else if (newtrace_) {
+				sprintf(pt_->buffer() + offset, "-type HELLO -srcId %d -srcAdd %s dstAdd %s -seqNum %d", rhHello->srcId_, tempSrcAdd_.c_str(), tempDstAdd_.c_str(),  rhHello->seqNum_);
+			} else {
+				sprintf(pt_->buffer() + offset, "[0x%x [%d %d] [%d]]", rhHello->type_, rhHello->dstAdd_, rhHello->srcAdd_, rhHello->srcId_);
+			}
+			break;
+		}
+		case MDART_TYPE_DARQ:
+		{
+			bitset<ADDR_SIZE> tempSetSrcAdd_ (rhDarq->srcAdd_);
+			string tempSrcAdd_ = tempSetSrcAdd_.to_string();
+			bitset<ADDR_SIZE> tempSetForAdd_ (rhDarq->forAdd_);
+			string tempForAdd_ = tempSetForAdd_.to_string();
+			bitset<ADDR_SIZE> tempSetDstAdd_ (rhDarq->dstAdd_);
+			string tempDstAdd_ = tempSetDstAdd_.to_string();
+			if (pt_->tagged()) {
+				sprintf(pt_->buffer() + offset, "-mdart:t %x -mdart:dstAdd %d -mdart:srcAdd %d -mdart:dstId %d -mdart:srcId %d -mdart:forAdd %d -mdart:forId %d -mdart:rId %d -mdart:pId %u -mdart:c DARQ", rhDarq->type_, rhDarq->dstAdd_, rhDarq->srcAdd_, rhDarq->dstId_, rhDarq->srcId_, rhDarq->forAdd_, rhDarq->forId_, rhDarq->reqId_, rhDarq->seqNum_);//, rhDarq->reqpktId_);
+			} else if (newtrace_) {
+				sprintf(pt_->buffer() + offset, "-type DARQ -srcId %d -srcAdd %s -forId %d -forAdd %s -dstId %d dstAdd %s -reqId %d -seqNum %d", rhDarq->srcId_, tempSrcAdd_.c_str(), rhDarq->forId_, tempForAdd_.c_str(), rhDarq->dstId_, tempDstAdd_.c_str(), rhDarq->reqId_, rhDarq->seqNum_);
+			} else {
+				sprintf(pt_->buffer() + offset, "[0x%x [%d %d] [%d %d] [%d %d] [%d] %u] (DARQ)", rhDarq->type_, rhDarq->dstAdd_, rhDarq->srcAdd_, rhDarq->dstId_, rhDarq->srcId_, rhDarq->forAdd_, rhDarq->forId_, rhDarq->reqId_, rhDarq->seqNum_);//, rhDarq->reqpktId_);
+			}
+			break;
+		}
+		case MDART_TYPE_DARP:
+		{
+			bitset<ADDR_SIZE> tempSetSrcAdd_ (rhDarp->srcAdd_);
+			string tempSrcAdd_ = tempSetSrcAdd_.to_string();
+			bitset<ADDR_SIZE> tempSetForAdd_ (rhDarp->forAdd_);
+			string tempForAdd_ = tempSetForAdd_.to_string();
+			bitset<ADDR_SIZE> tempSetDstAdd_ (rhDarp->dstAdd_);
+			string tempDstAdd_ = tempSetDstAdd_.to_string();
+			bitset<ADDR_SIZE> tempSetReqAdd_ (rhDarp->reqAdd_);
+			string tempReqAdd_ = tempSetReqAdd_.to_string();
+			if (pt_->tagged()) {
+				sprintf(pt_->buffer() + offset, "-mdart:t %x -mdart:dAdd %d -mdart:sAdd %d -mdart:dId %d -mdart:sId %d -mdart:fAdd %d -mdart:fId %d -mdart:rAdd %d -mdart:rId %d -mdart:pAId %d mdart:c DARP", rhDarp->type_, rhDarp->dstAdd_, rhDarp->srcAdd_, rhDarp->dstId_, rhDarp->srcId_, rhDarp->forAdd_, rhDarp->forId_, rhDarp->reqAdd_, rhDarp->reqId_, rhDarp->seqNum_);//, rhDarp->reqpktId_);
+			} else if (newtrace_) {
+				sprintf(pt_->buffer() + offset, "-type DARP -srcId %d -srcAdd %s -forId %d -forAdd %s -dstId %d dstAdd %s -reqId %d -reqAdd %s -seqNum %d", rhDarp->srcId_, tempSrcAdd_.c_str(), rhDarp->forId_, tempForAdd_.c_str(), rhDarp->dstId_, tempDstAdd_.c_str(), rhDarp->reqId_, tempReqAdd_.c_str(), rhDarp->seqNum_);
+			} else {
+				sprintf(pt_->buffer() + offset, "[0x%x [%d %d] [%d %d] [%d %d] [%d %d] %u] (DARP)", rhDarp->type_, rhDarp->dstAdd_, rhDarp->srcAdd_, rhDarp->dstId_, rhDarp->srcId_, rhDarp->forAdd_, rhDarp->forId_, rhDarp->reqAdd_, rhDarp->reqId_, rhDarp->seqNum_);//, rhDarp->reqpktId_);
+			}
+			break;
+		}
+		case MDART_TYPE_DAUP:
+		{
+			bitset<ADDR_SIZE> tempSetSrcAdd_ (rhDaup->srcAdd_);
+			string tempSrcAdd_ = tempSetSrcAdd_.to_string();
+			bitset<ADDR_SIZE> tempSetForAdd_ (rhDaup->forAdd_);
+			string tempForAdd_ = tempSetForAdd_.to_string();
+			bitset<ADDR_SIZE> tempSetDstAdd_ (rhDaup->dstAdd_);
+			string tempDstAdd_ = tempSetDstAdd_.to_string();
+			if (pt_->tagged()) {
+				sprintf(pt_->buffer() + offset, "-mdart:t %x -mdart:dAdd %d -mdart:sAdd %d -mdart:dId %d -mdart:sId %d -mdart:fAdd %d -mdart:fId %d -mdart:pAId %u -mdart:c DAUP", rhDaup->type_, rhDaup->dstAdd_, rhDaup->srcAdd_, rhDaup->dstId_, rhDaup->srcId_, rhDaup->forAdd_, rhDaup->forId_, rhDaup->seqNum_);
+			} else if (newtrace_) {
+				sprintf(pt_->buffer() + offset, "-type DAUP -srcId %d -srcAdd %s -forId %d -forAdd %s -dstId %d dstAdd %s -seqNum %d", rhDaup->srcId_, tempSrcAdd_.c_str(), rhDaup->forId_, tempForAdd_.c_str(), rhDaup->dstId_, tempDstAdd_.c_str(), rhDaup->seqNum_);
+			} else {
+				sprintf(pt_->buffer() + offset, "[0x%x [%d %d] [%d %d] [%d %d] %u] (DAUP)", rhDaup->type_, rhDaup->dstAdd_, rhDaup->srcAdd_, rhDaup->dstId_, rhDaup->srcId_, rhDaup->forAdd_, rhDaup->forId_, rhDaup->seqNum_);
+			}
+			break;
+		}
+		case MDART_TYPE_DABR:
+		{
+			bitset<ADDR_SIZE> tempSetSrcAdd_ (rhDarq->srcAdd_);
+			string tempSrcAdd_ = tempSetSrcAdd_.to_string();
+			bitset<ADDR_SIZE> tempSetDstAdd_ (rhDarq->dstAdd_);
+			string tempDstAdd_ = tempSetDstAdd_.to_string();
+			if (pt_->tagged()) {
+				sprintf(pt_->buffer() + offset, "-mdart:t %x -mdart:dAdd %d -mdart:sAdd %d -mdart:dId %d -mdart:sId %d -mdart:fAdd %d -mdart:fId %d -mdart:pAId %u -mdart:c DAUP", rhDaup->type_, rhDaup->dstAdd_, rhDaup->srcAdd_, rhDaup->dstId_, rhDaup->srcId_, rhDaup->forAdd_, rhDaup->forId_, rhDaup->seqNum_);
+			} else if (newtrace_) {
+				sprintf(pt_->buffer() + offset, "-type DABR -srcId %d -srcAdd %s dstAdd %s", rhDarq->srcId_, tempSrcAdd_.c_str(), tempDstAdd_.c_str());
+			} else {
+				sprintf(pt_->buffer() + offset, "[0x%x [%d %d] [%d %d] [%d %d] %u] (DAUP)", rhDaup->type_, rhDaup->dstAdd_, rhDaup->srcAdd_, rhDaup->dstId_, rhDaup->srcId_, rhDaup->forAdd_, rhDaup->forId_, rhDaup->seqNum_);
+			}
+			break;
+		}
 	}
 }
 
