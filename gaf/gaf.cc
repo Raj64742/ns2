@@ -2,7 +2,7 @@
 /*
  * gaf.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: gaf.cc,v 1.7 2010/03/08 05:54:50 tom_henderson Exp $
+ * $Id: gaf.cc,v 1.8 2010/05/11 04:53:03 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -70,7 +70,6 @@ static class GAFAgentClass : public TclClass {
 public:
 	GAFAgentClass() : TclClass("Agent/GAF") {}
 	TclObject* create(int , const char*const* argv) {
-	        assert(argc == 5);
 		return (new GAFAgent((nsaddr_t) atoi(argv[4])));
 	}
 } class_gafagent;

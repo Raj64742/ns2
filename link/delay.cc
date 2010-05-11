@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.cc,v 1.29 2010/03/08 05:54:51 tom_henderson Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.cc,v 1.30 2010/05/11 04:53:03 tom_henderson Exp $ (LBL)";
 #endif
 
 #include "delay.h"
@@ -128,7 +128,7 @@ void LinkDelay::reset()
 	}
 }
 
-void LinkDelay::handle(Event*)
+void LinkDelay::handle(Event* e)
 {
 	Packet *p = itq_->deque();
 	assert(p->time_ == e->time_);

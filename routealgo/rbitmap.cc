@@ -2,7 +2,7 @@
 /*
  * rbitmap.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: rbitmap.cc,v 1.6 2010/03/08 05:54:53 tom_henderson Exp $
+ * $Id: rbitmap.cc,v 1.7 2010/05/11 04:53:03 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -176,7 +176,7 @@ short  left;
  return(left * m_BPE);
 }
 
-void    BitMap::Validate(u_long )// Validate which not too large
+void    BitMap::Validate(u_long Which)// Validate which not too large
 {
   assert (Which < m_Size);
 }

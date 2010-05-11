@@ -161,6 +161,7 @@ void Tmix_DelayBoxClassifier::create_flow_table (const char* src, const char *ds
     DelayBoxTimer* timer;
     DelayBoxFlow* flow;
 
+    linkspd = 0;
     while(!feof(fp)) {
 	    memset(cvec,'\0',100);
 	    fgets (cvec, 100, fp);
