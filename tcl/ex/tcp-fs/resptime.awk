@@ -1,4 +1,4 @@
-
+#!/usr/local/bin/gawk -f
 {
 	if (NR > 1) 
 		sum += ($3 - $2);

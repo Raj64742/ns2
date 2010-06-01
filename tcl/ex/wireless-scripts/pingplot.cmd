@@ -1,3 +1,4 @@
+#!/bin/sh
 #Create graphs of latency in both directions 
 gnuplot <<!
 set terminal postscript eps 20

@@ -1,3 +1,4 @@
+#!/usr/local/bin/gawk -f
 BEGIN {
 	fsDrops = 0;
 	otherDrops = 0;

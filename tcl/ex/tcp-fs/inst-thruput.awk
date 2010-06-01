@@ -1,4 +1,4 @@
-
+#!/usr/local/bin/gawk -f
 {
 	time = $2;
 	saddr = $4;

@@ -1,3 +1,4 @@
+#!/bin/sh
 # create time-sequence graph with gnuplot
 gnuplot <<!
 #color
