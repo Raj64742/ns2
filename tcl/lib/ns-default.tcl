@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.387 2010/05/09 22:28:41 tom_henderson Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.388 2010/07/03 22:45:45 tom_henderson Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -570,16 +570,16 @@ Node/MobileNode set DECAP_PORT 1
 # Bits are allocated for different fields like port, nodeid, mcast, 
 # hierarchical-levels. 
 # All Mask and Shift values are stored in Class AddrParams.
-AddrParams set ALL_BITS_SET 0xffffffff
+AddrParams set ALL_BITS_SET 0x7fffffff
 AddrParams PortShift 0
 AddrParams PortMask [AddrParams set ALL_BITS_SET]
 AddrParams set domain_num_ 1
 AddrParams set def_clusters 4
 AddrParams set def_nodes 5
 
-####  Default and Maximum Address space - leaving the MSB as signed bit
-AllocAddrBits set DEFADDRSIZE_ 32
-AllocAddrBits set MAXADDRSIZE_ 32                ;# leaving the signed bit
+####  Default and Maximum Address space - do not exceed 31 due to Tcl issues
+AllocAddrBits set DEFADDRSIZE_ 31
+AllocAddrBits set MAXADDRSIZE_ 31                
 
 Simulator set node_factory_ Node
 Simulator set nsv1flag 0
@@ -606,8 +606,8 @@ Simulator set propInstCreated_ 0
 SessionSim set rc_ 0
 
 # Defaults for multicast addresses
-Simulator set McastBaseAddr_ 0x80000000
-Simulator set McastAddr_ 0x80000000
+Simulator set McastBaseAddr_ 0x40000000
+Simulator set McastAddr_ 0x40000000
 
 # Default values used for wireless simulations
 Simulator set AgentTrace_ ON

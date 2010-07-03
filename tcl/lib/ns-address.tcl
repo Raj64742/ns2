@@ -40,38 +40,26 @@
 
 
 # Name :        set-address-format ()
-# Options :     default, expanded, hierarchical (default) and hierarchical
+# Options :     default, hierarchical (default) and hierarchical
 #		(with specific allocations) 
 # Synopsis :    set-address-format <option> <additional info, if required
 # 		by option> 
 #
 # Option:1      def (default settings)
 # Synopsis :    set-address-format def
-# Currently 32 bit address space is the default feature in ns 
-# (OLD) Description:  This allows default settings in the following manner:
-#               * 8bits portid
-#               * 1 bit for mcast and 7 bits nodeid (mcast should be enabled
-#               before Simulator is inited (new Simulator is called)--> leads 
-# 		to unnecessary wasting of 1 bit even if mcast is not set.
+# Currently 31 bit address space is the default feature in ns , the uppermost
+# bit is avoided due to Tcl/C++ integer issues
+#               1 bit for multicast
+#               30 bits for node id
 
-# [This is obsoleted by default 32 bit address space]
-# Option 2:     expanded 
-# Synopsis :    set-address-format expanded
-# Description:  This allows to expand the address space from default size 16 
-# 		to 32 with bit allocated to the field in the foll manner:
-#               * 8bits portid
-#               * 1 bit for mcast and 21 bits nodeid (and same comments 
-# 		regarding setting mcast as for default option above)
-#
-# Option :3     hierarchical (default)
+# Option :2     hierarchical (default)
 # Synopsis :    set-address-format hierarchical
 # Description:  This allows setting of hierarchical address as follows:
-#                   * Sets 8bits portid
 #                   * Sets mcast bit (if specified)
 #                   * Sets default hierchical levels with:
 #                      * 3 levels of hierarchy and
-#                      * (10 11 11) by default 
-#                      * (9 11 11) if mcast is enabled.
+#                      * (9 11 11) by default 
+#                      * (8 11 11) if mcast is enabled.
 #
 # Option 4:     hierarchical (specified)
 # Synopsis:     set-address-format hierarchical <#n hierarchy levels> 
@@ -81,31 +69,13 @@
 #                   set-address-format hierarchical 4 2 2 2 10
 # Description:  This allows setting of hierarchical address as specified for 
 #		each level.
-#                 * Sets 8bits portid
 #                 * Sets mcast bit (if specified)
 #                 * Sets hierchical levels with bits specified for each level.
 
-# Name:         expand-port-field-bits ()
-# Synopsis:     expand-port-field-bits <#bits for portid> 
-# Status:	Obsolete.  It is no longer needed in the 32-bit addressing
-#		scheme
-# Description : This should be used incase of need to extend portid. 
-#               This commnad may be used in conjuction with 
-#               set-address-format command explained above.
-#               expand-port-field-bits checks and raises error in the foll. 
-#		cases
-#                 * if the requested portsize cannot be accomodated (i.e  
-#                   if sufficient num.of free bits are not available)
-#                 * if requested portsize is less than equal to existing 
-#		    portsize, and incase of no errors sets port field with 
-# 		    bits as specified.
-#
 # Errors: 	* if # of bits specified less than 0.
 #               * if bit positions clash (contiguous # of requested free bits 
 #		  not found)
 #               * if total # of bits exceed MAXADDRSIZE_
-#               * if expand-port-field-bits is attempted with portbits less or
-#		  equal to the existing portsize.
 #               * if # hierarchy levels donot match with #bits specified (for
 #                 each level). 
 
@@ -134,18 +104,18 @@ Simulator proc hier-addr? {} {
 Simulator instproc set-address-format {opt args} {
 	set len [llength $args]
 	if {[string compare $opt "def"] == 0} {
-		$self set-address 32
+		$self set-address 31
 		set mcastshift [AddrParams McastShift]
 		Simulator set McastAddr_ [expr 1 << $mcastshift]
 		mrtObject expandaddr
 		Simulator set AddressFormat_ DEF
 	} elseif {[string compare $opt "expanded"] == 0} {
-		puts "set-address-format expanded is obsoleted by 32-bit addressing."
+		puts "set-address-format expanded is obsoleted by 31-bit addressing."
 	} elseif {[string compare $opt "hierarchical"] == 0 && $len == 0} {
 		if [$self multicast?] {
-			$self set-hieraddress 3 9 11 11
+			$self set-hieraddress 3 8 11 11
 		} else {
-			$self set-hieraddress 3 10 11 11
+			$self set-hieraddress 3 9 11 11
 		}
 	} elseif {[string compare $opt "hierarchical"] == 0 && $len > 0} {
 		eval $self set-hieraddress [lindex $args 0] \
@@ -200,13 +170,13 @@ Simulator instproc get-AllocAddrBits {prog} {
 }
 
 Simulator instproc expand-port-field-bits nbits {
-	# The function is obsolete, given that ports are now 32 bits wide
-	puts "Warning: Simulator::expand-port-field-bits is obsolete.  Ports are 32 bits wide"
+	# The function is obsolete, given that ports are now 31 bits wide
+	puts "Warning: Simulator::expand-port-field-bits is obsolete.  Ports are 31 bits wide"
 	return
 }
 
 Simulator instproc expand-address {} {
-	puts "Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wide"
+	puts "Warning: Simulator::expand-address is obsolete.  The node address is 31 bits wide"
 	return
 }
 
@@ -243,7 +213,7 @@ AllocAddrBits instproc chksize {bit_num prog} {
 	}
 	set totsize [expr $portsize_ + $idsize_ + $mcastsize_]
 	if {$totsize > [AllocAddrBits set MAXADDRSIZE_]} {
-		error "$prog : Total \# bits exceed MAXADDRSIZE"
+		error "$prog : Total \# bits $totsize exceed MAXADDRSIZE"
 	}
 	if { $size_ < [AllocAddrBits set MAXADDRSIZE_]} {
 		if {$totsize > [AllocAddrBits set DEFADDRSIZE_]} {
@@ -256,14 +226,14 @@ AllocAddrBits instproc chksize {bit_num prog} {
 }
 
 AllocAddrBits instproc set-portbits {bit_num} {
-	# The function is obsolete, given that ports are now 32 bits wide
-	puts "Warning: AllocAddrBits::set-portbits is obsolete.  Ports are 32 bits wide."
+	# The function is obsolete, given that ports are now 31 bits wide
+	puts "Warning: AllocAddrBits::set-portbits is obsolete.  Ports are 31 bits wide."
 	return
 }
 
 AllocAddrBits instproc expand-portbits nbits {
-	# The function is obsolete, given that ports are now 32 bits wide
-	puts "Warning: AllocAddrBits::expand-portbits is obsolete.  Ports are 32 bits wide."
+	# The function is obsolete, given that ports are now 31 bits wide
+	puts "Warning: AllocAddrBits::expand-portbits is obsolete.  Ports are 31 bits wide."
 	return
 }
 

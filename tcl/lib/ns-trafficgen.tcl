@@ -268,18 +268,12 @@ TrafficGen/ManyTCP instproc init_network {} {
 	puts "optimal bw queue size: $opts_(bottle-queue-length)"
     }
     
-    # Do our own routing with expanded addresses (21 bits nodes).
-    # (Basic routing limits us to 128 nodes == 64 clients).
-    # $ns_ rtproto Manual
-    # $ns_ set-address-format expanded
-
     # set up the bottleneck
     if {$opts_(bottle_link_l) != -1 || $opts_(bottle_link_r) != -1} {
 	set bottle_l_ $opts_(bottle_link_l)
 	set bottle_r_ $opts_(bottle_link_r)
     } else {
 	$ns_ rtproto Manual
-	$ns_ set-address-format expanded
 	set bottle_l_ [$ns_ node]
 	set bottle_r_ [$ns_ node]
     }
