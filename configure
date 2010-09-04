@@ -7841,6 +7841,8 @@ xlibdirs="\
 	/usr/X11/lib \
 	/usr/unsupported/lib \
 	/Developer/SDKs/MacOSX10.4u.sdk/usr/X11R6/lib \
+	/Developer/SDKs/MacOSX10.5.sdk/usr/X11R6/lib \
+	/Developer/SDKs/MacOSX10.6.sdk/usr/X11R6/lib \
 	/import/X11R4/usr/lib"
 
 xincdirs="\
@@ -7857,6 +7859,8 @@ xincdirs="\
 	/usr/lpp/X11/include \
 	/usr/unsupported/include \
 	/Developer/SDKs/MacOSX10.4u.sdk/usr/X11R6/include \
+	/Developer/SDKs/MacOSX10.5.sdk/usr/X11R6/include \
+	/Developer/SDKs/MacOSX10.6.sdk/usr/X11R6/include \
 	/import/X11R4/include"
 
 
@@ -11073,7 +11077,7 @@ case $system in
 	DL_LD_FLAGS=""
 	DL_LD_SEARCH_FLAGS=""
 	;;
-    Darwin-5.*|Darwin-6.*|Darwin-7.*|Darwin-8.*)
+    Darwin-5.*|Darwin-6.*|Darwin-7.*|Darwin-8.*|Darwin-9.*|Darwin-10.*)
 	LDFLAGS="${LDFLAGS} -Wl,-bind_at_load"
 	;;
     dgux*)
