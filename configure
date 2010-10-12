@@ -7993,7 +7993,7 @@ fi
 
 	if test "$x_libraries" = NONE ; then
 		for i in $xlibdirs ; do
-			if test -r $i/libX11.a -o -r $i/libX11.so -o -r $i/libX11.dll.a; then
+			if test -r $i/libX11.a -o -r $i/libX11.so -o -r $i/libX11.dll.a -o -r $i/libX11.dylib; then
 				x_libraries=$i
 				break
 			fi
@@ -8082,7 +8082,7 @@ fi
 
 	else
 		echo "checking for libXext.a"
-		if test -f $x_libraries/libXext.a -o -f $x_libraries/libXext.so; then
+		if test -f $x_libraries/libXext.a -o -f $x_libraries/libXext.so -o -f $x_libraries/libXext.dylib; then
 			V_Xext="-lXext"
 		else
 			echo "warning: compiling without -lXext"
