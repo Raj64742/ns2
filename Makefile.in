@@ -382,7 +382,7 @@ SRC =	$(OBJ_C:.o=.c) $(OBJ_CC:.o=.cc) \
 OBJ =	$(OBJ_C) $(OBJ_CC) $(OBJ_GEN) $(OBJ_COMPAT)
 
 CLEANFILES = ns nse nsx ns.dyn $(OBJ) $(OBJ_EMULATE_CC) \
-	$(OBJ_EMULATE_C) common/tclAppInit.o \
+	$(OBJ_EMULATE_C) common/tclAppInit.o common/main-monolithic.o \
 	common/tkAppInit.o nstk \
 	$(GEN_DIR)* $(NS).core core core.$(NS) core.$(NSX) core.$(NSE) \
 	common/ptypes2tcl common/ptypes2tcl.o 
