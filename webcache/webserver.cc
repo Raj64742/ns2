@@ -2,7 +2,7 @@
 /*
  * webserver.cc
  * Copyright (C) 1999 by the University of Southern California
- * $Id: webserver.cc,v 1.7 2010/03/08 05:54:55 tom_henderson Exp $
+ * $Id: webserver.cc,v 1.8 2011/10/01 22:00:14 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -107,10 +107,10 @@ Node* WebServer::get_node() {
   return(node);
 }
 
-double WebServer::job_arrival(int obj_id, Node *clnt, Agent *tcp, Agent *snk, int size, void *data) {
+double WebServer::job_arrival(int obj_id, Node *clnt, Agent *tcp, Agent *snk, int size, int pid) {
   // There's no server processing delay
   if (! mode_) {
-    web_pool_->launchResp(obj_id, node, clnt, tcp, snk, size, data);
+    web_pool_->launchResp(obj_id, node, clnt, tcp, snk, size, pid);
 
     return 1;
   }
@@ -124,7 +124,7 @@ double WebServer::job_arrival(int obj_id, Node *clnt, Agent *tcp, Agent *snk, in
     new_job->tcp = tcp;
     new_job->snk = snk;
     new_job->size = size;
-    new_job->data = data;
+    new_job->pid = pid;
     new_job->next = NULL; 
 
     // always insert the new job to the tail.
@@ -151,7 +151,7 @@ double WebServer::job_arrival(int obj_id, Node *clnt, Agent *tcp, Agent *snk, in
 
 double WebServer::job_departure() {
   if (head) {
-    web_pool_->launchResp(head->obj_id, node, head->clnt, head->tcp, head->snk, head->size, head->data);
+    web_pool_->launchResp(head->obj_id, node, head->clnt, head->tcp, head->snk, head->size, head->pid);
     
     // delete the first job
     job_s *p = head;
@@ -188,17 +188,17 @@ void WebServer::schedule_next_job() {
       int obj_id = p->obj_id;
       Node *clnt = p->clnt;
       int size = p->size;
-      void *data = p->data;
+      int pid = p->pid;
       
       p->obj_id = head->obj_id;
       p->clnt = head->clnt;
       p->size = head->size;
-      p->data = head->data;
+      p->pid = head->pid;
 
       head->obj_id = obj_id;
       head->clnt = clnt;
       head->size = size;
-      head->data = data;
+      head->pid = pid;
     }
     
     // Schedule the processing timer

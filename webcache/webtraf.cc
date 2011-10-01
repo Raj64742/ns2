@@ -4,7 +4,7 @@
 /*
  * webtraf.cc
  * Copyright (C) 1999 by the University of Southern California
- * $Id: webtraf.cc,v 1.30 2005/09/18 23:33:35 tomh Exp $
+ * $Id: webtraf.cc,v 1.31 2011/10/01 22:00:14 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -49,7 +49,7 @@
 //
 // Incorporation Polly's web traffic module into the PagePool framework
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.30 2005/09/18 23:33:35 tomh Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.31 2011/10/01 22:00:14 tom_henderson Exp $
 
 #include "config.h"
 #include <tclcl.h>
@@ -183,6 +183,7 @@ void WebTrafSession::donePage(void* ClntData)
 			pg->doneObj(), pg->curObj());
 		abort();
 	}
+	mgr_->donePage(pg->id());
 	delete pg;
 	// If all pages are done, tell my parent to delete myself
 	//
@@ -358,12 +359,13 @@ void WebTrafPool::launchReq(Node *src_, void* ClntData, int obj, int size) {
 	pick_ep(&ctcp, &csnk);
 
 	WebPage* pg = (WebPage*)ClntData;
+	pages_[pg->id()] = ClntData;
 
 	// Setup TCP connection and done
-	Tcl::instance().evalf("%s launch-req %d %d %s %s %s %s %d %d", 
+	Tcl::instance().evalf("%s launch-req %d %d %s %s %s %s %d", 
 			      name(), obj, pg->id(),
 			      src_->name(), pg->dst()->name(),
-			      ctcp->name(), csnk->name(), size, ClntData);
+			      ctcp->name(), csnk->name(), size);
 
 	// Debug only
 	// $numPacket_ $objectId_ $pageId_ $sessionId_ [$ns_ now] src dst
@@ -376,20 +378,12 @@ void WebTrafPool::launchReq(Node *src_, void* ClntData, int obj, int size) {
 }
 
 // Launch a request for a particular object
-void WebTrafPool::launchResp(int obj_id, Node *svr_, Node *clnt_, Agent *tcp, Agent* snk, int size, void *ClntData) {
-	int pid;
-	pid = obj_id;
-
-	// Get webpage (client data) if any
-	if (ClntData) {
-		WebPage* pg = (WebPage*)ClntData;
-		pid = pg->id();
-	}
+void WebTrafPool::launchResp(int obj_id, Node *svr_, Node *clnt_, Agent *tcp, Agent* snk, int size, int pid) {
 
 	// Setup TCP connection and done
-	Tcl::instance().evalf("%s launch-resp %d %d %s %s %s %s %d %d", 
+	Tcl::instance().evalf("%s launch-resp %d %d %s %s %s %s %d", 
 			      name(), obj_id, pid, svr_->name(), clnt_->name(),
-			      tcp->name(), snk->name(), size, ClntData);
+			      tcp->name(), snk->name(), size);
 
 	// Debug only
 	// $numPacket_ $objectId_ $pageId_ $sessionId_ [$ns_ now] src dst
@@ -409,6 +403,10 @@ int WebTrafPool::find_server(int sid) {
 	}
 	
 	return(n);
+}
+
+void WebTrafPool::donePage (int pid) {
+	pages_.erase(pid);
 }
 	
 int WebTrafPool::command(int argc, const char*const* argv) {
@@ -457,7 +455,7 @@ int WebTrafPool::command(int argc, const char*const* argv) {
 			}
 			return (TCL_OK);
 		} else if (strcmp(argv[1], "doneObj") == 0) {
-			WebPage* p = (WebPage*)atol(argv[2]);
+			WebPage* p = static_cast<WebPage*> (pages_[atoi(argv[2])]);
 			// printf("doneObj for Page id: %d\n", p->id());
 			p->doneObject();
 			return (TCL_OK);
@@ -621,7 +619,7 @@ int WebTrafPool::command(int argc, const char*const* argv) {
 			
 			return (TCL_OK);
 		} else if (strcmp(argv[1], "job_arrival") == 0) {
-			//$self job_arrival $id $clnt $svr $tcp $snk $size $pobj
+			//$self job_arrival $id $clnt $svr $tcp $snk $size $pid
 			int obj_id = atoi(argv[2]);
 			Node* clnt_ = (Node*)lookup_obj(argv[3]);
 			Node* svr_ = (Node*)lookup_obj(argv[4]);
@@ -629,14 +627,14 @@ int WebTrafPool::command(int argc, const char*const* argv) {
 			Agent* tcp = (Agent*)lookup_obj(argv[5]);
 			Agent* snk = (Agent*)lookup_obj(argv[6]);
 			int size = atoi(argv[7]);
-			void* data = (void *)atol(argv[8]);
+			int pid = atoi(argv[8]);
 
 			int sid = svr_->nodeid();
 			int n = find_server(sid);
 			if (n >= nServer_) 
 				return (TCL_ERROR);
 			
-			double delay = server_[n].job_arrival(obj_id, clnt_, tcp, snk, size, data);
+			double delay = server_[n].job_arrival(obj_id, clnt_, tcp, snk, size, pid);
 				
 			Tcl::instance().resultf("%f", delay);
 			return (TCL_OK);

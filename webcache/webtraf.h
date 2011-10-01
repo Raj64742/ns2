@@ -3,7 +3,7 @@
 /*
  * webtraf.h
  * Copyright (C) 1999 by the University of Southern California
- * $Id: webtraf.h,v 1.18 2005/08/25 18:58:13 johnh Exp $
+ * $Id: webtraf.h,v 1.19 2011/10/01 22:00:14 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -51,11 +51,12 @@
 // only interested in traffic pattern here, we do not want to be bothered 
 // with the burden of transmitting HTTP headers, etc. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.18 2005/08/25 18:58:13 johnh Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.19 2011/10/01 22:00:14 tom_henderson Exp $
 
 #ifndef ns_webtraf_h
 #define ns_webtraf_h
 
+#include <map>
 #include "ranvar.h"
 #include "random.h"
 #include "timer-handler.h"
@@ -123,7 +124,7 @@ public:
 	}
 
 	void launchReq(Node*, void*, int, int);
-	void launchResp(int, Node*, Node*, Agent*, Agent*, int, void*);
+	void launchResp(int, Node*, Node*, Agent*, Agent*, int, int);
 	inline int nTcp() { return nTcp_; }
 	inline int nSink() { return nSink_; }
 	inline int isdebug() { return debug_; }
@@ -137,6 +138,7 @@ public:
 	TcpSink* picksink();
 	// Given sever's node id, find server
 	int find_server(int);
+	void donePage (int);
 
 protected:
 	virtual int command(int argc, const char*const* argv);
@@ -203,6 +205,8 @@ protected:
 	int recycle_page_;
 
 	int dont_recycle_; // Do not recycle tcp agents
+
+	std::map<int, void *> pages_;  // Hold pointers to web pages
 };
 
 #endif // ns_webtraf_h

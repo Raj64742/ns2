@@ -2,7 +2,7 @@
 /*
  * webserver.h
  * Copyright (C) 1999 by the University of Southern California
- * $Id: webserver.h,v 1.5 2005/08/25 18:58:13 johnh Exp $
+ * $Id: webserver.h,v 1.6 2011/10/01 22:00:14 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -68,7 +68,7 @@ struct job_s {
   Agent *tcp;
   Agent *snk;
   int size;
-  void *data;
+  int pid;
   job_s *next;
 };
 
@@ -98,7 +98,7 @@ class WebServer : public TimerHandler{
 	void set_queue_limit(int);
 
 	// Handling incoming job
-	double job_arrival(int, Node *, Agent *, Agent *, int, void *);
+	double job_arrival(int, Node *, Agent *, Agent *, int, int);
 
  private:
 	// The web page pool associated with this server
