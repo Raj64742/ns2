@@ -94,9 +94,6 @@ void TBF::recv(Packet *p, Handler *)
 		return;
 	}
 
-	double tok;
-	tok = getupdatedtokens();
-
 	int pktsize = ch->size()<<3;
 	if (tokens_ >=pktsize) {
 		target_->recv(p);
@@ -133,8 +130,6 @@ void TBF::timeout(int)
 	}
 	
 	Packet *p=q_->deque();
-	double tok;
-	tok = getupdatedtokens();
 	hdr_cmn *ch=hdr_cmn::access(p);
 	int pktsize = ch->size()<<3;
 
