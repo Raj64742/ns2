@@ -213,6 +213,7 @@ int WirelessPhyExt::sendUp(Packet *p) {
 		switch (state) {
 		case TXing:
 			//case 12
+			discard(p, Pr, "TXB");
 			setState(TXing);
 			break;
 		case SEARCHING:
@@ -225,6 +226,7 @@ int WirelessPhyExt::sendUp(Packet *p) {
 				break;
 			} else {
 				//case 1
+				discard(p, Pr, "SXB");
 				setState(SEARCHING);
 				break;
 			}
@@ -232,6 +234,7 @@ int WirelessPhyExt::sendUp(Packet *p) {
 			if (powerMonitor->SINR(power_RX)
 					>= modulation_table[BasicModulationScheme_].SINR_ratio) {
 				//case 4
+				discard(p, Pr, "PXB");
 				if (PHY_DBG)
 					log("PCAP 1st SUCC", "");
 				setState(PreRXing);
@@ -239,6 +242,7 @@ int WirelessPhyExt::sendUp(Packet *p) {
 			} else {
 				// the preamble of pkt_RX is corrupted
 				// case 2
+				discard(pkt_RX, power_RX, "PXB");
 				Packet::free(pkt_RX);
 				power_RX=0;
 				preRX_Timer.cancel();
@@ -258,12 +262,14 @@ int WirelessPhyExt::sendUp(Packet *p) {
 						break;
 					} else {
 						//case 3
+						discard(p, Pr, "PXB");
 						if (PHY_DBG)
 							log("PCAP 2nd FAIL", "");
 						setState(SEARCHING);
 						break;
 					}
 				} else {
+					discard(p, Pr, "PXB");
 					if (PHY_DBG)
 						log("PCAP 2nd FAIL N/A", "");
 					setState(SEARCHING);
@@ -273,6 +279,7 @@ int WirelessPhyExt::sendUp(Packet *p) {
 		case RXing:
 			if (powerMonitor->SINR(power_RX) >= SINR_Th_RX) {
 				//case 8
+				discard(p, Pr, "RXB");
 				if (PHY_DBG)
 					log("DCAP 1st SUCC", "");
 				setState(RXing);
@@ -296,12 +303,14 @@ int WirelessPhyExt::sendUp(Packet *p) {
 						preRX_Timer.sched(HeaderDuration_);
 					} else {
 						// case 10
+						discard(p, Pr, "RXB");
 						if (PHY_DBG)
 							log("DCAP 2nd FAIL", "");
 						setState(RXing);
 					}
 				} else {
 					// case 11
+					discard(p, Pr, "RXB");
 					if (PHY_DBG)
 						log("DCAP 2nd FAIL N/A", "");
 					setState(RXing);
