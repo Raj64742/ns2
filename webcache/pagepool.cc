@@ -37,7 +37,7 @@
  * this exception also makes it possible to release a modified version
  * which carries forward this exception.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.cc,v 1.18 2011/10/05 23:24:55 tom_henderson Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.cc,v 1.19 2011/10/06 00:23:38 tom_henderson Exp $
  */
 
 #include <stdlib.h>
@@ -659,8 +659,9 @@ int ClientPagePool::command(int argc, const char*const* argv)
 			     he != NULL;
 			     he = Tcl_NextHashEntry(&hs)) {
 				char* retVal = Tcl_GetHashKey(namemap_, he);
+				// Convert name to a PageID
 				PageID t1;
-				ClientPage::print_name (retVal, t1);
+				ClientPage::split_name (retVal, t1);
 #ifdef NEED_SUNOS_PROTOS
 				sprintf(p, "%s:%-d ", t1.s_->name(),t1.id_);
 				p += strlen(p);
