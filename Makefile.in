@@ -560,8 +560,11 @@ install-man: force
 install-recursive: force
 	for i in $(SUBDIRS); do ( cd $$i; $(MAKE) install; ) done
 
-clean:
+clean: clean-recursive
 	$(RM) $(CLEANFILES)
+
+clean-recursive:
+	for i in $(SUBDIRS); do ( cd $$i; $(MAKE) clean; ) done
 
 AUTOCONF_GEN = tcl/lib/ns-autoconf.tcl
 distclean: distclean-recursive
