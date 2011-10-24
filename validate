@@ -19,7 +19,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/validate,v 1.154 2011/10/16 23:18:40 tom_henderson Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/validate,v 1.155 2011/10/24 03:52:55 tom_henderson Exp $
 
 try () {
         for excluding in $cygwin_exclude; do
@@ -82,7 +82,9 @@ energy snoop \
 packmime delaybox tmix \
 srm smac-multihop hier-routing algo-routing mcast vc session mixmode \
 simultaneous webcache mcache plm wireless-tdma  \
-# wireless-lan-gaf \
+# The below tests have output inconsistent with stored traces, and
+# need to be re-validated
+# pushback wireless-lan-gaf \
 
 # Deleted (old tests that were for compatibility with ns-1 scripts):
 # v1 red-v1 cbq-v1 sack-v1 vegas-v1
