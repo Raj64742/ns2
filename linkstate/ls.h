@@ -2,7 +2,7 @@
 /*
  * ls.h
  * Copyright (C) 2000 by the University of Southern California
- * $Id: ls.h,v 1.10 2010/03/08 05:54:51 tom_henderson Exp $
+ * $Id: ls.h,v 1.11 2012/05/04 16:24:31 tom_henderson Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -59,7 +59,7 @@
 //  be used to endorse or promote products derived from this software 
 //  without specific prior written permission.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/ls.h,v 1.10 2010/03/08 05:54:51 tom_henderson Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/ls.h,v 1.11 2012/05/04 16:24:31 tom_henderson Exp $
 
 #ifndef ns_ls_h
 #define ns_ls_h
@@ -134,7 +134,7 @@ public:
 		return ib.second ? ib.first : baseMap::end();
 	}
 
-	void eraseAll() { erase(baseMap::begin(), baseMap::end()); }
+	void eraseAll() { this->erase(baseMap::begin(), baseMap::end()); }
 	T* findPtr(Key key) {
 		iterator it = baseMap::find(key);
 		return (it == baseMap::end()) ? (T *)NULL : &((*it).second);
