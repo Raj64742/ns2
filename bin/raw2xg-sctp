@@ -1,6 +1,7 @@
 eval 'exec perl -S $0 ${1+"$@"}'		# -*-perl-*-
     if 0;
 
+package Getopt::Std;
 require 5.001;
 
 ($progname) = ($0 =~ m!([^/]+)$!);
@@ -26,8 +27,8 @@ END
 };
 $usage = "usage: $progname [-a] [trace files...]\n";
 
-require 'getopts.pl';
-&Getopts('aAfFs:m:n:qt:') || usage;
+use Getopt::Std;
+getopts('aAfFs:m:n:qt:') || usage;
 
 $c = 0;
 @pplus = @pminus = ();

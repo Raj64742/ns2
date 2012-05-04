@@ -1,6 +1,7 @@
 eval 'exec perl -I ./bin -S $0 ${1+"$@"}'		#-*-Perl-*-
 	if 0;
 
+package Getopt::Std;
 require 5.001;
 
 ($progname) = ($0 =~ m!([^/]+)$!);
@@ -28,9 +29,7 @@ $opt_f = -1;
 $opt_e = 0;
 
 use Getopt::Std;
-#require 'getopts.pl';
 (getopts('bo:s:d:ef:') && $opt_s != -1) || usage;
-#(&Getopts('bo:s:d:ef:') && $opt_s != -1) || usage;
 
 open(STDOUT, ">$opt_o") if ($opt_o);
 while (<>) {

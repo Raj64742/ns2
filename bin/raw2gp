@@ -1,6 +1,7 @@
 eval 'exec perl -I ./bin -S $0 ${1+"$@"}'		#-*-Perl-*-
 	if 0;
 
+package Getopt::Std;
 require 5.001;
 
 ($progname) = ($0 =~ m!([^/]+)$!);
@@ -21,8 +22,8 @@ can be generated with -s 0.01 -m 90.
 END
 };
 
-require 'getopts.pl';
-&Getopts('ags:m:ql') || usage;
+use Getopt::Std;
+getopts('ags:m:ql') || usage;
 
 # calculate offsets.  Do we need this?
 # $offset = int($modulus / 10 + 1) * 10;
