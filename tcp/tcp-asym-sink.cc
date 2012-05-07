@@ -11,11 +11,7 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *	This product includes software developed by the Daedalus Research
- *	Group at the University of California Berkeley.
- * 4. Neither the name of the University nor of the Laboratory may be used
+ * 3. Neither the name of the University nor of the Laboratory may be used
  *    to endorse or promote products derived from this software without
  *    specific prior written permission.
  *
@@ -58,7 +54,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-asym-sink.cc,v 1.17 2003/08/14 04:26:42 sfloyd Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-asym-sink.cc,v 1.18 2012/05/07 02:30:39 tom_henderson Exp $ (UCB)";
 #endif
 
 #include "template.h"

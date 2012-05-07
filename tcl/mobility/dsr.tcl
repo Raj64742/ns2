@@ -10,11 +10,7 @@
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
-# 3. All advertising materials mentioning features or use of this software
-#    must display the following acknowledgement:
-# 	This product includes software developed by the MASH Research
-# 	Group at the University of California Berkeley.
-# 4. Neither the name of the University nor of the Research Group may be
+# 3. Neither the name of the University nor of the Research Group may be
 #    used to endorse or promote products derived from this software without
 #    specific prior written permission.
 # 
@@ -32,7 +28,7 @@
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 # dsr.tcl
-# $Id: dsr.tcl,v 1.16 2003/12/23 17:36:35 haldar Exp $
+# $Id: dsr.tcl,v 1.17 2012/05/07 02:30:38 tom_henderson Exp $
 
 # ======================================================================
 # Default Script Options

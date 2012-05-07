@@ -11,11 +11,7 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *      This product includes software developed by the Computer Systems
- *      Engineering Group at Lawrence Berkeley Laboratory.
- * 4. Neither the name of the University nor of the Laboratory may be used
+ * 3. Neither the name of the University nor of the Laboratory may be used
  *    to endorse or promote products derived from this software without
  *    specific prior written permission.
  *
@@ -35,7 +31,7 @@
  *
  * basic formats, constants and datatypes for TORA pkts.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tora/tora_packet.h,v 1.3 2000/09/01 03:04:12 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tora/tora_packet.h,v 1.4 2012/05/07 02:30:40 tom_henderson Exp $
  */
 
 #ifndef __tora_packet_h__

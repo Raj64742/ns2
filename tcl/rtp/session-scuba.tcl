@@ -10,11 +10,7 @@
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
-# 3. All advertising materials mentioning features or use of this software
-#    must display the following acknowledgement:
-# 	This product includes software developed by the MASH Research
-# 	Group at the University of California Berkeley.
-# 4. Neither the name of the University nor of the Research Group may be
+# 3. Neither the name of the University nor of the Research Group may be
 #    used to endorse or promote products derived from this software without
 #    specific prior written permission.
 # 
@@ -30,7 +26,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/rtp/session-scuba.tcl,v 1.4 1997/11/29 05:42:53 elan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/rtp/session-scuba.tcl,v 1.5 2012/05/07 02:30:39 tom_henderson Exp $
 #
 
 Class Session/RTP/Scuba -superclass Session/RTP

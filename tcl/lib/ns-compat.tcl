@@ -10,11 +10,7 @@
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
-# 3. All advertising materials mentioning features or use of this software
-#    must display the following acknowledgement:
-# 	This product includes software developed by the MASH Research
-# 	Group at the University of California Berkeley.
-# 4. Neither the name of the University nor of the Research Group may be
+# 3. Neither the name of the University nor of the Research Group may be
 #    used to endorse or promote products derived from this software without
 #    specific prior written permission.
 # 
@@ -30,7 +26,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.47 2004/02/25 22:26:17 yuri Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.48 2012/05/07 02:30:38 tom_henderson Exp $
 #
 
 Class OldSim -superclass Simulator

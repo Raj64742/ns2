@@ -11,11 +11,7 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *      This product includes software developed by the Computer Systems
- *      Engineering Group at Lawrence Berkeley Laboratory.
- * 4. Neither the name of the University nor of the Laboratory may be used
+ * 3. Neither the name of the University nor of the Laboratory may be used
  *    to endorse or promote products derived from this software without
  *    specific prior written permission.
  *
@@ -35,7 +31,7 @@
 
 /* 
    dest_queue.cc
-   $Id: dest_queue.cc,v 1.2 1999/08/12 21:17:11 yaxu Exp $
+   $Id: dest_queue.cc,v 1.3 2012/05/07 02:30:36 tom_henderson Exp $
    
    implement a group of resequencing queues.  one for each source of packets.
    the name destination queue is a misnomer.

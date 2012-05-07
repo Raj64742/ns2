@@ -10,11 +10,7 @@
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
-# 3. All advertising materials mentioning features or use of this software
-#    must display the following acknowledgement:
-#       This product includes software developed by the MASH Research
-#       Group at the University of California Berkeley.
-# 4. Neither the name of the University nor of the Research Group may be
+# 3. Neither the name of the University nor of the Research Group may be
 #    used to endorse or promote products derived from this software without
 #    specific prior written permission.
 #
@@ -32,7 +28,7 @@
 #
 # Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/sat-mixed.tcl,v 1.4 2001/11/06 06:20:10 tomh Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/sat-mixed.tcl,v 1.5 2012/05/07 02:30:38 tom_henderson Exp $
 #
 # Example script that mixes geo satellites with some polar satellites:
 # One plane of Iridium-like satellites, one geo satellite, and two terminals 

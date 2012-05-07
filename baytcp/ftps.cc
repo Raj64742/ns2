@@ -10,11 +10,7 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- * 	This product includes software developed by the Network Research
- * 	Group at Lawrence Berkeley National Laboratory.
- * 4. Neither the name of the University nor of the Laboratory may be used
+ * 3. Neither the name of the University nor of the Laboratory may be used
  *    to endorse or promote products derived from this software without
  *    specific prior written permission.
  * 
@@ -36,7 +32,7 @@
  * It expects to be the target of a FullTcpAgent.
  */
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/ftps.cc,v 1.6 2001/09/06 22:09:41 haldar Exp $ ()";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/ftps.cc,v 1.7 2012/05/07 02:30:36 tom_henderson Exp $ ()";
 
 #include "tcp-full-bay.h"
 #include "tclcl.h"
